@@ -1,0 +1,59 @@
+[project]
+name = "tickets"
+version = "0.0.0"
+requires-python = ">=3.12,<3.13"
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["apps/api", "apps/worker"]
+
+[tool.uv.sources]
+tickets-api = { workspace = true }
+tickets-worker = { workspace = true }
+
+[dependency-groups]
+dev = [
+  "tickets-api",
+  "tickets-worker",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "pytest>=8.3",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=5.0",
+  "asgi-lifespan>=2.1",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+# Лінтимо й форматуємо тільки наш код. Ruff >=0.17 форматує і Python-блоки в .md,
+# тому сторонні папки (.agents, rules, sub-agents, docs) виключені явно.
+include = ["apps/**/*.py", "apps/**/*.pyi"]
+extend-exclude = [".agents", "rules", "sub-agents", "docs", "apps/api/migrations/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RUF", "ASYNC", "S", "PT"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # українська в рядках і коментарях
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = ["apps/api/src", "apps/worker/src"]
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = ["arq.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["apps/api/tests", "apps/worker/tests"]
+markers = ["integration: потребує реальних Postgres і Redis (TEST_DATABASE_URL / TEST_REDIS_URL)"]

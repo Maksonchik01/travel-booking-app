@@ -1,0 +1,150 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tickets API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "description": "Liveness: процес живий. Залежності не перевіряє.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Ready",
+        "description": "Readiness: перевіряє Postgres і Redis. 503, якщо хоч одна залежність недоступна.",
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CheckResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "CheckResult"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "version"
+        ],
+        "title": "HealthResponse"
+      },
+      "ReadinessResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "checks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CheckResult"
+            },
+            "type": "object",
+            "title": "Checks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "checks"
+        ],
+        "title": "ReadinessResponse"
+      }
+    }
+  }
+}

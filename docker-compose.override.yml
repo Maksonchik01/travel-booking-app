@@ -1,0 +1,19 @@
+# Підхоплюється автоматично `docker compose up`: hot reload з примонтованим кодом для api/worker.
+# Web у dev запускаємо на хості (`npm run dev`): Turbopack-вотчер у Docker-VM на macOS
+# не бачить змін файлів, і документація Next 16 радить не тримати dev-сервер у Docker.
+# Prod-подібний повний стек: `make up-full`.
+
+services:
+  api:
+    command: ["uvicorn", "tickets_api.asgi:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/apps/api/src"]
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+    environment:
+      LOG_LEVEL: DEBUG
+
+  worker:
+    command: ["arq", "tickets_worker.settings.WorkerSettings", "--watch", "/app/apps/worker/src"]
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+      - ./apps/worker/src:/app/apps/worker/src
+

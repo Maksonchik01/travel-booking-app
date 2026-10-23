@@ -1,0 +1,68 @@
+# Повний стек для локальної розробки. Запуск: `make up` (або `docker compose up --build`).
+# Секрети — лише в .env (див. .env.example); без .env стек піднімається з дефолтами.
+
+x-app-env: &app-env
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-tickets}:${POSTGRES_PASSWORD:-tickets}@postgres:5432/${POSTGRES_DB:-tickets}
+    REDIS_URL: redis://redis:6379/0
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tickets}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tickets}
+      POSTGRES_DB: ${POSTGRES_DB:-tickets}
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    <<: *app-env
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  api:
+    <<: *app-env
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *app-env
+    build: { context: ., dockerfile: apps/worker/Dockerfile }
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  web:
+    build: { context: ., dockerfile: apps/web/Dockerfile, target: runner }
+    environment:
+      API_URL: http://api:8000
+    ports: ["3000:3000"]
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:

@@ -1,0 +1,6 @@
+.next
+node_modules
+playwright-report
+test-results
+src/components/ui
+next-env.d.ts
