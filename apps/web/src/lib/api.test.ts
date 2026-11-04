@@ -1,6 +1,7 @@
+import type { FlightQuery } from "@tickets/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fetchReadiness } from "./api";
+import { fetchReadiness, searchFlights } from "./api";
 
 const readyBody = {
   status: "ok",
@@ -42,5 +43,44 @@ describe("fetchReadiness", () => {
     mockFetch(async () => new Response("oops", { status: 500 }));
 
     expect(await fetchReadiness()).toEqual({ kind: "unreachable" });
+  });
+});
+
+const query: FlightQuery = {
+  origin: "WAW",
+  destination: "LIS",
+  departure_date: "2026-11-10",
+  return_date: null,
+  flex_days: 0,
+  passengers: { adults: 1, children: 0, infants: 0 },
+  direct_only: false,
+  currency: "EUR",
+  profile: "balanced",
+  origin_radius_km: 0,
+  destination_radius_km: 0,
+  filters: {},
+};
+
+describe("searchFlights", () => {
+  it("надсилає запит і повертає дані", async () => {
+    const fetchMock = vi.fn(async () => Response.json({ offers: [], providers: [] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await searchFlights(query);
+
+    expect(result).toEqual({ ok: true, data: { offers: [], providers: [] } });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toMatch(/\/flights\/search$/);
+    expect(init.method).toBe("POST");
+  });
+
+  it("відрізняє помилку API від недоступності", async () => {
+    mockFetch(async () => new Response("bad", { status: 422 }));
+    expect(await searchFlights(query)).toEqual({ ok: false, reason: "error" });
+
+    mockFetch(async () => {
+      throw new TypeError("fetch failed");
+    });
+    expect(await searchFlights(query)).toEqual({ ok: false, reason: "unreachable" });
   });
 });

@@ -47,7 +47,7 @@ npm run dev -w @tickets/web                                            # web
 ```bash
 make check              # ruff, mypy, eslint, prettier, tsc, pytest, vitest
 make test-integration   # readiness проти справжніх Postgres і Redis
-make e2e                # Playwright smoke
+make e2e                # Playwright smoke (API з mock-провайдером, живу квоту не витрачає)
 ```
 
 Ручна перевірка graceful degradation: зупини Redis (`docker compose stop redis`).

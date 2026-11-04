@@ -8,3 +8,27 @@ type Schemas = components["schemas"];
 
 export type HealthResponse = Schemas["HealthResponse"];
 export type ReadinessResponse = Schemas["ReadinessResponse"];
+
+export type FlightQuery = Schemas["FlightQuery"];
+export type Passengers = Schemas["Passengers"];
+export type Offer = Schemas["Offer"];
+export type Leg = Schemas["Leg"];
+export type Segment = Schemas["Segment"];
+export type Layover = Schemas["Layover"];
+export type ProviderStatus = Schemas["ProviderStatus"];
+export type FlightSearchResult = Schemas["FlightSearchResult"];
+export type CalendarDay = Schemas["CalendarDay"];
+export type CalendarResult = Schemas["CalendarResult"];
+export type Profile = FlightQuery["profile"];
+export type ScoringResult = Schemas["ScoringResult"];
+export type OfferScore = Schemas["OfferScore"];
+export type ScoreBreakdown = Schemas["ScoreBreakdown"];
+export type RiskPenalty = Schemas["RiskPenalty"];
+export type ScoreWarning = Schemas["ScoreWarning"];
+export type Pick = Schemas["Pick"];
+export type PickLabel = Pick["label"];
+export type Place = Schemas["Place"];
+export type OfferFilters = Schemas["OfferFilters"];
+export type DeparturePeriod = NonNullable<OfferFilters["departure_periods"]>[number];
+export type SearchFacets = Schemas["SearchFacets"];
+export type AirlineFacet = Schemas["AirlineFacet"];

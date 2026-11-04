@@ -6,6 +6,9 @@ import structlog
 # Логери, які uvicorn і arq налаштовують власними обробниками. Перенаправляємо їх у наш,
 # інакше рядки дублюються або виходять у несумісному форматі.
 _THIRD_PARTY_LOGGERS = ("uvicorn", "uvicorn.error", "uvicorn.access", "arq")
+# httpx/httpcore на INFO логують повні URL запитів, а деякі API (SerpApi) приймають
+# ключ лише в query string. Тож ці логери — не нижче WARNING.
+_URL_LOGGERS = ("httpx", "httpcore")
 
 
 def configure_logging(level: str = "INFO", *, json: bool = False) -> None:
@@ -40,3 +43,5 @@ def configure_logging(level: str = "INFO", *, json: bool = False) -> None:
         logger = logging.getLogger(name)
         logger.handlers.clear()
         logger.propagate = True
+    for name in _URL_LOGGERS:
+        logging.getLogger(name).setLevel(max(logging.WARNING, root.level))

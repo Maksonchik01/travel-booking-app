@@ -5,11 +5,25 @@ import type { ApiStatus } from "@/lib/api";
 
 const CHECK_KEYS = ["database", "redis"] as const;
 
-export function ServiceStatus({ status }: { status: ApiStatus }) {
+export function ServiceStatus({
+  status,
+  compact = false,
+}: {
+  status: ApiStatus;
+  compact?: boolean;
+}) {
   const t = useTranslations("status");
 
   if (status.kind === "unreachable") {
     return <Badge variant="destructive">{t("unreachable")}</Badge>;
+  }
+
+  if (compact) {
+    return (
+      <Badge variant={status.kind === "ok" ? "secondary" : "destructive"}>
+        {t("title")}: {t(status.kind)}
+      </Badge>
+    );
   }
 
   return (

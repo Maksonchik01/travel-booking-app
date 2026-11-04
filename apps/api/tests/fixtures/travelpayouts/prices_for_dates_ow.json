@@ -1,0 +1,79 @@
+{
+  "data": [
+    {
+      "flight_number": "4083",
+      "link": "/search/WAW1312BCN1?t=FR17971428001797153900000185WMIBCN_9e5e360ff7fb0a59a8c3600e7ee46ea2_2206&search_date=30102026&expected_price_uuid=01a18d83-7f7e-8030-25ea-45e370af5434&static_fare_key=TY%7CP1%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=cUTjpVNjSRJXNQ8Hcqw7CA&expected_price_source=share&expected_price_currency=eur&expected_price=24",
+      "origin_airport": "WMI",
+      "destination_airport": "BCN",
+      "departure_at": "2026-12-13T06:20:00+01:00",
+      "airline": "FR",
+      "destination": "BCN",
+      "origin": "WAW",
+      "price": 24,
+      "gate": "Kiwi.com",
+      "return_transfers": 0,
+      "duration": 185,
+      "duration_to": 185,
+      "duration_back": 0,
+      "transfers": 0
+    },
+    {
+      "flight_number": "4348",
+      "link": "/search/WAW1012BCN1?t=FR17968809001797120600003995WAWSOFBCN_de93316ce31cf3e33bbf2b6397b013eb_4189&search_date=30102026&expected_price_uuid=01a18c83-77fa-8030-ee9b-c860431b9b61&static_fare_key=TY%7CP1%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=y8AV8oAIHxx5ZB_JrLL4Yw&expected_price_source=share&expected_price_currency=eur&expected_price=47",
+      "origin_airport": "WAW",
+      "destination_airport": "BCN",
+      "departure_at": "2026-12-10T05:35:00+01:00",
+      "airline": "W6",
+      "destination": "BCN",
+      "origin": "WAW",
+      "price": 47,
+      "gate": "Clickavia",
+      "return_transfers": 0,
+      "duration": 3995,
+      "duration_to": 295,
+      "duration_back": 0,
+      "transfers": 1
+    },
+    {
+      "flight_number": "4083",
+      "link": "/search/WAW0512BCN1?t=FR17964846001796495700000185WMIBCN_d7b40106818ba270056db10a2f430c2e_2675&search_date=02112026&expected_price_uuid=01a19c2a-5251-8030-e675-1344af6aa56a&static_fare_key=TY%7CP1%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=xzW4-IQ1njT4W80vIPoqiA&expected_price_source=share&expected_price_currency=eur&expected_price=29",
+      "origin_airport": "WMI",
+      "destination_airport": "BCN",
+      "departure_at": "2026-12-05T15:30:00+01:00",
+      "airline": "FR",
+      "destination": "BCN",
+      "origin": "WAW",
+      "price": 29,
+      "gate": "E Bilet",
+      "return_transfers": 0,
+      "duration": 185,
+      "duration_to": 185,
+      "duration_back": 0,
+      "transfers": 0
+    },
+    {
+      "flight_number": "1475",
+      "link": "/search/WAW0112BCN1?t=W617961060001796117400000190WAWBCN_df45ea9bfa9847397cbd6215371ec525_4197&search_date=02112026&expected_price_uuid=01a19d40-1191-8030-a2fa-de8075979100&static_fare_key=TY%7CP1%7CH0%7CL0%7CCH0%7CR0%7CTBC0&itinerary_key=7-Q3sa9qr5gawXs23hwkOQ&expected_price_source=share&expected_price_currency=eur&expected_price=46",
+      "origin_airport": "WAW",
+      "destination_airport": "BCN",
+      "departure_at": "2026-12-01T06:20:00+01:00",
+      "airline": "W6",
+      "destination": "BCN",
+      "origin": "WAW",
+      "price": 46,
+      "gate": "Kupi.com",
+      "return_transfers": 0,
+      "duration": 190,
+      "duration_to": 190,
+      "duration_back": 0,
+      "transfers": 0
+    }
+  ],
+  "currency": "eur",
+  "success": true,
+  "_meta": {
+    "recorded_at": "2026-11-02",
+    "note": "Реальні відповіді Travelpayouts Data API, скорочені до кількох рядків. Секретів немає (токен — лише в заголовку запиту).",
+    "request": "origin=WAW destination=BCN departure_at=2026-12 one_way=true currency=eur"
+  }
+}

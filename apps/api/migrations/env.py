@@ -4,6 +4,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy.engine import Connection
 from tickets_api.core.config import get_settings
+from tickets_api.db import models  # noqa: F401 — реєструє таблиці в Base.metadata
 from tickets_api.db.base import Base
 from tickets_api.db.session import create_engine
 

@@ -1,0 +1,33 @@
+# Параметри скорингу перельотів. Усі суми — у валюті `currency`.
+# Пропозиції в іншій валюті не оцінюються (немає курсів), лише показуються.
+#
+#   cost = price + λ_time · (total_hours − min_hours) + λ_stop · stops + штрафи ризику
+#
+# Багаж у вартість НЕ входить (рішення власника продукту): його умови — лише попередження.
+# Невідомі деталі пересадок — теж лише попередження, без штрафу.
+
+currency = "EUR"
+
+[profiles.budget]          # «найдешевше, хоч з двома пересадками»
+lambda_time_per_hour = 5
+lambda_stop = 10
+
+[profiles.balanced]
+lambda_time_per_hour = 15
+lambda_stop = 30
+
+[profiles.time_is_money]   # «швидше, не шкода грошей»
+lambda_time_per_hour = 40
+lambda_stop = 60
+
+[penalties]
+short_layover = 40         # за кожну пересадку коротшу за short_layover_min
+overnight_layover = 30     # за кожну нічну пересадку
+self_transfer = 50         # за кожну пересадку на окремих квитках
+night_departure = 20       # за кожен напрямок з вильотом уночі
+
+[thresholds]
+short_layover_min = 60     # строго менше — штраф
+long_layover_min = 480     # строго більше — попередження
+night_start_hour = 0       # виліт у [night_start_hour, night_end_hour) за місцевим часом
+night_end_hour = 6

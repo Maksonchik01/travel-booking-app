@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "recorded_at": "2026-11-02",
+    "request": "як rt + departure_token першого вильоту (W6 1593)",
+    "note": "Реальна відповідь SerpApi Google Flights, скорочена. search_metadata зведено до google_flights_url; ключа тут немає."
+  },
+  "search_metadata": {
+    "status": "Success",
+    "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=EUR&tfs=CBwQAhpAEgoyMDI2LTEyLTA1IiAKA1dBVxIKMjAyNi0xMi0wNRoDTElTKgJXNjIEMTU5M2oHCAESA1dBV3IHCAESA0xJUxoeEgoyMDI2LTEyLTEyagcIARIDTElTcgcIARIDV0FXQAFIAXABmAEB&tfu=EgIIAQ"
+  },
+  "other_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Humberto Delgado Airport",
+            "id": "LIS",
+            "time": "2026-12-12 17:30"
+          },
+          "arrival_airport": {
+            "name": "Warsaw Chopin Airport",
+            "id": "WAW",
+            "time": "2026-12-12 22:30"
+          },
+          "duration": 240,
+          "airplane": "Airbus A321neo",
+          "airline": "Wizz Air",
+          "travel_class": "Economy",
+          "flight_number": "W6 1594",
+          "extensions": [
+            "Carbon emissions estimate: 171 kg"
+          ],
+          "often_delayed_by_over_30_min": true
+        }
+      ],
+      "total_duration": 240,
+      "carbon_emissions": {
+        "this_flight": 171000,
+        "typical_for_this_route": 253000,
+        "difference_percent": -32
+      },
+      "price": 152,
+      "type": "Round trip",
+      "booking_token": "WyJDalJJU214R2FFcGhhbUpLUTJkQlFUbFBVVkZDUnkwdExTMHRMUzB0TFc5cmJHWXhNRUZCUVVGQlIzSnZObkZqUlVSSFdtTkJFZ1pYTmpFMU9UUWFDZ2lWZGhBQ0dnTkZWVkk0SEhDdmhBRT0iLFtbIldBVyIsIjIwMjYtMTItMDUiLCJMSVMiLG51bGwsIlc2IiwiMTU5MyJdXSxbWyJMSVMiLCIyMDI2LTEyLTEyIiwiV0FXIixudWxsLCJXNiIsIjE1OTQiXV1d"
+    }
+  ]
+}

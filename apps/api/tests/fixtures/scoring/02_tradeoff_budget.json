@@ -1,0 +1,104 @@
+{
+  "description": "Ті самі варіанти, профіль budget: час і пересадки дешеві — баланс зсувається до C.",
+  "profile": "budget",
+  "offers": [
+    {
+      "id": "A",
+      "price": 100,
+      "outbound": {
+        "departure_at": "2026-11-10T08:00:00+01:00",
+        "duration_min": 600,
+        "stops": 2,
+        "layovers": [
+          [
+            "FRA",
+            120,
+            false,
+            false
+          ],
+          [
+            "VIE",
+            90,
+            false,
+            false
+          ]
+        ]
+      },
+      "baggage_included": true
+    },
+    {
+      "id": "B",
+      "price": 180,
+      "outbound": {
+        "departure_at": "2026-11-10T10:00:00+01:00",
+        "duration_min": 180,
+        "stops": 0,
+        "layovers": []
+      },
+      "baggage_included": true
+    },
+    {
+      "id": "C",
+      "price": 130,
+      "outbound": {
+        "departure_at": "2026-11-10T09:00:00+01:00",
+        "duration_min": 300,
+        "stops": 1,
+        "layovers": [
+          [
+            "MUC",
+            75,
+            false,
+            false
+          ]
+        ]
+      },
+      "baggage_included": true
+    }
+  ],
+  "expected": {
+    "min_duration_min": 180,
+    "breakdowns": {
+      "A": {
+        "time_penalty": "35.00",
+        "stop_penalty": "20.00",
+        "risk_total": "0.00",
+        "total": "155.00"
+      },
+      "B": {
+        "time_penalty": "0.00",
+        "stop_penalty": "0.00",
+        "risk_total": "0.00",
+        "total": "180.00"
+      },
+      "C": {
+        "time_penalty": "10.00",
+        "stop_penalty": "10.00",
+        "risk_total": "0.00",
+        "total": "150.00"
+      }
+    },
+    "pareto": [
+      "A",
+      "B",
+      "C"
+    ],
+    "picks": [
+      {
+        "label": "cheapest",
+        "id": "A",
+        "also": []
+      },
+      {
+        "label": "balanced",
+        "id": "C",
+        "also": []
+      },
+      {
+        "label": "fastest",
+        "id": "B",
+        "also": []
+      }
+    ]
+  }
+}

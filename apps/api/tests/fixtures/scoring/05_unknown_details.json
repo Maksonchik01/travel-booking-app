@@ -1,0 +1,24 @@
+{
+  "description": "Кешоване джерело: невідомі деталі пересадок і багажу — лише попередження, без штрафів; невідома тривалість — поза fastest/balanced.",
+  "profile": "balanced",
+  "offers": [
+    {"id": "F", "price": 120, "outbound": {"departure_at": "2026-11-10T12:00:00+01:00", "duration_min": 240, "stops": 1, "layovers": null}, "baggage_included": null},
+    {"id": "G", "price": 99, "outbound": {"departure_at": "2026-11-10T14:00:00+01:00", "duration_min": null, "stops": 0, "layovers": []}, "baggage_included": null},
+    {"id": "H", "price": 150, "outbound": {"departure_at": "2026-11-10T16:00:00+01:00", "duration_min": 200, "stops": 0, "layovers": []}, "baggage_included": true}
+  ],
+  "expected": {
+    "min_duration_min": 200,
+    "breakdowns": {
+      "F": {"time_penalty": "10.00", "stop_penalty": "30.00", "risk_total": "0.00", "total": "160.00", "risks": [],
+            "warnings": [["layover_details_unknown", "outbound", null], ["baggage_unknown", null, null]]},
+      "G": {"time_penalty": null, "stop_penalty": "0.00", "risk_total": "0.00", "total": null, "risks": [],
+            "warnings": [["baggage_unknown", null, null], ["duration_unknown", null, null]]},
+      "H": {"time_penalty": "0.00", "stop_penalty": "0.00", "risk_total": "0.00", "total": "150.00", "risks": [], "warnings": []}
+    },
+    "pareto": ["F", "H"],
+    "picks": [
+      {"label": "cheapest", "id": "G", "also": []},
+      {"label": "balanced", "id": "H", "also": ["fastest"]}
+    ]
+  }
+}

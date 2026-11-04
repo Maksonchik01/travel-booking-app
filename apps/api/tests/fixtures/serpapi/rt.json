@@ -1,0 +1,295 @@
+{
+  "_meta": {
+    "recorded_at": "2026-11-02",
+    "request": "departure_id=WAW arrival_id=LIS outbound_date=2026-12-05 return_date=2026-12-12 type=1 currency=EUR gl=pl",
+    "note": "Реальна відповідь SerpApi Google Flights, скорочена. search_metadata зведено до google_flights_url; ключа тут немає."
+  },
+  "search_metadata": {
+    "status": "Success",
+    "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTEyLTA1agcIARIDV0FXcgcIARIDTElTGh4SCjIwMjYtMTItMTJqBwgBEgNMSVNyBwgBEgNXQVdAAUgBcAGYAQE&tfu=EgIIAQ"
+  },
+  "best_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Warsaw Chopin Airport",
+            "id": "WAW",
+            "time": "2026-12-05 13:25"
+          },
+          "arrival_airport": {
+            "name": "Humberto Delgado Airport",
+            "id": "LIS",
+            "time": "2026-12-05 16:50"
+          },
+          "duration": 265,
+          "airplane": "Airbus A321neo",
+          "airline": "Wizz Air",
+          "travel_class": "Economy",
+          "flight_number": "W6 1593",
+          "extensions": [
+            "Carbon emissions estimate: 171 kg"
+          ]
+        }
+      ],
+      "total_duration": 265,
+      "carbon_emissions": {
+        "this_flight": 172000,
+        "typical_for_this_route": 251000,
+        "difference_percent": -31
+      },
+      "price": 152,
+      "type": "Round trip",
+      "departure_token": "WyJDalJJV1c5T2JtMDRSa1EwZGxsQlFVbDZhV2RDUnkwdExTMHRMUzB0TFhsc1ptMHhNRUZCUVVGQlIzSnZObTFSUVhJellubEJFZ1pYTmpFMU9UTWFDZ2lWZGhBQ0dnTkZWVkk0SEhDdmhBRT0iLFtbIldBVyIsIjIwMjYtMTItMDUiLCJMSVMiLG51bGwsIlc2IiwiMTU5MyJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Warsaw Chopin Airport",
+            "id": "WAW",
+            "time": "2026-12-05 06:35"
+          },
+          "arrival_airport": {
+            "name": "Aéroport de Paris-Charles de Gaulle",
+            "id": "CDG",
+            "time": "2026-12-05 09:20"
+          },
+          "duration": 165,
+          "airplane": "Airbus A220-300 Passenger",
+          "airline": "Air France",
+          "travel_class": "Economy",
+          "flight_number": "AF 1247",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 137 kg"
+          ]
+        },
+        {
+          "departure_airport": {
+            "name": "Aéroport de Paris-Charles de Gaulle",
+            "id": "CDG",
+            "time": "2026-12-05 13:25"
+          },
+          "arrival_airport": {
+            "name": "Humberto Delgado Airport",
+            "id": "LIS",
+            "time": "2026-12-05 15:10"
+          },
+          "duration": 165,
+          "airplane": "Airbus A320",
+          "airline": "Air France",
+          "travel_class": "Economy",
+          "flight_number": "AF 1624",
+          "legroom": "29 in",
+          "extensions": [
+            "Below average legroom (29 in)",
+            "Wi-Fi for a fee",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 134 kg"
+          ]
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 245,
+          "name": "Aéroport de Paris-Charles de Gaulle",
+          "id": "CDG"
+        }
+      ],
+      "total_duration": 575,
+      "carbon_emissions": {
+        "this_flight": 272000,
+        "typical_for_this_route": 251000,
+        "difference_percent": 8
+      },
+      "price": 163,
+      "type": "Round trip",
+      "departure_token": "WyJDalJJV1c5T2JtMDRSa1EwZGxsQlFVbDZhV2RDUnkwdExTMHRMUzB0TFhsc1ptMHhNRUZCUVVGQlIzSnZObTFSUVhJellubEJFZzFCUmpFeU5EZDhRVVl4TmpJMEdnb0k4MzRRQWhvRFJWVlNPQnh3bEk0QiIsW1siV0FXIiwiMjAyNi0xMi0wNSIsIkNERyIsbnVsbCwiQUYiLCIxMjQ3Il0sWyJDREciLCIyMDI2LTEyLTA1IiwiTElTIixudWxsLCJBRiIsIjE2MjQiXV1d"
+    }
+  ],
+  "other_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Warsaw Chopin Airport",
+            "id": "WAW",
+            "time": "2026-12-05 19:40"
+          },
+          "arrival_airport": {
+            "name": "Amsterdam Airport Schiphol",
+            "id": "AMS",
+            "time": "2026-12-05 21:45"
+          },
+          "duration": 125,
+          "airplane": "Embraer 195 E2",
+          "airline": "KLM",
+          "travel_class": "Economy",
+          "flight_number": "KL 1318",
+          "legroom": "29 in",
+          "extensions": [
+            "Below average legroom (29 in)",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 102 kg"
+          ],
+          "plane_and_crew_by": "KLM Cityhopper"
+        },
+        {
+          "departure_airport": {
+            "name": "Amsterdam Airport Schiphol",
+            "id": "AMS",
+            "time": "2026-12-06 08:30"
+          },
+          "arrival_airport": {
+            "name": "Humberto Delgado Airport",
+            "id": "LIS",
+            "time": "2026-12-06 10:30"
+          },
+          "duration": 180,
+          "airplane": "Airbus A321neo",
+          "airline": "KLM",
+          "travel_class": "Economy",
+          "flight_number": "KL 1579",
+          "legroom": "29 in",
+          "extensions": [
+            "Below average legroom (29 in)",
+            "Free Wi-Fi",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 120 kg"
+          ]
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 645,
+          "name": "Amsterdam Airport Schiphol",
+          "id": "AMS"
+        }
+      ],
+      "total_duration": 950,
+      "carbon_emissions": {
+        "this_flight": 223000,
+        "typical_for_this_route": 251000,
+        "difference_percent": -11
+      },
+      "price": 163,
+      "type": "Round trip",
+      "departure_token": "WyJDalJJV1c5T2JtMDRSa1EwZGxsQlFVbDZhV2RDUnkwdExTMHRMUzB0TFhsc1ptMHhNRUZCUVVGQlIzSnZObTFSUVhJellubEJFZzFMVERFek1UaDhTMHd4TlRjNUdnb0lvMzhRQWhvRFJWVlNPQnh3eW80QiIsW1siV0FXIiwiMjAyNi0xMi0wNSIsIkFNUyIsbnVsbCwiS0wiLCIxMzE4Il0sWyJBTVMiLCIyMDI2LTEyLTA2IiwiTElTIixudWxsLCJLTCIsIjE1NzkiXV1d"
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Warsaw Chopin Airport",
+            "id": "WAW",
+            "time": "2026-12-05 17:25"
+          },
+          "arrival_airport": {
+            "name": "Aéroport de Paris-Charles de Gaulle",
+            "id": "CDG",
+            "time": "2026-12-05 20:00"
+          },
+          "duration": 155,
+          "airplane": "Airbus A220-300 Passenger",
+          "airline": "Air France",
+          "travel_class": "Economy",
+          "flight_number": "AF 1047",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 137 kg"
+          ]
+        },
+        {
+          "departure_airport": {
+            "name": "Aéroport de Paris-Charles de Gaulle",
+            "id": "CDG",
+            "time": "2026-12-05 20:45"
+          },
+          "arrival_airport": {
+            "name": "Humberto Delgado Airport",
+            "id": "LIS",
+            "time": "2026-12-05 22:25"
+          },
+          "duration": 160,
+          "airplane": "Airbus A220-300 Passenger",
+          "airline": "Air France",
+          "travel_class": "Economy",
+          "flight_number": "AF 1124",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "In-seat USB outlet",
+            "Carbon emissions estimate: 149 kg"
+          ]
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 45,
+          "name": "Aéroport de Paris-Charles de Gaulle",
+          "id": "CDG"
+        }
+      ],
+      "total_duration": 360,
+      "carbon_emissions": {
+        "this_flight": 287000,
+        "typical_for_this_route": 251000,
+        "difference_percent": 14
+      },
+      "price": 186,
+      "type": "Round trip",
+      "departure_token": "WyJDalJJV1c5T2JtMDRSa1EwZGxsQlFVbDZhV2RDUnkwdExTMHRMUzB0TFhsc1ptMHhNRUZCUVVGQlIzSnZObTFSUVhJellubEJFZzFCUmpFd05EZDhRVVl4TVRJMEdnc0l6SkFCRUFJYUEwVlZVamdjY1AyaEFRPT0iLFtbIldBVyIsIjIwMjYtMTItMDUiLCJDREciLG51bGwsIkFGIiwiMTA0NyJdLFsiQ0RHIiwiMjAyNi0xMi0wNSIsIkxJUyIsbnVsbCwiQUYiLCIxMTI0Il1dXQ=="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Warsaw Chopin Airport",
+            "id": "WAW",
+            "time": "2026-12-05 13:00"
+          },
+          "arrival_airport": {
+            "name": "Humberto Delgado Airport",
+            "id": "LIS",
+            "time": "2026-12-05 16:25"
+          },
+          "duration": 265,
+          "airplane": "Airbus A320neo",
+          "airline": "Tap Air Portugal",
+          "travel_class": "Economy",
+          "flight_number": "TP 1205",
+          "ticket_also_sold_by": [
+            "LOT"
+          ],
+          "legroom": "28 in",
+          "extensions": [
+            "Below average legroom (28 in)",
+            "Carbon emissions estimate: 198 kg"
+          ]
+        }
+      ],
+      "total_duration": 265,
+      "carbon_emissions": {
+        "this_flight": 199000,
+        "typical_for_this_route": 251000,
+        "difference_percent": -21
+      },
+      "price": 355,
+      "type": "Round trip",
+      "departure_token": "WyJDalJJV1c5T2JtMDRSa1EwZGxsQlFVbDZhV2RDUnkwdExTMHRMUzB0TFhsc1ptMHhNRUZCUVVGQlIzSnZObTFSUVhJellubEJFZ1pVVURFeU1EVWFDd2pibEFJUUFob0RSVlZTT0J4dy9iVUMiLFtbIldBVyIsIjIwMjYtMTItMDUiLCJMSVMiLG51bGwsIlRQIiwiMTIwNSJdXV0="
+    }
+  ],
+  "price_insights": {
+    "lowest_price": 152,
+    "price_level": "low",
+    "typical_price_range": [
+      155,
+      360
+    ]
+  }
+}

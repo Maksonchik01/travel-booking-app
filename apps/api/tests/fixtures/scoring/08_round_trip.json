@@ -1,0 +1,27 @@
+{
+  "description": "Туди-назад: штрафи рахуються по обох напрямках; нічний виліт назад (00:45) і нічна пересадка в CDG.",
+  "profile": "balanced",
+  "offers": [
+    {"id": "L", "price": 210,
+     "outbound": {"departure_at": "2026-11-10T10:00:00+01:00", "duration_min": 200, "stops": 0, "layovers": []},
+     "inbound": {"departure_at": "2026-11-17T00:45:00+00:00", "duration_min": 400, "stops": 1, "layovers": [["CDG", 300, true, false]]},
+     "baggage_included": true},
+    {"id": "M", "price": 260,
+     "outbound": {"departure_at": "2026-11-10T12:00:00+01:00", "duration_min": 200, "stops": 0, "layovers": []},
+     "inbound": {"departure_at": "2026-11-17T15:00:00+00:00", "duration_min": 250, "stops": 0, "layovers": []},
+     "baggage_included": true}
+  ],
+  "expected": {
+    "min_duration_min": 450,
+    "breakdowns": {
+      "L": {"time_penalty": "37.50", "stop_penalty": "30.00", "risk_total": "50.00", "total": "327.50",
+            "risks": [["night_departure", "inbound", "LIS"], ["overnight_layover", "inbound", "CDG"]], "warnings": []},
+      "M": {"time_penalty": "0.00", "stop_penalty": "0.00", "risk_total": "0.00", "total": "260.00", "risks": [], "warnings": []}
+    },
+    "pareto": ["L", "M"],
+    "picks": [
+      {"label": "cheapest", "id": "L", "also": []},
+      {"label": "balanced", "id": "M", "also": ["fastest"]}
+    ]
+  }
+}

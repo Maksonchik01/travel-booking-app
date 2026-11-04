@@ -44,10 +44,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/flights/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Flights
+         * @description Пошук у всіх увімкнених провайдерах. Ціни кешовані: дивись collected_at / found_at.
+         *
+         *     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
+         */
+        post: operations["search_flights_flights_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/flights/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Price Calendar
+         * @description Найнижча відома ціна на кожен день місяця (в один бік).
+         */
+        get: operations["price_calendar_flights_calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/places": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Places
+         * @description Автодоповнення міст і аеропортів з локального довідника (без звернень до провайдерів).
+         */
+        get: operations["search_places_places_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AirlineFacet */
+        AirlineFacet: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string | null;
+            /** Offers */
+            offers: number;
+        };
+        /**
+         * CalendarDay
+         * @description Найнижча відома ціна на конкретну дату вильоту.
+         */
+        CalendarDay: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Price */
+            price: number;
+            /** Currency */
+            currency: string;
+            /** Stops */
+            stops?: number | null;
+            /** Airline */
+            airline?: string | null;
+            /** Source */
+            source: string;
+            /**
+             * Collected At
+             * Format: date-time
+             */
+            collected_at: string;
+            /** Found At */
+            found_at?: string | null;
+            /** Found On */
+            found_on?: string | null;
+        };
+        /** CalendarResult */
+        CalendarResult: {
+            /** Days */
+            days: components["schemas"]["CalendarDay"][];
+            /** Providers */
+            providers: components["schemas"]["ProviderStatus"][];
+        };
         /** CheckResult */
         CheckResult: {
             /**
@@ -60,6 +168,80 @@ export interface components {
             /** Error */
             error?: string | null;
         };
+        /** FlightQuery */
+        FlightQuery: {
+            /** Origin */
+            origin: string;
+            /** Destination */
+            destination: string;
+            /**
+             * Departure Date
+             * Format: date
+             */
+            departure_date: string;
+            /** Return Date */
+            return_date?: string | null;
+            /**
+             * Flex Days
+             * @default 0
+             */
+            flex_days: number;
+            /**
+             * @default {
+             *       "adults": 1,
+             *       "children": 0,
+             *       "infants": 0
+             *     }
+             */
+            passengers: components["schemas"]["Passengers"];
+            /**
+             * Direct Only
+             * @default false
+             */
+            direct_only: boolean;
+            /**
+             * Currency
+             * @default EUR
+             */
+            currency: string;
+            /**
+             * Profile
+             * @default balanced
+             * @enum {string}
+             */
+            profile: "budget" | "balanced" | "time_is_money";
+            /**
+             * Origin Radius Km
+             * @default 0
+             */
+            origin_radius_km: number;
+            /**
+             * Destination Radius Km
+             * @default 0
+             */
+            destination_radius_km: number;
+            /**
+             * @default {
+             *       "airlines": [],
+             *       "departure_periods": []
+             *     }
+             */
+            filters: components["schemas"]["OfferFilters"];
+        };
+        /** FlightSearchResult */
+        FlightSearchResult: {
+            /** Offers */
+            offers: components["schemas"]["Offer"][];
+            /** Providers */
+            providers: components["schemas"]["ProviderStatus"][];
+            scoring: components["schemas"]["ScoringResult"];
+            facets: components["schemas"]["SearchFacets"];
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** HealthResponse */
         HealthResponse: {
             /**
@@ -69,6 +251,185 @@ export interface components {
             status: "ok";
             /** Version */
             version: string;
+        };
+        /** Layover */
+        Layover: {
+            /** Airport */
+            airport: string;
+            /** Duration Min */
+            duration_min: number;
+            /** Overnight */
+            overnight: boolean;
+            /** Self Transfer */
+            self_transfer: boolean | null;
+        };
+        /**
+         * Leg
+         * @description Один напрямок подорожі (туди або назад).
+         */
+        Leg: {
+            /** Origin */
+            origin: string;
+            /** Destination */
+            destination: string;
+            /**
+             * Departure At
+             * Format: date-time
+             */
+            departure_at: string;
+            /** Arrival At */
+            arrival_at?: string | null;
+            /** Duration Min */
+            duration_min?: number | null;
+            /** Stops */
+            stops: number;
+            /** Segments */
+            segments?: components["schemas"]["Segment"][] | null;
+            /** Layovers */
+            layovers?: components["schemas"]["Layover"][] | null;
+            /** Flight Number */
+            flight_number?: string | null;
+        };
+        /** Offer */
+        Offer: {
+            /** Id */
+            id: string;
+            /** Source */
+            source: string;
+            /** Price */
+            price: number;
+            /** Currency */
+            currency: string;
+            outbound: components["schemas"]["Leg"];
+            inbound?: components["schemas"]["Leg"] | null;
+            /** Airlines */
+            airlines: string[];
+            /**
+             * Details Level
+             * @enum {string}
+             */
+            details_level: "full" | "summary";
+            /** Baggage Included */
+            baggage_included?: boolean | null;
+            /**
+             * Collected At
+             * Format: date-time
+             */
+            collected_at: string;
+            /** Found At */
+            found_at?: string | null;
+            /** Found On */
+            found_on?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Deep Link */
+            deep_link?: string | null;
+            /** Seller */
+            seller?: string | null;
+            /** Reported Total Duration Min */
+            reported_total_duration_min?: number | null;
+            /** Stops */
+            readonly stops: number;
+            /** Total Duration Min */
+            readonly total_duration_min: number | null;
+        };
+        /**
+         * OfferFilters
+         * @description Фільтри видачі. Застосовуються ПІСЛЯ провайдерів: до запиту й кешу не входять.
+         *
+         *     Невідоме значення (тривалість, авіакомпанія) не відсікає пропозицію — як і в
+         *     скорингу, «невідомо» не означає «погано» (ADR 0004).
+         */
+        OfferFilters: {
+            /** Max Stops */
+            max_stops?: number | null;
+            /** Airlines */
+            airlines?: string[];
+            /** Departure Periods */
+            departure_periods?: ("night" | "morning" | "afternoon" | "evening")[];
+            /** Max Duration Hours */
+            max_duration_hours?: number | null;
+        };
+        /** OfferScore */
+        OfferScore: {
+            /** Offer Key */
+            offer_key: string;
+            breakdown: components["schemas"]["ScoreBreakdown"];
+            /** Warnings */
+            warnings: components["schemas"]["ScoreWarning"][];
+            /** Pareto Optimal */
+            pareto_optimal: boolean;
+        };
+        /** Passengers */
+        Passengers: {
+            /**
+             * Adults
+             * @default 1
+             */
+            adults: number;
+            /**
+             * Children
+             * @default 0
+             */
+            children: number;
+            /**
+             * Infants
+             * @default 0
+             */
+            infants: number;
+        };
+        /** Pick */
+        Pick: {
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "cheapest" | "fastest" | "balanced";
+            /** Offer Key */
+            offer_key: string;
+            /**
+             * Also
+             * @default []
+             */
+            also: ("cheapest" | "fastest" | "balanced")[];
+        };
+        /**
+         * Place
+         * @description Варіант автодоповнення: аеропорт або місто, де жоден аеропорт не має коду міста.
+         */
+        Place: {
+            /** Code */
+            code: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "airport" | "city";
+            /** Name */
+            name: string;
+            /** City Name */
+            city_name: string;
+            /** Country Name */
+            country_name: string;
+            /** Airports */
+            airports: string[];
+        };
+        /** ProviderStatus */
+        ProviderStatus: {
+            /** Provider */
+            provider: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "error" | "timeout" | "rate_limited";
+            /** Error */
+            error?: string | null;
+            /**
+             * Results
+             * @default 0
+             */
+            results: number;
         };
         /** ReadinessResponse */
         ReadinessResponse: {
@@ -81,6 +442,117 @@ export interface components {
             checks: {
                 [key: string]: components["schemas"]["CheckResult"];
             };
+        };
+        /** RiskPenalty */
+        RiskPenalty: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "short_layover" | "overnight_layover" | "self_transfer" | "night_departure";
+            /**
+             * Leg
+             * @enum {string}
+             */
+            leg: "outbound" | "inbound";
+            /** Amount */
+            amount: number;
+            /** Airport */
+            airport?: string | null;
+        };
+        /** ScoreBreakdown */
+        ScoreBreakdown: {
+            /** Price */
+            price: number;
+            /** Time Penalty */
+            time_penalty: number | null;
+            /** Stop Penalty */
+            stop_penalty: number;
+            /** Risk Penalties */
+            risk_penalties: components["schemas"]["RiskPenalty"][];
+            /** Risk Total */
+            risk_total: number;
+            /** Total */
+            total: number | null;
+        };
+        /** ScoreWarning */
+        ScoreWarning: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "layover_details_unknown" | "long_layover" | "baggage_not_included" | "baggage_unknown" | "duration_unknown";
+            /** Leg */
+            leg?: ("outbound" | "inbound") | null;
+            /** Airport */
+            airport?: string | null;
+        };
+        /** ScoringResult */
+        ScoringResult: {
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "budget" | "balanced" | "time_is_money";
+            /** Currency */
+            currency: string;
+            /** Min Duration Min */
+            min_duration_min: number | null;
+            /** Scores */
+            scores: components["schemas"]["OfferScore"][];
+            /** Picks */
+            picks: components["schemas"]["Pick"][];
+            /**
+             * Unscored Offer Keys
+             * @default []
+             */
+            unscored_offer_keys: string[];
+        };
+        /**
+         * SearchFacets
+         * @description Що є у видачі ДО фільтрів — щоб UI показав доступні варіанти фільтрів.
+         */
+        SearchFacets: {
+            /** Total Offers */
+            total_offers: number;
+            /** Airlines */
+            airlines: components["schemas"]["AirlineFacet"][];
+        };
+        /** Segment */
+        Segment: {
+            /** Origin */
+            origin: string;
+            /** Destination */
+            destination: string;
+            /**
+             * Departure At
+             * Format: date-time
+             */
+            departure_at: string;
+            /**
+             * Arrival At
+             * Format: date-time
+             */
+            arrival_at: string;
+            /** Carrier */
+            carrier: string;
+            /** Flight Number */
+            flight_number: string;
+            /** Duration Min */
+            duration_min: number;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
     };
     responses: never;
@@ -136,6 +608,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReadinessResponse"];
+                };
+            };
+        };
+    };
+    search_flights_flights_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FlightQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlightSearchResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    price_calendar_flights_calendar_get: {
+        parameters: {
+            query: {
+                origin: string;
+                destination: string;
+                month: string;
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_places_places_get: {
+        parameters: {
+            query: {
+                q: string;
+                limit?: number;
+                lang?: "uk" | "en";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Place"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

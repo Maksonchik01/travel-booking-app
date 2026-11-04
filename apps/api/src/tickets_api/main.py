@@ -1,20 +1,32 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import Redis
 
 from tickets_api import __version__
-from tickets_api.api import health
+from tickets_api.api import flights, health, places
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
+from tickets_api.providers.registry import build_providers
+from tickets_api.reference.airlines import default_airline_names
+from tickets_api.repositories.price_history import PriceHistoryRecorder
+from tickets_api.scoring.config import default_scoring_config, load_scoring_config
+from tickets_api.services.flight_search import FlightSearchService
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
+    # Битий конфіг скорингу має зупинити старт, а не зламати перший пошук.
+    scoring_config = (
+        load_scoring_config(settings.scoring_config_path)
+        if settings.scoring_config_path
+        else default_scoring_config()
+    )
     configure_logging(settings.log_level, json=settings.log_json)
     init_sentry(settings)
 
@@ -22,10 +34,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.engine = create_engine(settings.database_url)
         app.state.sessionmaker = create_sessionmaker(app.state.engine)
-        app.state.redis = Redis.from_url(settings.redis_url)
+        # Короткі таймаути: Redis — кеш, а не причина зависати на запиті.
+        app.state.redis = Redis.from_url(
+            settings.redis_url, socket_timeout=1.0, socket_connect_timeout=1.0
+        )
+        app.state.http = httpx.AsyncClient(timeout=settings.provider_timeout_s)
+        app.state.flight_search = FlightSearchService(
+            build_providers(settings.flight_providers, settings, app.state.http, app.state.redis),
+            calendar_providers=build_providers(
+                settings.calendar_providers, settings, app.state.http, app.state.redis
+            ),
+            timeout_s=settings.provider_timeout_s,
+            scoring_config=scoring_config,
+            record_history=PriceHistoryRecorder(app.state.sessionmaker).record,
+            airline_names=default_airline_names(),
+        )
         try:
             yield
         finally:
+            await app.state.http.aclose()
             await app.state.redis.aclose()
             await app.state.engine.dispose()
 
@@ -38,4 +65,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(health.router)
+    app.include_router(flights.router)
+    app.include_router(places.router)
     return app

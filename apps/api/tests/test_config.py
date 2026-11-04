@@ -3,7 +3,7 @@ import logging
 import pytest
 from tickets_api.core.config import Settings
 from tickets_api.core.logging import configure_logging
-from tickets_api.core.sentry import init_sentry
+from tickets_api.core.sentry import init_sentry, scrub_breadcrumb
 
 
 def test_cors_origins_are_parsed_from_comma_separated_env(
@@ -19,11 +19,13 @@ def test_cors_origins_are_parsed_from_comma_separated_env(
 def test_empty_secrets_are_treated_as_unset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SENTRY_DSN", "")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    monkeypatch.setenv("SCORING_CONFIG_PATH", "")
 
     settings = Settings(_env_file=None)
 
     assert settings.sentry_dsn is None
     assert settings.anthropic_api_key is None
+    assert settings.scoring_config_path is None
     assert init_sentry(settings) is False
 
 
@@ -54,3 +56,38 @@ def test_third_party_loggers_go_through_single_handler() -> None:
     assert noisy.handlers == []
     assert noisy.propagate is True
     assert len(logging.getLogger().handlers) == 1
+
+
+def test_httpx_url_logs_are_suppressed() -> None:
+    configure_logging("DEBUG")
+
+    assert logging.getLogger("httpx").getEffectiveLevel() >= logging.WARNING
+
+
+def test_secrets_are_scrubbed_from_sentry_breadcrumbs() -> None:
+    crumb = {
+        "message": "GET https://serpapi.com/search.json?engine=google_flights&api_key=abc123",
+        "data": {"url": "https://serpapi.com/search.json?api_key=abc123&q=1"},
+    }
+
+    scrubbed = scrub_breadcrumb(crumb, None)
+
+    assert "abc123" not in str(scrubbed)
+    assert "api_key=[Filtered]&q=1" in scrubbed["data"]["url"]
+
+
+@pytest.mark.parametrize(
+    ("env", "message"),
+    [
+        ({"FLIGHT_PROVIDERS": "serpapi"}, "SERPAPI_KEY"),
+        ({"CALENDAR_PROVIDERS": "travelpayouts"}, "TRAVELPAYOUTS_TOKEN"),
+    ],
+)
+def test_providers_require_credentials(
+    monkeypatch: pytest.MonkeyPatch, env: dict[str, str], message: str
+) -> None:
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+
+    with pytest.raises(ValueError, match=message):
+        Settings(_env_file=None)

@@ -1,9 +1,62 @@
 import { expect, test } from "@playwright/test";
 
-test("головна сторінка українською і показує стан сервісів", async ({ page }) => {
+// API у e2e працює з mock-провайдером (див. playwright.config.ts): дані детерміновані,
+// тож перевіряємо конкретні результати, а не «будь-що».
+
+test("головна українською з формою пошуку і станом сервісів", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.locator("html")).toHaveAttribute("lang", "uk");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Розумний пошук подорожей");
-  await expect(page.getByText("Стан сервісів")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Знайдіть переліт, який справді вигідний",
+  );
+  await expect(page.getByLabel("Звідки")).toBeVisible();
+  await expect(page.getByText(/Стан сервісів|API недоступний/)).toBeVisible();
+});
+
+test("пошук: підказки міст → результати → фільтри → календар", async ({ page }) => {
+  await page.goto("/");
+  // Підказки працюють після гідратації (приховане поле з кодом з'являється тоді ж).
+  await page.locator('input[type="hidden"][name="from"]').waitFor({ state: "attached" });
+
+  await page.getByLabel("Звідки").fill("варш");
+  await page.getByRole("option", { name: /Варшава, Фредерік Шопен/ }).click();
+  await expect(page.getByLabel("Звідки")).toHaveValue("Варшава, Фредерік Шопен");
+  await page.getByLabel("Куди").fill("lis");
+  await page.getByLabel("Куди").press("ArrowDown");
+  await page.getByLabel("Куди").press("ArrowUp");
+  await page.getByLabel("Куди").press("Enter");
+  await page.getByLabel("Виліт").fill("2026-12-05");
+  await page.getByRole("button", { name: "Шукати" }).click();
+
+  await expect(page).toHaveURL(/from=WAW&to=LIS/);
+  const cards = page.getByTestId("offer-card");
+  await expect(cards).toHaveCount(4);
+  await expect(page.getByRole("heading", { name: "WAW → LIS" })).toBeVisible();
+  await expect(page.getByTestId("price").first()).toContainText("€");
+  await expect(page.getByRole("heading", { name: "Наш вибір" })).toBeVisible();
+  await expect(page.locator('[data-testid="top-pick"][data-label="balanced"]')).toHaveCount(1);
+  await expect(page.getByTestId("airlines").first()).toContainText("LOT Polish");
+
+  // Розбивка оцінки в будь-якій картці.
+  await cards.first().getByText("Чому така оцінка?").click();
+  await expect(cards.first().getByTestId("breakdown")).toBeVisible();
+
+  // Фільтр застосовується одразу і не губить маршрут.
+  await page.getByRole("radio", { name: "Лише прямі" }).check();
+  await expect(page).toHaveURL(/stops=0/);
+  await expect(page).toHaveURL(/from=WAW/);
+  await expect(cards).toHaveCount(1);
+  await expect(page.getByText("1 варіант з 4")).toBeVisible();
+  await page.getByRole("link", { name: "Скинути фільтри" }).click();
+  await expect(cards).toHaveCount(4);
+
+  // Сортування за оцінкою.
+  await page.getByRole("link", { name: "Вигідніші" }).click();
+  await expect(page).toHaveURL(/sort=score/);
+
+  // Інший день у календарі — новий пошук.
+  await page.locator('[data-testid="calendar-day"]:not([aria-current])').first().click();
+  await expect(page).not.toHaveURL(/depart=2026-12-05/);
+  await expect(cards.first()).toBeVisible();
 });
