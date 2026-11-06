@@ -84,3 +84,8 @@ def test_rejects_garbage() -> None:
         OfferFilters.model_validate({"airlines": ["RYANAIR"]})
     with pytest.raises(ValidationError):
         OfferFilters.model_validate({"departure_periods": ["brunch"]})
+
+
+def test_max_price() -> None:
+    assert OfferFilters(max_price=100).matches(offer())
+    assert not OfferFilters(max_price=99).matches(offer())

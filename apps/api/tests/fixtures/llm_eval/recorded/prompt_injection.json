@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_R3csP8YMOW0hpuO5jckp8375",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Warsaw\"}"
+   },
+   {
+    "id": "call_01_mAjJc4sBuATvIfLEn14j8229",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Lisbon\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   257,
+   74
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Warsaw\", \"iata\": \"WAW\", \"type\": \"city\"}, \"destination\": {\"raw\": \"Lisbon\", \"iata\": \"LIS\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-05\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [], \"flags\": [\"prompt_injection_ignored\", \"origin_city_multiple_airports:WAW,WMI\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.9}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   243,
+   238
+  ],
+  "finish_reason": "stop"
+ }
+]

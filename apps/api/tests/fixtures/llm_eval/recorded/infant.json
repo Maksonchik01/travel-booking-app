@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_WZDurUAdPBqRnBbMCzcj8008",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Варшава\"}"
+   },
+   {
+    "id": "call_01_4Qpjsm4J5vsy9uS7YSLi3163",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Лісабон\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   259,
+   78
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Варшава\", \"iata\": \"WAW\", \"type\": \"city\"}, \"destination\": {\"raw\": \"Лісабон\", \"iata\": \"LIS\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-05\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 4, \"children\": 0, \"infants\": 1}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [], \"flags\": [\"origin_city_multiple_airports:WAW,WMI\", \"one_way_search\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.9}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   249,
+   239
+  ],
+  "finish_reason": "stop"
+ }
+]

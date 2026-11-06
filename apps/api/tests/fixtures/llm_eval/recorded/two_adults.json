@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_vxMOjPAkOSrt9rlu3F168313",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"WAW\"}"
+   },
+   {
+    "id": "call_01_XHGwwquSJknEhHHgXpp04518",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"LIS\"}"
+   }
+  ],
+  "usage": [
+   1792,
+   635,
+   73
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"WAW\", \"iata\": \"WAW\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"LIS\", \"iata\": \"LIS\", \"type\": \"airport\"}, \"dates\": {\"departure\": \"2026-12-05\", \"departure_range\": null, \"return\": \"2026-12-12\", \"flex_days\": 0, \"trip_length_days\": 7}, \"passengers\": {\"adults\": 2, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [], \"flags\": [], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.95}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   476,
+   223
+  ],
+  "finish_reason": "stop"
+ }
+]

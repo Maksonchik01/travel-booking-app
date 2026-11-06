@@ -1,0 +1,13 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"WAW\", \"iata\": \"WAW\", \"type\": \"airport\"}, \"destination\": null, \"dates\": {\"departure\": null, \"departure_range\": null, \"return\": null, \"flex_days\": null, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"origin=home_airport\"], \"flags\": [\"destination_unclear\", \"dates_missing\"], \"needs_clarification\": true, \"clarifying_question\": \"На які дати або період плануєте подорож?\", \"confidence\": 0.35}",
+  "tool_calls": [],
+  "usage": [
+   2176,
+   242,
+   221
+  ],
+  "finish_reason": "stop"
+ }
+]

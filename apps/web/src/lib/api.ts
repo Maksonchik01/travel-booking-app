@@ -1,5 +1,9 @@
 import type {
+  AIStatus,
   CalendarResult,
+  ChatBody,
+  ChatReply,
+  ExplainResult,
   FlightQuery,
   FlightSearchResult,
   Place,
@@ -8,6 +12,12 @@ import type {
 
 const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TIMEOUT_MS = 15_000;
+/** Живий пошук: провайдер має до 30 с (SERPAPI_TIMEOUT_S). */
+const SEARCH_TIMEOUT_MS = 35_000;
+/** Пояснення: пошук з кешу + до двох викликів потужнішої моделі. */
+const EXPLAIN_TIMEOUT_MS = 45_000;
+/** Репліка агента: кілька викликів моделі + до двох живих пошуків. */
+const CHAT_TIMEOUT_MS = 90_000;
 
 export type ApiStatus =
   { kind: "ok" | "degraded"; data: ReadinessResponse } | { kind: "unreachable" };
@@ -29,12 +39,16 @@ export async function fetchReadiness(signal?: AbortSignal): Promise<ApiStatus> {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T>> {
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  timeoutMs = TIMEOUT_MS,
+): Promise<ApiResult<T>> {
   try {
     const response = await fetch(`${API_URL}${path}`, {
       ...init,
       cache: "no-store",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (!response.ok) return { ok: false, reason: "error" };
     return { ok: true, data: (await response.json()) as T };
@@ -44,11 +58,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResult<T
 }
 
 export function searchFlights(query: FlightQuery): Promise<ApiResult<FlightSearchResult>> {
-  return request("/flights/search", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(query),
-  });
+  return request(
+    "/flights/search",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(query),
+    },
+    SEARCH_TIMEOUT_MS,
+  );
 }
 
 export function fetchCalendar(
@@ -64,4 +82,34 @@ export function fetchCalendar(
 export function fetchPlaces(q: string, limit = 8): Promise<ApiResult<Place[]>> {
   const params = new URLSearchParams({ q, limit: String(limit), lang: "uk" });
   return request(`/places?${params}`);
+}
+
+/** Вимкнений чи недоступний ШІ — просто без ШІ-функцій, пошук формою працює. */
+export async function fetchAIStatus(): Promise<AIStatus> {
+  const result = await request<AIStatus>("/ai/status");
+  return result.ok ? result.data : { enabled: false, provider: "off" };
+}
+
+export function chatWithAssistant(body: ChatBody): Promise<ApiResult<ChatReply>> {
+  return request(
+    "/ai/chat",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    },
+    CHAT_TIMEOUT_MS,
+  );
+}
+
+export function explainSearch(query: FlightQuery): Promise<ApiResult<ExplainResult>> {
+  return request(
+    "/ai/explain",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(query),
+    },
+    EXPLAIN_TIMEOUT_MS,
+  );
 }

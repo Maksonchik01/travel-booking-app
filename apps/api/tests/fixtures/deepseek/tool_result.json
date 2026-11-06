@@ -1,0 +1,91 @@
+{
+  "_request": {
+    "model": "deepseek-flash",
+    "thinking": {
+      "type": "disabled"
+    },
+    "max_tokens": 200,
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "lookup_airport",
+          "description": "Find airports and cities by name. Returns IATA codes.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        }
+      }
+    ],
+    "messages": [
+      {
+        "role": "system",
+        "content": "Use lookup_airport to resolve city names to IATA codes. Never guess codes."
+      },
+      {
+        "role": "user",
+        "content": "Який код аеропорту Лісабона?"
+      },
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_00_B7AxLjGgQTuxMaRvc3Mn8708",
+            "type": "function",
+            "function": {
+              "name": "lookup_airport",
+              "arguments": "{\"query\": \"Lisbon\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_00_B7AxLjGgQTuxMaRvc3Mn8708",
+        "content": "[{\"code\": \"LIS\", \"kind\": \"airport\", \"name\": \"Лісабон\"}]"
+      },
+      {
+        "role": "user",
+        "content": "Відповідай JSON: {\"iata\": \"...\"}"
+      }
+    ],
+    "response_format": {
+      "type": "json_object"
+    }
+  },
+  "id": "6090d024-6bb0-4921-90ee-53803bfaf068",
+  "object": "chat.completion",
+  "created": 1793810731,
+  "model": "deepseek-flash",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"iata\": \"LIS\"}"
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 418,
+    "completion_tokens": 8,
+    "total_tokens": 426,
+    "prompt_tokens_details": {
+      "cached_tokens": 256
+    },
+    "prompt_cache_hit_tokens": 256,
+    "prompt_cache_miss_tokens": 162
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+}

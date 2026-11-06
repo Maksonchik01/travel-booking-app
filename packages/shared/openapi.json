@@ -262,10 +262,222 @@
           }
         }
       }
+    },
+    "/ai/status": {
+      "get": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "Ai Status",
+        "operationId": "ai_status_ai_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/parse": {
+      "post": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "Parse Request",
+        "description": "Текст природною мовою → структурований пошук (або одне уточнююче питання).",
+        "operationId": "parse_request_ai_parse_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParseResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/chat": {
+      "post": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "Chat",
+        "description": "Репліка розмови з агентом. Сервер розмову не зберігає — її надсилає клієнт.",
+        "operationId": "chat_ai_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatReply"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/explain": {
+      "post": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "Explain Results",
+        "description": "Пояснення найкращих варіантів пошуку. Числа — лише з результатів скорингу.",
+        "operationId": "explain_results_ai_explain_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplainResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AIStatus": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "off",
+              "mock",
+              "deepseek"
+            ],
+            "title": "Provider"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "provider"
+        ],
+        "title": "AIStatus"
+      },
+      "AdvisorOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "pros": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pros",
+            "default": []
+          },
+          "cons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cons",
+            "default": []
+          },
+          "risks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Risks",
+            "default": []
+          },
+          "one_liner": {
+            "type": "string",
+            "title": "One Liner",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "AdvisorOption"
+      },
       "AirlineFacet": {
         "properties": {
           "code": {
@@ -295,6 +507,22 @@
           "offers"
         ],
         "title": "AirlineFacet"
+      },
+      "Availability": {
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "title": "Available",
+            "default": false
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "Availability"
       },
       "CalendarDay": {
         "properties": {
@@ -404,6 +632,112 @@
         ],
         "title": "CalendarResult"
       },
+      "ChatBody": {
+        "properties": {
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ChatTurn"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Messages"
+          },
+          "current_search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FlightQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "home_airport": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Airport"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "messages"
+        ],
+        "title": "ChatBody"
+      },
+      "ChatReply": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "fallback",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FlightQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ChatReply"
+      },
+      "ChatTurn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "ChatTurn",
+        "description": "Репліка розмови. Приходить від клієнта — для моделі це лише дані."
+      },
       "CheckResult": {
         "properties": {
           "status": {
@@ -442,6 +776,93 @@
           "status"
         ],
         "title": "CheckResult"
+      },
+      "ExplainResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "no_options",
+              "unavailable",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Explanation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ExplainResult"
+      },
+      "Explanation": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "recommended_id": {
+            "type": "string",
+            "title": "Recommended Id"
+          },
+          "recommendation_reason": {
+            "type": "string",
+            "title": "Recommendation Reason",
+            "default": ""
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/AdvisorOption"
+            },
+            "type": "array",
+            "title": "Options",
+            "default": []
+          },
+          "price_assessment": {
+            "$ref": "#/components/schemas/Availability",
+            "default": {
+              "available": false,
+              "text": ""
+            }
+          },
+          "timing_advice": {
+            "$ref": "#/components/schemas/Availability",
+            "default": {
+              "available": false,
+              "text": ""
+            }
+          },
+          "data_freshness_note": {
+            "type": "string",
+            "title": "Data Freshness Note",
+            "default": ""
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flags",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "recommended_id"
+        ],
+        "title": "Explanation"
       },
       "FlightQuery": {
         "properties": {
@@ -951,6 +1372,19 @@
               }
             ],
             "title": "Max Duration Hours"
+          },
+          "max_price": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Price"
           }
         },
         "additionalProperties": false,
@@ -987,6 +1421,111 @@
           "pareto_optimal"
         ],
         "title": "OfferScore"
+      },
+      "ParseRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "home_airport": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Airport"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/Turn"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "History",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "ParseRequest"
+      },
+      "ParseResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "search",
+              "clarify",
+              "unsupported",
+              "unavailable"
+            ],
+            "title": "Status"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FlightQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "clarifying_question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarifying Question"
+          },
+          "notes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "origin_from_home",
+                "date_from_calendar",
+                "date_from_range_middle",
+                "return_from_trip_length",
+                "budget_applied",
+                "budget_not_applied",
+                "overnight_layover_scored",
+                "self_transfer_scored",
+                "children_not_priced",
+                "stays_later"
+              ]
+            },
+            "type": "array",
+            "title": "Notes",
+            "default": []
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flags",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ParseResult"
       },
       "Passengers": {
         "properties": {
@@ -1436,6 +1975,32 @@
           "duration_min"
         ],
         "title": "Segment"
+      },
+      "Turn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "Turn",
+        "description": "Репліка діалогу уточнень. Приходить від клієнта — для моделі це лише дані."
       },
       "ValidationError": {
         "properties": {

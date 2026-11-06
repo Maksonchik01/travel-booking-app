@@ -58,13 +58,25 @@
 - **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
 - Назви LLM-моделей лише в конфігу (`LLM_MODEL_PARSER`, `LLM_MODEL_EXPLAINER`).
+- **ШІ-шар** ([ADR 0007](docs/adr/0007-llm-deepseek.md)): DeepSeek через `LLMClient`
+  (`tickets_api/llm/`), сервіси — `tickets_api/ai/` (parser, explainer, service). Модель лише
+  витягує поля й формулює текст; IATA — з довідника, дати й фільтри валідує код, числа в
+  поясненні звіряються з вхідними, рекомендація = вибір скорингу. Кожен виклик — через
+  `MeteredLLM` (ліміт, облік у `llm_usage`). Текст запиту користувача не логуємо.
+  Агент-чат (`ai/assistant.py`, `/ai/chat`) не має стану: розмову (sessionStorage вкладки) і
+  поточний пошук з URL надсилає клієнт; числа у відповіді звіряються з результатами
+  інструментів; промпт ролі — `ai/prompts/Travel-Assistant.md`.
+  Змінив промпт/контракт парсера — `uv run python scripts/eval_parser.py --record`
+  (30 кейсів, ≈ $0.01) і перевір, що pytest на записаних відповідях зелений.
 
 ## Структура
 
 ```
 apps/api         FastAPI, Python 3.12, uv workspace (пакет tickets_api)
   src/tickets_api/
-    api/           HTTP-роутери (health, flights, places — автодоповнення)
+    ai/            розбір запиту (Query-Parser), пояснення (Flight-Deal-Advisor), кеш
+    llm/           LLMClient, адаптер DeepSeek, mock, ціни моделей, MeteredLLM
+    api/           HTTP-роутери (health, flights, places — автодоповнення, ai)
     core/          конфіг, логування, Sentry
     db/            Base, моделі (price_history), сесії
     domain/        FlightQuery, Offer, Leg, Layover, CalendarDay — без I/O
@@ -88,7 +100,8 @@ make up             бекенд у Docker з hot reload + `next dev` на хо�
 make up-full        увесь стек у Docker як у проді
 make check          lint + typecheck + test (те саме, що CI)
 make test-integration   pytest -m integration проти Postgres/Redis з compose
-make e2e            Playwright smoke (сам піднімає API з mock на :8100 і web на :3100, без квоти)
+make e2e            Playwright smoke (API з mock-провайдером і mock-LLM на :8100, web на :3100;
+                    після нього перезапусти `npm run dev` — збірка ділить .next)
 make gen-types      оновити packages/shared після зміни Pydantic-схем API
 make migrate        alembic upgrade head
 ```

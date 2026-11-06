@@ -60,3 +60,36 @@ test("пошук: підказки міст → результати → філ�
   await expect(page).not.toHaveURL(/depart=2026-12-05/);
   await expect(cards.first()).toBeVisible();
 });
+
+test("розмова з ШІ-помічником: питання → відповідь → результати, контекст не губиться", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Поле активне після гідратації (до неї розмову не відновити з sessionStorage).
+  await page.waitForLoadState("networkidle");
+
+  const box = page.getByLabel("Запитайте ШІ-помічника");
+  const send = page.getByRole("button", { name: "Надіслати" });
+  const conversation = page.getByRole("list", { name: "Розмова з помічником" });
+
+  // Одне слово — mock-агент перепитує (див. tickets_api/llm/mock.py).
+  await box.fill("Лісабон");
+  await send.click();
+  await expect(conversation).toContainText("Куди і коли ви хочете полетіти?");
+
+  // Відповідь разом із попередньою реплікою — пошук WAW → LIS.
+  await box.fill("з Варшави");
+  await send.click();
+  await expect(page).toHaveURL(/from=WAW&to=LIS&depart=\d{4}-\d{2}-\d{2}/);
+  await expect(conversation).toContainText("Знайшов варіанти");
+  await expect(conversation).toContainText("EUR");
+  await expect(page.getByTestId("offer-card").first()).toBeVisible();
+  const explanation = page.getByTestId("ai-explanation");
+  await expect(explanation).toContainText("Радимо:");
+
+  // Після переходу на результати розмова на місці, і її видно після оновлення вкладки.
+  await page.reload();
+  await expect(conversation).toContainText("Куди і коли ви хочете полетіти?");
+  await page.getByRole("button", { name: "Нова розмова" }).click();
+  await expect(conversation).toHaveCount(0);
+});

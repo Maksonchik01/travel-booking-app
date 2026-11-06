@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, Date, DateTime, Index, Numeric, String, func
+from sqlalchemy import BigInteger, Date, DateTime, Index, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from tickets_api.db.base import Base
@@ -44,3 +44,27 @@ class PriceObservation(Base):
             unique=True,
         ),
     )
+
+
+class LLMUsage(Base):
+    """Облік кожного виклику моделі: токени й вартість. Тексту запитів тут немає (GDPR)."""
+
+    __tablename__ = "llm_usage"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    request_id: Mapped[str] = mapped_column(String(32))
+    """Один запит користувача (розбір чи пояснення) — кілька викликів моделі."""
+    purpose: Mapped[str] = mapped_column(String(16))
+    provider: Mapped[str] = mapped_column(String(16))
+    model: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16))
+    """ok | error."""
+    input_cache_hit_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    input_cache_miss_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    """None — моделі немає в прайсі."""
+    latency_ms: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_llm_usage_created_at", "created_at"),)

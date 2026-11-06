@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import { AIExplanation } from "@/components/ai-explanation";
+import { AIChat } from "@/components/ai-chat";
 import { OfferCard } from "@/components/offer-card";
 import { LinkPendingOverlay } from "@/components/pending";
 import { PriceCalendar } from "@/components/price-calendar";
@@ -14,7 +16,13 @@ import { ServiceStatus } from "@/components/service-status";
 import { SiteHeader } from "@/components/site-header";
 import { offerAnchor, TopPicks } from "@/components/top-picks";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchCalendar, fetchReadiness, searchFlights } from "@/lib/api";
+import {
+  explainSearch,
+  fetchAIStatus,
+  fetchCalendar,
+  fetchReadiness,
+  searchFlights,
+} from "@/lib/api";
 import {
   hasFilters,
   parseSearchParams,
@@ -50,7 +58,10 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
             </div>
             {/* overflow-visible: список підказок міст не обрізається краєм картки */}
             <Card className="overflow-visible shadow-sm">
-              <CardContent>
+              <CardContent className="grid gap-5">
+                <Suspense fallback={null}>
+                  <AIChatIfEnabled searchParams={searchParams} />
+                </Suspense>
                 <Suspense fallback={<SearchForm initial={null} />}>
                   <SearchFormFromUrl searchParams={searchParams} />
                 </Suspense>
@@ -74,6 +85,40 @@ async function SearchFormFromUrl({ searchParams }: { searchParams: Params }) {
   const state = parseSearchParams(await searchParams);
   // key: при новому пошуку форма скидається до значень з URL.
   return <SearchForm key={state ? toSearchParams(state).toString() : "empty"} initial={state} />;
+}
+
+/** Розмова з ШІ-агентом — лише коли на бекенді увімкнено LLM (LLM_PROVIDER). */
+async function AIChatIfEnabled({ searchParams }: { searchParams: Params }) {
+  const [status, raw] = await Promise.all([fetchAIStatus(), searchParams]);
+  if (!status.enabled) return null;
+  const current = parseSearchParams(raw)?.query;
+  return (
+    <>
+      <AIChat currentSearch={current} homeAirport={current?.origin} />
+      <div className="text-muted-foreground flex items-center gap-3 text-xs">
+        <span className="bg-border h-px flex-1" />
+        {(await getTranslations("ai"))("orForm")}
+        <span className="bg-border h-px flex-1" />
+      </div>
+    </>
+  );
+}
+
+/** Пояснення ШІ вантажиться окремо: результати не чекають на модель. */
+async function ExplanationIfEnabled({ state }: { state: SearchState }) {
+  const status = await fetchAIStatus();
+  if (!status.enabled) return null;
+  const result = await explainSearch(state.query);
+  return result.ok ? <AIExplanation result={result.data} /> : null;
+}
+
+function ExplanationSkeleton() {
+  const t = useTranslations("ai");
+  return (
+    <div className="bg-primary/5 text-muted-foreground animate-pulse rounded-xl border p-4 text-sm">
+      {t("explaining")}
+    </div>
+  );
 }
 
 async function Results({ searchParams }: { searchParams: Params }) {
@@ -132,7 +177,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
             {filtered
               ? t("countFiltered", { count: offers.length, total: facets.total_offers })
               : t("count", { count: offers.length })}
-            {(query.origin_radius_km || query.destination_radius_km) && ` · ${t("withNearby")}`}
+            {query.origin_radius_km || query.destination_radius_km ? ` · ${t("withNearby")}` : null}
           </p>
         </div>
         <SortToggle state={state} />
@@ -151,6 +196,12 @@ async function Results({ searchParams }: { searchParams: Params }) {
         )}
 
         <div className="grid gap-6 lg:col-start-2">
+          {offers.length > 0 && (
+            <Suspense key={toSearchParams(state).toString()} fallback={<ExplanationSkeleton />}>
+              <ExplanationIfEnabled state={state} />
+            </Suspense>
+          )}
+
           <TopPicks scoring={scoring} offers={result.data.offers} />
 
           <p className="bg-muted/50 text-muted-foreground rounded-md px-3 py-2 text-xs">

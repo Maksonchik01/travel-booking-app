@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_kxCgqNmcRyH24dTSLWo71829",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Варшава\"}"
+   },
+   {
+    "id": "call_01_EipDITzuI7GU0vFGNtCl6710",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Афіни\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   253,
+   77
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Варшава\", \"iata\": \"WAW\", \"type\": \"city\"}, \"destination\": {\"raw\": \"Афіни\", \"iata\": \"ATH\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-01\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 1, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"origin=city_with_multiple_airports(WAW,WMI)\", \"child_age_unknown\"], \"flags\": [\"origin_city_has_multiple_airports\", \"child_age_unspecified\", \"return_date_missing_one_way\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.82}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   244,
+   265
+  ],
+  "finish_reason": "stop"
+ }
+]

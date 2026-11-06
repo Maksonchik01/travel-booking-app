@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_SOiHtzq0eTpaaZEjrUVq9397",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Порту\"}"
+   },
+   {
+    "id": "call_01_HXAml9n7KmDVfqKLR3oK1114",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"WAW\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   244,
+   74
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"WAW\", \"iata\": \"WAW\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Порту\", \"iata\": \"OPO\", \"type\": \"airport\"}, \"dates\": {\"departure\": \"2027-02-14\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"origin=home_airport\", \"departure_year=2027 (14 лютого вже минуло в 2026)\"], \"flags\": [\"return_date_missing_one_way\", \"departure_year_assumed\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.72}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   521,
+   263
+  ],
+  "finish_reason": "stop"
+ }
+]

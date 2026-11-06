@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_XBHi8HcJZwcKbxVQiH6h0299",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Лісабон\"}"
+   },
+   {
+    "id": "call_01_Xp6cak4j19z04IIabike5698",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"WAW\"}"
+   }
+  ],
+  "usage": [
+   1792,
+   646,
+   76
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"WAW\", \"iata\": \"WAW\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Лісабон\", \"iata\": \"LIS\", \"type\": \"airport\"}, \"dates\": {\"departure\": null, \"departure_range\": {\"from\": \"2026-12-01\", \"to\": \"2026-12-31\"}, \"return\": null, \"flex_days\": 3, \"trip_length_days\": 7}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": {\"amount\": 300, \"currency\": \"EUR\", \"scope\": null}, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": true, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"origin=home_airport\"], \"flags\": [\"budget_scope_unclear\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.85}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   298,
+   263
+  ],
+  "finish_reason": "stop"
+ }
+]

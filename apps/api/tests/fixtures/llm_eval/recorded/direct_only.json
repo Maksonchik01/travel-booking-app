@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_oDh3r1UM7etFLDDKKKo37407",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Варшава\"}"
+   },
+   {
+    "id": "call_01_Dqww4FHa2GDG5IDO2uff7476",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Відень\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   253,
+   76
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Варшава\", \"iata\": \"WAW\", \"type\": \"city\"}, \"destination\": {\"raw\": \"Відень\", \"iata\": \"VIE\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-03\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": 0, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"passengers=1 adult\", \"one_way\"], \"flags\": [\"origin_city_multiple_airports:WAW,WMI\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.9}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   240,
+   243
+  ],
+  "finish_reason": "stop"
+ }
+]

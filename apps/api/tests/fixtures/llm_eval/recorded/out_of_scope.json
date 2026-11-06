@@ -1,0 +1,13 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"out_of_scope\", \"origin\": null, \"destination\": null, \"dates\": {\"departure\": null, \"departure_range\": null, \"return\": null, \"flex_days\": null, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [], \"flags\": [\"weather_query_not_travel_search\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.95}",
+  "tool_calls": [],
+  "usage": [
+   2176,
+   246,
+   178
+  ],
+  "finish_reason": "stop"
+ }
+]

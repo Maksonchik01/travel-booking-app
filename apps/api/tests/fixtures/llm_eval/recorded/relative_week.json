@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_1MhA2OkamRMOFscxNrVj7935",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Варшава\"}"
+   },
+   {
+    "id": "call_01_zWhngiHmgmMmBo0fIvSb7234",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Барселона\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   249,
+   78
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Варшава\", \"iata\": \"WAW\", \"type\": \"city\"}, \"destination\": {\"raw\": \"Барселона\", \"iata\": \"BCN\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-11-11\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"passengers=1 adult\", \"origin_alternatives=WMI\"], \"flags\": [\"origin_city_multiple_airports\", \"destination_city_multiple_airports\", \"return_date_missing_one_way\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.85}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   292,
+   262
+  ],
+  "finish_reason": "stop"
+ }
+]

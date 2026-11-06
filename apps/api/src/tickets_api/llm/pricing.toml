@@ -1,0 +1,19 @@
+# Ціни моделей, USD за 1M токенів, у години ПІК.
+# Джерело: https://api-docs.deepseek.com/quick_start/pricing (звірено в листопаді 2026).
+# Після зміни цін — оновити тут; старі записи llm_usage лишаються з тією ціною, що була.
+currency = "USD"
+# «Off-peak rates are half of the peak rates».
+off_peak_factor = 0.5
+# Пік: пн–пт, 01:00–04:00 і 06:00–10:00 UTC. Китайські свята (теж не пік) не враховуємо —
+# у ці дні вартість трохи завищена, а не занижена.
+peak_hours_utc = [[1, 4], [6, 10]]
+
+[models.deepseek-flash]
+input_cache_hit = 0.006
+input_cache_miss = 0.3
+output = 1.2
+
+[models.deepseek-v4-pro]
+input_cache_hit = 0.044
+input_cache_miss = 1.32
+output = 3.96

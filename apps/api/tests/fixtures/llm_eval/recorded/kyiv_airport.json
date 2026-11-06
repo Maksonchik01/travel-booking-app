@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_ppjIphMfYRBFw0FqiiuJ7314",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Бориспіль\"}"
+   },
+   {
+    "id": "call_01_HLWWTQtTzlqAWr0qVler2365",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Варшава\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   247,
+   77
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Бориспіль\", \"iata\": \"KBP\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Варшава\", \"iata\": \"WAW\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-01\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"passengers=1 adult\"], \"flags\": [\"destination_city_multiple_airports: WAW, WMI\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.9}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   237,
+   240
+  ],
+  "finish_reason": "stop"
+ }
+]

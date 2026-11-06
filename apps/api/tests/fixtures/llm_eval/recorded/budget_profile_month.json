@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_8C36xowWLkmz1EFuRV4P6331",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Рим\"}"
+   },
+   {
+    "id": "call_01_YAwmoKuDb6cPn5RVv2nF7623",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"WAW\"}"
+   }
+  ],
+  "usage": [
+   1792,
+   641,
+   73
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"WAW\", \"iata\": \"WAW\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Рим\", \"iata\": \"ROM\", \"type\": \"city\"}, \"dates\": {\"departure\": null, \"departure_range\": {\"from\": \"2027-01-01\", \"to\": \"2027-01-31\"}, \"return\": null, \"flex_days\": 3, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"budget\", \"assumed\": [\"origin=home_airport\", \"passengers=1 adult\"], \"flags\": [\"destination_has_multiple_airports: CIA, FCO\", \"return_date_unknown_one_way\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.82}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   388,
+   266
+  ],
+  "finish_reason": "stop"
+ }
+]

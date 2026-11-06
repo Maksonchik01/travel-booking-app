@@ -12,6 +12,4 @@
 .env.*
 !.env.example
 .agents
-rules
-sub-agents
 docs

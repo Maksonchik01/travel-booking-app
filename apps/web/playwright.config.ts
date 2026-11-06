@@ -22,6 +22,7 @@ export default defineConfig({
       env: {
         FLIGHT_PROVIDERS: "mock",
         CALENDAR_PROVIDERS: "mock",
+        LLM_PROVIDER: "mock",
         SENTRY_DSN: "",
         LOG_LEVEL: "WARNING",
       },

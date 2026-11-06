@@ -18,19 +18,19 @@ def test_cors_origins_are_parsed_from_comma_separated_env(
 
 def test_empty_secrets_are_treated_as_unset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SENTRY_DSN", "")
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "")
     monkeypatch.setenv("SCORING_CONFIG_PATH", "")
 
     settings = Settings(_env_file=None)
 
     assert settings.sentry_dsn is None
-    assert settings.anthropic_api_key is None
+    assert settings.deepseek_api_key is None
     assert settings.scoring_config_path is None
     assert init_sentry(settings) is False
 
 
 def test_secrets_are_not_leaked_in_repr(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-very-secret")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-very-secret")
 
     settings = Settings(_env_file=None)
 
@@ -44,6 +44,17 @@ def test_llm_models_are_configurable(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = Settings(_env_file=None)
 
     assert (settings.llm_model_parser, settings.llm_model_explainer) == ("model-a", "model-b")
+
+
+def test_deepseek_needs_a_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LLM_PROVIDER", "deepseek")
+
+    with pytest.raises(ValueError, match="DEEPSEEK_API_KEY"):
+        Settings(_env_file=None)
+
+
+def test_llm_is_off_by_default() -> None:
+    assert Settings(_env_file=None).llm_provider == "off"
 
 
 def test_third_party_loggers_go_through_single_handler() -> None:

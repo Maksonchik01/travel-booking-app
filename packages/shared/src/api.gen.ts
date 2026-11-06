@@ -106,10 +106,122 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ai/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ai Status */
+        get: operations["ai_status_ai_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Parse Request
+         * @description Текст природною мовою → структурований пошук (або одне уточнююче питання).
+         */
+        post: operations["parse_request_ai_parse_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chat
+         * @description Репліка розмови з агентом. Сервер розмову не зберігає — її надсилає клієнт.
+         */
+        post: operations["chat_ai_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/explain": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explain Results
+         * @description Пояснення найкращих варіантів пошуку. Числа — лише з результатів скорингу.
+         */
+        post: operations["explain_results_ai_explain_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AIStatus */
+        AIStatus: {
+            /** Enabled */
+            enabled: boolean;
+            /**
+             * Provider
+             * @enum {string}
+             */
+            provider: "off" | "mock" | "deepseek";
+        };
+        /** AdvisorOption */
+        AdvisorOption: {
+            /** Id */
+            id: string;
+            /**
+             * Pros
+             * @default []
+             */
+            pros: string[];
+            /**
+             * Cons
+             * @default []
+             */
+            cons: string[];
+            /**
+             * Risks
+             * @default []
+             */
+            risks: string[];
+            /**
+             * One Liner
+             * @default
+             */
+            one_liner: string;
+        };
         /** AirlineFacet */
         AirlineFacet: {
             /** Code */
@@ -118,6 +230,19 @@ export interface components {
             name: string | null;
             /** Offers */
             offers: number;
+        };
+        /** Availability */
+        Availability: {
+            /**
+             * Available
+             * @default false
+             */
+            available: boolean;
+            /**
+             * Text
+             * @default
+             */
+            text: string;
         };
         /**
          * CalendarDay
@@ -156,6 +281,38 @@ export interface components {
             /** Providers */
             providers: components["schemas"]["ProviderStatus"][];
         };
+        /** ChatBody */
+        ChatBody: {
+            /** Messages */
+            messages: components["schemas"]["ChatTurn"][];
+            current_search?: components["schemas"]["FlightQuery"] | null;
+            /** Home Airport */
+            home_airport?: string | null;
+        };
+        /** ChatReply */
+        ChatReply: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "fallback" | "unavailable";
+            /** Reply */
+            reply?: string | null;
+            search?: components["schemas"]["FlightQuery"] | null;
+        };
+        /**
+         * ChatTurn
+         * @description Репліка розмови. Приходить від клієнта — для моделі це лише дані.
+         */
+        ChatTurn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Text */
+            text: string;
+        };
         /** CheckResult */
         CheckResult: {
             /**
@@ -167,6 +324,56 @@ export interface components {
             latency_ms?: number | null;
             /** Error */
             error?: string | null;
+        };
+        /** ExplainResult */
+        ExplainResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "no_options" | "unavailable" | "rejected";
+            explanation?: components["schemas"]["Explanation"] | null;
+        };
+        /** Explanation */
+        Explanation: {
+            /** Summary */
+            summary: string;
+            /** Recommended Id */
+            recommended_id: string;
+            /**
+             * Recommendation Reason
+             * @default
+             */
+            recommendation_reason: string;
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["AdvisorOption"][];
+            /**
+             * @default {
+             *       "available": false,
+             *       "text": ""
+             *     }
+             */
+            price_assessment: components["schemas"]["Availability"];
+            /**
+             * @default {
+             *       "available": false,
+             *       "text": ""
+             *     }
+             */
+            timing_advice: components["schemas"]["Availability"];
+            /**
+             * Data Freshness Note
+             * @default
+             */
+            data_freshness_note: string;
+            /**
+             * Flags
+             * @default []
+             */
+            flags: string[];
         };
         /** FlightQuery */
         FlightQuery: {
@@ -349,6 +556,8 @@ export interface components {
             departure_periods?: ("night" | "morning" | "afternoon" | "evening")[];
             /** Max Duration Hours */
             max_duration_hours?: number | null;
+            /** Max Price */
+            max_price?: number | null;
         };
         /** OfferScore */
         OfferScore: {
@@ -359,6 +568,39 @@ export interface components {
             warnings: components["schemas"]["ScoreWarning"][];
             /** Pareto Optimal */
             pareto_optimal: boolean;
+        };
+        /** ParseRequest */
+        ParseRequest: {
+            /** Message */
+            message: string;
+            /** Home Airport */
+            home_airport?: string | null;
+            /**
+             * History
+             * @default []
+             */
+            history: components["schemas"]["Turn"][];
+        };
+        /** ParseResult */
+        ParseResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "search" | "clarify" | "unsupported" | "unavailable";
+            query?: components["schemas"]["FlightQuery"] | null;
+            /** Clarifying Question */
+            clarifying_question?: string | null;
+            /**
+             * Notes
+             * @default []
+             */
+            notes: ("origin_from_home" | "date_from_calendar" | "date_from_range_middle" | "return_from_trip_length" | "budget_applied" | "budget_not_applied" | "overnight_layover_scored" | "self_transfer_scored" | "children_not_priced" | "stays_later")[];
+            /**
+             * Flags
+             * @default []
+             */
+            flags: string[];
         };
         /** Passengers */
         Passengers: {
@@ -541,6 +783,19 @@ export interface components {
             /** Duration Min */
             duration_min: number;
         };
+        /**
+         * Turn
+         * @description Репліка діалогу уточнень. Приходить від клієнта — для моделі це лише дані.
+         */
+        Turn: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Text */
+            text: string;
+        };
         /** ValidationError */
         ValidationError: {
             /** Location */
@@ -699,6 +954,125 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Place"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ai_status_ai_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIStatus"];
+                };
+            };
+        };
+    };
+    parse_request_ai_parse_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParseResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    chat_ai_chat_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatReply"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explain_results_ai_explain_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FlightQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExplainResult"];
                 };
             };
             /** @description Validation Error */

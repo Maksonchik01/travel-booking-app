@@ -6,6 +6,7 @@ from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 FlightProviderName = Literal["mock", "travelpayouts", "serpapi"]
+LLMProviderName = Literal["off", "mock", "deepseek"]
 CalendarProviderName = Literal["mock", "travelpayouts"]
 
 
@@ -27,10 +28,23 @@ class Settings(BaseSettings):
 
     sentry_dsn: SecretStr | None = None
 
-    anthropic_api_key: SecretStr | None = None
-    llm_model_parser: str = "claude-haiku-5-5"
-    llm_model_explainer: str = "claude-sonnet-5-5"
-    llm_max_calls_per_search: int = 3
+    # LLM (ADR 0007): off — ШІ-функції вимкнені; mock — детерміновані відповіді (e2e, dev).
+    llm_provider: LLMProviderName = "off"
+    deepseek_api_key: SecretStr | None = None
+    deepseek_base_url: str = "https://api.deepseek.com"
+    llm_model_parser: str = "deepseek-flash"
+    llm_model_explainer: str = "deepseek-v4-pro"
+    llm_model_assistant: str = "deepseek-flash"
+    llm_max_calls_per_search: int = Field(default=3, ge=1, le=10)
+    """Викликів моделі на один запит користувача (розбір з інструментами — кілька кроків)."""
+    llm_max_calls_per_chat_turn: int = Field(default=6, ge=2, le=12)
+    """Викликів моделі на одну репліку чату: інструменти + відповідь + одна спроба виправити."""
+    llm_timeout_s: float = Field(default=45.0, gt=0)
+    llm_cache_ttl_s: int = 86400
+    llm_pricing_path: Path | None = None
+    """None — вбудований tickets_api/llm/pricing.toml."""
+    llm_prompts_dir: Path | None = None
+    """Каталог з rules/ і sub-agents/; None — шукаємо вгору від пакета (корінь репозиторію)."""
 
     travelpayouts_token: SecretStr | None = None
     travelpayouts_marker: str | None = None
@@ -71,7 +85,9 @@ class Settings(BaseSettings):
 
     @field_validator(
         "sentry_dsn",
-        "anthropic_api_key",
+        "deepseek_api_key",
+        "llm_pricing_path",
+        "llm_prompts_dir",
         "travelpayouts_token",
         "travelpayouts_marker",
         "scoring_config_path",
@@ -91,6 +107,8 @@ class Settings(BaseSettings):
             raise ValueError("travelpayouts увімкнено без TRAVELPAYOUTS_TOKEN")
         if "serpapi" in self.flight_providers and self.serpapi_key is None:
             raise ValueError("FLIGHT_PROVIDERS містить serpapi без SERPAPI_KEY")
+        if self.llm_provider == "deepseek" and self.deepseek_api_key is None:
+            raise ValueError("LLM_PROVIDER=deepseek без DEEPSEEK_API_KEY")
         return self
 
 

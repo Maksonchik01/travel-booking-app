@@ -7,11 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from redis.asyncio import Redis
 
 from tickets_api import __version__
-from tickets_api.api import flights, health, places
+from tickets_api.ai.factory import build_ai_service
+from tickets_api.api import ai, flights, health, places
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
+from tickets_api.llm.pricing import default_pricing, load_pricing
 from tickets_api.providers.registry import build_providers
 from tickets_api.reference.airlines import default_airline_names
 from tickets_api.repositories.price_history import PriceHistoryRecorder
@@ -26,6 +28,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         load_scoring_config(settings.scoring_config_path)
         if settings.scoring_config_path
         else default_scoring_config()
+    )
+    llm_pricing = (
+        load_pricing(settings.llm_pricing_path) if settings.llm_pricing_path else default_pricing()
     )
     configure_logging(settings.log_level, json=settings.log_json)
     init_sentry(settings)
@@ -49,6 +54,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             record_history=PriceHistoryRecorder(app.state.sessionmaker).record,
             airline_names=default_airline_names(),
         )
+        app.state.ai = build_ai_service(
+            settings,
+            http=app.state.http,
+            redis=app.state.redis,
+            sessionmaker=app.state.sessionmaker,
+            search=app.state.flight_search,
+            pricing=llm_pricing,
+        )
         try:
             yield
         finally:
@@ -67,4 +80,5 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(flights.router)
     app.include_router(places.router)
+    app.include_router(ai.router)
     return app

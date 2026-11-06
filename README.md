@@ -42,13 +42,29 @@ uv run arq tickets_worker.settings.WorkerSettings                      # вор�
 npm run dev -w @tickets/web                                            # web
 ```
 
+## Джерела даних і ШІ
+
+Усе вмикається в `.env` (див. `.env.example`); без ключів працюють mock-дані.
+
+- Пошук: `FLIGHT_PROVIDERS=serpapi` + `SERPAPI_KEY` (живі ціни Google Flights, 250 запитів/міс).
+- Календар: `CALENDAR_PROVIDERS=travelpayouts` + `TRAVELPAYOUTS_TOKEN`.
+- ШІ (чат-помічник, що шукає й пам'ятає розмову до закриття вкладки; пояснення результатів): `LLM_PROVIDER=deepseek` +
+  `DEEPSEEK_API_KEY` ([ADR 0007](docs/adr/0007-llm-deepseek.md)). `LLM_PROVIDER=mock` —
+  без ключа, `off` — без ШІ-блоків.
+- Вартість ШІ: таблиця `llm_usage`, напр.
+  `docker compose exec postgres psql -U tickets -c "select purpose, count(*), sum(cost_usd) from llm_usage group by 1"`.
+- Якість розбору на 30 тестових запитах наживо (≈ $0.01): `uv run python scripts/eval_parser.py`.
+
 ## Перевірки
 
 ```bash
 make check              # ruff, mypy, eslint, prettier, tsc, pytest, vitest
 make test-integration   # readiness проти справжніх Postgres і Redis
-make e2e                # Playwright smoke (API з mock-провайдером, живу квоту не витрачає)
+make e2e                # Playwright smoke (API з mock-провайдером і mock-LLM, без витрат)
 ```
+
+`make e2e` збирає web у той самий `.next`, тож запущений `npm run dev` після нього треба
+перезапустити.
 
 Ручна перевірка graceful degradation: зупини Redis (`docker compose stop redis`).
 `/health/ready` має повернути 503 з `"redis": {"status": "error"}`, а сторінка

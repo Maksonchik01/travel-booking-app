@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_CVnpGsZBSIYTgWtYZtgy7974",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Гданськ\"}"
+   },
+   {
+    "id": "call_01_JFFcCwg9Ogy6KMSsc8FZ8524",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Осло\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   253,
+   75
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Гданськ\", \"iata\": \"GDN\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Осло\", \"iata\": \"OSL\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-05\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": {\"amount\": 100, \"currency\": \"EUR\", \"scope\": \"flights\"}, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"budget\", \"assumed\": [\"passengers=1 adult\", \"budget_scope=flights\"], \"flags\": [\"destination_has_multiple_airports: OSL, TRF\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.85}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   243,
+   265
+  ],
+  "finish_reason": "stop"
+ }
+]

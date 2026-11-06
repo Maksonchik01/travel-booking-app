@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_djZV83UjlthUa7u815Se4513",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Варшава\"}"
+   },
+   {
+    "id": "call_01_oo0zYFUvSI5zPSYXlaLH2878",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Дубай\"}"
+   }
+  ],
+  "usage": [
+   2304,
+   141,
+   77
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Варшава\", \"iata\": \"WAW\", \"type\": \"city\"}, \"destination\": {\"raw\": \"Дубай\", \"iata\": \"DXB\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-20\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": 2, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"budget\", \"assumed\": [\"passengers=1 adult\"], \"flags\": [\"origin_city_multiple_airports:WAW,WMI\", \"destination_city_multiple_airports:DXB,DWC\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.85}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   312,
+   254
+  ],
+  "finish_reason": "stop"
+ }
+]

@@ -1,0 +1,30 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_veM0DYddypIA68FcJE7a1050",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Барселона\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   255,
+   44
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"stays\", \"origin\": null, \"destination\": {\"raw\": \"Барселона\", \"iata\": \"BCN\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-10\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": 3}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"passengers=1 adult\"], \"flags\": [\"destination_ambiguous_city_name\", \"passengers_not_specified\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.72}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   156,
+   219
+  ],
+  "finish_reason": "stop"
+ }
+]

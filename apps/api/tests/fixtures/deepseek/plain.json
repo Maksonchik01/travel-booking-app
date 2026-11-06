@@ -1,0 +1,48 @@
+{
+  "_request": {
+    "model": "deepseek-flash",
+    "thinking": {
+      "type": "disabled"
+    },
+    "max_tokens": 60,
+    "response_format": {
+      "type": "json_object"
+    },
+    "messages": [
+      {
+        "role": "system",
+        "content": "Reply in JSON: {\"ok\": true, \"word\": <one Ukrainian word>}"
+      },
+      {
+        "role": "user",
+        "content": "json please"
+      }
+    ]
+  },
+  "id": "b540f32c-004a-471d-94a1-6ed61c3f0747",
+  "object": "chat.completion",
+  "created": 1793810718,
+  "model": "deepseek-flash",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"type\": \"json_object\"}"
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 47,
+    "completion_tokens": 7,
+    "total_tokens": 54,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 47
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+}

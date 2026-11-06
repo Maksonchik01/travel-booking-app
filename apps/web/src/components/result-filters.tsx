@@ -120,6 +120,23 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
           </select>
         </label>
 
+        <label className="grid gap-1.5">
+          <span className="text-muted-foreground text-xs font-medium">{t("maxPrice")}</span>
+          <input
+            type="number"
+            name="maxp"
+            min={1}
+            step={1}
+            inputMode="numeric"
+            placeholder={t("anyPrice")}
+            defaultValue={filters.max_price ?? ""}
+            // Число застосовуємо після введення, а не на кожну цифру.
+            onChange={(e) => e.stopPropagation()}
+            onBlur={(e) => e.currentTarget.form?.requestSubmit()}
+            className="border-input bg-background h-9 rounded-md border px-2 text-sm"
+          />
+        </label>
+
         {airlineOptions.length > 1 && (
           <Group legend={t("airlines")} hint={t("airlinesHint")}>
             {airlineOptions.map((a) => (

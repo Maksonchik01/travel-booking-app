@@ -77,6 +77,8 @@ class OfferFilters(_StrictInput):
     """Частина доби вильоту ТУДИ за місцевим часом аеропорту. Порожньо — будь-яка."""
     max_duration_hours: int | None = Field(default=None, ge=1, le=72)
     """Найдовший напрямок, не довше."""
+    max_price: int | None = Field(default=None, ge=1, le=100_000)
+    """Ціна за дорослого в цілих одиницях валюти, не більше. Бюджет з розбору запиту — сюди."""
 
     def matches(self, offer: "Offer") -> bool:
         legs = [offer.outbound, *([offer.inbound] if offer.inbound else [])]
@@ -88,6 +90,8 @@ class OfferFilters(_StrictInput):
         if self.departure_periods and not any(
             hour in DEPARTURE_PERIOD_HOURS[p] for p in self.departure_periods
         ):
+            return False
+        if self.max_price is not None and offer.price > self.max_price:
             return False
         if self.max_duration_hours is not None:
             limit = self.max_duration_hours * 60

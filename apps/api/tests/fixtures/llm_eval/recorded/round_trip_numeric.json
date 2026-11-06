@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_kDt5nF17lF99kGmbnzhz3169",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Краків\"}"
+   },
+   {
+    "id": "call_01_Zxbv6SUlo5IcOqDOiJHV4453",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Лондон\"}"
+   }
+  ],
+  "usage": [
+   1792,
+   635,
+   76
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Краків\", \"iata\": \"KRK\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Лондон\", \"iata\": \"LON\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-11-20\", \"departure_range\": null, \"return\": \"2026-11-27\", \"flex_days\": 0, \"trip_length_days\": 7}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"passengers=1 adult\"], \"flags\": [\"destination_has_multiple_airports:LON=LCY,LGW,LHR,LTN,SEN,STN\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.95}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   436,
+   257
+  ],
+  "finish_reason": "stop"
+ }
+]

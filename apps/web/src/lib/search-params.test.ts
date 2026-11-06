@@ -28,7 +28,13 @@ describe("parseSearchParams", () => {
         profile: "balanced",
         origin_radius_km: 0,
         destination_radius_km: 0,
-        filters: { max_stops: null, airlines: [], departure_periods: [], max_duration_hours: null },
+        filters: {
+          max_stops: null,
+          airlines: [],
+          departure_periods: [],
+          max_duration_hours: null,
+          max_price: null,
+        },
       },
       sort: "price",
     });
@@ -58,6 +64,7 @@ describe("parseSearchParams", () => {
       airlines: ["FR"],
       departure_periods: [],
       max_duration_hours: null,
+      max_price: null,
     });
     expect(state?.sort).toBe("price");
   });
@@ -88,6 +95,7 @@ describe("parseSearchParams", () => {
       al: "fr,W6",
       dep: "evening,morning",
       maxh: "8",
+      maxp: "150",
     })!;
 
     expect(state.query.filters).toEqual({
@@ -95,6 +103,7 @@ describe("parseSearchParams", () => {
       airlines: ["FR", "W6"],
       departure_periods: ["morning", "evening"],
       max_duration_hours: 8,
+      max_price: 150,
     });
 
     expect(state.query.origin_radius_km).toBe(NEARBY_RADIUS_KM);

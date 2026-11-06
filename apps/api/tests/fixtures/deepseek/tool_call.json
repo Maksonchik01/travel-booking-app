@@ -1,0 +1,76 @@
+{
+  "_request": {
+    "model": "deepseek-flash",
+    "thinking": {
+      "type": "disabled"
+    },
+    "max_tokens": 200,
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "lookup_airport",
+          "description": "Find airports and cities by name. Returns IATA codes.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "query"
+            ]
+          }
+        }
+      }
+    ],
+    "messages": [
+      {
+        "role": "system",
+        "content": "Use lookup_airport to resolve city names to IATA codes. Never guess codes."
+      },
+      {
+        "role": "user",
+        "content": "Який код аеропорту Лісабона?"
+      }
+    ]
+  },
+  "id": "687980de-9d51-449e-a7d1-1cc40fbaf956",
+  "object": "chat.completion",
+  "created": 1793810719,
+  "model": "deepseek-flash",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "index": 0,
+            "id": "call_00_B7AxLjGgQTuxMaRvc3Mn8708",
+            "type": "function",
+            "function": {
+              "name": "lookup_airport",
+              "arguments": "{\"query\": \"Lisbon\"}"
+            }
+          }
+        ]
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 303,
+    "completion_tokens": 41,
+    "total_tokens": 344,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 303
+  },
+  "system_fingerprint": "bc19ba97cbe016479903222bb1578db6"
+}

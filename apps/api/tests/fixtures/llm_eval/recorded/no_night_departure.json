@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_NQMA9tN3uiWWrHiDpqFj4871",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Лондон\"}"
+   },
+   {
+    "id": "call_01_xiOHm3bykkt9GaFVAMrH5620",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"WAW\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   258,
+   74
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"WAW\", \"iata\": \"WAW\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Лондон\", \"iata\": \"LON\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-11-20\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": true}, \"profile\": \"balanced\", \"assumed\": [\"origin=home_airport\", \"passengers=1 adult\"], \"flags\": [\"destination_alternatives:LCY,LGW,LHR,LTN,SEN,STN\", \"return_date_absent_one_way\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.85}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   534,
+   259
+  ],
+  "finish_reason": "stop"
+ }
+]

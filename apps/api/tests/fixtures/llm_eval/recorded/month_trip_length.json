@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_eg8X5ecKf5zgFmndUKCd4016",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Лісабон\"}"
+   },
+   {
+    "id": "call_01_REIdbIweeTLzCYARzYch5289",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Краків\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   252,
+   78
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Краків\", \"iata\": \"KRK\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Лісабон\", \"iata\": \"LIS\", \"type\": \"airport\"}, \"dates\": {\"departure\": null, \"departure_range\": {\"from\": \"2027-03-01\", \"to\": \"2027-03-31\"}, \"return\": null, \"flex_days\": 3, \"trip_length_days\": 10}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"passengers=1 adult\", \"year=2027 (найближчий березень після today)\"], \"flags\": [], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.82}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   197,
+   264
+  ],
+  "finish_reason": "stop"
+ }
+]

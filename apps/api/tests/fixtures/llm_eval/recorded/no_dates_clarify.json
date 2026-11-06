@@ -1,0 +1,30 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_WyumdAUSMzCS8WNObEt27977",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Лісабон\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   241,
+   44
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"WAW\", \"iata\": \"WAW\", \"type\": \"airport\"}, \"destination\": {\"raw\": \"Лісабон\", \"iata\": \"LIS\", \"type\": \"airport\"}, \"dates\": {\"departure\": null, \"departure_range\": null, \"return\": null, \"flex_days\": null, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"balanced\", \"assumed\": [\"origin=home_airport\"], \"flags\": [], \"needs_clarification\": true, \"clarifying_question\": \"На які дати (або хоча б місяць) плануєте подорож до Лісабона?\", \"confidence\": 0.55}",
+  "tool_calls": [],
+  "usage": [
+   2304,
+   217,
+   247
+  ],
+  "finish_reason": "stop"
+ }
+]

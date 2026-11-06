@@ -1,0 +1,35 @@
+[
+ {
+  "model": "deepseek-flash",
+  "content": "",
+  "tool_calls": [
+   {
+    "id": "call_00_9UxnWKLZXzpQgyhgDpJB9015",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Варшава\"}"
+   },
+   {
+    "id": "call_01_AXRf9TaQfRkAQOjAf88L2010",
+    "name": "lookup_airport",
+    "arguments": "{\"query\": \"Париж\"}"
+   }
+  ],
+  "usage": [
+   2176,
+   261,
+   76
+  ],
+  "finish_reason": "tool_calls"
+ },
+ {
+  "model": "deepseek-flash",
+  "content": "{\"intent\": \"flights\", \"origin\": {\"raw\": \"Варшава\", \"iata\": \"WAW\", \"type\": \"city\"}, \"destination\": {\"raw\": \"Париж\", \"iata\": \"PAR\", \"type\": \"city\"}, \"dates\": {\"departure\": \"2026-12-15\", \"departure_range\": null, \"return\": null, \"flex_days\": 0, \"trip_length_days\": null}, \"passengers\": {\"adults\": 1, \"children\": 0, \"infants\": 0}, \"budget\": null, \"preferences\": {\"max_stops\": null, \"avoid_overnight_layover\": false, \"avoid_self_transfer\": false, \"avoid_night_departure\": false}, \"profile\": \"time_is_money\", \"assumed\": [\"passengers=1 adult\"], \"flags\": [\"origin_city_multiple_airports:WAW,WMI\", \"destination_city_multiple_airports:BVA,CDG,ORY\", \"one_way_search\"], \"needs_clarification\": false, \"clarifying_question\": null, \"confidence\": 0.85}",
+  "tool_calls": [],
+  "usage": [
+   2432,
+   384,
+   262
+  ],
+  "finish_reason": "stop"
+ }
+]

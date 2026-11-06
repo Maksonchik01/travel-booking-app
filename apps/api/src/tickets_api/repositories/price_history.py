@@ -1,9 +1,13 @@
 """Запис кожної отриманої ціни в історію (маршрут, дата, ціна, валюта, джерело, час збору)."""
 
 from collections.abc import Sequence
+from datetime import date, timedelta
+from decimal import Decimal
 from typing import Any
 
 import structlog
+from pydantic import BaseModel
+from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -92,3 +96,64 @@ class PriceHistoryRecorder:
             log.warning("price_history.write_failed", rows=len(rows), error=type(exc).__name__)
             return
         log.debug("price_history.recorded", rows=len(rows), inserted=inserted)
+
+
+class PriceStats(BaseModel):
+    """Історія цін маршруту навколо дати — контекст для пояснення, не для скорингу."""
+
+    median: Decimal
+    p25: Decimal
+    p75: Decimal
+    percentile_of_best_offer: int
+    """Скільки % спостережень дешевші або рівні найкращій ціні зараз (0–100)."""
+    sample_size: int
+    days_covered: int
+    currency: str
+
+
+async def route_price_stats(
+    session: AsyncSession,
+    *,
+    origin: str,
+    destination: str,
+    departure: date,
+    round_trip: bool,
+    currency: str,
+    best_price: Decimal,
+    window_days: int = 15,
+) -> PriceStats | None:
+    """Ціни повних пропозицій (kind=offer) того самого типу поїздки в межах ±window_days.
+
+    Календарні мінімуми не змішуємо: це ціни в один бік з іншою методикою.
+    """
+    p = PriceObservation
+    conditions = [
+        p.origin == origin.upper(),
+        p.destination == destination.upper(),
+        p.currency == currency.upper(),
+        p.kind == "offer",
+        p.departure_date.between(
+            departure - timedelta(days=window_days), departure + timedelta(days=window_days)
+        ),
+        p.return_date.is_not(None) if round_trip else p.return_date.is_(None),
+    ]
+    stmt = select(
+        func.count(),
+        func.percentile_cont(0.5).within_group(p.price),
+        func.percentile_cont(0.25).within_group(p.price),
+        func.percentile_cont(0.75).within_group(p.price),
+        func.count().filter(p.price <= best_price),
+        func.count(distinct(p.departure_date)),
+    ).where(*conditions)
+    count, median, p25, p75, cheaper, days = (await session.execute(stmt)).one()
+    if not count:
+        return None
+    return PriceStats(
+        median=Decimal(str(median)).quantize(Decimal(1)),
+        p25=Decimal(str(p25)).quantize(Decimal(1)),
+        p75=Decimal(str(p75)).quantize(Decimal(1)),
+        percentile_of_best_offer=round(100 * cheaper / count),
+        sample_size=count,
+        days_covered=days,
+        currency=currency.upper(),
+    )

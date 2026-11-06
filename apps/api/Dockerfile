@@ -16,6 +16,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-install-workspace --package tickets-api
 
 COPY apps/api apps/api
+# Промпти LLM-ролей (вхідні матеріали в корені репозиторію) — читаються під час роботи.
+COPY rules rules
+COPY sub-agents sub-agents
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --package tickets-api
 

@@ -97,6 +97,11 @@ class AirportDirectory:
     def get(self, code: str) -> Airport | None:
         return self._by_code.get(code.upper())
 
+    def knows(self, code: str) -> bool:
+        """Код є в довіднику як аеропорт або як місто з аеропортами."""
+        code = code.upper()
+        return code in self._by_code or code in self._by_city
+
     def timezone(self, airport_code: str) -> ZoneInfo | None:
         airport = self.get(airport_code)
         return ZoneInfo(airport.tz) if airport else None

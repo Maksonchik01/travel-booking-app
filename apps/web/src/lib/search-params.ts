@@ -53,6 +53,7 @@ function list(value: string | string[] | undefined): string[] {
 function parseFilters(params: RawSearchParams): OfferFilters {
   const stops = Number.parseInt(first(params.stops) ?? "", 10);
   const hours = Number.parseInt(first(params.maxh) ?? "", 10);
+  const price = Number.parseInt(first(params.maxp) ?? "", 10);
   const airlines = [
     ...new Set(
       list(params.al)
@@ -66,6 +67,7 @@ function parseFilters(params: RawSearchParams): OfferFilters {
     airlines,
     departure_periods: DEPARTURE_PERIODS.filter((p) => periods.includes(p)),
     max_duration_hours: Number.isFinite(hours) && hours >= 1 && hours <= 72 ? hours : null,
+    max_price: Number.isFinite(price) && price > 0 && price <= 100_000 ? price : null,
   };
 }
 
@@ -78,6 +80,7 @@ export function filterParams(filters: OfferFilters | undefined): [string, string
   if (filters.departure_periods?.length) entries.push(["dep", filters.departure_periods.join(",")]);
   if (filters.max_duration_hours != null)
     entries.push(["maxh", String(filters.max_duration_hours)]);
+  if (filters.max_price != null) entries.push(["maxp", String(filters.max_price)]);
   return entries;
 }
 
