@@ -97,7 +97,10 @@ export function parseSearchParams(params: RawSearchParams): SearchState | null {
 
   if (!origin || !destination || !IATA.test(origin) || !IATA.test(destination)) return null;
   if (origin === destination || !isValidDate(departure)) return null;
-  const validReturn = isValidDate(returnDate) && returnDate >= departure ? returnDate : null;
+  // trip=ow — «в один бік» з форми без JS: повернення, навіть якщо заповнене, ігноруємо.
+  const oneWay = first(params.trip) === "ow";
+  const validReturn =
+    !oneWay && isValidDate(returnDate) && returnDate >= departure ? returnDate : null;
 
   return {
     query: {

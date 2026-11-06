@@ -221,7 +221,7 @@ def _option(
         "price_text": money_text(offer.price, offer.currency),
         "stops": offer.stops,
         "total_duration_min": offer.total_duration_min,
-        "duration_text": _duration(offer.total_duration_min),
+        "duration_text": duration_text(offer.total_duration_min),
         "legs": [_leg(leg) for leg in legs],
         "airlines": [airline_names.get(c, c) for c in offer.airlines],
         "baggage_included": offer.baggage_included,
@@ -255,14 +255,14 @@ def _leg(leg: Leg) -> dict[str, Any]:
         "to": leg.destination,
         "departure_local": leg.departure_at.strftime("%Y-%m-%d %H:%M"),
         "arrival_local": leg.arrival_at.strftime("%Y-%m-%d %H:%M") if leg.arrival_at else None,
-        "duration_text": _duration(leg.duration_min),
+        "duration_text": duration_text(leg.duration_min),
         "stops": leg.stops,
         "layovers": None
         if leg.layovers is None
         else [
             {
                 "airport": lay.airport,
-                "duration_text": _duration(lay.duration_min),
+                "duration_text": duration_text(lay.duration_min),
                 "overnight": lay.overnight,
                 "self_transfer": lay.self_transfer,
             }
@@ -286,7 +286,7 @@ def _compare(
         "faster": None if not duration_diff else (a["id"] if duration_diff > 0 else b["id"]),
         "duration_difference_text": None
         if duration_diff is None
-        else _duration(abs(duration_diff)),
+        else duration_text(abs(duration_diff)),
     }
 
 
@@ -308,7 +308,7 @@ def money_text(value: Decimal, currency: str) -> str:
     return f"{text} {currency}"
 
 
-def _duration(minutes: int | None) -> str | None:
+def duration_text(minutes: int | None) -> str | None:
     if minutes is None:
         return None
     hours, mins = divmod(minutes, 60)

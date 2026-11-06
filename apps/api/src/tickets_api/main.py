@@ -8,7 +8,7 @@ from redis.asyncio import Redis
 
 from tickets_api import __version__
 from tickets_api.ai.factory import build_ai_service
-from tickets_api.api import ai, flights, health, places, stays
+from tickets_api.api import ai, flights, health, places, stays, trips
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
@@ -23,6 +23,7 @@ from tickets_api.scoring.config import default_scoring_config, load_scoring_conf
 from tickets_api.scoring.stays import default_stay_scoring_config, load_stay_scoring_config
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.stay_search import StaySearchService
+from tickets_api.services.trip_planner import TripPlanner
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -70,6 +71,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             scoring_config=stay_scoring_config,
             record_history=StayPriceHistoryRecorder(app.state.sessionmaker).record,
         )
+        app.state.trip_planner = TripPlanner(app.state.flight_search, app.state.stay_search)
         app.state.ai = build_ai_service(
             settings,
             http=app.state.http,
@@ -77,6 +79,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             sessionmaker=app.state.sessionmaker,
             search=app.state.flight_search,
             stay_search=app.state.stay_search,
+            trip_planner=app.state.trip_planner,
             pricing=llm_pricing,
         )
         try:
@@ -98,5 +101,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(flights.router)
     app.include_router(places.router)
     app.include_router(stays.router)
+    app.include_router(trips.router)
     app.include_router(ai.router)
     return app

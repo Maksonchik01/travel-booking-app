@@ -81,6 +81,19 @@ describe("parseSearchParams", () => {
     expect(state?.query.return_date).toBeNull();
   });
 
+  it("trip=ow (форма без JS) — в один бік, навіть із заповненим поверненням", () => {
+    const state = parseSearchParams({
+      from: "WAW",
+      to: "LIS",
+      depart: "2026-12-05",
+      return: "2026-12-12",
+      trip: "ow",
+    });
+
+    expect(state?.query.return_date).toBeNull();
+    expect(toSearchParams(state!).toString()).toBe("from=WAW&to=LIS&depart=2026-12-05");
+  });
+
   it("round-trip через URL зберігає стан", () => {
     const state = parseSearchParams({
       ...base,

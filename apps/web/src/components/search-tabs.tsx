@@ -4,7 +4,7 @@ import { Search, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from "react";
 
-import { CHAT_MODE_KEY } from "@/components/ai-chat";
+import { readStore } from "@/lib/chat-history";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +12,12 @@ type Tab = "form" | "chat";
 const TABS: readonly Tab[] = ["form", "chat"];
 const TAB_STORAGE_KEY = "tickets.searchTab";
 
-/** Вкладка з sessionStorage; якщо не обирали — чат, коли в ньому вже обрано режим. */
+/** Вкладка з sessionStorage; якщо не обирали — чат, коли є відкрита розмова. */
 function restoreTab(): Tab {
   try {
     const saved = sessionStorage.getItem(TAB_STORAGE_KEY);
     if (saved === "form" || saved === "chat") return saved;
-    return sessionStorage.getItem(CHAT_MODE_KEY) ? "chat" : "form";
+    return readStore().activeId ? "chat" : "form";
   } catch {
     return "form";
   }

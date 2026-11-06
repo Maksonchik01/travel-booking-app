@@ -49,7 +49,8 @@ npm run dev -w @tickets/web                                            # web
 - Пошук: `FLIGHT_PROVIDERS=serpapi` + `SERPAPI_KEY` (живі ціни Google Flights, 250 запитів/міс).
 - Календар: `CALENDAR_PROVIDERS=travelpayouts` + `TRAVELPAYOUTS_TOKEN`.
 - Житло: поки лише mock-дані (`STAY_PROVIDERS=mock`, [ADR 0008](docs/adr/0008-stays-value-score.md)).
-- ШІ (чат-помічник у трьох режимах — квитки, житло, уся поїздка — пам'ятає розмову до закриття вкладки; пояснення результатів; резюме відгуків): `LLM_PROVIDER=deepseek` +
+- Поїздка (`/trip`): переліт + житло на дати рейсу із загальною сумою ([ADR 0009](docs/adr/0009-trip-planner.md)).
+- ШІ (чат-помічник у трьох режимах — квитки, житло, уся поїздка — історія розмов у браузері; пояснення результатів; резюме відгуків): `LLM_PROVIDER=deepseek` +
   `DEEPSEEK_API_KEY` ([ADR 0007](docs/adr/0007-llm-deepseek.md)). `LLM_PROVIDER=mock` —
   без ключа, `off` — без ШІ-блоків.
 - Вартість ШІ: таблиця `llm_usage`, напр.

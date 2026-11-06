@@ -20,6 +20,7 @@ from tickets_api.reference.airports import default_airport_directory
 from tickets_api.repositories.price_history import PriceStats, route_price_stats
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.stay_search import StaySearchService
+from tickets_api.services.trip_planner import TripPlanner
 
 
 def build_ai_service(
@@ -31,6 +32,7 @@ def build_ai_service(
     search: FlightSearchService,
     pricing: Pricing,
     stay_search: StaySearchService | None = None,
+    trip_planner: TripPlanner | None = None,
 ) -> AIService | None:
     """None — ШІ вимкнено (LLM_PROVIDER=off): ендпоінти /ai/* відповідають 503."""
     client: LLMClient
@@ -82,6 +84,7 @@ def build_ai_service(
             search,
             model=settings.llm_model_assistant,
             stay_search=stay_search,
+            trip_planner=trip_planner,
             prompts_dir=settings.llm_prompts_dir,
         ),
         chat_max_calls=settings.llm_max_calls_per_chat_turn,

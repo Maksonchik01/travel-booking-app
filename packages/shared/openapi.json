@@ -319,6 +319,48 @@
         }
       }
     },
+    "/trips/search": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Search Trips",
+        "description": "Переліт туди-назад + житло на дати рейсу, з загальною сумою і трьома варіантами.\n\nПерельоти — звичайний пошук (живі ціни витрачають квоту), житло — на дати кожного\nрекомендованого рейсу. Збій джерела видно в `providers[].status`.",
+        "operationId": "search_trips_trips_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripSearchResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ai/status": {
       "get": {
         "tags": [
@@ -827,6 +869,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/StayQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trip_search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripQuery"
               },
               {
                 "type": "null"
@@ -2950,6 +3002,349 @@
           "code"
         ],
         "title": "StayWarning"
+      },
+      "StayWindow": {
+        "properties": {
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          }
+        },
+        "type": "object",
+        "required": [
+          "check_in",
+          "check_out",
+          "nights"
+        ],
+        "title": "StayWindow"
+      },
+      "TripBudget": {
+        "properties": {
+          "budget": {
+            "type": "number",
+            "title": "Budget"
+          },
+          "within": {
+            "type": "integer",
+            "title": "Within"
+          },
+          "shortfall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shortfall"
+          }
+        },
+        "type": "object",
+        "required": [
+          "budget",
+          "within",
+          "shortfall"
+        ],
+        "title": "TripBudget"
+      },
+      "TripCombo": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "offer_key": {
+            "type": "string",
+            "title": "Offer Key"
+          },
+          "stay_key": {
+            "type": "string",
+            "title": "Stay Key"
+          },
+          "window": {
+            "$ref": "#/components/schemas/StayWindow"
+          },
+          "flight_price": {
+            "type": "number",
+            "title": "Flight Price"
+          },
+          "flight_total": {
+            "type": "number",
+            "title": "Flight Total"
+          },
+          "stay_total": {
+            "type": "number",
+            "title": "Stay Total"
+          },
+          "money_total": {
+            "type": "number",
+            "title": "Money Total"
+          },
+          "value_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Total"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "warnings": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "early_arrival",
+                "children_not_priced",
+                "value_unknown"
+              ]
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "offer_key",
+          "stay_key",
+          "window",
+          "flight_price",
+          "flight_total",
+          "stay_total",
+          "money_total",
+          "value_total",
+          "currency"
+        ],
+        "title": "TripCombo"
+      },
+      "TripPick": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "enum": [
+              "cheapest",
+              "best_value",
+              "comfort"
+            ],
+            "title": "Label"
+          },
+          "combo_key": {
+            "type": "string",
+            "title": "Combo Key"
+          },
+          "also": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "cheapest",
+                "best_value",
+                "comfort"
+              ]
+            },
+            "type": "array",
+            "title": "Also",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "combo_key"
+        ],
+        "title": "TripPick"
+      },
+      "TripQuery": {
+        "properties": {
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Destination"
+          },
+          "departure_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure Date"
+          },
+          "return_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Return Date"
+          },
+          "flex_days": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Flex Days",
+            "default": 0
+          },
+          "adults": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Adults",
+            "default": 2
+          },
+          "children": {
+            "type": "integer",
+            "maximum": 8.0,
+            "minimum": 0.0,
+            "title": "Children",
+            "default": 0
+          },
+          "direct_only": {
+            "type": "boolean",
+            "title": "Direct Only",
+            "default": false
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "budget",
+              "balanced",
+              "comfort"
+            ],
+            "title": "Profile",
+            "default": "balanced"
+          },
+          "budget_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Total"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency",
+            "default": "EUR"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "departure_date",
+          "return_date"
+        ],
+        "title": "TripQuery"
+      },
+      "TripSearchResult": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/TripQuery"
+          },
+          "flight_query": {
+            "$ref": "#/components/schemas/FlightQuery"
+          },
+          "stay_queries": {
+            "items": {
+              "$ref": "#/components/schemas/StayQuery"
+            },
+            "type": "array",
+            "title": "Stay Queries"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/Offer"
+            },
+            "type": "array",
+            "title": "Offers"
+          },
+          "stays": {
+            "items": {
+              "$ref": "#/components/schemas/Stay"
+            },
+            "type": "array",
+            "title": "Stays"
+          },
+          "combos": {
+            "items": {
+              "$ref": "#/components/schemas/TripCombo"
+            },
+            "type": "array",
+            "title": "Combos"
+          },
+          "picks": {
+            "items": {
+              "$ref": "#/components/schemas/TripPick"
+            },
+            "type": "array",
+            "title": "Picks"
+          },
+          "budget": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripBudget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "flights_found": {
+            "type": "integer",
+            "title": "Flights Found"
+          },
+          "airlines": {
+            "items": {
+              "$ref": "#/components/schemas/AirlineFacet"
+            },
+            "type": "array",
+            "title": "Airlines"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "flight_query",
+          "stay_queries",
+          "offers",
+          "stays",
+          "combos",
+          "picks",
+          "providers",
+          "flights_found",
+          "airlines"
+        ],
+        "title": "TripSearchResult"
       },
       "Turn": {
         "properties": {

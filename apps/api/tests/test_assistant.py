@@ -11,12 +11,14 @@ from tickets_api.ai.assistant import (
 )
 from tickets_api.domain.flights import FlightQuery
 from tickets_api.llm.types import ChatRequest, ChatResponse, LLMError, ToolCall
+from tickets_api.providers.mock import MockFlightProvider
 from tickets_api.providers.mock_stays import MockStayProvider
 from tickets_api.reference.airports import default_airport_directory
 from tickets_api.scoring.config import default_scoring_config
 from tickets_api.scoring.stays import default_stay_scoring_config
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.stay_search import StaySearchService
+from tickets_api.services.trip_planner import TripPlanner
 
 TODAY = date(2026, 11, 4)
 NOW = datetime(2026, 11, 4, 12, tzinfo=UTC)
@@ -49,6 +51,12 @@ def text(content: str) -> ChatResponse:
 def assistant(provider: StubProvider | None = None) -> tuple[TravelAssistant, StubProvider]:
     provider = provider or StubProvider("a", offers=offers_for("a", [88, 152]))
     search = FlightSearchService([provider], timeout_s=1, scoring_config=default_scoring_config())
+    # Поїздка — туди-назад: mock-провайдер перельотів дає зворотні рейси.
+    trip_flights = FlightSearchService(
+        [MockFlightProvider(clock=lambda: NOW)],
+        timeout_s=1,
+        scoring_config=default_scoring_config(),
+    )
     stays = StaySearchService(
         [MockStayProvider(default_airport_directory(), clock=lambda: NOW)],
         airports=default_airport_directory(),
@@ -60,6 +68,7 @@ def assistant(provider: StubProvider | None = None) -> tuple[TravelAssistant, St
         search,
         model="deepseek-flash",
         stay_search=stays,
+        trip_planner=TripPlanner(trip_flights, stays),
         clock=lambda: NOW,
     )
     return agent, provider
@@ -252,20 +261,26 @@ async def test_stays_chat_has_only_stay_tools() -> None:
     assert stays["options"][0]["price_per_night_text"].endswith("EUR")
 
 
-async def test_trip_chat_finds_flight_and_stay() -> None:
+async def test_trip_chat_plans_whole_trip_with_totals_from_code() -> None:
     agent, _ = assistant()
     client = Scripted(
-        tool("search_flights", origin="WAW", destination="LIS", departure_date="2026-11-10"),
-        tool("search_stays", city="LIS", check_in="2026-11-10", check_out="2026-11-13"),
-        text("Переліт за 88 EUR і житло — варіанти нижче."),
+        tool(
+            "plan_trip",
+            origin="WAW",
+            destination="LIS",
+            departure_date="2026-12-05",
+            return_date="2026-12-08",
+        ),
+        text("Найвигідніша поїздка — сума нижче."),
     )
 
-    reply = await agent.reply(
-        turns("Поїздка Варшава–Лісабон 10–13 листопада"), CONTEXT, client, "trip"
-    )
+    reply = await agent.reply(turns("Поїздка Варшава–Лісабон 5–8 грудня"), CONTEXT, client, "trip")
 
     assert reply.status == "ok"
-    assert "Trip-Assistant" in client.requests[0].messages[0].content
-    assert reply.search is not None
-    assert reply.stay_search is not None
-    assert (reply.search.destination, reply.stay_search.city) == ("LIS", "LIS")
+    assert {t.name for t in client.requests[0].tools} == {"lookup_airport", "plan_trip"}
+    assert reply.trip_search is not None
+    assert (reply.trip_search.origin, reply.trip_search.destination) == ("WAW", "LIS")
+    [trip] = tool_outputs(client)
+    best = next(o for o in trip["options"] if o["id"] == trip["recommended_by_scoring"])
+    assert best["money_total_text"].endswith("EUR")
+    assert "житло" in best["breakdown_text"]

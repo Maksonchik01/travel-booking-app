@@ -125,10 +125,10 @@ async def test_chat_modes_are_separate(ai_client: AsyncClient) -> None:
 
     assert (stays["search"], stays["stay_search"]["city"]) == (None, "LIS")
     assert "за ніч" in stays["reply"]
-    assert trip["search"]["destination"] == "LIS"
-    assert trip["stay_search"]["city"] == "LIS"
-    # Житло на дати перельоту: заїзд у день вильоту рекомендованого рейсу.
-    assert trip["stay_search"]["check_in"] == trip["search"]["departure_date"]
+    # «Уся поїздка» — один підбір: переліт + житло із загальною сумою від коду.
+    assert trip["trip_search"]["destination"] == "LIS"
+    assert "разом" in trip["reply"]
+    assert "житло" in trip["reply"]
     bad = {"mode": "hotels", "messages": [{"role": "user", "text": "x"}]}
     assert (await ai_client.post("/ai/chat", json=bad)).status_code == 422
 

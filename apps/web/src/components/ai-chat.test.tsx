@@ -38,7 +38,7 @@ type Send = (body: ChatBodyInput) => Promise<ChatReply | null>;
 
 function renderChat(send: Send, current?: { flights?: FlightQuery; stays?: StayQuery }) {
   return render(
-    <NextIntlClientProvider locale="uk" messages={messages}>
+    <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
       <AIChat
         send={send}
         currentSearch={current?.flights}
@@ -53,10 +53,14 @@ function choose(mode: "Квитки" | "Житло" | "Уся поїздка") {
   fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${mode}`) }));
 }
 
+function click(name: string | RegExp) {
+  fireEvent.click(screen.getByRole("button", { name }));
+}
+
 async function say(text: string) {
   fireEvent.change(screen.getByLabelText("Запитайте ШІ-помічника"), { target: { value: text } });
   await act(async () => {
-    fireEvent.click(screen.getByRole("button", { name: "Надіслати" }));
+    click("Надіслати");
   });
 }
 
@@ -69,7 +73,15 @@ function bubbles() {
     .map((li) => li.textContent);
 }
 
+const ok = (reply: string, extra: Partial<ChatReply> = {}): ChatReply => ({
+  status: "ok",
+  reply,
+  search: null,
+  ...extra,
+});
+
 beforeEach(() => {
+  localStorage.clear();
   sessionStorage.clear();
   push.mockClear();
 });
@@ -84,14 +96,14 @@ describe("AIChat", () => {
     choose("Житло");
 
     expect(screen.getByLabelText("Запитайте ШІ-помічника")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Житло/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Розмова: Житло")).toBeInTheDocument();
   });
 
-  it("кожна репліка йде з усією розмовою свого режиму; квитки відкриваються сторінкою", async () => {
+  it("кожна репліка йде з усією розмовою; квитки відкриваються сторінкою", async () => {
     const send = vi
       .fn<Send>()
-      .mockResolvedValueOnce({ status: "ok", reply: "Звідки летите?", search: null })
-      .mockResolvedValueOnce({ status: "ok", reply: "Прямий — 88 EUR.", search: SEARCH });
+      .mockResolvedValueOnce(ok("Звідки летите?"))
+      .mockResolvedValueOnce(ok("Прямий — 88 EUR.", { search: SEARCH }));
     renderChat(send);
     choose("Квитки");
 
@@ -109,47 +121,57 @@ describe("AIChat", () => {
       current_stay_search: null,
       home_airport: null,
     });
-    expect(bubbles()).toEqual([
+    expect(bubbles().slice(0, 3)).toEqual([
       "Ви: Хочу в Лісабон 10 грудня",
       "Помічник: Звідки летите?",
       "Ви: з Варшави, прямі",
-      "Помічник: Прямий — 88 EUR.",
     ]);
     expect(push).toHaveBeenCalledWith("/?from=WAW&to=LIS&depart=2026-12-10&direct=1");
+    // Посилання на знайдене лишається в розмові — з історії можна повернутися до результатів.
+    expect(screen.getByRole("link", { name: "Квитки" })).toBeInTheDocument();
   });
 
-  it("квитки й житло — окремі розмови, що не змішуються", async () => {
-    const send = vi.fn<Send>(async (body) => ({
-      status: "ok",
-      reply: body.mode === "stays" ? "Ось житло." : "Ось квитки.",
-      search: null,
-    }));
-    renderChat(send, { stays: STAY });
+  it("історія: розмови зберігаються, до будь-якої можна повернутися, нова — з чистого аркуша", async () => {
+    const send = vi.fn<Send>(async (body) =>
+      ok(body.mode === "stays" ? "Ось житло." : "Ось квитки."),
+    );
+    const first = renderChat(send, { stays: STAY });
     choose("Квитки");
     await say("Квитки в Лісабон");
 
-    fireEvent.click(screen.getByRole("button", { name: /^Житло/ }));
+    click("Новий чат");
+    choose("Житло");
     expect(bubbles()).toEqual([]);
-    await say("а ближче до центру?");
-
+    await say("Готель у Лісабоні");
     expect(send).toHaveBeenLastCalledWith(
       expect.objectContaining({
         mode: "stays",
-        messages: [{ role: "user", text: "а ближче до центру?" }],
+        messages: [{ role: "user", text: "Готель у Лісабоні" }],
         current_stay_search: STAY,
       }),
     );
-    fireEvent.click(screen.getByRole("button", { name: /^Квитки/ }));
+    first.unmount();
+
+    // Інше відкриття сторінки (історія — у localStorage): відкрита остання розмова.
+    renderChat(send);
+    expect(bubbles()).toEqual(["Ви: Готель у Лісабоні", "Помічник: Ось житло."]);
+    click("Історія (2)");
+    const list = screen.getByRole("list", { name: "Історія розмов" });
+    expect(list).toHaveTextContent("Готель у Лісабоні");
+    expect(list).toHaveTextContent("Квитки в Лісабон");
+
+    click(/^Квитки в Лісабон/);
     expect(bubbles()).toEqual(["Ви: Квитки в Лісабон", "Помічник: Ось квитки."]);
+
+    click("Історія (2)");
+    click("Видалити розмову «Готель у Лісабоні»");
+    expect(screen.getByRole("list", { name: "Історія розмов" })).not.toHaveTextContent(
+      "Готель у Лісабоні",
+    );
   });
 
   it("уся поїздка — посилання і на квитки, і на житло, без переходу", async () => {
-    renderChat(async () => ({
-      status: "ok",
-      reply: "Переліт і житло знайдено.",
-      search: SEARCH,
-      stay_search: STAY,
-    }));
+    renderChat(async () => ok("Переліт і житло знайдено.", { search: SEARCH, stay_search: STAY }));
     choose("Уся поїздка");
 
     await say("Варшава Лісабон 10–13 грудня");
@@ -163,20 +185,6 @@ describe("AIChat", () => {
       "href",
       "/stays?city=LIS&in=2026-12-10&out=2026-12-13",
     );
-  });
-
-  it("розмова переживає перехід між сторінками; «Нова розмова» стирає лише свою", async () => {
-    const send = vi.fn<Send>(async () => ({ status: "ok", reply: "Куди летите?", search: null }));
-    const first = renderChat(send);
-    choose("Квитки");
-    await say("Привіт");
-    first.unmount();
-
-    renderChat(send);
-    expect(bubbles()).toEqual(["Ви: Привіт", "Помічник: Куди летите?"]);
-
-    fireEvent.click(screen.getByRole("button", { name: "Нова розмова" }));
-    expect(bubbles()).toEqual([]);
   });
 
   it("помічник недоступний — повідомлення повертається в поле", async () => {

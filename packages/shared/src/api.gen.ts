@@ -130,6 +130,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/trips/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Trips
+         * @description Переліт туди-назад + житло на дати рейсу, з загальною сумою і трьома варіантами.
+         *
+         *     Перельоти — звичайний пошук (живі ціни витрачають квоту), житло — на дати кожного
+         *     рекомендованого рейсу. Збій джерела видно в `providers[].status`.
+         */
+        post: operations["search_trips_trips_search_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/status": {
         parameters: {
             query?: never;
@@ -351,6 +374,7 @@ export interface components {
             reply?: string | null;
             search?: components["schemas"]["FlightQuery"] | null;
             stay_search?: components["schemas"]["StayQuery"] | null;
+            trip_search?: components["schemas"]["TripQuery"] | null;
         };
         /**
          * ChatTurn
@@ -1163,6 +1187,144 @@ export interface components {
              */
             code: "few_reviews" | "no_rating" | "distance_unknown" | "transit_unknown" | "cancellation_unknown";
         };
+        /** StayWindow */
+        StayWindow: {
+            /**
+             * Check In
+             * Format: date
+             */
+            check_in: string;
+            /**
+             * Check Out
+             * Format: date
+             */
+            check_out: string;
+            /** Nights */
+            nights: number;
+        };
+        /** TripBudget */
+        TripBudget: {
+            /** Budget */
+            budget: number;
+            /** Within */
+            within: number;
+            /** Shortfall */
+            shortfall: number | null;
+        };
+        /** TripCombo */
+        TripCombo: {
+            /** Key */
+            key: string;
+            /** Offer Key */
+            offer_key: string;
+            /** Stay Key */
+            stay_key: string;
+            window: components["schemas"]["StayWindow"];
+            /** Flight Price */
+            flight_price: number;
+            /** Flight Total */
+            flight_total: number;
+            /** Stay Total */
+            stay_total: number;
+            /** Money Total */
+            money_total: number;
+            /** Value Total */
+            value_total: number | null;
+            /** Currency */
+            currency: string;
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: ("early_arrival" | "children_not_priced" | "value_unknown")[];
+        };
+        /** TripPick */
+        TripPick: {
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "cheapest" | "best_value" | "comfort";
+            /** Combo Key */
+            combo_key: string;
+            /**
+             * Also
+             * @default []
+             */
+            also: ("cheapest" | "best_value" | "comfort")[];
+        };
+        /** TripQuery */
+        TripQuery: {
+            /** Origin */
+            origin: string;
+            /** Destination */
+            destination: string;
+            /**
+             * Departure Date
+             * Format: date
+             */
+            departure_date: string;
+            /**
+             * Return Date
+             * Format: date
+             */
+            return_date: string;
+            /**
+             * Flex Days
+             * @default 0
+             */
+            flex_days: number;
+            /**
+             * Adults
+             * @default 2
+             */
+            adults: number;
+            /**
+             * Children
+             * @default 0
+             */
+            children: number;
+            /**
+             * Direct Only
+             * @default false
+             */
+            direct_only: boolean;
+            /**
+             * Profile
+             * @default balanced
+             * @enum {string}
+             */
+            profile: "budget" | "balanced" | "comfort";
+            /** Budget Total */
+            budget_total?: number | null;
+            /**
+             * Currency
+             * @default EUR
+             */
+            currency: string;
+        };
+        /** TripSearchResult */
+        TripSearchResult: {
+            query: components["schemas"]["TripQuery"];
+            flight_query: components["schemas"]["FlightQuery"];
+            /** Stay Queries */
+            stay_queries: components["schemas"]["StayQuery"][];
+            /** Offers */
+            offers: components["schemas"]["Offer"][];
+            /** Stays */
+            stays: components["schemas"]["Stay"][];
+            /** Combos */
+            combos: components["schemas"]["TripCombo"][];
+            /** Picks */
+            picks: components["schemas"]["TripPick"][];
+            budget?: components["schemas"]["TripBudget"] | null;
+            /** Providers */
+            providers: components["schemas"]["ProviderStatus"][];
+            /** Flights Found */
+            flights_found: number;
+            /** Airlines */
+            airlines: components["schemas"]["AirlineFacet"][];
+        };
         /**
          * Turn
          * @description Репліка діалогу уточнень. Приходить від клієнта — для моделі це лише дані.
@@ -1368,6 +1530,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StaySearchResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_trips_trips_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TripQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TripSearchResult"];
                 };
             };
             /** @description Validation Error */

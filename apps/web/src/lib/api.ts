@@ -11,6 +11,8 @@ import type {
   StayAnalysisResult,
   StayQuery,
   StaySearchResult,
+  TripQuery,
+  TripSearchResult,
 } from "@tickets/shared";
 
 const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -146,5 +148,18 @@ export function analyzeStays(
       body: JSON.stringify({ query, stay_keys: stayKeys }),
     },
     EXPLAIN_TIMEOUT_MS,
+  );
+}
+
+/** Поїздка: перельоти туди-назад (живий пошук) + житло на дати рейсів. */
+export function searchTrip(query: TripQuery): Promise<ApiResult<TripSearchResult>> {
+  return request(
+    "/trips/search",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(query),
+    },
+    SEARCH_TIMEOUT_MS,
   );
 }

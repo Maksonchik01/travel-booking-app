@@ -30,6 +30,7 @@ import {
   type SortKey,
   toSearchParams,
 } from "@/lib/search-params";
+import { dateRange, peopleCount } from "@/lib/summary";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -104,7 +105,16 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
     <SearchForm key={state ? toSearchParams(state).toString() : "empty"} initial={state} />
   );
   // На мобільному на сторінці результатів форма згортається в рядок «що шукаємо».
-  const searchForm = state ? <CollapsibleSearch state={state}>{form}</CollapsibleSearch> : form;
+  const searchForm = state ? (
+    <CollapsibleSearch
+      title={`${state.query.origin} → ${state.query.destination}`}
+      details={`${await dateRange(state.query.departure_date, state.query.return_date)} · ${await peopleCount(state.query.passengers?.adults ?? 1)}`}
+    >
+      {form}
+    </CollapsibleSearch>
+  ) : (
+    form
+  );
   if (!status.enabled) return searchForm;
   return (
     <SearchTabs

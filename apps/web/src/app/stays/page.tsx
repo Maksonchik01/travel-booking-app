@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { AIChat } from "@/components/ai-chat";
+import { CollapsibleSearch } from "@/components/collapsible-search";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
 import { ProviderAlerts } from "@/components/provider-alerts";
@@ -28,6 +29,7 @@ import {
   type StayState,
   toStayParams,
 } from "@/lib/stay-params";
+import { dateRange, peopleCount } from "@/lib/summary";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -99,8 +101,18 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
   const form = (
     <StaySearchForm key={state ? toStayParams(state).toString() : "empty"} initial={state} />
   );
-  if (!status.enabled) return form;
-  return <SearchTabs form={form} chat={<AIChat currentStaySearch={state?.query} />} />;
+  const searchForm = state ? (
+    <CollapsibleSearch
+      title={state.query.city}
+      details={`${await dateRange(state.query.check_in, state.query.check_out)} · ${await peopleCount(state.query.guests?.adults ?? 2, state.query.guests?.children ?? 0)}`}
+    >
+      {form}
+    </CollapsibleSearch>
+  ) : (
+    form
+  );
+  if (!status.enabled) return searchForm;
+  return <SearchTabs form={searchForm} chat={<AIChat currentStaySearch={state?.query} />} />;
 }
 
 async function Results({ searchParams }: { searchParams: Params }) {

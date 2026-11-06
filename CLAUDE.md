@@ -59,6 +59,10 @@
   `search` і `reviews`; ціни з податками за весь номер, рейтинг 0–10, невідоме — `None`.
   Value-score — `scoring/stays.py` + `stays.toml` (скоригований рейтинг — байєсівський),
   історія — `stay_price_history`. Резюме відгуків — лише на вимогу, для «Нашого вибору».
+- **Поїздка** ([ADR 0009](docs/adr/0009-trip-planner.md)): `TripPlanner` — перельоти туди-назад
+  («Наш вибір», до 3) × житло з дати прильоту до дати вильоту назад (≤ 3 вікна).
+  `money_total` = переліт × дорослі + житло; `value_total` = оцінки скорингів. Суми рахує
+  код; чат «Уся поїздка» має інструмент `plan_trip`.
 - **Кожна отримана ціна пишеться в історію цін** (маршрут, дата, ціна, валюта, джерело, час збору).
 - **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
@@ -71,7 +75,9 @@
   Агент-чат (`ai/assistant.py`, `/ai/chat`) не має стану: розмову (sessionStorage вкладки) і
   поточні пошуки з URL надсилає клієнт; числа у відповіді звіряються з результатами
   інструментів. Три окремі режими (`mode`: flights / stays / trip) — свої промпти
-  (`ai/prompts/*-Assistant.md`), інструменти й історії; перше питання «Що шукаємо?» — UI.
+  (`ai/prompts/*-Assistant.md`) й інструменти; перше питання «Що шукаємо?» — UI.
+  Історія розмов — лише в браузері (localStorage, `src/lib/chat-history.ts`): список,
+  повернення до будь-якої, видалення; на сервері розмов немає.
   Змінив промпт/контракт парсера — `uv run python scripts/eval_parser.py --record`
   (30 кейсів, ≈ $0.01) і перевір, що pytest на записаних відповідях зелений.
 
@@ -82,7 +88,7 @@ apps/api         FastAPI, Python 3.12, uv workspace (пакет tickets_api)
   src/tickets_api/
     ai/            розбір запиту (Query-Parser), пояснення (Flight-Deal-Advisor), кеш
     llm/           LLMClient, адаптер DeepSeek, mock, ціни моделей, MeteredLLM
-    api/           HTTP-роутери (health, flights, stays, places — автодоповнення, ai)
+    api/           HTTP-роутери (health, flights, stays, trips, places — автодоповнення, ai)
     core/          конфіг, логування, Sentry
     db/            Base, моделі (price_history), сесії
     domain/        FlightQuery, Offer, Leg, Layover, CalendarDay; StayQuery, Stay — без I/O
@@ -91,7 +97,8 @@ apps/api         FastAPI, Python 3.12, uv workspace (пакет tickets_api)
     reference/     довідники (знімки JSON): аеропорти, міста, країни, авіакомпанії
     scoring/       скоринг перельотів (engine.py, config.toml, ADR 0005) і житла (stays.py,
                    stays.toml, ADR 0008)
-    services/      FlightSearchService, StaySearchService — graceful degradation + скоринг
+    services/      FlightSearchService, StaySearchService — graceful degradation + скоринг;
+                   TripPlanner — переліт + житло за загальною вартістю
     repositories/  запис історії цін (перельоти й житло)
   migrations/                     Alembic (async)
 apps/worker      ARQ-воркер (пакет tickets_worker, залежить від tickets_api)
@@ -128,6 +135,9 @@ make migrate        alembic upgrade head
 - **Web:** Next.js 16 має breaking changes проти старих версій. Перед кодом читай
   `node_modules/next/dist/docs/` (див. [apps/web/AGENTS.md](apps/web/AGENTS.md)).
   З `cacheComponents` динамічні дані (fetch без кешу) рендеряться всередині `<Suspense>`.
+- **Web-поїздка:** `/trip?from=&to=&depart=&return=&adults=&children=&prio=&budget=&direct=`
+  — `src/lib/trip-params.ts`. Перельоти: перемикач «туди й назад / в один бік»
+  (`trip=ow` без JS ігнорує повернення).
 - **Web-житло:** `/stays?city=&in=&out=&adults=&children=&prio=&sort=`, фільтри
   `maxp=&rating=&cancel=&kind=` — `src/lib/stay-params.ts`.
 - **Web-пошук:** стан пошуку живе в URL (`?from=&to=&depart=&return=&flex=&adults=&direct=&sort=`,

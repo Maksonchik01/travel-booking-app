@@ -26,6 +26,10 @@ test("пошук: підказки міст → результати → філ�
   await page.getByLabel("Куди").press("ArrowDown");
   await page.getByLabel("Куди").press("ArrowUp");
   await page.getByLabel("Куди").press("Enter");
+  // Новий пошук — «туди й назад» за замовчуванням; тут — в один бік.
+  await expect(page.getByLabel("Повернення")).toBeEnabled();
+  await page.getByText("В один бік").click();
+  await expect(page.getByLabel("Повернення")).toBeDisabled();
   await page.getByLabel("Виліт").fill("2026-12-05");
   await page.getByRole("button", { name: "Шукати" }).click();
 
@@ -99,8 +103,12 @@ test("розмова з ШІ-помічником: питання → відпо
     "true",
   );
   await expect(conversation).toContainText("Куди і коли ви хочете полетіти?");
-  await page.getByRole("button", { name: "Нова розмова" }).click();
-  await expect(conversation).not.toContainText("Куди і коли ви хочете полетіти?");
+  // Новий чат — знову «Що шукаємо?»; попередня розмова — в історії.
+  await page.getByRole("button", { name: "Новий чат" }).click();
+  await expect(page.getByText("Що шукаємо?")).toBeVisible();
+  await page.getByRole("button", { name: "Історія (1)" }).click();
+  await page.getByRole("button", { name: /^Лісабон/ }).click();
+  await expect(conversation).toContainText("Куди і коли ви хочете полетіти?");
 });
 
 test("житло: пошук → наш вибір → фільтр → резюме відгуків", async ({ page }) => {
@@ -127,7 +135,7 @@ test("житло: пошук → наш вибір → фільтр → резю
   await expect(page.getByTestId("stay-analysis")).toContainText("Радимо:");
 });
 
-test("помічник «уся поїздка»: квитки й житло окремими посиланнями", async ({ page }) => {
+test("помічник «уся поїздка»: загальна сума й сторінка поїздки", async ({ page }) => {
   await page.goto("/stays");
   await page.waitForLoadState("networkidle");
 
@@ -136,14 +144,42 @@ test("помічник «уся поїздка»: квитки й житло о�
   await page.getByLabel("Запитайте ШІ-помічника").fill("Поїздка з Варшави до Лісабона");
   await page.getByRole("button", { name: "Надіслати" }).click();
 
+  // Загальну суму рахує код (plan_trip), модель лише переказує.
   const conversation = page.getByRole("list", { name: "Розмова з помічником" });
-  await expect(conversation).toContainText("за ніч");
-  await conversation.getByRole("link", { name: "Житло" }).click();
-  await expect(page).toHaveURL(/\/stays\?city=LIS/);
-  await expect(page.getByTestId("stay-card").first()).toBeVisible();
+  await expect(conversation).toContainText("разом");
+  await conversation.getByRole("link", { name: "Поїздка" }).click();
+  await expect(page).toHaveURL(/\/trip\?from=WAW&to=LIS/);
+  await expect(page.getByTestId("trip-card").first()).toBeVisible();
 
-  // Розмова «усієї поїздки» на місці й після переходу; «Квитки» — окрема, порожня.
+  // Розмова на місці й після переходу; новий чат «Квитки» — окремий, порожній.
   await expect(conversation).toContainText("Поїздка з Варшави до Лісабона");
+  await page.getByRole("button", { name: "Новий чат" }).click();
   await page.getByRole("button", { name: /^Квитки/ }).click();
   await expect(conversation).not.toContainText("Поїздка з Варшави до Лісабона");
+});
+
+test("поїздка: загальна сума, три варіанти, бюджет, посилання на рейс і житло", async ({
+  page,
+}) => {
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+
+  const picks = page.locator(
+    'section[aria-labelledby="trip-picks-title"] [data-testid="trip-card"]',
+  );
+  await expect(picks.first()).toBeVisible();
+  await expect(page.locator('[data-testid="trip-card"][data-label="best_value"]')).toHaveCount(1);
+  await expect(picks.first().getByTestId("trip-total")).toContainText("€");
+  await expect(picks.first().getByTestId("trip-breakdown")).toContainText("Житло");
+
+  // Нереальний бюджет — чесно кажемо, на скільки найдешевша поїздка дорожча.
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&budget=10");
+  await expect(page.getByText(/не вкладається жодна поїздка/)).toBeVisible();
+
+  await page
+    .locator('[data-testid="trip-card"]')
+    .first()
+    .getByRole("link", { name: /Житло/ })
+    .click();
+  await expect(page).toHaveURL(/\/stays\?city=LIS/);
+  await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
 });

@@ -27,13 +27,16 @@ from tickets_api.ai.explainer import (
 )
 from tickets_api.ai.parser import LOOKUP_TOOL, lookup_airport
 from tickets_api.ai.stay_payload import stay_options_input
+from tickets_api.ai.trip_payload import trip_input
 from tickets_api.domain.flights import DEFAULT_CURRENCY, MAX_FLEX_DAYS, FlightQuery
 from tickets_api.domain.stays import StayQuery
+from tickets_api.domain.trips import TripQuery
 from tickets_api.llm.prompts import RULES, find_prompts_dir
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message, Tool, ToolCall
 from tickets_api.reference.airports import AirportDirectory
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.stay_search import StaySearchService
+from tickets_api.services.trip_planner import TripPlanner
 
 log = structlog.get_logger(__name__)
 
@@ -118,12 +121,35 @@ STAY_SEARCH_TOOL = Tool(
     },
 )
 
+PLAN_TRIP_TOOL = Tool(
+    name="plan_trip",
+    description=(
+        "Plan a whole trip: round-trip flights plus a place to stay from the arrival day "
+        "to the return flight day. Returns up to 3 trips (cheapest, best value, most "
+        "comfortable) with the total price and its breakdown already calculated."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "origin": {"type": "string", "description": "IATA code from lookup_airport"},
+            "destination": {"type": "string", "description": "IATA code from lookup_airport"},
+            "departure_date": {"type": "string", "description": "YYYY-MM-DD"},
+            "return_date": {"type": "string", "description": "YYYY-MM-DD"},
+            "adults": {"type": "integer", "minimum": 1, "maximum": 9},
+            "children": {"type": "integer", "minimum": 0, "maximum": 8},
+            "budget_total": {"type": "integer", "description": "Budget for the whole trip, EUR"},
+            "priority": {"type": "string", "enum": ["budget", "balanced", "comfort"]},
+        },
+        "required": ["origin", "destination", "departure_date", "return_date"],
+    },
+)
+
 ChatMode = Literal["flights", "stays", "trip"]
 """Окремі чати: квитки, житло, уся поїздка — свої промпт, інструменти й історія."""
 TOOLS_BY_MODE: dict[ChatMode, tuple[Tool, ...]] = {
     "flights": (LOOKUP_TOOL, SEARCH_TOOL, CALENDAR_TOOL),
     "stays": (LOOKUP_TOOL, STAY_SEARCH_TOOL),
-    "trip": (LOOKUP_TOOL, SEARCH_TOOL, CALENDAR_TOOL, STAY_SEARCH_TOOL),
+    "trip": (LOOKUP_TOOL, PLAN_TRIP_TOOL),
 }
 ROLE_PROMPTS: dict[ChatMode, str] = {
     "flights": "Travel-Assistant.md",
@@ -163,6 +189,8 @@ class ChatReply(BaseModel):
     """Останній успішний пошук перельотів цієї репліки — UI відкриває його результати."""
     stay_search: StayQuery | None = None
     """Останній успішний пошук житла цієї репліки."""
+    trip_search: TripQuery | None = None
+    """Останній підбір поїздки цієї репліки — UI відкриває сторінку поїздки."""
 
 
 class _SearchArgs(BaseModel):
@@ -191,6 +219,19 @@ class _StayArgs(BaseModel):
     priority: Literal["budget", "balanced", "center"] = "balanced"
 
 
+class _TripArgs(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    origin: str
+    destination: str
+    departure_date: date
+    return_date: date
+    adults: int = Field(default=2, ge=1, le=9)
+    children: int = Field(default=0, ge=0, le=8)
+    budget_total: int | None = Field(default=None, ge=1)
+    priority: Literal["budget", "balanced", "comfort"] = "balanced"
+
+
 class _CalendarArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -207,6 +248,7 @@ class _TurnState:
     search: FlightQuery | None = None
     stay_searches: int = 0
     stay_search: StayQuery | None = None
+    trip_search: TripQuery | None = None
     tool_outputs: list[str] = field(default_factory=list)
 
 
@@ -225,12 +267,14 @@ class TravelAssistant:
         *,
         model: str,
         stay_search: StaySearchService | None = None,
+        trip_planner: TripPlanner | None = None,
         prompts_dir: Path | None = None,
         clock: Clock | None = None,
     ) -> None:
         self._airports = airports
         self._search = search
         self._stay_search = stay_search
+        self._trip_planner = trip_planner
         self._model = model
         self._systems = {mode: _system_prompt(prompts_dir, mode) for mode in ROLE_PROMPTS}
         self._clock = clock or (lambda: datetime.now(UTC))
@@ -245,7 +289,9 @@ class TravelAssistant:
         """`turns` закінчується реплікою користувача; `llm` — з лімітом викликів на репліку."""
         turns = list(turns)[-MAX_CHAT_TURNS:]
         state = _TurnState()
-        if mode != "flights" and self._stay_search is None:
+        if (mode == "stays" and self._stay_search is None) or (
+            mode == "trip" and self._trip_planner is None
+        ):
             return ChatReply(status="unavailable")
         context_json = context.model_dump_json(exclude_none=True)
         system = self._systems[mode]
@@ -270,15 +316,24 @@ class TravelAssistant:
                         reply=text[:MAX_TURN_LENGTH],
                         search=state.search,
                         stay_search=state.stay_search,
+                        trip_search=state.trip_search,
                     )
                 log.info("ai.chat.rejected_attempt", mode=mode)
                 messages += [Message("assistant", text), Message("user", problem)]
         except LLMError as exc:
             log.warning("ai.chat.llm_failed", error=exc.message, mode=mode)
             return ChatReply(
-                status="unavailable", search=state.search, stay_search=state.stay_search
+                status="unavailable",
+                search=state.search,
+                stay_search=state.stay_search,
+                trip_search=state.trip_search,
             )
-        return ChatReply(status="fallback", search=state.search, stay_search=state.stay_search)
+        return ChatReply(
+            status="fallback",
+            search=state.search,
+            stay_search=state.stay_search,
+            trip_search=state.trip_search,
+        )
 
     async def _run(
         self,
@@ -325,6 +380,8 @@ class TravelAssistant:
                 return await self._calendar(arguments, context)
             if call.name == STAY_SEARCH_TOOL.name:
                 return await self._search_stays(arguments, state, context)
+            if call.name == PLAN_TRIP_TOOL.name:
+                return await self._plan_trip(arguments, state, context)
             raise ToolError(f"unknown tool {call.name}")
         except (ToolError, ValueError) as exc:  # ValidationError — теж ValueError
             message = _validation_text(exc) if isinstance(exc, ValidationError) else str(exc)
@@ -402,6 +459,36 @@ class TravelAssistant:
         result = await self._stay_search.search(query)
         state.stay_search = query
         return json.dumps(stay_options_input(query, result), ensure_ascii=False)
+
+    async def _plan_trip(
+        self, arguments: dict[str, Any], state: _TurnState, context: ChatContext
+    ) -> str:
+        if self._trip_planner is None:
+            raise ToolError("trip planning is not available")
+        args = _TripArgs.model_validate(arguments)
+        origin, destination = self._code(args.origin), self._code(args.destination)
+        if args.departure_date < context.today:
+            raise ToolError("departure_date is in the past")
+        query = TripQuery(
+            origin=origin,
+            destination=destination,
+            departure_date=args.departure_date,
+            return_date=args.return_date,
+            adults=args.adults,
+            children=args.children,
+            budget_total=args.budget_total,
+            profile=args.priority,
+            currency=context.currency,
+        )
+        # Поїздка — це живий пошук перельотів: той самий ліміт, що й для search_flights.
+        if state.searches >= MAX_SEARCHES_PER_TURN:
+            raise ToolError("search limit for this reply reached; answer with what you have")
+        state.searches += 1
+        result = await self._trip_planner.plan(query)
+        state.trip_search = query
+        known = self._search.airline_names
+        names = {c: known.get(c, c) for o in result.offers for c in o.airlines}
+        return json.dumps(trip_input(result, names), ensure_ascii=False)
 
     async def _calendar(self, arguments: dict[str, Any], context: ChatContext) -> str:
         args = _CalendarArgs.model_validate(arguments)

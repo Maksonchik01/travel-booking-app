@@ -19,7 +19,7 @@ class MockLLMClient:
 
     async def chat(self, request: ChatRequest) -> ChatResponse:
         tools = {t.name for t in request.tools}
-        if tools & {"search_flights", "search_stays"}:
+        if tools & {"search_flights", "search_stays", "plan_trip"}:
             return _assistant_answer(request, tools)
         payload = _user_payload(request)
         # Розбір запиту — єдина роль з інструментами; аналіз житла — вхід зі "stays".
@@ -44,14 +44,11 @@ QUESTIONS = {
 def _assistant_answer(request: ChatRequest, tools: set[str]) -> ChatResponse:
     """Агент без розуміння мови. Коротка розмова (< 2 слів) — одне питання; інакше пошук
     WAW → LIS через місяць (житло — у Лісабоні на 3 ночі) і текст з готових результатів."""
-    mode = (
-        "trip"
-        if {"search_flights", "search_stays"} <= tools
-        else ("stays" if "search_stays" in tools else "flights")
-    )
+    mode = "trip" if "plan_trip" in tools else ("stays" if "search_stays" in tools else "flights")
     results = [json.loads(m.content) for m in request.messages if m.role == "tool"]
     flights = next((r for r in results if "offers_found" in r), None)
     stays = next((r for r in results if "stays_found" in r), None)
+    trip = next((r for r in results if "combinations_checked" in r), None)
     context = json.loads(request.messages[0].content.rsplit("\n", 1)[-1])
     departure = date.fromisoformat(context["today"]) + timedelta(days=31)
 
@@ -67,6 +64,19 @@ def _assistant_answer(request: ChatRequest, tools: set[str]) -> ChatResponse:
     said = " ".join(m.content for m in request.messages if m.role == "user")
     if not results and len(said.split()) < 2:
         return text(QUESTIONS[mode])
+    if mode == "trip":
+        if trip is None:
+            return_date = departure + timedelta(days=3)
+            return call(
+                "plan_trip",
+                {
+                    "origin": "WAW",
+                    "destination": "LIS",
+                    "departure_date": departure.isoformat(),
+                    "return_date": return_date.isoformat(),
+                },
+            )
+        return text(_trip_text(trip))
     if mode != "stays" and flights is None:
         return call(
             "search_flights",
@@ -77,6 +87,16 @@ def _assistant_answer(request: ChatRequest, tools: set[str]) -> ChatResponse:
         check_out = (date.fromisoformat(check_in) + timedelta(days=3)).isoformat()
         return call("search_stays", {"city": "LIS", "check_in": check_in, "check_out": check_out})
     return text(" ".join(filter(None, (_flight_text(flights), _stay_text(stays)))))
+
+
+def _trip_text(result: dict[str, Any]) -> str:
+    best = _recommended(result)
+    if best is None:
+        return "Поїздку на ці дати скласти не вдалося."
+    return (
+        f"{best['title']}: разом {best['money_total_text']} ({best['breakdown_text']}). "
+        f"Житло — {best['stay']['name']}."
+    )
 
 
 def _flight_text(result: dict[str, Any] | None) -> str | None:

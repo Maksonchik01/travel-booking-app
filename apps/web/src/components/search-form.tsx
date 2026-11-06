@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MAX_FLEX_DAYS, NEARBY_RADIUS_KM, PROFILES, type SearchState } from "@/lib/search-params";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
+import { cn } from "@/lib/utils";
 
 export function SearchForm({ initial }: { initial: SearchState | null }) {
   const t = useTranslations("search");
@@ -21,6 +22,8 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
   const [to, setTo] = useState(() => placeValue(q?.destination));
   const [fromNear, setFromNear] = useState(!!q?.origin_radius_km);
   const [toNear, setToNear] = useState(!!q?.destination_radius_km);
+  // Новий пошук — туди й назад (найчастіше); відкритий з URL — як у ньому.
+  const [roundTrip, setRoundTrip] = useState(q ? !!q.return_date : true);
 
   function swap() {
     setFrom(to);
@@ -31,6 +34,29 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
 
   return (
     <Form action="/" className="grid gap-4">
+      <fieldset className="flex items-center gap-2 text-sm">
+        <legend className="sr-only">{t("tripType")}</legend>
+        <div className="bg-muted inline-flex rounded-lg p-1">
+          {(["rt", "ow"] as const).map((trip) => (
+            <label
+              key={trip}
+              className="text-muted-foreground hover:text-foreground has-[:checked]:bg-card has-[:checked]:text-primary has-[:focus-visible]:ring-ring/50 cursor-pointer rounded-md px-3 py-1.5 transition-all has-[:checked]:font-medium has-[:checked]:shadow-sm has-[:focus-visible]:ring-[3px]"
+            >
+              {/* Без JS сервер ігнорує повернення при trip=ow; з JS поле просто вимкнене. */}
+              <input
+                type="radio"
+                name="trip"
+                value={trip}
+                checked={roundTrip === (trip === "rt")}
+                onChange={() => setRoundTrip(trip === "rt")}
+                className="sr-only"
+              />
+              {t(trip === "rt" ? "roundTrip" : "oneWay")}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
       <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr]">
         <Field label={t("from")} htmlFor="from">
           <PlaceInput
@@ -78,13 +104,15 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             onChange={(e) => setDepart(e.target.value)}
           />
         </Field>
-        <Field label={t("return")} hint={t("returnOptional")} htmlFor="return">
+        <Field label={t("return")} htmlFor="return">
           <Input
             id="return"
             name="return"
             type="date"
             min={depart || undefined}
-            className={FIELD_CLASS}
+            required={roundTrip}
+            disabled={!roundTrip}
+            className={cn(FIELD_CLASS, !roundTrip && "opacity-50")}
             defaultValue={q?.return_date ?? ""}
           />
         </Field>

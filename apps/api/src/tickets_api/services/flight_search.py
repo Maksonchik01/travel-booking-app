@@ -80,6 +80,10 @@ class FlightSearchService:
         self._record_history = record_history
         self._airline_names = airline_names or {}
 
+    @property
+    def airline_names(self) -> Mapping[str, str]:
+        return self._airline_names
+
     async def search(self, query: FlightQuery) -> FlightSearchResult:
         results = await self._gather(self._providers, lambda p: p.search(query))
         offers = sorted(
