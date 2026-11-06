@@ -191,7 +191,7 @@
           "places"
         ],
         "summary": "Search Places",
-        "description": "Автодоповнення міст і аеропортів з локального довідника (без звернень до провайдерів).",
+        "description": "Автодоповнення з локального довідника (без звернень до провайдерів).\n\n`kind=any` — міста й аеропорти (перельоти), `kind=city` — лише міста (житло).",
         "operationId": "search_places_places_get",
         "parameters": [
           {
@@ -233,6 +233,20 @@
               "default": "uk",
               "title": "Lang"
             }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "any",
+                "city"
+              ],
+              "type": "string",
+              "default": "any",
+              "title": "Kind"
+            }
           }
         ],
         "responses": {
@@ -246,6 +260,48 @@
                     "$ref": "#/components/schemas/Place"
                   },
                   "title": "Response Search Places Places Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stays/search": {
+      "post": {
+        "tags": [
+          "stays"
+        ],
+        "summary": "Search Stays",
+        "description": "Житло в місті на дати, з value-score і трьома рекомендованими варіантами.\n\nЗбій окремого провайдера не дає помилку — він видно в `providers[].status`.",
+        "operationId": "search_stays_stays_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StayQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaySearchResult"
                 }
               }
             }
@@ -351,6 +407,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChatReply"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/stays/analysis": {
+      "post": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "Analyze Stays",
+        "description": "Резюме відгуків і порівняння вибраних об'єктів. Value-score — з коду, не з моделі.",
+        "operationId": "analyze_stays_ai_stays_analysis_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StayAnalysisBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StayAnalysisResult"
                 }
               }
             }
@@ -643,10 +741,30 @@
             "minItems": 1,
             "title": "Messages"
           },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "flights",
+              "stays",
+              "trip"
+            ],
+            "title": "Mode",
+            "default": "flights"
+          },
           "current_search": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/FlightQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_stay_search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayQuery"
               },
               {
                 "type": "null"
@@ -699,6 +817,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/FlightQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stay_search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayQuery"
               },
               {
                 "type": "null"
@@ -992,6 +1120,27 @@
         ],
         "title": "FlightSearchResult"
       },
+      "Guests": {
+        "properties": {
+          "adults": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Adults",
+            "default": 2
+          },
+          "children": {
+            "type": "integer",
+            "maximum": 8.0,
+            "minimum": 0.0,
+            "title": "Children",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Guests"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1023,6 +1172,30 @@
           "version"
         ],
         "title": "HealthResponse"
+      },
+      "KindFacet": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "apartment",
+              "hostel",
+              "guesthouse"
+            ],
+            "title": "Kind"
+          },
+          "stays": {
+            "type": "integer",
+            "title": "Stays"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "stays"
+        ],
+        "title": "KindFacet"
       },
       "Layover": {
         "properties": {
@@ -1983,6 +2156,800 @@
           "duration_min"
         ],
         "title": "Segment"
+      },
+      "Stay": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "apartment",
+              "hostel",
+              "guesthouse"
+            ],
+            "title": "Kind"
+          },
+          "stars": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stars"
+          },
+          "price_per_night": {
+            "type": "number",
+            "title": "Price Per Night"
+          },
+          "total_price": {
+            "type": "number",
+            "title": "Total Price"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "nights": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Nights"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Review Count",
+            "default": 0
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "distance_to_center_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance To Center Km"
+          },
+          "distance_to_transit_m": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance To Transit M"
+          },
+          "cancellation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "partial",
+                  "non_refundable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation"
+          },
+          "free_cancellation_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Cancellation Until"
+          },
+          "amenities": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "wifi",
+                "breakfast",
+                "parking",
+                "pool",
+                "gym",
+                "kitchen",
+                "air_conditioning",
+                "spa",
+                "pets",
+                "airport_shuttle"
+              ]
+            },
+            "type": "array",
+            "title": "Amenities"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "deep_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deep Link"
+          },
+          "seller": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Seller"
+          },
+          "collected_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Collected At"
+          },
+          "found_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "name",
+          "kind",
+          "price_per_night",
+          "total_price",
+          "currency",
+          "nights",
+          "collected_at"
+        ],
+        "title": "Stay"
+      },
+      "StayAnalysis": {
+        "properties": {
+          "stays": {
+            "items": {
+              "$ref": "#/components/schemas/StayInsight"
+            },
+            "type": "array",
+            "title": "Stays",
+            "default": []
+          },
+          "top_pick_id": {
+            "type": "string",
+            "title": "Top Pick Id"
+          },
+          "top_pick_reason": {
+            "type": "string",
+            "title": "Top Pick Reason",
+            "default": ""
+          },
+          "price_vs_location_note": {
+            "type": "string",
+            "title": "Price Vs Location Note",
+            "default": ""
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Flags",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "top_pick_id"
+        ],
+        "title": "StayAnalysis"
+      },
+      "StayAnalysisBody": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/StayQuery"
+          },
+          "stay_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Stay Keys"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "stay_keys"
+        ],
+        "title": "StayAnalysisBody"
+      },
+      "StayAnalysisResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "no_stays",
+              "unavailable",
+              "rejected"
+            ],
+            "title": "Status"
+          },
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StayAnalysisResult"
+      },
+      "StayFacets": {
+        "properties": {
+          "total_stays": {
+            "type": "integer",
+            "title": "Total Stays"
+          },
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/KindFacet"
+            },
+            "type": "array",
+            "title": "Kinds"
+          },
+          "min_price_per_night": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Price Per Night"
+          },
+          "max_price_per_night": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Price Per Night"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_stays",
+          "kinds",
+          "min_price_per_night",
+          "max_price_per_night"
+        ],
+        "title": "StayFacets",
+        "description": "Що є у видачі ДО фільтрів — для варіантів фільтрів у UI."
+      },
+      "StayFilters": {
+        "properties": {
+          "max_price_per_night": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Price Per Night"
+          },
+          "min_rating": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rating"
+          },
+          "free_cancellation": {
+            "type": "boolean",
+            "title": "Free Cancellation",
+            "default": false
+          },
+          "kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "hotel",
+                "apartment",
+                "hostel",
+                "guesthouse"
+              ]
+            },
+            "type": "array",
+            "title": "Kinds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "StayFilters",
+        "description": "Фільтри видачі: як і для перельотів, застосовуються після провайдерів."
+      },
+      "StayInsight": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "pros": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pros",
+            "default": []
+          },
+          "cons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cons",
+            "default": []
+          },
+          "red_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Red Flags",
+            "default": []
+          },
+          "reliability": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Reliability",
+            "default": "medium"
+          },
+          "reliability_note": {
+            "type": "string",
+            "title": "Reliability Note",
+            "default": ""
+          },
+          "best_for": {
+            "type": "string",
+            "title": "Best For",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "StayInsight"
+      },
+      "StayPick": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "enum": [
+              "cheapest",
+              "top_rated",
+              "balanced"
+            ],
+            "title": "Label"
+          },
+          "stay_key": {
+            "type": "string",
+            "title": "Stay Key"
+          },
+          "also": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "cheapest",
+                "top_rated",
+                "balanced"
+              ]
+            },
+            "type": "array",
+            "title": "Also",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "stay_key"
+        ],
+        "title": "StayPick"
+      },
+      "StayPlace": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name",
+          "country"
+        ],
+        "title": "StayPlace",
+        "description": "Місто пошуку (для заголовка й відстаней)."
+      },
+      "StayQuery": {
+        "properties": {
+          "city": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "City"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "guests": {
+            "$ref": "#/components/schemas/Guests",
+            "default": {
+              "adults": 2,
+              "children": 0
+            }
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency",
+            "default": "EUR"
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "budget",
+              "balanced",
+              "center"
+            ],
+            "title": "Profile",
+            "default": "balanced"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/StayFilters",
+            "default": {
+              "free_cancellation": false,
+              "kinds": []
+            }
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "city",
+          "check_in",
+          "check_out"
+        ],
+        "title": "StayQuery"
+      },
+      "StayScore": {
+        "properties": {
+          "stay_key": {
+            "type": "string",
+            "title": "Stay Key"
+          },
+          "breakdown": {
+            "$ref": "#/components/schemas/StayScoreBreakdown"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/StayWarning"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "pareto_optimal": {
+            "type": "boolean",
+            "title": "Pareto Optimal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "stay_key",
+          "breakdown",
+          "warnings",
+          "pareto_optimal"
+        ],
+        "title": "StayScore"
+      },
+      "StayScoreBreakdown": {
+        "properties": {
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "distance_penalty": {
+            "type": "number",
+            "title": "Distance Penalty"
+          },
+          "transit_penalty": {
+            "type": "number",
+            "title": "Transit Penalty"
+          },
+          "rating_penalty": {
+            "type": "number",
+            "title": "Rating Penalty"
+          },
+          "cancellation_penalty": {
+            "type": "number",
+            "title": "Cancellation Penalty"
+          },
+          "adjusted_rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjusted Rating"
+          },
+          "total": {
+            "type": "number",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "price",
+          "distance_penalty",
+          "transit_penalty",
+          "rating_penalty",
+          "cancellation_penalty",
+          "adjusted_rating",
+          "total"
+        ],
+        "title": "StayScoreBreakdown"
+      },
+      "StayScoringResult": {
+        "properties": {
+          "profile": {
+            "type": "string",
+            "enum": [
+              "budget",
+              "balanced",
+              "center"
+            ],
+            "title": "Profile"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/StayScore"
+            },
+            "type": "array",
+            "title": "Scores"
+          },
+          "picks": {
+            "items": {
+              "$ref": "#/components/schemas/StayPick"
+            },
+            "type": "array",
+            "title": "Picks"
+          },
+          "unscored_stay_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unscored Stay Keys",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile",
+          "currency",
+          "scores",
+          "picks"
+        ],
+        "title": "StayScoringResult"
+      },
+      "StaySearchResult": {
+        "properties": {
+          "place": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayPlace"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stays": {
+            "items": {
+              "$ref": "#/components/schemas/Stay"
+            },
+            "type": "array",
+            "title": "Stays"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "scoring": {
+            "$ref": "#/components/schemas/StayScoringResult"
+          },
+          "facets": {
+            "$ref": "#/components/schemas/StayFacets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "place",
+          "stays",
+          "providers",
+          "scoring",
+          "facets"
+        ],
+        "title": "StaySearchResult"
+      },
+      "StayWarning": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "few_reviews",
+              "no_rating",
+              "distance_unknown",
+              "transit_unknown",
+              "cancellation_unknown"
+            ],
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "StayWarning"
       },
       "Turn": {
         "properties": {

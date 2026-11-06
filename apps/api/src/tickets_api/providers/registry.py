@@ -4,9 +4,10 @@ import httpx
 from redis.asyncio import Redis
 
 from tickets_api.core.config import Settings
-from tickets_api.providers.base import FlightProvider
+from tickets_api.providers.base import FlightProvider, StayProvider
 from tickets_api.providers.cached import CachedFlightProvider
 from tickets_api.providers.mock import MockFlightProvider
+from tickets_api.providers.mock_stays import MockStayProvider
 from tickets_api.providers.serpapi import SerpApiFlightProvider
 from tickets_api.providers.travelpayouts import TravelpayoutsFlightProvider
 from tickets_api.reference.airports import default_airport_directory
@@ -54,4 +55,13 @@ def build_providers(
         provider = _build(name, settings, http, redis)
         if provider is not None:
             providers.append(provider)
+    return providers
+
+
+def build_stay_providers(names: Sequence[str]) -> list[StayProvider]:
+    """Поки лише mock (ADR 0008); реальне джерело — ще одна гілка тут, за кешем Redis."""
+    providers: list[StayProvider] = []
+    for name in dict.fromkeys(names):
+        if name == "mock":
+            providers.append(MockStayProvider(default_airport_directory()))
     return providers

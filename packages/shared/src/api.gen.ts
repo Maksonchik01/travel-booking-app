@@ -95,11 +95,35 @@ export interface paths {
         };
         /**
          * Search Places
-         * @description Автодоповнення міст і аеропортів з локального довідника (без звернень до провайдерів).
+         * @description Автодоповнення з локального довідника (без звернень до провайдерів).
+         *
+         *     `kind=any` — міста й аеропорти (перельоти), `kind=city` — лише міста (житло).
          */
         get: operations["search_places_places_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stays/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search Stays
+         * @description Житло в місті на дати, з value-score і трьома рекомендованими варіантами.
+         *
+         *     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
+         */
+        post: operations["search_stays_stays_search_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -157,6 +181,26 @@ export interface paths {
          * @description Репліка розмови з агентом. Сервер розмову не зберігає — її надсилає клієнт.
          */
         post: operations["chat_ai_chat_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/stays/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyze Stays
+         * @description Резюме відгуків і порівняння вибраних об'єктів. Value-score — з коду, не з моделі.
+         */
+        post: operations["analyze_stays_ai_stays_analysis_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -285,7 +329,14 @@ export interface components {
         ChatBody: {
             /** Messages */
             messages: components["schemas"]["ChatTurn"][];
+            /**
+             * Mode
+             * @default flights
+             * @enum {string}
+             */
+            mode: "flights" | "stays" | "trip";
             current_search?: components["schemas"]["FlightQuery"] | null;
+            current_stay_search?: components["schemas"]["StayQuery"] | null;
             /** Home Airport */
             home_airport?: string | null;
         };
@@ -299,6 +350,7 @@ export interface components {
             /** Reply */
             reply?: string | null;
             search?: components["schemas"]["FlightQuery"] | null;
+            stay_search?: components["schemas"]["StayQuery"] | null;
         };
         /**
          * ChatTurn
@@ -444,6 +496,19 @@ export interface components {
             scoring: components["schemas"]["ScoringResult"];
             facets: components["schemas"]["SearchFacets"];
         };
+        /** Guests */
+        Guests: {
+            /**
+             * Adults
+             * @default 2
+             */
+            adults: number;
+            /**
+             * Children
+             * @default 0
+             */
+            children: number;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -458,6 +523,16 @@ export interface components {
             status: "ok";
             /** Version */
             version: string;
+        };
+        /** KindFacet */
+        KindFacet: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "hotel" | "apartment" | "hostel" | "guesthouse";
+            /** Stays */
+            stays: number;
         };
         /** Layover */
         Layover: {
@@ -790,6 +865,304 @@ export interface components {
             /** Duration Min */
             duration_min: number;
         };
+        /** Stay */
+        Stay: {
+            /** Id */
+            id: string;
+            /** Source */
+            source: string;
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "hotel" | "apartment" | "hostel" | "guesthouse";
+            /** Stars */
+            stars?: number | null;
+            /** Price Per Night */
+            price_per_night: number;
+            /** Total Price */
+            total_price: number;
+            /** Currency */
+            currency: string;
+            /** Nights */
+            nights: number;
+            /** Rating */
+            rating?: number | null;
+            /**
+             * Review Count
+             * @default 0
+             */
+            review_count: number;
+            /** Latitude */
+            latitude?: number | null;
+            /** Longitude */
+            longitude?: number | null;
+            /** Distance To Center Km */
+            distance_to_center_km?: number | null;
+            /** Distance To Transit M */
+            distance_to_transit_m?: number | null;
+            /** Cancellation */
+            cancellation?: ("free" | "partial" | "non_refundable") | null;
+            /** Free Cancellation Until */
+            free_cancellation_until?: string | null;
+            /** Amenities */
+            amenities?: ("wifi" | "breakfast" | "parking" | "pool" | "gym" | "kitchen" | "air_conditioning" | "spa" | "pets" | "airport_shuttle")[];
+            /** District */
+            district?: string | null;
+            /** Image Url */
+            image_url?: string | null;
+            /** Deep Link */
+            deep_link?: string | null;
+            /** Seller */
+            seller?: string | null;
+            /**
+             * Collected At
+             * Format: date-time
+             */
+            collected_at: string;
+            /** Found At */
+            found_at?: string | null;
+        };
+        /** StayAnalysis */
+        StayAnalysis: {
+            /**
+             * Stays
+             * @default []
+             */
+            stays: components["schemas"]["StayInsight"][];
+            /** Top Pick Id */
+            top_pick_id: string;
+            /**
+             * Top Pick Reason
+             * @default
+             */
+            top_pick_reason: string;
+            /**
+             * Price Vs Location Note
+             * @default
+             */
+            price_vs_location_note: string;
+            /**
+             * Flags
+             * @default []
+             */
+            flags: string[];
+        };
+        /** StayAnalysisBody */
+        StayAnalysisBody: {
+            query: components["schemas"]["StayQuery"];
+            /** Stay Keys */
+            stay_keys: string[];
+        };
+        /** StayAnalysisResult */
+        StayAnalysisResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "no_stays" | "unavailable" | "rejected";
+            analysis?: components["schemas"]["StayAnalysis"] | null;
+        };
+        /**
+         * StayFacets
+         * @description Що є у видачі ДО фільтрів — для варіантів фільтрів у UI.
+         */
+        StayFacets: {
+            /** Total Stays */
+            total_stays: number;
+            /** Kinds */
+            kinds: components["schemas"]["KindFacet"][];
+            /** Min Price Per Night */
+            min_price_per_night: number | null;
+            /** Max Price Per Night */
+            max_price_per_night: number | null;
+        };
+        /**
+         * StayFilters
+         * @description Фільтри видачі: як і для перельотів, застосовуються після провайдерів.
+         */
+        StayFilters: {
+            /** Max Price Per Night */
+            max_price_per_night?: number | null;
+            /** Min Rating */
+            min_rating?: number | null;
+            /**
+             * Free Cancellation
+             * @default false
+             */
+            free_cancellation: boolean;
+            /** Kinds */
+            kinds?: ("hotel" | "apartment" | "hostel" | "guesthouse")[];
+        };
+        /** StayInsight */
+        StayInsight: {
+            /** Id */
+            id: string;
+            /**
+             * Pros
+             * @default []
+             */
+            pros: string[];
+            /**
+             * Cons
+             * @default []
+             */
+            cons: string[];
+            /**
+             * Red Flags
+             * @default []
+             */
+            red_flags: string[];
+            /**
+             * Reliability
+             * @default medium
+             * @enum {string}
+             */
+            reliability: "high" | "medium" | "low";
+            /**
+             * Reliability Note
+             * @default
+             */
+            reliability_note: string;
+            /**
+             * Best For
+             * @default
+             */
+            best_for: string;
+        };
+        /** StayPick */
+        StayPick: {
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "cheapest" | "top_rated" | "balanced";
+            /** Stay Key */
+            stay_key: string;
+            /**
+             * Also
+             * @default []
+             */
+            also: ("cheapest" | "top_rated" | "balanced")[];
+        };
+        /**
+         * StayPlace
+         * @description Місто пошуку (для заголовка й відстаней).
+         */
+        StayPlace: {
+            /** Code */
+            code: string;
+            /** Name */
+            name: string;
+            /** Country */
+            country: string;
+        };
+        /** StayQuery */
+        StayQuery: {
+            /** City */
+            city: string;
+            /**
+             * Check In
+             * Format: date
+             */
+            check_in: string;
+            /**
+             * Check Out
+             * Format: date
+             */
+            check_out: string;
+            /**
+             * @default {
+             *       "adults": 2,
+             *       "children": 0
+             *     }
+             */
+            guests: components["schemas"]["Guests"];
+            /**
+             * Currency
+             * @default EUR
+             */
+            currency: string;
+            /**
+             * Profile
+             * @default balanced
+             * @enum {string}
+             */
+            profile: "budget" | "balanced" | "center";
+            /**
+             * @default {
+             *       "free_cancellation": false,
+             *       "kinds": []
+             *     }
+             */
+            filters: components["schemas"]["StayFilters"];
+        };
+        /** StayScore */
+        StayScore: {
+            /** Stay Key */
+            stay_key: string;
+            breakdown: components["schemas"]["StayScoreBreakdown"];
+            /** Warnings */
+            warnings: components["schemas"]["StayWarning"][];
+            /** Pareto Optimal */
+            pareto_optimal: boolean;
+        };
+        /** StayScoreBreakdown */
+        StayScoreBreakdown: {
+            /** Price */
+            price: number;
+            /** Distance Penalty */
+            distance_penalty: number;
+            /** Transit Penalty */
+            transit_penalty: number;
+            /** Rating Penalty */
+            rating_penalty: number;
+            /** Cancellation Penalty */
+            cancellation_penalty: number;
+            /** Adjusted Rating */
+            adjusted_rating: number | null;
+            /** Total */
+            total: number;
+        };
+        /** StayScoringResult */
+        StayScoringResult: {
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "budget" | "balanced" | "center";
+            /** Currency */
+            currency: string;
+            /** Scores */
+            scores: components["schemas"]["StayScore"][];
+            /** Picks */
+            picks: components["schemas"]["StayPick"][];
+            /**
+             * Unscored Stay Keys
+             * @default []
+             */
+            unscored_stay_keys: string[];
+        };
+        /** StaySearchResult */
+        StaySearchResult: {
+            place: components["schemas"]["StayPlace"] | null;
+            /** Stays */
+            stays: components["schemas"]["Stay"][];
+            /** Providers */
+            providers: components["schemas"]["ProviderStatus"][];
+            scoring: components["schemas"]["StayScoringResult"];
+            facets: components["schemas"]["StayFacets"];
+        };
+        /** StayWarning */
+        StayWarning: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "few_reviews" | "no_rating" | "distance_unknown" | "transit_unknown" | "cancellation_unknown";
+        };
         /**
          * Turn
          * @description Репліка діалогу уточнень. Приходить від клієнта — для моделі це лише дані.
@@ -947,6 +1320,7 @@ export interface operations {
                 q: string;
                 limit?: number;
                 lang?: "uk" | "en";
+                kind?: "any" | "city";
             };
             header?: never;
             path?: never;
@@ -961,6 +1335,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Place"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_stays_stays_search_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaySearchResult"];
                 };
             };
             /** @description Validation Error */
@@ -1047,6 +1454,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChatReply"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analyze_stays_ai_stays_analysis_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayAnalysisBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayAnalysisResult"];
                 };
             };
             /** @description Validation Error */

@@ -8,6 +8,7 @@ from tickets_api.ai.assistant import TravelAssistant
 from tickets_api.ai.explainer import FlightExplainer
 from tickets_api.ai.parser import QueryParser
 from tickets_api.ai.service import AIService
+from tickets_api.ai.stay_analyst import StayAnalyst
 from tickets_api.core.config import Settings
 from tickets_api.domain.flights import FlightQuery
 from tickets_api.llm.deepseek import DeepSeekClient
@@ -18,6 +19,7 @@ from tickets_api.llm.types import LLMClient
 from tickets_api.reference.airports import default_airport_directory
 from tickets_api.repositories.price_history import PriceStats, route_price_stats
 from tickets_api.services.flight_search import FlightSearchService
+from tickets_api.services.stay_search import StaySearchService
 
 
 def build_ai_service(
@@ -28,6 +30,7 @@ def build_ai_service(
     sessionmaker: async_sessionmaker[AsyncSession],
     search: FlightSearchService,
     pricing: Pricing,
+    stay_search: StaySearchService | None = None,
 ) -> AIService | None:
     """None — ШІ вимкнено (LLM_PROVIDER=off): ендпоінти /ai/* відповідають 503."""
     client: LLMClient
@@ -78,9 +81,15 @@ def build_ai_service(
             airports,
             search,
             model=settings.llm_model_assistant,
+            stay_search=stay_search,
             prompts_dir=settings.llm_prompts_dir,
         ),
         chat_max_calls=settings.llm_max_calls_per_chat_turn,
+        stay_search=stay_search,
+        # Відгуки — потужніша модель, як і пояснення перельотів.
+        stay_analyst=StayAnalyst(
+            model=settings.llm_model_explainer, prompts_dir=settings.llm_prompts_dir
+        ),
         redis=redis,
         cache_ttl_s=settings.llm_cache_ttl_s,
         record_usage=LLMUsageRecorder(sessionmaker).record,

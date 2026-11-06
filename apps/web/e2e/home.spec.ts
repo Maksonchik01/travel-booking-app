@@ -68,8 +68,10 @@ test("розмова з ШІ-помічником: питання → відпо
   // Поле активне після гідратації (до неї розмову не відновити з sessionStorage).
   await page.waitForLoadState("networkidle");
 
-  // Помічник — друга вкладка картки пошуку.
+  // Помічник — друга вкладка картки пошуку; спершу він питає, що шукаємо.
   await page.getByRole("tab", { name: "ШІ-помічник" }).click();
+  await expect(page.getByText("Що шукаємо?")).toBeVisible();
+  await page.getByRole("button", { name: /^Квитки/ }).click();
   const box = page.getByLabel("Запитайте ШІ-помічника");
   const send = page.getByRole("button", { name: "Надіслати" });
   const conversation = page.getByRole("list", { name: "Розмова з помічником" });
@@ -98,5 +100,50 @@ test("розмова з ШІ-помічником: питання → відпо
   );
   await expect(conversation).toContainText("Куди і коли ви хочете полетіти?");
   await page.getByRole("button", { name: "Нова розмова" }).click();
-  await expect(conversation).toHaveCount(0);
+  await expect(conversation).not.toContainText("Куди і коли ви хочете полетіти?");
+});
+
+test("житло: пошук → наш вибір → фільтр → резюме відгуків", async ({ page }) => {
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+
+  // Mock-провайдер житла: 18 варіантів, показуємо по 10.
+  // Приховані «Показати ще» картки теж у DOM — рахуємо лише видимі.
+  const cards = page.locator('[data-testid="stay-card"]:visible');
+  await expect(cards).toHaveCount(10);
+  await expect(page.getByRole("heading", { name: "Лісабон" })).toBeVisible();
+  await expect(page.getByTestId("stay-price").first()).toContainText("€");
+  await expect(page.locator('[data-testid="stay-top-pick"][data-label="balanced"]')).toHaveCount(1);
+  await page.getByRole("button", { name: /Показати ще 8/ }).click();
+  await expect(cards).toHaveCount(18);
+
+  // Фільтр — лише безкоштовне скасування; маршрут і дати не губляться.
+  await page.getByRole("checkbox", { name: "Лише безкоштовне" }).check();
+  await expect(page).toHaveURL(/cancel=1/);
+  await expect(page).toHaveURL(/city=LIS/);
+  await expect(cards.first()).toContainText("Безкоштовне скасування");
+
+  // Резюме відгуків — лише на вимогу (mock-модель).
+  await page.getByRole("button", { name: "Підсумувати відгуки" }).click();
+  await expect(page.getByTestId("stay-analysis")).toContainText("Радимо:");
+});
+
+test("помічник «уся поїздка»: квитки й житло окремими посиланнями", async ({ page }) => {
+  await page.goto("/stays");
+  await page.waitForLoadState("networkidle");
+
+  await page.getByRole("tab", { name: "ШІ-помічник" }).click();
+  await page.getByRole("button", { name: /^Уся поїздка/ }).click();
+  await page.getByLabel("Запитайте ШІ-помічника").fill("Поїздка з Варшави до Лісабона");
+  await page.getByRole("button", { name: "Надіслати" }).click();
+
+  const conversation = page.getByRole("list", { name: "Розмова з помічником" });
+  await expect(conversation).toContainText("за ніч");
+  await conversation.getByRole("link", { name: "Житло" }).click();
+  await expect(page).toHaveURL(/\/stays\?city=LIS/);
+  await expect(page.getByTestId("stay-card").first()).toBeVisible();
+
+  // Розмова «усієї поїздки» на місці й після переходу; «Квитки» — окрема, порожня.
+  await expect(conversation).toContainText("Поїздка з Варшави до Лісабона");
+  await page.getByRole("button", { name: /^Квитки/ }).click();
+  await expect(conversation).not.toContainText("Поїздка з Варшави до Лісабона");
 });

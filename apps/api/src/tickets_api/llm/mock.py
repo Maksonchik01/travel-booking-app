@@ -1,8 +1,8 @@
 """Детермінована «модель» для e2e і розробки без ключа (LLM_PROVIDER=mock).
 
-Не імітує розуміння мови: розбір завжди дає WAW → LIS через місяць на тиждень (або
-уточнення, якщо за всю розмову сказано менше двох слів), пояснення будується з готових
-чисел вхідних даних.
+Не імітує розуміння мови: розбір і агент завжди дають WAW → LIS через місяць (житло —
+у Лісабоні), або одне питання, якщо за всю розмову сказано менше двох слів. Пояснення й
+резюме відгуків будуються з готових чисел вхідних даних.
 """
 
 import json
@@ -18,40 +18,116 @@ class MockLLMClient:
     name = "mock"
 
     async def chat(self, request: ChatRequest) -> ChatResponse:
-        if any(t.name == "search_flights" for t in request.tools):
-            return _assistant_answer(request)
+        tools = {t.name for t in request.tools}
+        if tools & {"search_flights", "search_stays"}:
+            return _assistant_answer(request, tools)
         payload = _user_payload(request)
-        # Розбір запиту — єдина роль з інструментами.
-        content = _parse_answer(payload) if request.tools else _explain_answer(payload)
+        # Розбір запиту — єдина роль з інструментами; аналіз житла — вхід зі "stays".
+        if request.tools:
+            content = _parse_answer(payload)
+        elif "stays" in payload:
+            content = _stay_analysis_answer(payload)
+        else:
+            content = _explain_answer(payload)
         return ChatResponse(
             model=request.model, content=json.dumps(content, ensure_ascii=False), usage=MOCK_USAGE
         )
 
 
-def _assistant_answer(request: ChatRequest) -> ChatResponse:
-    """Агент: коротка репліка — питання; інакше пошук WAW → LIS і текст з його результату."""
-    tool_results = [m for m in request.messages if m.role == "tool"]
-    if tool_results:
-        result = json.loads(tool_results[-1].content)
-        options = {o["id"]: o for o in result.get("options", [])}
-        best = options.get(result.get("recommended_by_scoring") or "")
-        text = (
-            f"Знайшов варіанти. {best['title']} — {best['price_text']}, ціна отримана "
-            f"{best['price_age_text']}."
-            if best
-            else "На ці дати нічого не знайшлося. Спробуйте іншу дату."
-        )
-        return ChatResponse(model=request.model, content=text, usage=MOCK_USAGE)
-    said = " ".join(m.content for m in request.messages if m.role == "user")
-    if len(said.split()) < 2:
-        return ChatResponse(
-            model=request.model, content="Куди і коли ви хочете полетіти?", usage=MOCK_USAGE
-        )
+QUESTIONS = {
+    "flights": "Куди і коли ви хочете полетіти?",
+    "stays": "У якому місті й на які дати шукаємо житло?",
+    "trip": "Звідки, куди і на які дати плануєте поїздку?",
+}
+
+
+def _assistant_answer(request: ChatRequest, tools: set[str]) -> ChatResponse:
+    """Агент без розуміння мови. Коротка розмова (< 2 слів) — одне питання; інакше пошук
+    WAW → LIS через місяць (житло — у Лісабоні на 3 ночі) і текст з готових результатів."""
+    mode = (
+        "trip"
+        if {"search_flights", "search_stays"} <= tools
+        else ("stays" if "search_stays" in tools else "flights")
+    )
+    results = [json.loads(m.content) for m in request.messages if m.role == "tool"]
+    flights = next((r for r in results if "offers_found" in r), None)
+    stays = next((r for r in results if "stays_found" in r), None)
     context = json.loads(request.messages[0].content.rsplit("\n", 1)[-1])
     departure = date.fromisoformat(context["today"]) + timedelta(days=31)
-    arguments = {"origin": "WAW", "destination": "LIS", "departure_date": departure.isoformat()}
-    call = ToolCall(id="mock-1", name="search_flights", arguments=json.dumps(arguments))
-    return ChatResponse(model=request.model, content="", tool_calls=(call,), usage=MOCK_USAGE)
+
+    def text(content: str) -> ChatResponse:
+        return ChatResponse(model=request.model, content=content, usage=MOCK_USAGE)
+
+    def call(name: str, arguments: dict[str, Any]) -> ChatResponse:
+        tool_call = ToolCall(id=f"mock-{name}", name=name, arguments=json.dumps(arguments))
+        return ChatResponse(
+            model=request.model, content="", tool_calls=(tool_call,), usage=MOCK_USAGE
+        )
+
+    said = " ".join(m.content for m in request.messages if m.role == "user")
+    if not results and len(said.split()) < 2:
+        return text(QUESTIONS[mode])
+    if mode != "stays" and flights is None:
+        return call(
+            "search_flights",
+            {"origin": "WAW", "destination": "LIS", "departure_date": departure.isoformat()},
+        )
+    if mode != "flights" and stays is None:
+        check_in = (flights or {}).get("query", {}).get("departure_date") or departure.isoformat()
+        check_out = (date.fromisoformat(check_in) + timedelta(days=3)).isoformat()
+        return call("search_stays", {"city": "LIS", "check_in": check_in, "check_out": check_out})
+    return text(" ".join(filter(None, (_flight_text(flights), _stay_text(stays)))))
+
+
+def _flight_text(result: dict[str, Any] | None) -> str | None:
+    if result is None:
+        return None
+    best = _recommended(result)
+    if best is None:
+        return "Квитків на ці дати не знайшлося."
+    return (
+        f"Знайшов варіанти. {best['title']} — {best['price_text']}, ціна отримана "
+        f"{best['price_age_text']}."
+    )
+
+
+def _stay_text(result: dict[str, Any] | None) -> str | None:
+    if result is None:
+        return None
+    best = _recommended(result)
+    if best is None:
+        return "Житла на ці дати не знайшлося."
+    return (
+        f"Житло: {best['title']} — {best['name']}, {best['price_per_night_text']} за ніч, "
+        f"разом {best['total_price_text']}."
+    )
+
+
+def _recommended(result: dict[str, Any]) -> dict[str, Any] | None:
+    options = {o["id"]: o for o in result.get("options", [])}
+    return options.get(result.get("recommended_by_scoring") or "")
+
+
+def _stay_analysis_answer(payload: dict[str, Any]) -> dict[str, Any]:
+    """Резюме без чисел: лише те, що є у вхідних даних, і завжди вибір value-score."""
+    return {
+        "stays": [
+            {
+                "id": s["id"],
+                "pros": [f"Ціна {s['price_per_night_text']} за ніч."],
+                "cons": [] if s["amenities"] else ["Зручності не вказані."],
+                "red_flags": [],
+                "reliability": "medium",
+                "reliability_note": "Оцінка за наявними відгуками.",
+                "best_for": "Для коротких поїздок.",
+            }
+            for s in payload["stays"]
+        ],
+        "top_pick_id": payload["recommended_by_scoring"],
+        "top_pick_reason": "Найкраща оцінка вигідності серед вибраних варіантів.",
+        "price_vs_location_note": "Порівняйте відстань до центру з ціною за ніч.",
+        "flags": [],
+    }
 
 
 def _user_payload(request: ChatRequest) -> dict[str, Any]:

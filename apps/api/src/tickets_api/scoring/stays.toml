@@ -1,0 +1,39 @@
+# Value-score житла (ADR 0008). Усі суми — за ніч, у валюті `currency`.
+# Варіанти в іншій валюті не оцінюються (немає курсів), лише показуються.
+#
+#   оцінка = ціна за ніч з податками
+#          + λ_distance · max(0, км до центру − free_radius_km)
+#          + штраф за далекий транспорт
+#          + λ_rating · max(0, reference_rating − скоригований рейтинг)
+#          + штраф за умови скасування
+#
+# Скоригований рейтинг (байєсівське середнє): (n·r + m·C) / (n + m), де n — кількість
+# відгуків, r — рейтинг, C — prior_rating, m — prior_reviews. 9,8 з 4 відгуків не
+# перемагає 9,1 з 1200. Невідомі відстань чи умови скасування — лише попередження.
+
+currency = "EUR"
+
+[profiles.budget]      # «найдешевше, доберуся»
+lambda_distance_per_km = 3
+lambda_rating_per_point = 6
+
+[profiles.balanced]
+lambda_distance_per_km = 8
+lambda_rating_per_point = 15
+
+[profiles.center]      # «щоб усе поруч пішки»
+lambda_distance_per_km = 20
+lambda_rating_per_point = 12
+
+[penalties]
+transit_far = 8        # до транспорту далі за transit_far_m
+non_refundable = 15    # без повернення коштів
+partial_refund = 6     # часткове повернення
+
+[thresholds]
+free_radius_km = 1.0   # у межах цього радіуса від центру штрафу за відстань немає
+transit_far_m = 800
+few_reviews = 10       # менше — попередження «оцінка ненадійна»
+prior_rating = 7.5
+prior_reviews = 20
+reference_rating = 9.0 # «відмінно»: різниця до нього — штраф за рейтинг

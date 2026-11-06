@@ -54,6 +54,11 @@
   `origin_airport` — фактичний аеропорт (WAW-запит → і WMI, тому фільтруємо за довідником); `gate` — продавець;
   день знаходження ціни — з недокументованого `search_date` у `link`.
 - **Історія цін** пише маршрут за кодами із ЗАПИТУ (місто), а не фактичний аеропорт.
+- **Житло** ([ADR 0008](docs/adr/0008-stays-value-score.md)): поки лише mock
+  (`STAY_PROVIDERS=mock`; Hotellook закрито, інші API — після заявки). `StayProvider` —
+  `search` і `reviews`; ціни з податками за весь номер, рейтинг 0–10, невідоме — `None`.
+  Value-score — `scoring/stays.py` + `stays.toml` (скоригований рейтинг — байєсівський),
+  історія — `stay_price_history`. Резюме відгуків — лише на вимогу, для «Нашого вибору».
 - **Кожна отримана ціна пишеться в історію цін** (маршрут, дата, ціна, валюта, джерело, час збору).
 - **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
@@ -64,8 +69,9 @@
   поясненні звіряються з вхідними, рекомендація = вибір скорингу. Кожен виклик — через
   `MeteredLLM` (ліміт, облік у `llm_usage`). Текст запиту користувача не логуємо.
   Агент-чат (`ai/assistant.py`, `/ai/chat`) не має стану: розмову (sessionStorage вкладки) і
-  поточний пошук з URL надсилає клієнт; числа у відповіді звіряються з результатами
-  інструментів; промпт ролі — `ai/prompts/Travel-Assistant.md`.
+  поточні пошуки з URL надсилає клієнт; числа у відповіді звіряються з результатами
+  інструментів. Три окремі режими (`mode`: flights / stays / trip) — свої промпти
+  (`ai/prompts/*-Assistant.md`), інструменти й історії; перше питання «Що шукаємо?» — UI.
   Змінив промпт/контракт парсера — `uv run python scripts/eval_parser.py --record`
   (30 кейсів, ≈ $0.01) і перевір, що pytest на записаних відповідях зелений.
 
@@ -76,15 +82,17 @@ apps/api         FastAPI, Python 3.12, uv workspace (пакет tickets_api)
   src/tickets_api/
     ai/            розбір запиту (Query-Parser), пояснення (Flight-Deal-Advisor), кеш
     llm/           LLMClient, адаптер DeepSeek, mock, ціни моделей, MeteredLLM
-    api/           HTTP-роутери (health, flights, places — автодоповнення, ai)
+    api/           HTTP-роутери (health, flights, stays, places — автодоповнення, ai)
     core/          конфіг, логування, Sentry
     db/            Base, моделі (price_history), сесії
-    domain/        FlightQuery, Offer, Leg, Layover, CalendarDay — без I/O
-    providers/     FlightProvider + mock, travelpayouts, serpapi, cached (Redis), registry
+    domain/        FlightQuery, Offer, Leg, Layover, CalendarDay; StayQuery, Stay — без I/O
+    providers/     FlightProvider + mock, travelpayouts, serpapi, cached (Redis), registry;
+                   StayProvider + mock_stays
     reference/     довідники (знімки JSON): аеропорти, міста, країни, авіакомпанії
-    scoring/       скоринг-рушій (engine.py) + ваги/штрафи (config.toml), ADR 0005
-    services/      FlightSearchService — агрегація з graceful degradation + скоринг
-    repositories/  запис історії цін
+    scoring/       скоринг перельотів (engine.py, config.toml, ADR 0005) і житла (stays.py,
+                   stays.toml, ADR 0008)
+    services/      FlightSearchService, StaySearchService — graceful degradation + скоринг
+    repositories/  запис історії цін (перельоти й житло)
   migrations/                     Alembic (async)
 apps/worker      ARQ-воркер (пакет tickets_worker, залежить від tickets_api)
 apps/web         Next.js 16 (App Router, cacheComponents), Tailwind 4, shadcn/ui, next-intl
@@ -120,6 +128,8 @@ make migrate        alembic upgrade head
 - **Web:** Next.js 16 має breaking changes проти старих версій. Перед кодом читай
   `node_modules/next/dist/docs/` (див. [apps/web/AGENTS.md](apps/web/AGENTS.md)).
   З `cacheComponents` динамічні дані (fetch без кешу) рендеряться всередині `<Suspense>`.
+- **Web-житло:** `/stays?city=&in=&out=&adults=&children=&prio=&sort=`, фільтри
+  `maxp=&rating=&cancel=&kind=` — `src/lib/stay-params.ts`.
 - **Web-пошук:** стан пошуку живе в URL (`?from=&to=&depart=&return=&flex=&adults=&direct=&sort=`,
   сусідні `fromNear=1`/`toNear=1`, фільтри `stops=&al=&dep=&maxh=`),
   розбір і серіалізація — `src/lib/search-params.ts`. Сторінка серверна, API викликається

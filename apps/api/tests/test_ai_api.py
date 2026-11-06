@@ -107,3 +107,43 @@ async def test_explain_uses_only_numbers_from_scoring(ai_client: AsyncClient) ->
     explanation = body["explanation"]
     assert explanation["recommended_id"] in {"cheapest", "fastest", "balanced"}
     assert "EUR" in explanation["summary"]
+
+
+async def test_chat_modes_are_separate(ai_client: AsyncClient) -> None:
+    stays = (
+        await ai_client.post(
+            "/ai/chat",
+            json={"mode": "stays", "messages": [{"role": "user", "text": "Житло в Лісабоні"}]},
+        )
+    ).json()
+    trip = (
+        await ai_client.post(
+            "/ai/chat",
+            json={"mode": "trip", "messages": [{"role": "user", "text": "Поїздка до Лісабона"}]},
+        )
+    ).json()
+
+    assert (stays["search"], stays["stay_search"]["city"]) == (None, "LIS")
+    assert "за ніч" in stays["reply"]
+    assert trip["search"]["destination"] == "LIS"
+    assert trip["stay_search"]["city"] == "LIS"
+    # Житло на дати перельоту: заїзд у день вильоту рекомендованого рейсу.
+    assert trip["stay_search"]["check_in"] == trip["search"]["departure_date"]
+    bad = {"mode": "hotels", "messages": [{"role": "user", "text": "x"}]}
+    assert (await ai_client.post("/ai/chat", json=bad)).status_code == 422
+
+
+async def test_stay_analysis_endpoint(ai_client: AsyncClient) -> None:
+    query = {"city": "LIS", "check_in": "2026-12-05", "check_out": "2026-12-08"}
+    found = (await ai_client.post("/stays/search", json=query)).json()
+    keys = [p["stay_key"] for p in found["scoring"]["picks"]]
+
+    body = (
+        await ai_client.post("/ai/stays/analysis", json={"query": query, "stay_keys": keys})
+    ).json()
+
+    assert body["status"] == "ok"
+    analysis = body["analysis"]
+    assert {s["id"] for s in analysis["stays"]} == {k.split(":", 1)[1] for k in keys}
+    too_many = {"query": query, "stay_keys": ["a", "b", "c", "d"]}
+    assert (await ai_client.post("/ai/stays/analysis", json=too_many)).status_code == 422

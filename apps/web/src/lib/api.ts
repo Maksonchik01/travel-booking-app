@@ -8,6 +8,9 @@ import type {
   FlightSearchResult,
   Place,
   ReadinessResponse,
+  StayAnalysisResult,
+  StayQuery,
+  StaySearchResult,
 } from "@tickets/shared";
 
 const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -79,8 +82,13 @@ export function fetchCalendar(
   return request(`/flights/calendar?${params}`);
 }
 
-export function fetchPlaces(q: string, limit = 8): Promise<ApiResult<Place[]>> {
-  const params = new URLSearchParams({ q, limit: String(limit), lang: "uk" });
+/** `kind=city` — лише міста (житло), інакше міста й аеропорти (перельоти). */
+export function fetchPlaces(
+  q: string,
+  limit = 8,
+  kind: "any" | "city" = "any",
+): Promise<ApiResult<Place[]>> {
+  const params = new URLSearchParams({ q, limit: String(limit), lang: "uk", kind });
   return request(`/places?${params}`);
 }
 
@@ -109,6 +117,33 @@ export function explainSearch(query: FlightQuery): Promise<ApiResult<ExplainResu
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(query),
+    },
+    EXPLAIN_TIMEOUT_MS,
+  );
+}
+
+export function searchStays(query: StayQuery): Promise<ApiResult<StaySearchResult>> {
+  return request(
+    "/stays/search",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(query),
+    },
+    SEARCH_TIMEOUT_MS,
+  );
+}
+
+export function analyzeStays(
+  query: StayQuery,
+  stayKeys: string[],
+): Promise<ApiResult<StayAnalysisResult>> {
+  return request(
+    "/ai/stays/analysis",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ query, stay_keys: stayKeys }),
     },
     EXPLAIN_TIMEOUT_MS,
   );

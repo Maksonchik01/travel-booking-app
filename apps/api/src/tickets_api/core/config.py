@@ -6,6 +6,7 @@ from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 FlightProviderName = Literal["mock", "travelpayouts", "serpapi"]
+StayProviderName = Literal["mock"]
 LLMProviderName = Literal["off", "mock", "deepseek"]
 CalendarProviderName = Literal["mock", "travelpayouts"]
 
@@ -58,6 +59,12 @@ class Settings(BaseSettings):
     calendar_providers: Annotated[list[CalendarProviderName], NoDecode] = Field(
         default_factory=lambda: list[CalendarProviderName](["mock"])
     )
+    # Житло: поки лише mock (ADR 0008) — реальне джерело додасться ще одним адаптером.
+    stay_providers: Annotated[list[StayProviderName], NoDecode] = Field(
+        default_factory=lambda: list[StayProviderName](["mock"])
+    )
+    stay_scoring_config_path: Path | None = None
+    """None — вбудований tickets_api/scoring/stays.toml."""
 
     serpapi_key: SecretStr | None = None
     serpapi_base_url: str = "https://serpapi.com"
@@ -75,7 +82,9 @@ class Settings(BaseSettings):
     """None — вбудований tickets_api/scoring/config.toml."""
     provider_cache_ttl_s: int = 1800
 
-    @field_validator("cors_origins", "flight_providers", "calendar_providers", mode="before")
+    @field_validator(
+        "cors_origins", "flight_providers", "calendar_providers", "stay_providers", mode="before"
+    )
     @classmethod
     def _split_csv(cls, value: object) -> object:
         # У .env список задається через кому, а не як JSON.
@@ -91,6 +100,7 @@ class Settings(BaseSettings):
         "travelpayouts_token",
         "travelpayouts_marker",
         "scoring_config_path",
+        "stay_scoring_config_path",
         "serpapi_key",
         "serpapi_market",
         mode="before",

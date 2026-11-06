@@ -68,3 +68,42 @@ class LLMUsage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (Index("ix_llm_usage_created_at", "created_at"),)
+
+
+class StayPriceObservation(Base):
+    """Історія цін житла: кожна ціна, яку ми отримали від провайдера.
+
+    Повтор тієї ж ціни з кешу не дублюється: (source, stay_id, check_in, check_out, guests,
+    collected_at) унікальні.
+    """
+
+    __tablename__ = "stay_price_history"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    city: Mapped[str] = mapped_column(String(3))
+    """Код із запиту — ключ для статистики цін міста."""
+    check_in: Mapped[date] = mapped_column(Date)
+    check_out: Mapped[date] = mapped_column(Date)
+    guests: Mapped[int] = mapped_column(Integer)
+    stay_id: Mapped[str] = mapped_column(String(128))
+    kind: Mapped[str] = mapped_column(String(16))
+    price_per_night: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+    currency: Mapped[str] = mapped_column(String(3))
+    source: Mapped[str] = mapped_column(String(32))
+    collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_stay_price_history_city_dates", "city", "check_in", "check_out"),
+        Index(
+            "uq_stay_price_history_observation",
+            "source",
+            "stay_id",
+            "check_in",
+            "check_out",
+            "guests",
+            "collected_at",
+            unique=True,
+        ),
+    )

@@ -15,15 +15,19 @@ from pydantic import BaseModel
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
-from tickets_api.ai.assistant import ChatContext, ChatReply, ChatTurn, TravelAssistant
+from tickets_api.ai.assistant import ChatContext, ChatMode, ChatReply, ChatTurn, TravelAssistant
 from tickets_api.ai.explainer import ExplainResult, FlightExplainer
 from tickets_api.ai.parser import ParseContext, ParseResult, QueryParser, Turn
+from tickets_api.ai.stay_analyst import StayAnalysisResult, StayAnalyst
 from tickets_api.domain.flights import DEFAULT_CURRENCY, FlightQuery
+from tickets_api.domain.stays import StayQuery
 from tickets_api.llm.metered import MeteredLLM, RecordUsage
 from tickets_api.llm.pricing import Pricing
 from tickets_api.llm.types import LLMClient
 from tickets_api.repositories.price_history import PriceStats
+from tickets_api.scoring.stays import stay_key
 from tickets_api.services.flight_search import FlightSearchService
+from tickets_api.services.stay_search import StaySearchService
 
 log = structlog.get_logger(__name__)
 
@@ -48,6 +52,8 @@ class AIService:
         max_calls: int,
         assistant: TravelAssistant | None = None,
         chat_max_calls: int = 6,
+        stay_search: StaySearchService | None = None,
+        stay_analyst: StayAnalyst | None = None,
         redis: Redis,
         cache_ttl_s: int,
         record_usage: RecordUsage | None = None,
@@ -60,6 +66,8 @@ class AIService:
         self._explainer = explainer
         self._assistant = assistant
         self._chat_max_calls = chat_max_calls
+        self._stay_search = stay_search
+        self._stay_analyst = stay_analyst
         self._search = search
         self._pricing = pricing
         self._max_calls = max_calls
@@ -113,12 +121,40 @@ class AIService:
             await self._write(key, explained)
         return explained
 
-    async def chat(self, turns: Sequence[ChatTurn], context: ChatContext) -> ChatReply:
+    async def chat(
+        self, turns: Sequence[ChatTurn], context: ChatContext, mode: ChatMode = "flights"
+    ) -> ChatReply:
         """Репліка розмови. Без кешу: кожна розмова своя (пошуки всередині — з кешу)."""
         if self._assistant is None:
             return ChatReply(status="unavailable")
-        llm = self._metered("chat", self._chat_max_calls)
-        return await self._assistant.reply(turns, context, llm)
+        llm = self._metered(f"chat_{mode}", self._chat_max_calls)
+        return await self._assistant.reply(turns, context, llm, mode)
+
+    async def analyze_stays(self, query: StayQuery, keys: Sequence[str]) -> StayAnalysisResult:
+        """Резюме відгуків для вибраних користувачем об'єктів (1–3). Кешується."""
+        if self._stay_search is None or self._stay_analyst is None:
+            return StayAnalysisResult(status="unavailable")
+        result = await self._stay_search.search(query)
+        by_key = {stay_key(s): s for s in result.stays}
+        stays = [by_key[k] for k in dict.fromkeys(keys) if k in by_key]
+        if not stays:
+            return StayAnalysisResult(status="no_stays")
+        reviews = {s.id: await self._stay_search.reviews(s.source, s.id) for s in stays}
+        fingerprint = [(s.source, s.id, str(s.price_per_night), len(reviews[s.id])) for s in stays]
+        key = self._key(
+            "stays", self._stay_analyst.version, query.model_dump_json(), json.dumps(fingerprint)
+        )
+        if (cached := await self._read(key, StayAnalysisResult)) is not None:
+            return cached
+        scores = {
+            by_key[sc.stay_key].id: sc for sc in result.scoring.scores if sc.stay_key in by_key
+        }
+        analysis = await self._stay_analyst.analyze(
+            query, stays, scores, reviews, self._metered("stay_analysis", 2), now=self._clock()
+        )
+        if analysis.status in ("ok", "rejected"):
+            await self._write(key, analysis)
+        return analysis
 
     async def cheapest_day(
         self, origin: str, destination: str, start: date, end: date

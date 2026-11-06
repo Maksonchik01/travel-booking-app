@@ -97,6 +97,22 @@ class AirportDirectory:
     def get(self, code: str) -> Airport | None:
         return self._by_code.get(code.upper())
 
+    def city_of(self, code: str) -> City | None:
+        """Місто за кодом міста або аеропорту (WAW → Варшава). Для житла: центр і назва."""
+        code = code.upper()
+        if (city := self._cities.get(code)) is not None:
+            return city
+        if (airport := self._by_code.get(code)) is not None:
+            return self._cities.get(airport.city) or City(
+                airport.city,
+                airport.name,
+                airport.name_uk,
+                airport.country,
+                airport.lat,
+                airport.lon,
+            )
+        return None
+
     def knows(self, code: str) -> bool:
         """Код є в довіднику як аеропорт або як місто з аеропортами."""
         code = code.upper()
@@ -206,6 +222,35 @@ class AirportDirectory:
                 break
         return places[:limit]
 
+    def search_cities(self, text: str, *, limit: int = 8, lang: Lang = "uk") -> list[Place]:
+        """Лише міста (для житла): «Варшава», а не «Варшава, Шопен» і «Модлін» окремо.
+
+        Той самий пошук і порядок, що й `search`, але кожен збіг — місто, без дублів:
+        аеропорт веде до свого міста, назва аеропорту теж знаходить місто.
+        """
+        places: list[Place] = []
+        seen: set[str] = set()
+        for place in self.search(text, limit=limit * 4, lang=lang):
+            code = place.code if place.kind == "city" else self._by_code[place.code].city
+            city = self.city_of(code)
+            if city is None or city.code in seen:
+                continue
+            seen.add(city.code)
+            name = city.name_uk if lang == "uk" else city.name
+            places.append(
+                Place(
+                    code=city.code,
+                    kind="city",
+                    name=name,
+                    city_name=name,
+                    country_name=self._country_name(city.country, lang),
+                    airports=sorted(self._by_city.get(city.code, [])),
+                )
+            )
+            if len(places) >= limit:
+                break
+        return places
+
     # --- внутрішнє -----------------------------------------------------------------
 
     def _center(self, code: str) -> tuple[float, float] | None:
@@ -266,6 +311,11 @@ def _name_rank(name: str, needle: str) -> int | None:
     if any(word.startswith(needle) for word in words[1:]):
         return 1
     return None
+
+
+def distance_km(a: tuple[float, float], b: tuple[float, float]) -> float:
+    """Відстань між двома точками (широта, довгота) у км — для житла: до центру міста."""
+    return _distance_km(a, b)
 
 
 def _distance_km(a: tuple[float, float], b: tuple[float, float]) -> float:

@@ -21,13 +21,14 @@ export function placeValue(code: string | undefined): PlaceValue {
 }
 
 /** Підпис місця у полі: «Варшава, Фредерік Шопен», «Лондон — усі аеропорти». */
-export function placeLabel(place: Place, allAirports: string): string {
+export function placeLabel(place: Place, allAirports: string, kind: PlaceKind = "any"): string {
+  if (kind === "city") return place.city_name;
   if (place.kind === "city") return `${place.city_name} — ${allAirports}`;
   return place.name === place.city_name ? place.city_name : `${place.city_name}, ${place.name}`;
 }
 
-function pickedValue(place: Place, allAirports: string): PlaceValue {
-  return { code: place.code, label: placeLabel(place, allAirports), picked: true };
+function pickedValue(place: Place, allAirports: string, kind: PlaceKind): PlaceValue {
+  return { code: place.code, label: placeLabel(place, allAirports, kind), picked: true };
 }
 
 /** Код з того, що ввели вручну: лише якщо це рівно 3 латинські літери. */
@@ -44,14 +45,24 @@ type Props = {
   placeholder: string;
   /** Іконка зліва в полі (зліт/посадка). */
   icon?: ReactNode;
+  /** "city" — лише міста (житло: аеропорт тут нічого не означає). */
+  kind?: PlaceKind;
   /** Підміна мережі в тестах. */
   loadPlaces?: (q: string, signal: AbortSignal) => Promise<Place[]>;
 };
 
-async function fetchPlaces(q: string, signal: AbortSignal): Promise<Place[]> {
-  const response = await fetch(`/api/places?${new URLSearchParams({ q })}`, { signal });
+export type PlaceKind = "any" | "city";
+
+async function fetchPlaces(q: string, signal: AbortSignal, kind: PlaceKind): Promise<Place[]> {
+  const response = await fetch(`/api/places?${new URLSearchParams({ q, kind })}`, { signal });
   return response.ok ? ((await response.json()) as Place[]) : [];
 }
+
+// Сталі функції: від них залежать ефекти підказок.
+const FETCHERS: Record<PlaceKind, (q: string, signal: AbortSignal) => Promise<Place[]>> = {
+  any: (q, signal) => fetchPlaces(q, signal, "any"),
+  city: (q, signal) => fetchPlaces(q, signal, "city"),
+};
 
 /**
  * Поле міста/аеропорту з підказками (ARIA combobox). Форма отримує IATA-код
@@ -64,7 +75,8 @@ export function PlaceInput({
   onChange,
   placeholder,
   icon,
-  loadPlaces = fetchPlaces,
+  kind = "any",
+  loadPlaces = FETCHERS[kind],
 }: Props) {
   const t = useTranslations("search");
   const listId = useId();
@@ -89,12 +101,12 @@ export function PlaceInput({
         const place = found.find((p) => p.code === code);
         // Поки чекали, користувач міг почати вводити — тоді його текст не чіпаємо.
         if (place && latest.current.value.label === code) {
-          latest.current.onChange(pickedValue(place, t("allAirports")));
+          latest.current.onChange(pickedValue(place, t("allAirports"), kind));
         }
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [loadPlaces, t]);
+  }, [loadPlaces, t, kind]);
 
   // Підказки після паузи у введенні; застарілий запит скасовуємо.
   const text = value.label;
@@ -126,7 +138,7 @@ export function PlaceInput({
   }, [value.code, text, t]);
 
   function choose(place: Place) {
-    onChange(pickedValue(place, t("allAirports")));
+    onChange(pickedValue(place, t("allAirports"), kind));
     setOpen(false);
   }
 
@@ -216,7 +228,7 @@ export function PlaceInput({
               <Plane className="text-muted-foreground size-4 shrink-0" aria-hidden />
             )}
             <span className="min-w-0 flex-1 truncate">
-              {placeLabel(place, t("allAirports"))}
+              {placeLabel(place, t("allAirports"), kind)}
               <span className="text-muted-foreground"> · {place.country_name}</span>
             </span>
             <span className="text-muted-foreground font-mono text-xs">{place.code}</span>

@@ -8,6 +8,7 @@ from tickets_api.ai.assistant import (
     MAX_CHAT_TURNS,
     MAX_USER_MESSAGE_LENGTH,
     ChatContext,
+    ChatMode,
     ChatReply,
     ChatTurn,
 )
@@ -20,7 +21,9 @@ from tickets_api.ai.parser import (
     Turn,
 )
 from tickets_api.ai.service import AIService
+from tickets_api.ai.stay_analyst import StayAnalysisResult
 from tickets_api.domain.flights import FlightQuery, Iata
+from tickets_api.domain.stays import StayQuery
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -69,8 +72,12 @@ class ChatBody(BaseModel):
 
     messages: list[ChatTurn] = Field(min_length=1, max_length=MAX_CHAT_TURNS)
     """Розмова від початку (чи останні MAX_CHAT_TURNS реплік); остання — від користувача."""
+    mode: ChatMode = "flights"
+    """Окремі чати: квитки, житло, уся поїздка."""
     current_search: FlightQuery | None = None
-    """Пошук, результати якого відкриті на сторінці (з URL)."""
+    """Пошук перельотів, результати якого відкриті на сторінці (з URL)."""
+    current_stay_search: StayQuery | None = None
+    """Те саме для житла."""
     home_airport: Iata | None = None
 
     @model_validator(mode="after")
@@ -91,8 +98,23 @@ async def chat(body: ChatBody, request: Request) -> ChatReply:
         today=datetime.now(UTC).date(),
         home_airport=body.home_airport,
         current_search=body.current_search,
+        current_stay_search=body.current_stay_search,
     )
-    return await service.chat(body.messages, context)
+    return await service.chat(body.messages, context, body.mode)
+
+
+class StayAnalysisBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    query: StayQuery
+    stay_keys: list[str] = Field(min_length=1, max_length=3)
+    """`source:id` об'єктів з результатів пошуку — не більше трьох за раз."""
+
+
+@router.post("/stays/analysis", response_model=StayAnalysisResult)
+async def analyze_stays(body: StayAnalysisBody, request: Request) -> StayAnalysisResult:
+    """Резюме відгуків і порівняння вибраних об'єктів. Value-score — з коду, не з моделі."""
+    return await _service(request).analyze_stays(body.query, body.stay_keys)
 
 
 @router.post("/explain", response_model=ExplainResult)

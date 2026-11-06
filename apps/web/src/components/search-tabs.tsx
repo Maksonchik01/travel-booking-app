@@ -4,7 +4,7 @@ import { Search, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from "react";
 
-import { CHAT_STORAGE_KEY } from "@/components/ai-chat";
+import { CHAT_MODE_KEY } from "@/components/ai-chat";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +12,12 @@ type Tab = "form" | "chat";
 const TABS: readonly Tab[] = ["form", "chat"];
 const TAB_STORAGE_KEY = "tickets.searchTab";
 
-/** Вкладка з sessionStorage; якщо не обирали — чат, коли розмова вже є. */
+/** Вкладка з sessionStorage; якщо не обирали — чат, коли в ньому вже обрано режим. */
 function restoreTab(): Tab {
   try {
     const saved = sessionStorage.getItem(TAB_STORAGE_KEY);
     if (saved === "form" || saved === "chat") return saved;
-    return sessionStorage.getItem(CHAT_STORAGE_KEY) ? "chat" : "form";
+    return sessionStorage.getItem(CHAT_MODE_KEY) ? "chat" : "form";
   } catch {
     return "form";
   }
@@ -102,7 +102,6 @@ function Tabs({ form, chat, restored }: { form: ReactNode; chat: ReactNode; rest
           id={`${id}-${name}`}
           aria-labelledby={`${id}-${name}-tab`}
           hidden={tab !== name}
-          className="animate-in fade-in-0 duration-200"
         >
           {name === "form" ? form : chat}
         </div>

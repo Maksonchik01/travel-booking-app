@@ -11,9 +11,12 @@ from tickets_api.ai.assistant import (
 )
 from tickets_api.domain.flights import FlightQuery
 from tickets_api.llm.types import ChatRequest, ChatResponse, LLMError, ToolCall
+from tickets_api.providers.mock_stays import MockStayProvider
 from tickets_api.reference.airports import default_airport_directory
 from tickets_api.scoring.config import default_scoring_config
+from tickets_api.scoring.stays import default_stay_scoring_config
 from tickets_api.services.flight_search import FlightSearchService
+from tickets_api.services.stay_search import StaySearchService
 
 TODAY = date(2026, 11, 4)
 NOW = datetime(2026, 11, 4, 12, tzinfo=UTC)
@@ -46,8 +49,18 @@ def text(content: str) -> ChatResponse:
 def assistant(provider: StubProvider | None = None) -> tuple[TravelAssistant, StubProvider]:
     provider = provider or StubProvider("a", offers=offers_for("a", [88, 152]))
     search = FlightSearchService([provider], timeout_s=1, scoring_config=default_scoring_config())
+    stays = StaySearchService(
+        [MockStayProvider(default_airport_directory(), clock=lambda: NOW)],
+        airports=default_airport_directory(),
+        timeout_s=1,
+        scoring_config=default_stay_scoring_config(),
+    )
     agent = TravelAssistant(
-        default_airport_directory(), search, model="deepseek-flash", clock=lambda: NOW
+        default_airport_directory(),
+        search,
+        model="deepseek-flash",
+        stay_search=stays,
+        clock=lambda: NOW,
     )
     return agent, provider
 
@@ -215,3 +228,44 @@ async def test_model_failure_is_unavailable() -> None:
     reply = await agent.reply(turns("Лісабон"), CONTEXT, Down())
 
     assert reply.status == "unavailable"
+
+
+async def test_stays_chat_has_only_stay_tools() -> None:
+    agent, provider = assistant()
+    client = Scripted(
+        tool("search_flights", origin="WAW", destination="LIS", departure_date="2026-11-10"),
+        tool("search_stays", city="LIS", check_in="2026-12-05", check_out="2026-12-08"),
+        text("Радимо Збалансований варіант."),
+    )
+
+    reply = await agent.reply(turns("Житло в Лісабоні 5–8 грудня"), CONTEXT, client, "stays")
+
+    assert {t.name for t in client.requests[0].tools} == {"lookup_airport", "search_stays"}
+    assert "Stay-Assistant" in client.requests[0].messages[0].content
+    unknown, stays = tool_outputs(client)
+    assert "unknown tool" in unknown["error"]  # квитки — в іншому чаті
+    assert provider.calls == 0
+    assert reply.search is None
+    assert reply.stay_search is not None
+    assert reply.stay_search.nights == 3
+    assert stays["recommended_by_scoring"] in {o["id"] for o in stays["options"]}
+    assert stays["options"][0]["price_per_night_text"].endswith("EUR")
+
+
+async def test_trip_chat_finds_flight_and_stay() -> None:
+    agent, _ = assistant()
+    client = Scripted(
+        tool("search_flights", origin="WAW", destination="LIS", departure_date="2026-11-10"),
+        tool("search_stays", city="LIS", check_in="2026-11-10", check_out="2026-11-13"),
+        text("Переліт за 88 EUR і житло — варіанти нижче."),
+    )
+
+    reply = await agent.reply(
+        turns("Поїздка Варшава–Лісабон 10–13 листопада"), CONTEXT, client, "trip"
+    )
+
+    assert reply.status == "ok"
+    assert "Trip-Assistant" in client.requests[0].messages[0].content
+    assert reply.search is not None
+    assert reply.stay_search is not None
+    assert (reply.search.destination, reply.stay_search.city) == ("LIS", "LIS")

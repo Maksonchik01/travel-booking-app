@@ -9,24 +9,18 @@ import { AIChat } from "@/components/ai-chat";
 import { AIExplanation } from "@/components/ai-explanation";
 import { CollapsibleSearch } from "@/components/collapsible-search";
 import { OfferCard } from "@/components/offer-card";
+import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
 import { PriceCalendar } from "@/components/price-calendar";
 import { ProviderAlerts } from "@/components/provider-alerts";
 import { ResultFilters } from "@/components/result-filters";
 import { SearchForm } from "@/components/search-form";
 import { SearchTabs } from "@/components/search-tabs";
-import { ServiceStatus } from "@/components/service-status";
 import { ShowMore } from "@/components/show-more";
 import { SiteHeader } from "@/components/site-header";
 import { offerAnchor, TopPicks } from "@/components/top-picks";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  explainSearch,
-  fetchAIStatus,
-  fetchCalendar,
-  fetchReadiness,
-  searchFlights,
-} from "@/lib/api";
+import { explainSearch, fetchAIStatus, fetchCalendar, searchFlights } from "@/lib/api";
 import {
   hasFilters,
   parseSearchParams,
@@ -49,7 +43,7 @@ const EXAMPLES = [
 export default function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <SiteHeader />
+      <SiteHeader active="flights" />
       <main className="flex-1">
         <section className="relative isolate overflow-hidden border-b">
           <HeroBackdrop />
@@ -97,29 +91,6 @@ async function HeroText({ searchParams }: { searchParams: Params }) {
       <p className="text-muted-foreground max-w-2xl text-sm text-balance sm:text-base">
         {t("subtitle")}
       </p>
-    </div>
-  );
-}
-
-/** М'яке синє сяйво й пунктир маршруту за пошуком — лише декор. */
-function HeroBackdrop() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-      <div className="from-primary/[0.08] absolute inset-0 bg-gradient-to-b via-sky-500/[0.03] to-transparent" />
-      <div className="bg-primary/20 absolute -top-24 -right-24 size-80 rounded-full blur-3xl" />
-      <div className="absolute -top-16 left-1/3 size-64 rounded-full bg-sky-400/15 blur-3xl" />
-      <svg
-        className="text-primary/20 absolute top-6 right-0 hidden h-40 w-[34rem] md:block"
-        viewBox="0 0 540 160"
-        fill="none"
-      >
-        <path
-          d="M10 150 C 160 20, 380 10, 530 60"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeDasharray="6 8"
-        />
-      </svg>
     </div>
   );
 }
@@ -443,22 +414,4 @@ function ResultsSkeleton() {
       </div>
     </div>
   );
-}
-
-function SiteFooter() {
-  const t = useTranslations("footer");
-  return (
-    <footer className="bg-card/60 border-t">
-      <div className="text-muted-foreground mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs">
-        <p>{t("disclaimer")}</p>
-        <Suspense fallback={null}>
-          <FooterStatus />
-        </Suspense>
-      </div>
-    </footer>
-  );
-}
-
-async function FooterStatus() {
-  return <ServiceStatus status={await fetchReadiness()} compact />;
 }

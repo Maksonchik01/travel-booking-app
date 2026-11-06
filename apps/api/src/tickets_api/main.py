@@ -8,17 +8,21 @@ from redis.asyncio import Redis
 
 from tickets_api import __version__
 from tickets_api.ai.factory import build_ai_service
-from tickets_api.api import ai, flights, health, places
+from tickets_api.api import ai, flights, health, places, stays
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
 from tickets_api.llm.pricing import default_pricing, load_pricing
-from tickets_api.providers.registry import build_providers
+from tickets_api.providers.registry import build_providers, build_stay_providers
 from tickets_api.reference.airlines import default_airline_names
+from tickets_api.reference.airports import default_airport_directory
 from tickets_api.repositories.price_history import PriceHistoryRecorder
+from tickets_api.repositories.stay_price_history import StayPriceHistoryRecorder
 from tickets_api.scoring.config import default_scoring_config, load_scoring_config
+from tickets_api.scoring.stays import default_stay_scoring_config, load_stay_scoring_config
 from tickets_api.services.flight_search import FlightSearchService
+from tickets_api.services.stay_search import StaySearchService
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -28,6 +32,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         load_scoring_config(settings.scoring_config_path)
         if settings.scoring_config_path
         else default_scoring_config()
+    )
+    stay_scoring_config = (
+        load_stay_scoring_config(settings.stay_scoring_config_path)
+        if settings.stay_scoring_config_path
+        else default_stay_scoring_config()
     )
     llm_pricing = (
         load_pricing(settings.llm_pricing_path) if settings.llm_pricing_path else default_pricing()
@@ -54,12 +63,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             record_history=PriceHistoryRecorder(app.state.sessionmaker).record,
             airline_names=default_airline_names(),
         )
+        app.state.stay_search = StaySearchService(
+            build_stay_providers(settings.stay_providers),
+            airports=default_airport_directory(),
+            timeout_s=settings.provider_timeout_s,
+            scoring_config=stay_scoring_config,
+            record_history=StayPriceHistoryRecorder(app.state.sessionmaker).record,
+        )
         app.state.ai = build_ai_service(
             settings,
             http=app.state.http,
             redis=app.state.redis,
             sessionmaker=app.state.sessionmaker,
             search=app.state.flight_search,
+            stay_search=app.state.stay_search,
             pricing=llm_pricing,
         )
         try:
@@ -80,5 +97,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(flights.router)
     app.include_router(places.router)
+    app.include_router(stays.router)
     app.include_router(ai.router)
     return app

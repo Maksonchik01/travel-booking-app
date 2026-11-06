@@ -183,7 +183,7 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
   );
 }
 
-function Group({
+export function Group({
   legend,
   hint,
   children,
@@ -203,7 +203,7 @@ function Group({
   );
 }
 
-function Choice({
+export function Choice({
   type = "radio",
   name,
   value,

@@ -3,8 +3,9 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
 
-export function SiteHeader() {
+export function SiteHeader({ active }: { active: "flights" | "stays" }) {
   const t = useTranslations("nav");
   return (
     <header className="bg-background/75 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 border-b backdrop-blur-md">
@@ -19,19 +20,21 @@ export function SiteHeader() {
           {t("brand")}
         </Link>
         <nav className="text-muted-foreground flex items-center gap-1 text-sm">
-          <Link
-            href="/"
-            aria-current="page"
-            className="bg-accent text-accent-foreground rounded-md px-3 py-1.5 font-medium transition-colors"
-          >
-            {t("flights")}
-          </Link>
-          <span aria-disabled className="cursor-not-allowed px-3 py-1.5 opacity-60">
-            {t("stays")}{" "}
-            <span className="bg-muted rounded px-1.5 py-0.5 text-[10px] uppercase">
-              {t("staysSoon")}
-            </span>
-          </span>
+          {(["flights", "stays"] as const).map((section) => (
+            <Link
+              key={section}
+              href={section === "flights" ? "/" : "/stays"}
+              aria-current={active === section ? "page" : undefined}
+              className={cn(
+                "rounded-md px-3 py-1.5 font-medium transition-colors",
+                active === section
+                  ? "bg-accent text-accent-foreground"
+                  : "hover:text-foreground hover:bg-muted",
+              )}
+            >
+              {t(section)}
+            </Link>
+          ))}
         </nav>
         <ThemeToggle className="ml-auto" />
       </div>

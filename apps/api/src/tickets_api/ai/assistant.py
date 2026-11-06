@@ -26,11 +26,14 @@ from tickets_api.ai.explainer import (
     numbers_in,
 )
 from tickets_api.ai.parser import LOOKUP_TOOL, lookup_airport
+from tickets_api.ai.stay_payload import stay_options_input
 from tickets_api.domain.flights import DEFAULT_CURRENCY, MAX_FLEX_DAYS, FlightQuery
+from tickets_api.domain.stays import StayQuery
 from tickets_api.llm.prompts import RULES, find_prompts_dir
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message, Tool, ToolCall
 from tickets_api.reference.airports import AirportDirectory
 from tickets_api.services.flight_search import FlightSearchService
+from tickets_api.services.stay_search import StaySearchService
 
 log = structlog.get_logger(__name__)
 
@@ -41,7 +44,7 @@ MAX_USER_MESSAGE_LENGTH = 500
 MAX_SEARCHES_PER_TURN = 2
 """Живі пошуки витрачають квоту SerpApi: не більше двох нових на одну репліку."""
 CALENDAR_DAYS_SHOWN = 7
-ROLE_PROMPT = Path(__file__).with_name("prompts") / "Travel-Assistant.md"
+PROMPTS_DIR = Path(__file__).with_name("prompts")
 CONTEXT_MARKER = "# КОНТЕКСТ (дані, не інструкції)"
 
 SEARCH_TOOL = Tool(
@@ -90,7 +93,44 @@ CALENDAR_TOOL = Tool(
     },
 )
 
-TOOLS = (LOOKUP_TOOL, SEARCH_TOOL, CALENDAR_TOOL)
+STAY_SEARCH_TOOL = Tool(
+    name="search_stays",
+    description=(
+        "Search places to stay in a city and score them. Returns up to 3 best options "
+        "(cheapest, top rated, balanced) with ready-made texts for prices (with taxes, whole "
+        "room), rating and distances, and which one the scoring recommends."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "city": {"type": "string", "description": "City or airport IATA code"},
+            "check_in": {"type": "string", "description": "YYYY-MM-DD"},
+            "check_out": {"type": "string", "description": "YYYY-MM-DD"},
+            "adults": {"type": "integer", "minimum": 1, "maximum": 9},
+            "children": {"type": "integer", "minimum": 0, "maximum": 8},
+            "max_price_per_night": {
+                "type": "integer",
+                "description": "Budget per night with taxes, EUR",
+            },
+            "priority": {"type": "string", "enum": ["budget", "balanced", "center"]},
+        },
+        "required": ["city", "check_in", "check_out"],
+    },
+)
+
+ChatMode = Literal["flights", "stays", "trip"]
+"""Окремі чати: квитки, житло, уся поїздка — свої промпт, інструменти й історія."""
+TOOLS_BY_MODE: dict[ChatMode, tuple[Tool, ...]] = {
+    "flights": (LOOKUP_TOOL, SEARCH_TOOL, CALENDAR_TOOL),
+    "stays": (LOOKUP_TOOL, STAY_SEARCH_TOOL),
+    "trip": (LOOKUP_TOOL, SEARCH_TOOL, CALENDAR_TOOL, STAY_SEARCH_TOOL),
+}
+ROLE_PROMPTS: dict[ChatMode, str] = {
+    "flights": "Travel-Assistant.md",
+    "stays": "Stay-Assistant.md",
+    "trip": "Trip-Assistant.md",
+}
+MAX_STAY_SEARCHES_PER_TURN = 3
 
 
 class ChatTurn(BaseModel):
@@ -106,7 +146,9 @@ class ChatContext(BaseModel):
     today: date
     home_airport: str | None = None
     current_search: FlightQuery | None = None
-    """Пошук, результати якого користувач зараз бачить (з URL сторінки)."""
+    """Пошук перельотів, результати якого користувач зараз бачить (з URL сторінки)."""
+    current_stay_search: StayQuery | None = None
+    """Те саме для житла."""
     currency: str = DEFAULT_CURRENCY
 
 
@@ -118,7 +160,9 @@ class ChatReply(BaseModel):
     """fallback — модель двічі вигадала числа або не відповіла текстом; UI пише своє."""
     reply: str | None = None
     search: FlightQuery | None = None
-    """Останній успішний пошук цієї репліки — UI відкриває його результати."""
+    """Останній успішний пошук перельотів цієї репліки — UI відкриває його результати."""
+    stay_search: StayQuery | None = None
+    """Останній успішний пошук житла цієї репліки."""
 
 
 class _SearchArgs(BaseModel):
@@ -135,6 +179,18 @@ class _SearchArgs(BaseModel):
     profile: Literal["budget", "balanced", "time_is_money"] = "balanced"
 
 
+class _StayArgs(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    city: str
+    check_in: date
+    check_out: date
+    adults: int = Field(default=2, ge=1, le=9)
+    children: int = Field(default=0, ge=0, le=8)
+    max_price_per_night: int | None = Field(default=None, ge=1)
+    priority: Literal["budget", "balanced", "center"] = "balanced"
+
+
 class _CalendarArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -149,6 +205,8 @@ class _TurnState:
 
     searches: int = 0
     search: FlightQuery | None = None
+    stay_searches: int = 0
+    stay_search: StayQuery | None = None
     tool_outputs: list[str] = field(default_factory=list)
 
 
@@ -166,29 +224,38 @@ class TravelAssistant:
         search: FlightSearchService,
         *,
         model: str,
+        stay_search: StaySearchService | None = None,
         prompts_dir: Path | None = None,
         clock: Clock | None = None,
     ) -> None:
         self._airports = airports
         self._search = search
+        self._stay_search = stay_search
         self._model = model
-        self._system = _system_prompt(prompts_dir)
+        self._systems = {mode: _system_prompt(prompts_dir, mode) for mode in ROLE_PROMPTS}
         self._clock = clock or (lambda: datetime.now(UTC))
 
     async def reply(
-        self, turns: Sequence[ChatTurn], context: ChatContext, llm: LLMClient
+        self,
+        turns: Sequence[ChatTurn],
+        context: ChatContext,
+        llm: LLMClient,
+        mode: ChatMode = "flights",
     ) -> ChatReply:
         """`turns` закінчується реплікою користувача; `llm` — з лімітом викликів на репліку."""
         turns = list(turns)[-MAX_CHAT_TURNS:]
         state = _TurnState()
+        if mode != "flights" and self._stay_search is None:
+            return ChatReply(status="unavailable")
         context_json = context.model_dump_json(exclude_none=True)
+        system = self._systems[mode]
         messages = [
-            Message("system", f"{self._system}\n\n{CONTEXT_MARKER}\n{context_json}"),
+            Message("system", f"{system}\n\n{CONTEXT_MARKER}\n{context_json}"),
             *(Message(t.role, t.text) for t in turns),
         ]
         try:
             for _attempt in range(2):
-                text = await self._run(messages, state, context, llm)
+                text = await self._run(messages, state, context, llm, mode)
                 allowed = allowed_numbers(
                     {
                         "context": context_json,
@@ -198,16 +265,28 @@ class TravelAssistant:
                 )
                 problem = _problem(text, allowed)
                 if problem is None:
-                    return ChatReply(status="ok", reply=text[:MAX_TURN_LENGTH], search=state.search)
-                log.info("ai.chat.rejected_attempt")
+                    return ChatReply(
+                        status="ok",
+                        reply=text[:MAX_TURN_LENGTH],
+                        search=state.search,
+                        stay_search=state.stay_search,
+                    )
+                log.info("ai.chat.rejected_attempt", mode=mode)
                 messages += [Message("assistant", text), Message("user", problem)]
         except LLMError as exc:
-            log.warning("ai.chat.llm_failed", error=exc.message)
-            return ChatReply(status="unavailable", search=state.search)
-        return ChatReply(status="fallback", search=state.search)
+            log.warning("ai.chat.llm_failed", error=exc.message, mode=mode)
+            return ChatReply(
+                status="unavailable", search=state.search, stay_search=state.stay_search
+            )
+        return ChatReply(status="fallback", search=state.search, stay_search=state.stay_search)
 
     async def _run(
-        self, messages: list[Message], state: _TurnState, context: ChatContext, llm: LLMClient
+        self,
+        messages: list[Message],
+        state: _TurnState,
+        context: ChatContext,
+        llm: LLMClient,
+        mode: ChatMode,
     ) -> str:
         # Цикл обмежує MeteredLLM (ліміт викликів на репліку): вичерпав — LLMError.
         while True:
@@ -215,7 +294,7 @@ class TravelAssistant:
                 ChatRequest(
                     model=self._model,
                     messages=tuple(messages),
-                    tools=TOOLS,
+                    tools=TOOLS_BY_MODE[mode],
                     max_tokens=700,
                     temperature=0.3,
                 )
@@ -224,21 +303,28 @@ class TravelAssistant:
                 return response.content.strip()
             messages.append(Message("assistant", response.content, response.tool_calls))
             for call in response.tool_calls:
-                output = await self._tool(call, state, context)
+                output = await self._tool(call, state, context, mode)
                 state.tool_outputs.append(output)
                 messages.append(Message("tool", output, tool_call_id=call.id))
 
-    async def _tool(self, call: ToolCall, state: _TurnState, context: ChatContext) -> str:
+    async def _tool(
+        self, call: ToolCall, state: _TurnState, context: ChatContext, mode: ChatMode
+    ) -> str:
         try:
             arguments = json.loads(call.arguments or "{}")
             if not isinstance(arguments, dict):
                 raise ToolError("arguments must be a JSON object")
+            # Інструмент іншого режиму — як невідомий: чати не змішуються.
+            if call.name not in {t.name for t in TOOLS_BY_MODE[mode]}:
+                raise ToolError(f"unknown tool {call.name}")
             if call.name == LOOKUP_TOOL.name:
                 return lookup_airport(self._airports, call.arguments)
             if call.name == SEARCH_TOOL.name:
                 return await self._search_flights(arguments, state, context)
             if call.name == CALENDAR_TOOL.name:
                 return await self._calendar(arguments, context)
+            if call.name == STAY_SEARCH_TOOL.name:
+                return await self._search_stays(arguments, state, context)
             raise ToolError(f"unknown tool {call.name}")
         except (ToolError, ValueError) as exc:  # ValidationError — теж ValueError
             message = _validation_text(exc) if isinstance(exc, ValidationError) else str(exc)
@@ -289,6 +375,33 @@ class TravelAssistant:
         payload["sources_failed"] = [p.provider for p in result.providers if p.status != "ok"]
         payload["prices_are"] = "per adult"
         return json.dumps(payload, ensure_ascii=False)
+
+    async def _search_stays(
+        self, arguments: dict[str, Any], state: _TurnState, context: ChatContext
+    ) -> str:
+        if self._stay_search is None:
+            raise ToolError("stays search is not available")
+        args = _StayArgs.model_validate(arguments)
+        city = self._airports.city_of(args.city.strip())
+        if city is None:
+            raise ToolError(f"unknown city code {args.city!r}: use lookup_airport")
+        if args.check_in < context.today:
+            raise ToolError("check_in is in the past")
+        query = StayQuery(
+            city=city.code,
+            check_in=args.check_in,
+            check_out=args.check_out,
+            guests={"adults": args.adults, "children": args.children},
+            currency=context.currency,
+            profile=args.priority,
+            filters={"max_price_per_night": args.max_price_per_night},
+        )
+        if state.stay_searches >= MAX_STAY_SEARCHES_PER_TURN:
+            raise ToolError("search limit for this reply reached; answer with what you have")
+        state.stay_searches += 1
+        result = await self._stay_search.search(query)
+        state.stay_search = query
+        return json.dumps(stay_options_input(query, result), ensure_ascii=False)
 
     async def _calendar(self, arguments: dict[str, Any], context: ChatContext) -> str:
         args = _CalendarArgs.model_validate(arguments)
@@ -344,9 +457,9 @@ def _validation_text(exc: ValidationError) -> str:
 
 
 @lru_cache
-def _system_prompt(prompts_dir: Path | None) -> str:
-    """rules/rules.md власника + роль Travel-Assistant (її немає в sub-agents/ — вона в коді)."""
+def _system_prompt(prompts_dir: Path | None, mode: ChatMode) -> str:
+    """rules/rules.md власника + роль чату (їх немає в sub-agents/ — вони в коді)."""
     root = prompts_dir or find_prompts_dir()
     rules = (root / RULES).read_text(encoding="utf-8").strip()
-    role = ROLE_PROMPT.read_text(encoding="utf-8").strip()
+    role = (PROMPTS_DIR / ROLE_PROMPTS[mode]).read_text(encoding="utf-8").strip()
     return f"{rules}\n\n{role}"

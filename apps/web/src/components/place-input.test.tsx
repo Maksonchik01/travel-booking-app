@@ -73,6 +73,9 @@ describe("placeLabel", () => {
     expect(placeLabel(LONDON, "усі аеропорти")).toBe("Лондон — усі аеропорти");
     expect(placeLabel(HEATHROW, "")).toBe("Лондон, Хітроу");
     expect(placeLabel({ ...HEATHROW, name: "Лондон" }, "")).toBe("Лондон");
+    // Житло: лише місто, без «усі аеропорти» і назв аеропортів.
+    expect(placeLabel(LONDON, "усі аеропорти", "city")).toBe("Лондон");
+    expect(placeLabel({ ...WARSAW, kind: "city", name: "Варшава" }, "", "city")).toBe("Варшава");
   });
 
   it("код з ручного введення — лише 3 латинські літери", () => {

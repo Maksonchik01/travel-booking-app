@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q")?.trim().slice(0, MAX_QUERY_LENGTH) ?? "";
   if (q.length < 2) return Response.json([]);
 
-  const result = await fetchPlaces(q);
+  const kind = request.nextUrl.searchParams.get("kind") === "city" ? "city" : "any";
+  const result = await fetchPlaces(q, 8, kind);
   if (!result.ok) return Response.json([], { status: 502 });
   // Довідник змінюється лише з оновленням знімка — браузер може тримати відповідь добу.
   return Response.json(result.data, { headers: { "Cache-Control": "public, max-age=86400" } });
