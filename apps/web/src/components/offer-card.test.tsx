@@ -29,6 +29,7 @@ const base: Offer = {
   },
   inbound: null,
   airlines: ["FR", "U2"],
+  airline_logos: { FR: "https://www.gstatic.com/flights/airline_logos/70px/FR.png" },
   details_level: "full",
   baggage_included: false,
   collected_at: "2026-10-26T11:00:00Z",
@@ -60,6 +61,20 @@ describe("OfferCard", () => {
     expect(screen.getByText("16 год 16 хв")).toBeInTheDocument();
     expect(screen.getByText("2 пересадки")).toBeInTheDocument();
     expect(screen.getByText("Без багажу")).toBeInTheDocument();
+  });
+
+  it("логотип авіакомпанії біля відрізка, без логотипа — код у кружечку", () => {
+    renderCard(base);
+
+    const [outbound] = screen.getAllByTestId("airlines");
+    expect(outbound).toHaveTextContent("FR · U2");
+    const logo = within(outbound!).getByTestId("airline-logo");
+    // next/image віддає картинку через свій оптимізатор, а не з хоста провайдера.
+    expect(logo.getAttribute("src")).toMatch(
+      /^\/_next\/image\?url=https%3A%2F%2Fwww\.gstatic\.com/,
+    );
+    expect(within(outbound!).getByTestId("airline-monogram")).toHaveTextContent("U2");
+    expect(screen.getByTestId("seller")).toHaveTextContent("через Тестові дані");
   });
 
   it("позначає ризики кожної пересадки", () => {

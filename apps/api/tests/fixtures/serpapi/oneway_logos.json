@@ -1,0 +1,227 @@
+{
+ "_meta": {
+  "recorded_at": "2026-11-06",
+  "request": "departure_id=WAW arrival_id=BCN outbound_date=2026-12-13 type=2 currency=EUR gl=pl hl=en",
+  "note": "Реальна відповідь SerpApi Google Flights, скорочена: по 2 варіанти з best/other_flights, поля логотипів збережено. Ключа тут немає."
+ },
+ "search_metadata": {
+  "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTEyLTEzagcIARIDV0FXcgcIARIDQkNOQAFIAXABmAEC&tfu=EgIIAQ"
+ },
+ "best_flights": [
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 06:20"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 09:30"
+     },
+     "duration": 190,
+     "airplane": "Airbus A321neo",
+     "airline": "Wizz Air",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+     "travel_class": "Economy",
+     "flight_number": "W6 1475",
+     "extensions": [
+      "Carbon emissions estimate: 119 kg"
+     ]
+    }
+   ],
+   "total_duration": 190,
+   "carbon_emissions": {
+    "this_flight": 120000,
+    "typical_for_this_route": 197000,
+    "difference_percent": -39
+   },
+   "price": 48,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+   "booking_token": "WyJDalJJU2xOSVJubEZiVWxSUTFGQlJFTTFSbmRDUnkwdExTMHRMUzB0TFhaMGJXTXhPVUZCUVVGQlIzSjBkek5WVFRrd1JpMUJFZ1pYTmpFME56VWFDZ2lTSlJBQ0dnTkZWVkk0SEhEQktRPT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJCQ04iLG51bGwsIlc2IiwiMTQ3NSJdXV0="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 15:05"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 18:15"
+     },
+     "duration": 190,
+     "airplane": "Airbus A321neo",
+     "airline": "Wizz Air",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+     "travel_class": "Economy",
+     "flight_number": "W6 1477",
+     "extensions": [
+      "Carbon emissions estimate: 119 kg"
+     ],
+     "often_delayed_by_over_30_min": true
+    }
+   ],
+   "total_duration": 190,
+   "carbon_emissions": {
+    "this_flight": 120000,
+    "typical_for_this_route": 197000,
+    "difference_percent": -39
+   },
+   "price": 64,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+   "booking_token": "WyJDalJJU2xOSVJubEZiVWxSUTFGQlJFTTFSbmRDUnkwdExTMHRMUzB0TFhaMGJXTXhPVUZCUVVGQlIzSjBkek5WVFRrd1JpMUJFZ1pYTmpFME56Y2FDZ2pMTVJBQ0dnTkZWVkk0SEhDMU53PT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJCQ04iLG51bGwsIlc2IiwiMTQ3NyJdXV0="
+  }
+ ],
+ "other_flights": [
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 06:05"
+     },
+     "arrival_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-13 08:15"
+     },
+     "duration": 130,
+     "airplane": "Boeing 737",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1310",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 92 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-13 10:05"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 12:15"
+     },
+     "duration": 130,
+     "airplane": "Airbus A321neo",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1513",
+     "legroom": "29 in",
+     "extensions": [
+      "Below average legroom (29 in)",
+      "Free Wi-Fi",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 86 kg"
+     ],
+     "often_delayed_by_over_30_min": true
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 110,
+     "name": "Amsterdam Airport Schiphol",
+     "id": "AMS"
+    }
+   ],
+   "total_duration": 370,
+   "carbon_emissions": {
+    "this_flight": 179000,
+    "typical_for_this_route": 197000,
+    "difference_percent": -9
+   },
+   "price": 97,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+   "booking_token": "WyJDalJJU2xOSVJubEZiVWxSUTFGQlJFTTFSbmRDUnkwdExTMHRMUzB0TFhaMGJXTXhPVUZCUVVGQlIzSjBkek5WVFRrd1JpMUJFZzFMVERFek1UQjhTMHd4TlRFekdnb0loRXNRQWhvRFJWVlNPQnh3N1ZNPSIsW1siV0FXIiwiMjAyNi0xMi0xMyIsIkFNUyIsbnVsbCwiS0wiLCIxMzEwIl0sWyJBTVMiLCIyMDI2LTEyLTEzIiwiQkNOIixudWxsLCJLTCIsIjE1MTMiXV1d"
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 16:55"
+     },
+     "arrival_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-13 19:00"
+     },
+     "duration": 125,
+     "airplane": "Boeing 737",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1316",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 92 kg"
+     ],
+     "often_delayed_by_over_30_min": true
+    },
+    {
+     "departure_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-13 20:55"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 23:05"
+     },
+     "duration": 130,
+     "airplane": "Boeing 737",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1521",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 102 kg"
+     ],
+     "often_delayed_by_over_30_min": true
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 115,
+     "name": "Amsterdam Airport Schiphol",
+     "id": "AMS"
+    }
+   ],
+   "total_duration": 370,
+   "carbon_emissions": {
+    "this_flight": 195000,
+    "typical_for_this_route": 197000,
+    "difference_percent": -1
+   },
+   "price": 97,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+   "booking_token": "WyJDalJJU2xOSVJubEZiVWxSUTFGQlJFTTFSbmRDUnkwdExTMHRMUzB0TFhaMGJXTXhPVUZCUVVGQlIzSjBkek5WVFRrd1JpMUJFZzFMVERFek1UWjhTMHd4TlRJeEdnb0loRXNRQWhvRFJWVlNPQnh3N1ZNPSIsW1siV0FXIiwiMjAyNi0xMi0xMyIsIkFNUyIsbnVsbCwiS0wiLCIxMzE2Il0sWyJBTVMiLCIyMDI2LTEyLTEzIiwiQkNOIixudWxsLCJLTCIsIjE1MjEiXV1d"
+  }
+ ]
+}

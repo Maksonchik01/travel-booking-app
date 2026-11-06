@@ -62,6 +62,33 @@ def one_way(**overrides: Any) -> FlightQuery:
 
 
 @respx.mock
+async def test_airline_logos_from_recorded_response(provider: SerpApiFlightProvider) -> None:
+    respx.get(URL).mock(return_value=httpx.Response(200, json=recorded("oneway_logos")))
+
+    offers = await provider.search(one_way())
+
+    logos = {code: url for o in offers for code, url in o.airline_logos.items()}
+    assert logos == {
+        "W6": "https://www.gstatic.com/flights/airline_logos/70px/W6.png",
+        "KL": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+    }
+
+
+@respx.mock
+async def test_logo_from_unknown_host_is_dropped(provider: SerpApiFlightProvider) -> None:
+    body = recorded("oneway_logos")
+    for itinerary in body["best_flights"] + body["other_flights"]:
+        for flight in itinerary["flights"]:
+            flight["airline_logo"] = "https://evil.example/track.png"
+    respx.get(URL).mock(return_value=httpx.Response(200, json=body))
+
+    offers = await provider.search(one_way())
+
+    assert offers
+    assert all(o.airline_logos == {} for o in offers)
+
+
+@respx.mock
 async def test_maps_recorded_one_way(provider: SerpApiFlightProvider) -> None:
     route = respx.get(URL).mock(return_value=httpx.Response(200, json=recorded("oneway")))
 

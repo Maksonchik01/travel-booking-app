@@ -1,18 +1,22 @@
 import type { Offer, OfferScore, PickLabel } from "@tickets/shared";
+import { Info, Plane, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
-import { AIExplanation } from "@/components/ai-explanation";
 import { AIChat } from "@/components/ai-chat";
+import { AIExplanation } from "@/components/ai-explanation";
+import { CollapsibleSearch } from "@/components/collapsible-search";
 import { OfferCard } from "@/components/offer-card";
 import { LinkPendingOverlay } from "@/components/pending";
 import { PriceCalendar } from "@/components/price-calendar";
 import { ProviderAlerts } from "@/components/provider-alerts";
 import { ResultFilters } from "@/components/result-filters";
 import { SearchForm } from "@/components/search-form";
+import { SearchTabs } from "@/components/search-tabs";
 import { ServiceStatus } from "@/components/service-status";
+import { ShowMore } from "@/components/show-more";
 import { SiteHeader } from "@/components/site-header";
 import { offerAnchor, TopPicks } from "@/components/top-picks";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,34 +47,28 @@ const EXAMPLES = [
 ] as const;
 
 export default function HomePage({ searchParams }: PageProps<"/">) {
-  const t = useTranslations("home");
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <section className="from-primary/5 border-b bg-gradient-to-b to-transparent">
-          <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 pt-10 pb-8">
-            <div className="grid gap-2">
-              <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-                {t("title")}
-              </h1>
-              <p className="text-muted-foreground max-w-2xl text-balance">{t("subtitle")}</p>
-            </div>
+        <section className="relative isolate overflow-hidden border-b">
+          <HeroBackdrop />
+          <div className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-5 sm:py-8">
+            <Suspense fallback={null}>
+              <HeroText searchParams={searchParams} />
+            </Suspense>
             {/* overflow-visible: список підказок міст не обрізається краєм картки */}
-            <Card className="overflow-visible shadow-sm">
-              <CardContent className="grid gap-5">
-                <Suspense fallback={null}>
-                  <AIChatIfEnabled searchParams={searchParams} />
-                </Suspense>
+            <Card className="border-primary/10 shadow-primary/[0.07] overflow-visible py-0 shadow-xl ring-0">
+              <CardContent className="px-4 py-4 sm:px-6 sm:py-5">
                 <Suspense fallback={<SearchForm initial={null} />}>
-                  <SearchFormFromUrl searchParams={searchParams} />
+                  <SearchArea searchParams={searchParams} />
                 </Suspense>
               </CardContent>
             </Card>
           </div>
         </section>
 
-        <div className="mx-auto w-full max-w-5xl px-4 py-8">
+        <div className="mx-auto w-full max-w-6xl px-4 py-8">
           <Suspense fallback={<ResultsSkeleton />}>
             <Results searchParams={searchParams} />
           </Suspense>
@@ -81,26 +79,67 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
   );
 }
 
-async function SearchFormFromUrl({ searchParams }: { searchParams: Params }) {
-  const state = parseSearchParams(await searchParams);
-  // key: при новому пошуку форма скидається до значень з URL.
-  return <SearchForm key={state ? toSearchParams(state).toString() : "empty"} initial={state} />;
+/** Заголовок — лише на головній: на сторінці результатів місце потрібне видачі. */
+async function HeroText({ searchParams }: { searchParams: Params }) {
+  if (Object.keys(await searchParams).length > 0) return null;
+  const t = await getTranslations("home");
+  return (
+    <div className="grid gap-1.5">
+      <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-4xl">
+        {t.rich("title", {
+          accent: (chunks) => (
+            <span className="from-primary bg-gradient-to-r to-sky-500 bg-clip-text text-transparent">
+              {chunks}
+            </span>
+          ),
+        })}
+      </h1>
+      <p className="text-muted-foreground max-w-2xl text-sm text-balance sm:text-base">
+        {t("subtitle")}
+      </p>
+    </div>
+  );
 }
 
-/** Розмова з ШІ-агентом — лише коли на бекенді увімкнено LLM (LLM_PROVIDER). */
-async function AIChatIfEnabled({ searchParams }: { searchParams: Params }) {
-  const [status, raw] = await Promise.all([fetchAIStatus(), searchParams]);
-  if (!status.enabled) return null;
-  const current = parseSearchParams(raw)?.query;
+/** М'яке синє сяйво й пунктир маршруту за пошуком — лише декор. */
+function HeroBackdrop() {
   return (
-    <>
-      <AIChat currentSearch={current} homeAirport={current?.origin} />
-      <div className="text-muted-foreground flex items-center gap-3 text-xs">
-        <span className="bg-border h-px flex-1" />
-        {(await getTranslations("ai"))("orForm")}
-        <span className="bg-border h-px flex-1" />
-      </div>
-    </>
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+      <div className="from-primary/[0.08] absolute inset-0 bg-gradient-to-b via-sky-500/[0.03] to-transparent" />
+      <div className="bg-primary/20 absolute -top-24 -right-24 size-80 rounded-full blur-3xl" />
+      <div className="absolute -top-16 left-1/3 size-64 rounded-full bg-sky-400/15 blur-3xl" />
+      <svg
+        className="text-primary/20 absolute top-6 right-0 hidden h-40 w-[34rem] md:block"
+        viewBox="0 0 540 160"
+        fill="none"
+      >
+        <path
+          d="M10 150 C 160 20, 380 10, 530 60"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeDasharray="6 8"
+        />
+      </svg>
+    </div>
+  );
+}
+
+/** Форма і (коли увімкнено LLM) ШІ-помічник — у вкладках однієї картки. */
+async function SearchArea({ searchParams }: { searchParams: Params }) {
+  const [status, raw] = await Promise.all([fetchAIStatus(), searchParams]);
+  const state = parseSearchParams(raw);
+  // key: при новому пошуку форма скидається до значень з URL.
+  const form = (
+    <SearchForm key={state ? toSearchParams(state).toString() : "empty"} initial={state} />
+  );
+  // На мобільному на сторінці результатів форма згортається в рядок «що шукаємо».
+  const searchForm = state ? <CollapsibleSearch state={state}>{form}</CollapsibleSearch> : form;
+  if (!status.enabled) return searchForm;
+  return (
+    <SearchTabs
+      form={searchForm}
+      chat={<AIChat currentSearch={state?.query} homeAirport={state?.query.origin} />}
+    />
   );
 }
 
@@ -115,8 +154,13 @@ async function ExplanationIfEnabled({ state }: { state: SearchState }) {
 function ExplanationSkeleton() {
   const t = useTranslations("ai");
   return (
-    <div className="bg-primary/5 text-muted-foreground animate-pulse rounded-xl border p-4 text-sm">
-      {t("explaining")}
+    <div className="border-primary/20 bg-primary/[0.04] grid gap-3 rounded-xl border p-4">
+      <p className="text-muted-foreground flex items-center gap-2 text-sm">
+        <Sparkles className="text-primary size-4 animate-pulse" aria-hidden />
+        {t("explaining")}
+      </p>
+      <div className="shimmer h-3 w-3/4 rounded" />
+      <div className="shimmer h-3 w-1/2 rounded" />
     </div>
   );
 }
@@ -157,21 +201,17 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const filtered = hasFilters(query.filters);
   const withoutFilters = toSearchParams({ ...state, query: { ...query, filters: {} } });
   return (
-    <div className="grid gap-6">
-      {calendar.ok && calendar.data.days.length > 0 ? (
-        <PriceCalendar month={month} days={calendar.data.days} state={state} />
-      ) : (
-        !calendar.ok && (
-          <p className="text-muted-foreground text-sm">
-            {(await getTranslations("calendar"))("unavailable")}
-          </p>
-        )
-      )}
-
+    <div className="animate-in fade-in-0 grid gap-6 duration-300">
+      {/* 1. Що шукали й скільки знайшли — і як упорядкувати. */}
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">
-            {t("title", { from: query.origin, to: query.destination })}
+        <div className="grid gap-0.5">
+          <h2
+            aria-label={t("title", { from: query.origin, to: query.destination })}
+            className="flex items-center gap-2 text-2xl font-bold tracking-tight"
+          >
+            {query.origin}
+            <Plane className="text-primary size-5" aria-hidden />
+            {query.destination}
           </h2>
           <p className="text-muted-foreground text-sm">
             {filtered
@@ -183,9 +223,22 @@ async function Results({ searchParams }: { searchParams: Params }) {
         <SortToggle state={state} />
       </div>
 
+      {/* 2. Проблеми з джерелами — до результатів, щоб було ясно, чому їх мало. */}
       <ProviderAlerts providers={result.data.providers} />
 
-      <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
+      {/* 3. Сусідні дати — підказка, коли дешевше. */}
+      {calendar.ok && calendar.data.days.length > 0 ? (
+        <PriceCalendar month={month} days={calendar.data.days} state={state} />
+      ) : (
+        !calendar.ok && (
+          <p className="text-muted-foreground text-sm">
+            {(await getTranslations("calendar"))("unavailable")}
+          </p>
+        )
+      )}
+
+      {/* 4. Фільтри збоку, справа — вибір, пояснення і весь список. */}
+      <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
         {facets.total_offers > 0 && (
           <ResultFilters
             key={toSearchParams(state).toString()}
@@ -196,15 +249,16 @@ async function Results({ searchParams }: { searchParams: Params }) {
         )}
 
         <div className="grid gap-6 lg:col-start-2">
+          <TopPicks scoring={scoring} offers={result.data.offers} />
+
           {offers.length > 0 && (
             <Suspense key={toSearchParams(state).toString()} fallback={<ExplanationSkeleton />}>
               <ExplanationIfEnabled state={state} />
             </Suspense>
           )}
 
-          <TopPicks scoring={scoring} offers={result.data.offers} />
-
-          <p className="bg-muted/50 text-muted-foreground rounded-md px-3 py-2 text-xs">
+          <p className="bg-accent/60 text-accent-foreground flex items-start gap-2 rounded-lg px-3 py-2 text-xs">
+            <Info className="mt-px size-3.5 shrink-0" aria-hidden />
             {offers.length > 0 && offers.every(isLivePrice) ? t("liveNote") : t("cachedNote")}
           </p>
 
@@ -212,7 +266,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
             filtered && facets.total_offers > 0 ? (
               <Notice>
                 {t("filteredEmpty", { total: facets.total_offers })}{" "}
-                <Link href={`/?${withoutFilters}`} className="underline">
+                <Link href={`/?${withoutFilters}`} className="text-primary font-medium underline">
                   {t("resetFilters")}
                 </Link>
               </Notice>
@@ -220,15 +274,12 @@ async function Results({ searchParams }: { searchParams: Params }) {
               <Notice>{t("empty")}</Notice>
             )
           ) : (
-            <ol className="grid gap-3">
-              {offers.map((offer) => {
+            <ShowMore
+              items={offers.map((offer) => {
                 const key = `${offer.source}:${offer.id}`;
-                return (
-                  <li
-                    key={`${offer.source}-${offer.id}`}
-                    id={offerAnchor(key)}
-                    className="scroll-mt-4"
-                  >
+                return {
+                  key: offerAnchor(key),
+                  node: (
                     <OfferCard
                       offer={offer}
                       now={now}
@@ -236,10 +287,10 @@ async function Results({ searchParams }: { searchParams: Params }) {
                       score={scores.get(key)}
                       airlineNames={airlineNames}
                     />
-                  </li>
-                );
+                  ),
+                };
               })}
-            </ol>
+            />
           )}
         </div>
       </div>
@@ -278,16 +329,18 @@ function SortToggle({ state }: { state: SearchState }) {
   const options = SORT_KEYS.map((key) => ({ key, label: labels[key] }));
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground">{t("sortBy")}</span>
-      <div className="bg-muted inline-flex rounded-md p-0.5">
+      <span className="text-muted-foreground hidden sm:inline">{t("sortBy")}</span>
+      <div className="bg-muted inline-flex rounded-lg p-1">
         {options.map(({ key, label }) => (
           <Link
             key={key}
             href={`/?${toSearchParams({ ...state, sort: key })}`}
             aria-current={state.sort === key ? "true" : undefined}
             className={cn(
-              "relative rounded px-3 py-1 transition-colors",
-              state.sort === key ? "bg-background shadow-xs font-medium" : "text-muted-foreground",
+              "relative rounded-md px-3 py-1.5 transition-all",
+              state.sort === key
+                ? "bg-card text-primary font-medium shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50",
             )}
           >
             {label}
@@ -299,23 +352,44 @@ function SortToggle({ state }: { state: SearchState }) {
   );
 }
 
+const FEATURES = [
+  { key: "price", icon: Wallet },
+  { key: "risks", icon: ShieldCheck },
+  { key: "ai", icon: Sparkles },
+] as const;
+
 function EmptyState() {
   const t = useTranslations("home");
   return (
-    <div className="grid justify-items-center gap-3 py-10 text-center">
-      <p className="text-muted-foreground">{t("emptyHint")}</p>
-      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
-        <span className="text-muted-foreground">{t("examples")}</span>
-        {EXAMPLES.map((example) => (
-          <Link
-            key={example.from + example.to}
-            href={`/?${new URLSearchParams(example)}`}
-            className="hover:bg-muted rounded-full border px-3 py-1 font-medium"
-          >
-            {example.from} → {example.to}
-          </Link>
-        ))}
+    <div className="grid gap-10 py-4">
+      <div className="grid justify-items-center gap-3 text-center">
+        <p className="text-muted-foreground">{t("emptyHint")}</p>
+        <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+          <span className="text-muted-foreground">{t("examples")}</span>
+          {EXAMPLES.map((example) => (
+            <Link
+              key={example.from + example.to}
+              href={`/?${new URLSearchParams(example)}`}
+              className="bg-card hover:border-primary/50 hover:text-primary flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 font-medium shadow-xs transition-all hover:-translate-y-px hover:shadow-sm"
+            >
+              {example.from}
+              <Plane className="size-3.5" aria-hidden />
+              {example.to}
+            </Link>
+          ))}
+        </div>
       </div>
+      <ul className="grid gap-3 sm:grid-cols-3">
+        {FEATURES.map(({ key, icon: Icon }) => (
+          <li key={key} className="bg-card lift grid gap-2 rounded-xl border p-5">
+            <span className="bg-accent text-primary grid size-9 place-items-center rounded-lg">
+              <Icon className="size-4.5" aria-hidden />
+            </span>
+            <p className="font-semibold">{t(`features.${key}.title`)}</p>
+            <p className="text-muted-foreground text-sm">{t(`features.${key}.text`)}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -331,7 +405,7 @@ function Notice({
     <p
       role="status"
       className={cn(
-        "rounded-md border px-4 py-6 text-center text-sm",
+        "bg-card rounded-xl border px-4 py-8 text-center text-sm",
         tone === "error" ? "border-destructive/40 text-destructive" : "text-muted-foreground",
       )}
     >
@@ -343,11 +417,30 @@ function Notice({
 function ResultsSkeleton() {
   const t = useTranslations("results");
   return (
-    <div className="grid gap-3" aria-busy>
-      <p className="text-muted-foreground text-sm">{t("loading")}</p>
-      {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="bg-muted h-36 animate-pulse rounded-xl" />
-      ))}
+    <div className="grid gap-4" aria-busy>
+      <p className="text-muted-foreground flex items-center gap-2 text-sm">
+        <Plane className="text-primary size-4 animate-pulse" aria-hidden />
+        {t("loading")}
+      </p>
+      <div className="shimmer h-24 rounded-xl" />
+      <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
+        <div className="shimmer hidden h-72 rounded-xl lg:block" />
+        <div className="grid gap-3">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div
+              key={i}
+              className="bg-card grid gap-3 rounded-xl border p-5 sm:grid-cols-[1fr_13rem]"
+            >
+              <div className="grid gap-3">
+                <div className="shimmer h-3 w-40 rounded" />
+                <div className="shimmer h-8 rounded" />
+                <div className="shimmer h-3 w-24 rounded" />
+              </div>
+              <div className="shimmer h-24 rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -355,8 +448,8 @@ function ResultsSkeleton() {
 function SiteFooter() {
   const t = useTranslations("footer");
   return (
-    <footer className="border-t">
-      <div className="text-muted-foreground mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs">
+    <footer className="bg-card/60 border-t">
+      <div className="text-muted-foreground mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs">
         <p>{t("disclaimer")}</p>
         <Suspense fallback={null}>
           <FooterStatus />

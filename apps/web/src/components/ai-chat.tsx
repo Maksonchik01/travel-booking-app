@@ -1,13 +1,14 @@
 "use client";
 
 import type { ChatReply, ChatTurn, FlightQuery } from "@tickets/shared";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, RotateCcw, SendHorizontal, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { toSearchParams } from "@/lib/search-params";
+import { FIELD_CLASS } from "@/lib/styles";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +16,7 @@ const MAX_LENGTH = 500;
 /** Стільки останніх реплік приймає API. */
 const MAX_TURNS = 20;
 /** Розмова живе лише до закриття вкладки (sessionStorage), на сервері її немає. */
-const STORAGE_KEY = "tickets.chat.v1";
+export const CHAT_STORAGE_KEY = "tickets.chat.v1";
 
 export type ChatBodyInput = {
   messages: ChatTurn[];
@@ -43,7 +44,7 @@ async function sendViaApi(body: ChatBodyInput): Promise<ChatReply | null> {
 
 function restore(): ChatTurn[] {
   try {
-    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]") as unknown;
+    const saved = JSON.parse(sessionStorage.getItem(CHAT_STORAGE_KEY) ?? "[]") as unknown;
     return Array.isArray(saved) ? (saved as ChatTurn[]) : [];
   } catch {
     return [];
@@ -52,8 +53,8 @@ function restore(): ChatTurn[] {
 
 function save(messages: ChatTurn[]) {
   try {
-    if (messages.length) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-    else sessionStorage.removeItem(STORAGE_KEY);
+    if (messages.length) sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    else sessionStorage.removeItem(CHAT_STORAGE_KEY);
   } catch {
     // Приватний режим чи заборонене сховище — розмова просто не переживе оновлення.
   }
@@ -139,8 +140,9 @@ function ChatBox({
               update([]);
               setFailed(false);
             }}
-            className="text-primary text-xs underline-offset-2 hover:underline"
+            className="text-muted-foreground hover:text-primary flex items-center gap-1 rounded text-xs transition-colors"
           >
+            <RotateCcw className="size-3" aria-hidden />
             {t("newChat")}
           </button>
         )}
@@ -149,17 +151,17 @@ function ChatBox({
         <ol
           aria-live="polite"
           aria-label={t("conversation")}
-          className="bg-muted/40 grid max-h-80 gap-2 overflow-y-auto rounded-md border p-3 text-sm"
+          className="bg-muted/40 grid max-h-96 gap-2.5 overflow-y-auto rounded-xl border p-3 text-sm"
         >
           {messages.map((turn, i) => (
             <li
               key={i}
               data-role={turn.role}
               className={cn(
-                "max-w-[85%] rounded-lg px-3 py-2 whitespace-pre-line",
+                "animate-in fade-in-0 slide-in-from-bottom-1 max-w-[85%] rounded-2xl px-3.5 py-2 leading-relaxed whitespace-pre-line duration-200",
                 turn.role === "user"
-                  ? "bg-primary text-primary-foreground justify-self-end"
-                  : "bg-background justify-self-start border",
+                  ? "bg-primary text-primary-foreground justify-self-end rounded-br-md"
+                  : "bg-card justify-self-start rounded-bl-md border shadow-xs",
               )}
             >
               <span className="sr-only">{t(turn.role === "user" ? "you" : "assistant")}: </span>
@@ -167,7 +169,7 @@ function ChatBox({
             </li>
           ))}
           {pending && (
-            <li className="text-muted-foreground flex items-center gap-1.5 justify-self-start">
+            <li className="bg-card text-muted-foreground animate-in fade-in-0 flex items-center gap-1.5 justify-self-start rounded-2xl rounded-bl-md border px-3.5 py-2 shadow-xs">
               <Loader2 className="size-3.5 animate-spin" aria-hidden />
               {t("thinking")}
             </li>
@@ -181,10 +183,18 @@ function ChatBox({
           onChange={(e) => setDraft(e.target.value)}
           maxLength={MAX_LENGTH}
           placeholder={started ? t("followUpPlaceholder") : t("placeholder")}
-          className="border-input bg-background h-10 min-w-0 flex-1 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className={cn(
+            FIELD_CLASS,
+            "border-input min-w-0 flex-1 border px-3.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/40",
+          )}
           autoComplete="off"
         />
-        <Button type="submit" variant="secondary" disabled={pending || !draft.trim()}>
+        <Button
+          type="submit"
+          className="shadow-primary/25 h-11 rounded-lg px-5 shadow-md transition-all hover:-translate-y-px hover:shadow-lg active:translate-y-0"
+          disabled={pending || !draft.trim()}
+        >
+          <SendHorizontal className="size-4" aria-hidden />
           {t("submit")}
         </Button>
       </div>

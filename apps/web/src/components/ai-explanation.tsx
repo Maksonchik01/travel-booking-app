@@ -22,14 +22,16 @@ export function AIExplanation({ result }: { result: ExplainResult }) {
   return (
     <section
       aria-labelledby="ai-explanation-title"
-      className="border-primary/30 bg-primary/5 grid gap-3 rounded-xl border p-4"
+      className="border-primary/25 from-primary/[0.06] to-card animate-in fade-in-0 slide-in-from-bottom-2 grid gap-3 rounded-xl border bg-gradient-to-br p-4 duration-300 sm:p-5"
       data-testid="ai-explanation"
     >
-      <h2 id="ai-explanation-title" className="flex items-center gap-2 font-medium">
-        <Sparkles className="text-primary size-4" aria-hidden />
+      <h2 id="ai-explanation-title" className="flex items-center gap-2 font-semibold">
+        <span className="bg-primary text-primary-foreground grid size-7 place-items-center rounded-lg">
+          <Sparkles className="size-4" aria-hidden />
+        </span>
         {t("explanationTitle")}
       </h2>
-      <p className="text-sm">{explanation.summary}</p>
+      <p className="text-sm leading-relaxed">{explanation.summary}</p>
       <p className="text-sm">
         <span className="font-medium">
           {t("recommended", { label: label(explanation.recommended_id) })}
@@ -42,7 +44,7 @@ export function AIExplanation({ result }: { result: ExplainResult }) {
           {explanation.options.map((option) => (
             <li
               key={option.id}
-              className="bg-background grid content-start gap-1.5 rounded-md p-3 text-xs"
+              className="bg-card grid content-start gap-1.5 rounded-lg border p-3 text-xs shadow-xs"
             >
               <p className="font-medium">{label(option.id)}</p>
               {option.one_liner && <p>{option.one_liner}</p>}

@@ -68,6 +68,8 @@ test("розмова з ШІ-помічником: питання → відпо
   // Поле активне після гідратації (до неї розмову не відновити з sessionStorage).
   await page.waitForLoadState("networkidle");
 
+  // Помічник — друга вкладка картки пошуку.
+  await page.getByRole("tab", { name: "ШІ-помічник" }).click();
   const box = page.getByLabel("Запитайте ШІ-помічника");
   const send = page.getByRole("button", { name: "Надіслати" });
   const conversation = page.getByRole("list", { name: "Розмова з помічником" });
@@ -87,8 +89,13 @@ test("розмова з ШІ-помічником: питання → відпо
   const explanation = page.getByTestId("ai-explanation");
   await expect(explanation).toContainText("Радимо:");
 
-  // Після переходу на результати розмова на місці, і її видно після оновлення вкладки.
+  // Після переходу на результати розмова на місці, і її видно після оновлення вкладки
+  // (вкладка «ШІ-помічник» теж запам'ятовується).
   await page.reload();
+  await expect(page.getByRole("tab", { name: "ШІ-помічник" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
   await expect(conversation).toContainText("Куди і коли ви хочете полетіти?");
   await page.getByRole("button", { name: "Нова розмова" }).click();
   await expect(conversation).toHaveCount(0);

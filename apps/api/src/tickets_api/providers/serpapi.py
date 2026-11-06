@@ -39,6 +39,7 @@ Clock = Callable[[], datetime]
 DEFAULT_BASE_URL = "https://serpapi.com"
 SEARCH_PATH = "/search.json"
 GOOGLE_FLIGHTS_PREFIX = "https://www.google.com/travel/flights"
+AIRLINE_LOGO_PREFIX = "https://www.gstatic.com/flights/airline_logos/"
 NO_RESULTS_MARKER = "hasn't returned any results"
 NIGHT_START, NIGHT_END = time(0, 0), time(6, 0)
 
@@ -224,6 +225,7 @@ class SerpApiFlightProvider:
             outbound=outbound,
             inbound=inbound,
             airlines=sorted({s.carrier for s in segments}),
+            airline_logos=_airline_logos([out, *([back] if back else [])]),
             details_level="full",
             baggage_included=None,
             collected_at=collected_at,
@@ -289,6 +291,21 @@ class SerpApiFlightProvider:
             flight_number=number or "?",
             duration_min=int(flight["duration"]),
         )
+
+
+def _airline_logos(itineraries: list[dict[str, Any]]) -> dict[str, str]:
+    """`flights[].airline_logo` за кодом перевізника. Інші хости відкидаємо: дані недовірені,
+    а UI вантажить картинки через свій сервер лише з дозволених адрес."""
+    logos: dict[str, str] = {}
+    for itinerary in itineraries:
+        for flight in itinerary.get("flights") or []:
+            if not isinstance(flight, dict):
+                continue
+            logo = flight.get("airline_logo")
+            carrier = str(flight.get("flight_number") or "").split(" ")[0]
+            if carrier and isinstance(logo, str) and logo.startswith(AIRLINE_LOGO_PREFIX):
+                logos.setdefault(carrier, logo)
+    return logos
 
 
 def _itineraries(body: dict[str, Any]) -> list[dict[str, Any]]:

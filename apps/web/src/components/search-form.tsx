@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, Loader2, Search } from "lucide-react";
+import { ArrowLeftRight, Loader2, PlaneLanding, PlaneTakeoff, Search } from "lucide-react";
 import Form from "next/form";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -11,9 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MAX_FLEX_DAYS, NEARBY_RADIUS_KM, PROFILES, type SearchState } from "@/lib/search-params";
-
-const selectClass =
-  "border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 
 export function SearchForm({ initial }: { initial: SearchState | null }) {
   const t = useTranslations("search");
@@ -41,18 +39,19 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             value={from}
             onChange={setFrom}
             placeholder={t("fromPlaceholder")}
+            icon={<PlaneTakeoff />}
           />
           <NearbyToggle name="fromNear" checked={fromNear} onChange={setFromNear} />
         </Field>
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           size="icon"
           onClick={swap}
           aria-label={t("swap")}
-          className="-my-2 justify-self-center sm:mt-6 sm:mb-0 sm:self-start"
+          className="group/swap bg-card hover:border-primary/50 hover:text-primary -my-2 size-9 justify-self-center rounded-full shadow-xs sm:mt-7 sm:mb-0 sm:self-start"
         >
-          <ArrowLeftRight className="size-4 rotate-90 sm:rotate-0" />
+          <ArrowLeftRight className="size-4 rotate-90 transition-transform duration-300 group-hover/swap:rotate-[270deg] sm:rotate-0 sm:group-hover/swap:rotate-180" />
         </Button>
         <Field label={t("to")} htmlFor="to">
           <PlaceInput
@@ -61,6 +60,7 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             value={to}
             onChange={setTo}
             placeholder={t("toPlaceholder")}
+            icon={<PlaneLanding />}
           />
           <NearbyToggle name="toNear" checked={toNear} onChange={setToNear} />
         </Field>
@@ -73,6 +73,7 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             name="depart"
             type="date"
             required
+            className={FIELD_CLASS}
             value={depart}
             onChange={(e) => setDepart(e.target.value)}
           />
@@ -83,11 +84,12 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             name="return"
             type="date"
             min={depart || undefined}
+            className={FIELD_CLASS}
             defaultValue={q?.return_date ?? ""}
           />
         </Field>
         <Field label={t("flex")} htmlFor="flex">
-          <select id="flex" name="flex" defaultValue={q?.flex_days ?? 0} className={selectClass}>
+          <select id="flex" name="flex" defaultValue={q?.flex_days ?? 0} className={SELECT_CLASS}>
             <option value={0}>{t("flexExact")}</option>
             {Array.from({ length: MAX_FLEX_DAYS }, (_, i) => i + 1).map((days) => (
               <option key={days} value={days}>
@@ -101,7 +103,7 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             id="adults"
             name="adults"
             defaultValue={q?.passengers?.adults ?? 1}
-            className={selectClass}
+            className={SELECT_CLASS}
           >
             {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
               <option key={n} value={n}>
@@ -112,17 +114,17 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
         </Field>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <fieldset className="flex items-center gap-2 text-sm">
             <legend className="text-muted-foreground float-left mr-2 text-xs font-medium">
               {t("profile")}
             </legend>
-            <div className="bg-muted inline-flex rounded-md p-0.5">
+            <div className="bg-muted inline-flex rounded-lg p-1">
               {PROFILES.map((profile) => (
                 <label
                   key={profile}
-                  className="has-[:checked]:bg-background has-[:checked]:shadow-xs has-[:focus-visible]:ring-ring/50 cursor-pointer rounded px-3 py-1 has-[:checked]:font-medium has-[:focus-visible]:ring-[3px]"
+                  className="text-muted-foreground hover:text-foreground has-[:checked]:bg-card has-[:checked]:text-primary has-[:focus-visible]:ring-ring/50 cursor-pointer rounded-md px-3 py-1.5 transition-all has-[:checked]:font-medium has-[:checked]:shadow-sm has-[:focus-visible]:ring-[3px]"
                 >
                   <input
                     type="radio"
@@ -136,7 +138,7 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
               ))}
             </div>
           </fieldset>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="hover:text-primary flex cursor-pointer items-center gap-2 text-sm transition-colors">
             <input
               type="checkbox"
               name="direct"
@@ -156,7 +158,12 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
 function SubmitButton({ idle, pending }: { idle: string; pending: string }) {
   const status = useFormStatus();
   return (
-    <Button type="submit" size="lg" className="min-w-36" disabled={status.pending}>
+    <Button
+      type="submit"
+      size="lg"
+      className="shadow-primary/30 hover:shadow-primary/40 h-11 min-w-40 rounded-lg px-6 text-base shadow-lg transition-all hover:-translate-y-px hover:shadow-xl active:translate-y-0"
+      disabled={status.pending}
+    >
       {status.pending ? (
         <Loader2 className="size-4 animate-spin" aria-hidden />
       ) : (
@@ -178,7 +185,7 @@ function NearbyToggle({
 }) {
   const t = useTranslations("search");
   return (
-    <label className="text-muted-foreground flex w-fit items-center gap-2 text-xs">
+    <label className="text-muted-foreground hover:text-foreground flex w-fit cursor-pointer items-center gap-2 text-xs transition-colors">
       <input
         type="checkbox"
         name={name}

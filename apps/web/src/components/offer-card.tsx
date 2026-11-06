@@ -1,14 +1,25 @@
 import type { Leg, Offer, OfferScore, PickLabel } from "@tickets/shared";
-import { AlertTriangle, ArrowUpRight, Briefcase, Clock, Moon, Ticket } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  Briefcase,
+  ChevronRight,
+  Clock,
+  Moon,
+  Plane,
+  Store,
+  Ticket,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 
+import { AirlineLogo, legCarriers } from "@/components/airline-logo";
+import { ScoreDetails } from "@/components/top-picks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScoreDetails } from "@/components/top-picks";
-import { Separator } from "@/components/ui/separator";
-import { dayShift, daysAgo, hoursAgo, localTime, splitDuration } from "@/lib/format";
+import { Card } from "@/components/ui/card";
+import { dayShift, daysAgo, hoursAgo, localDate, localTime, splitDuration } from "@/lib/format";
 import { layoverRisks, type LayoverRisk } from "@/lib/risks";
+import { cn } from "@/lib/utils";
 
 const RISK_ICON: Record<LayoverRisk, typeof Clock> = {
   short: AlertTriangle,
@@ -16,6 +27,8 @@ const RISK_ICON: Record<LayoverRisk, typeof Clock> = {
   overnight: Moon,
   selfTransfer: Ticket,
 };
+
+const KNOWN_SOURCES = new Set(["serpapi", "travelpayouts", "mock"]);
 
 export function OfferCard({
   offer,
@@ -33,6 +46,7 @@ export function OfferCard({
 }) {
   const t = useTranslations("offer");
   const tPicks = useTranslations("picks");
+  const tResults = useTranslations("results");
   const format = useFormatter();
   const money = (value: number) =>
     format.number(value, {
@@ -48,81 +62,92 @@ export function OfferCard({
     : offer.found_on
       ? t("foundOnAgo", { days: daysAgo(offer.found_on, now) })
       : t("collectedAgo", { hours: hoursAgo(offer.collected_at, now) });
+  const service = KNOWN_SOURCES.has(offer.source)
+    ? tResults(`provider.${offer.source as "serpapi" | "travelpayouts" | "mock"}`)
+    : offer.source;
 
   return (
-    <Card className="gap-0 overflow-hidden py-0" data-testid="offer-card">
-      <CardContent className="grid gap-0 p-0 sm:grid-cols-[1fr_12rem]">
-        <div className="grid content-center gap-4 p-5">
-          <LegRow label={t("outbound")} leg={offer.outbound} />
-          {offer.inbound && (
-            <>
-              <Separator />
-              <LegRow label={t("inbound")} leg={offer.inbound} />
-            </>
+    <Card
+      className={cn(
+        "lift group/card gap-0 overflow-hidden py-0 sm:grid sm:grid-cols-[1fr_13rem]",
+        "hover:border-primary/40 focus-within:border-primary/50",
+        pickLabel && "border-primary/30",
+      )}
+      data-testid="offer-card"
+    >
+      <div className="grid content-start gap-4 p-4 sm:p-5">
+        <LegRow label={t("outbound")} leg={offer.outbound} offer={offer} names={airlineNames} />
+        {offer.inbound && (
+          <>
+            <div className="border-t border-dashed" />
+            <LegRow label={t("inbound")} leg={offer.inbound} offer={offer} names={airlineNames} />
+          </>
+        )}
+        {score && (
+          <details className="group text-xs" data-testid="score-details">
+            <summary className="text-muted-foreground hover:text-primary flex w-fit cursor-pointer list-none items-center gap-1 rounded transition-colors select-none">
+              <ChevronRight
+                className="size-3.5 transition-transform group-open:rotate-90"
+                aria-hidden
+              />
+              {t("whyScore")}{" "}
+              <span className="text-foreground font-medium tabular-nums">
+                {score.breakdown.total != null
+                  ? money(score.breakdown.total)
+                  : tPicks("breakdown.unknown")}
+              </span>
+            </summary>
+            <div className="bg-muted/50 mt-2 max-w-sm rounded-lg p-3">
+              <ScoreDetails score={score} money={money} />
+            </div>
+          </details>
+        )}
+      </div>
+
+      {/* На мобільному ціна й кнопка — нагорі картки: це те, що порівнюють першим. */}
+      <aside className="bg-muted/40 order-first flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-b p-4 sm:order-none sm:flex-col sm:flex-nowrap sm:items-stretch sm:justify-start sm:border-b-0 sm:border-l sm:p-5">
+        <div>
+          {pickLabel && (
+            <Badge className="mb-2" data-testid="pick-label">
+              {tPicks(`label.${pickLabel}`)}
+            </Badge>
           )}
-          {score && (
-            <details className="group text-xs" data-testid="score-details">
-              <summary className="text-muted-foreground hover:text-foreground w-fit cursor-pointer select-none">
-                {t("whyScore")}{" "}
-                <span className="text-foreground font-medium tabular-nums">
-                  {score.breakdown.total != null
-                    ? money(score.breakdown.total)
-                    : tPicks("breakdown.unknown")}
-                </span>
-              </summary>
-              <div className="mt-2 max-w-sm">
-                <ScoreDetails score={score} money={money} />
-              </div>
-            </details>
-          )}
+          <p
+            className="text-2xl font-bold tracking-tight tabular-nums sm:text-3xl"
+            data-testid="price"
+          >
+            {format.number(offer.price, {
+              style: "currency",
+              currencyDisplay: "narrowSymbol",
+              currency: offer.currency,
+              maximumFractionDigits: 0,
+            })}
+          </p>
+          <p className="text-muted-foreground text-xs">{t("perAdult")}</p>
+          <p className="text-muted-foreground mt-1 text-xs" data-testid="price-age">
+            {age}
+          </p>
         </div>
 
-        <aside className="bg-muted/40 flex flex-col justify-between gap-4 border-t p-5 sm:border-t-0 sm:border-l">
-          <div>
-            {pickLabel && (
-              <Badge className="mb-2" data-testid="pick-label">
-                {tPicks(`label.${pickLabel}`)}
-              </Badge>
-            )}
-            <p className="text-2xl font-semibold tracking-tight tabular-nums" data-testid="price">
-              {format.number(offer.price, {
-                style: "currency",
-                currencyDisplay: "narrowSymbol",
-                currency: offer.currency,
-                maximumFractionDigits: 0,
-              })}
-            </p>
-            <p className="text-muted-foreground text-xs">{t("perAdult")}</p>
-            <p className="text-muted-foreground mt-2 text-xs" data-testid="price-age">
-              {age}
-            </p>
-          </div>
-
-          <div className="grid gap-2 text-xs">
-            <BaggageNote included={offer.baggage_included ?? null} />
-            {offer.airlines.length > 0 && (
-              <p className="text-muted-foreground" data-testid="airlines">
-                {offer.airlines.map((code) => airlineNames?.[code] ?? code).join(" · ")}
-              </p>
-            )}
-            {offer.seller && (
-              <p className="text-muted-foreground" data-testid="seller">
-                {t("seller", { seller: offer.seller })}
-              </p>
-            )}
-            {offer.deep_link ? (
-              <Button asChild size="sm" className="w-full">
-                <a href={offer.deep_link} target="_blank" rel="noopener noreferrer nofollow">
-                  {isGoogleFlights(offer.deep_link) ? t("openGoogleFlights") : t("book")}{" "}
-                  <ArrowUpRight className="size-3.5" />
-                </a>
-              </Button>
-            ) : (
-              <p className="text-muted-foreground">{t("source", { source: offer.source })}</p>
-            )}
-          </div>
-        </aside>
-      </CardContent>
+        <div className="grid w-full gap-2 text-xs sm:w-auto">
+          <BaggageNote included={offer.baggage_included ?? null} />
+          <p className="text-muted-foreground flex items-start gap-1.5" data-testid="seller">
+            <Store className="mt-px size-3.5 shrink-0" aria-hidden />
+            <span>
+              {offer.seller ? `${t("seller", { seller: offer.seller })} · ` : null}
+              {t("via", { service })}
+            </span>
+          </p>
+          {offer.deep_link && (
+            <Button asChild className="w-full transition-transform active:scale-[0.98] sm:mt-1">
+              <a href={offer.deep_link} target="_blank" rel="noopener noreferrer nofollow">
+                {isGoogleFlights(offer.deep_link) ? t("openGoogleFlights") : t("book")}
+                <ArrowUpRight className="size-4" aria-hidden />
+              </a>
+            </Button>
+          )}
+        </div>
+      </aside>
     </Card>
   );
 }
@@ -131,32 +156,75 @@ function isGoogleFlights(url: string): boolean {
   return url.startsWith("https://www.google.com/travel/flights");
 }
 
-function LegRow({ label, leg }: { label: string; leg: Leg }) {
+function LegRow({
+  label,
+  leg,
+  offer,
+  names,
+}: {
+  label: string;
+  leg: Leg;
+  offer: Offer;
+  names?: Record<string, string | null>;
+}) {
   const t = useTranslations("offer");
+  const format = useFormatter();
   const shift = leg.arrival_at ? dayShift(leg.departure_at, leg.arrival_at) : 0;
+  const carriers = legCarriers(leg, offer);
+  const date = format.dateTime(new Date(`${localDate(leg.departure_at)}T00:00:00Z`), {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
 
   return (
-    <div className="grid gap-2">
-      <div className="text-muted-foreground flex items-center justify-between text-xs">
-        <span className="font-medium tracking-wide uppercase">{label}</span>
-        <span>
-          {leg.duration_min != null ? duration(t, leg.duration_min) : t("durationUnknown")}
+    <div className="grid gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+        <span className="text-muted-foreground">
+          <span className="text-primary font-semibold tracking-wide uppercase">{label}</span>
+          {" · "}
+          {date}
         </span>
+        {carriers.length > 0 && (
+          <span className="flex min-w-0 items-center gap-1.5" data-testid="airlines">
+            <span className="flex gap-0.5">
+              {carriers.map((code) => (
+                <AirlineLogo key={code} code={code} url={offer.airline_logos?.[code]} />
+              ))}
+            </span>
+            <span className="truncate font-medium">
+              {carriers.map((code) => names?.[code] ?? code).join(" · ")}
+            </span>
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
         <Endpoint time={localTime(leg.departure_at)} airport={leg.origin} />
-        <div className="relative flex flex-col items-center">
-          <div className="bg-border absolute top-1/2 h-px w-full" aria-hidden />
-          <div className="relative flex gap-1.5" aria-hidden>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-muted-foreground text-[11px]">
+            {leg.duration_min != null ? duration(t, leg.duration_min) : t("durationUnknown")}
+          </span>
+          <div className="relative flex w-full items-center" aria-hidden>
+            <span className="bg-primary/60 size-1.5 rounded-full" />
+            <span className="bg-primary/25 h-px flex-1" />
             {Array.from({ length: leg.stops }, (_, i) => (
-              <span
-                key={i}
-                className="bg-background border-foreground/50 size-2 rounded-full border"
-              />
+              <span key={i} className="contents">
+                <span className="border-primary bg-card size-2 rounded-full border-2" />
+                <span className="bg-primary/25 h-px flex-1" />
+              </span>
             ))}
+            <Plane className="text-primary size-3.5" />
           </div>
-          <span className="text-muted-foreground bg-background relative mt-1 px-2 text-xs">
+          <span
+            className={cn(
+              "text-xs",
+              leg.stops === 0
+                ? "font-medium text-emerald-700 dark:text-emerald-400"
+                : "text-muted-foreground",
+            )}
+          >
             {leg.stops === 0 ? t("direct") : t("stops", { count: leg.stops })}
           </span>
         </div>
@@ -189,14 +257,18 @@ function Endpoint({
     <div className={align === "end" ? "text-right" : undefined}>
       {time ? (
         <>
-          <p className="text-lg font-semibold tabular-nums">
+          <p className="text-xl font-semibold tracking-tight tabular-nums">
             {time}
-            {shift > 0 && <sup className="text-muted-foreground ml-0.5 text-xs">+{shift}</sup>}
+            {shift > 0 && (
+              <sup className="ml-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                +{shift}
+              </sup>
+            )}
           </p>
           <p className="text-muted-foreground text-xs font-medium">{airport}</p>
         </>
       ) : (
-        <p className="text-lg font-semibold">{airport}</p>
+        <p className="text-xl font-semibold">{airport}</p>
       )}
     </div>
   );
@@ -210,7 +282,7 @@ function Layovers({ leg }: { leg: Leg }) {
     return (
       <Badge
         variant="outline"
-        className="w-fit border-amber-500/50 text-amber-700 dark:text-amber-400"
+        className="w-fit border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400"
       >
         <AlertTriangle className="size-3" /> {t("detailsUnknown")}
       </Badge>
@@ -235,7 +307,7 @@ function Layovers({ leg }: { leg: Leg }) {
                 <Badge
                   key={risk}
                   variant="outline"
-                  className="border-amber-500/50 text-amber-700 dark:text-amber-400"
+                  className="border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400"
                 >
                   <Icon className="size-3" /> {t(`risk.${risk}`)}
                 </Badge>
@@ -257,7 +329,12 @@ function BaggageNote({ included }: { included: boolean | null }) {
         ? t("baggageNotIncluded")
         : t("baggageUnknown");
   return (
-    <p className="text-muted-foreground flex items-center gap-1.5">
+    <p
+      className={cn(
+        "flex items-center gap-1.5",
+        included === true ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground",
+      )}
+    >
       <Briefcase className="size-3.5" aria-hidden /> {text}
     </p>
   );

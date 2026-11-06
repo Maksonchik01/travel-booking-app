@@ -15,6 +15,7 @@ import {
   MAX_DURATION_OPTIONS,
   MAX_STOPS_OPTIONS,
 } from "@/lib/search-params";
+import { SELECT_CLASS } from "@/lib/styles";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -47,10 +48,13 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
   ];
 
   return (
-    <aside className="grid content-start gap-3" aria-labelledby="filters-title">
+    <aside
+      className="bg-card grid content-start gap-4 rounded-xl border p-4 shadow-xs lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto"
+      aria-labelledby="filters-title"
+    >
       <div className="flex items-center justify-between gap-2">
-        <h2 id="filters-title" className="flex items-center gap-2 font-medium">
-          <SlidersHorizontal className="size-4" aria-hidden />
+        <h2 id="filters-title" className="flex items-center gap-2 font-semibold">
+          <SlidersHorizontal className="text-primary size-4" aria-hidden />
           {t("title")}
         </h2>
         {hydrated && (
@@ -58,7 +62,7 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
             type="button"
             variant="outline"
             size="sm"
-            className="lg:hidden"
+            className="hover:border-primary/50 hover:text-primary lg:hidden"
             aria-expanded={open}
             aria-controls="filters-panel"
             onClick={() => setOpen((v) => !v)}
@@ -105,11 +109,13 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
         </Group>
 
         <label className="grid gap-1.5">
-          <span className="text-muted-foreground text-xs font-medium">{t("maxDuration")}</span>
+          <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+            {t("maxDuration")}
+          </span>
           <select
             name="maxh"
             defaultValue={filters.max_duration_hours ?? ""}
-            className="border-input bg-background h-9 rounded-md border px-2 text-sm"
+            className={cn(SELECT_CLASS, "h-9")}
           >
             <option value="">{t("anyDuration")}</option>
             {MAX_DURATION_OPTIONS.map((h) => (
@@ -121,7 +127,9 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
         </label>
 
         <label className="grid gap-1.5">
-          <span className="text-muted-foreground text-xs font-medium">{t("maxPrice")}</span>
+          <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+            {t("maxPrice")}
+          </span>
           <input
             type="number"
             name="maxp"
@@ -133,7 +141,7 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
             // Число застосовуємо після введення, а не на кожну цифру.
             onChange={(e) => e.stopPropagation()}
             onBlur={(e) => e.currentTarget.form?.requestSubmit()}
-            className="border-input bg-background h-9 rounded-md border px-2 text-sm"
+            className={cn(SELECT_CLASS, "h-9 cursor-text")}
           />
         </label>
 
@@ -162,7 +170,10 @@ export function ResultFilters({ filters, airlines, baseParams }: Props) {
             </Button>
           )}
           {activeCount > 0 && (
-            <Link href={resetHref} className="text-muted-foreground text-xs underline">
+            <Link
+              href={resetHref}
+              className="text-primary rounded text-xs font-medium underline-offset-4 hover:underline"
+            >
               {t("reset")}
             </Link>
           )}
@@ -182,8 +193,10 @@ function Group({
   children: React.ReactNode;
 }) {
   return (
-    <fieldset className="grid gap-1.5">
-      <legend className="text-muted-foreground mb-1.5 text-xs font-medium">{legend}</legend>
+    <fieldset className="grid gap-0.5">
+      <legend className="text-muted-foreground mb-1.5 text-xs font-semibold tracking-wide uppercase">
+        {legend}
+      </legend>
       {children}
       {hint && <p className="text-muted-foreground text-[11px]">{hint}</p>}
     </fieldset>
@@ -206,7 +219,7 @@ function Choice({
   count?: number;
 }) {
   return (
-    <label className="flex items-center gap-2">
+    <label className="hover:bg-accent has-[:checked]:text-primary -mx-2 flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors has-[:checked]:font-medium">
       <input
         type={type}
         name={name}

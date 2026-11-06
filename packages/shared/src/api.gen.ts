@@ -512,6 +512,13 @@ export interface components {
             /** Airlines */
             airlines: string[];
             /**
+             * Airline Logos
+             * @default {}
+             */
+            airline_logos: {
+                [key: string]: string;
+            };
+            /**
              * Details Level
              * @enum {string}
              */

@@ -124,6 +124,12 @@ make migrate        alembic upgrade head
   сусідні `fromNear=1`/`toNear=1`, фільтри `stops=&al=&dep=&maxh=`),
   розбір і серіалізація — `src/lib/search-params.ts`. Сторінка серверна, API викликається
   з сервера (`src/lib/api.ts`), форма — `next/form` (працює й без JS).
+- **Логотипи авіакомпаній:** `Offer.airline_logos` (код → URL) заповнює лише SerpApi з
+  `flights[].airline_logo`, приймаємо тільки `https://www.gstatic.com/flights/airline_logos/`.
+  UI показує їх через `next/image` (`images.remotePatterns` у `next.config.ts`): браузер не
+  ходить до Google. Немає логотипа — кружечок з кодом (`airline-logo.tsx`).
+- **Дизайн:** синя тема й ефекти — у `globals.css` (`.lift`, `.shimmer`, фокус для всіх
+  інтерактивних елементів, `prefers-reduced-motion`); вигляд полів — `src/lib/styles.ts`.
 - **Час рейсів** показуємо в поясі аеропорту з ISO-рядка провайдера, без перерахунку
   (`src/lib/format.ts`). Підписи ризиків пересадок — `src/lib/risks.ts` (факти, не скоринг).
 - **i18n:** весь UI-текст у `apps/web/messages/uk.json`, жодних рядків у JSX.

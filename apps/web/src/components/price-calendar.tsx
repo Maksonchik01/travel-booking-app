@@ -1,4 +1,5 @@
 import type { CalendarDay } from "@tickets/shared";
+import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
@@ -27,15 +28,19 @@ export function PriceCalendar({
   const monthDate = new Date(Date.UTC(year, monthIndex - 1, 1));
 
   return (
-    <section className="grid gap-2" aria-labelledby="calendar-title">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="calendar-title" className="text-sm font-medium">
+    <section
+      className="bg-card grid gap-3 rounded-xl border p-4 shadow-xs"
+      aria-labelledby="calendar-title"
+    >
+      <div className="grid gap-0.5">
+        <h2 id="calendar-title" className="flex items-center gap-2 text-sm font-semibold">
+          <CalendarDays className="text-primary size-4" aria-hidden />
           {t("title", { month: format.dateTime(monthDate, { month: "long", year: "numeric" }) })}
         </h2>
         <p className="text-muted-foreground text-xs">{t("hint")}</p>
       </div>
-      <div className="overflow-x-auto pb-1">
-        <ol className="flex min-w-max gap-1">
+      <div className="-mx-1 overflow-x-auto px-1 pt-1 pb-2">
+        <ol className="flex min-w-max gap-1.5">
           {Array.from({ length: daysInMonth }, (_, i) => {
             const date = `${month}-${String(i + 1).padStart(2, "0")}`;
             const day = byDate.get(date);
@@ -65,12 +70,17 @@ export function PriceCalendar({
               </>
             );
             const className = cn(
-              "flex w-14 flex-col items-center gap-0.5 rounded-md border px-1 py-1.5 transition-colors",
-              selected ? "border-primary ring-primary/30 ring-2" : "border-transparent",
-              day ? "hover:border-foreground/30" : "opacity-50",
-              cheapest && "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
-              day && !cheapest && level < 0.34 && "bg-emerald-500/5",
-              day && level > 0.66 && "bg-rose-500/5",
+              "flex w-14 flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5 transition-all duration-150",
+              selected
+                ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25 [&_span]:text-primary-foreground"
+                : "bg-card border-border",
+              day && !selected && "hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-sm",
+              !day && "opacity-45",
+              !selected &&
+                cheapest &&
+                "border-emerald-500/50 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
+              !selected && day && !cheapest && level < 0.34 && "bg-emerald-500/[0.04]",
+              !selected && day && level > 0.66 && "bg-rose-500/[0.04]",
             );
             return (
               <li key={date}>

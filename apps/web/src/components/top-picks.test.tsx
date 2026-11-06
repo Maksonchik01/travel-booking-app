@@ -25,6 +25,7 @@ function offer(id: string, price: number, duration: number | null, stops: number
     },
     inbound: null,
     airlines: [],
+    airline_logos: {},
     details_level: "summary",
     baggage_included: null,
     collected_at: "2026-11-01T10:00:00Z",

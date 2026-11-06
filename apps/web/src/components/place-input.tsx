@@ -3,9 +3,10 @@
 import type { Place } from "@tickets/shared";
 import { MapPin, Plane } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { FIELD_CLASS } from "@/lib/styles";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,8 @@ type Props = {
   value: PlaceValue;
   onChange: (value: PlaceValue) => void;
   placeholder: string;
+  /** Іконка зліва в полі (зліт/посадка). */
+  icon?: ReactNode;
   /** Підміна мережі в тестах. */
   loadPlaces?: (q: string, signal: AbortSignal) => Promise<Place[]>;
 };
@@ -60,6 +63,7 @@ export function PlaceInput({
   value,
   onChange,
   placeholder,
+  icon,
   loadPlaces = fetchPlaces,
 }: Props) {
   const t = useTranslations("search");
@@ -168,8 +172,13 @@ export function PlaceInput({
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         onKeyDown={onKeyDown}
-        className="pr-14"
+        className={cn(FIELD_CLASS, "pr-14", icon && "pl-9")}
       />
+      {icon && (
+        <span className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 [&_svg]:size-4">
+          {icon}
+        </span>
+      )}
       {value.code && (
         <span className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 font-mono text-xs">
           {value.code}
@@ -181,7 +190,7 @@ export function PlaceInput({
         role="listbox"
         aria-label={t("suggestions")}
         hidden={!expanded}
-        className="bg-popover text-popover-foreground absolute z-20 mt-1 max-h-80 w-full min-w-64 overflow-auto rounded-md border p-1 shadow-md"
+        className="bg-popover text-popover-foreground animate-in fade-in-0 slide-in-from-top-1 absolute z-30 mt-1.5 max-h-80 w-full min-w-64 overflow-auto rounded-lg border p-1 shadow-lg duration-150"
       >
         {shown.map((place, index) => (
           <li
@@ -196,7 +205,7 @@ export function PlaceInput({
             }}
             onMouseEnter={() => setActive(index)}
             className={cn(
-              "flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm",
+              "flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors",
               index === active && "bg-accent text-accent-foreground",
               place.kind === "airport" && inCityGroup.has(place.code) && "pl-6",
             )}

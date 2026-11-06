@@ -192,6 +192,8 @@ class Offer(_Frozen):
     outbound: Leg
     inbound: Leg | None = None
     airlines: list[str]
+    airline_logos: dict[str, str] = {}
+    """Код авіакомпанії → URL логотипа від провайдера (лише перевірені хости)."""
     details_level: Literal["full", "summary"]
     """full — відомі сегменти й пересадки; summary — лише кількість пересадок і тривалість."""
     baggage_included: bool | None = None

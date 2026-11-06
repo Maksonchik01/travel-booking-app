@@ -1,7 +1,8 @@
 import type { Offer, OfferScore, Pick, ScoringResult } from "@tickets/shared";
-import { AlertTriangle, Info, Scale, Timer, Wallet } from "lucide-react";
+import { AlertTriangle, ChevronRight, Info, Scale, Timer, Wallet } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 
+import { AirlineLogo, legCarriers } from "@/components/airline-logo";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { splitDuration } from "@/lib/format";
@@ -33,7 +34,7 @@ export function TopPicks({ scoring, offers }: { scoring: ScoringResult; offers: 
           {t("formula", { profile: tProfile(scoring.profile) })}
         </p>
       </div>
-      <ol className="grid gap-3 md:grid-cols-3">
+      <ol className="grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))]">
         {picks.map((pick) => (
           <li key={pick.offer_key}>
             <PickCard
@@ -56,6 +57,7 @@ function PickCard({ pick, offer, score }: { pick: Pick; offer: Offer; score?: Of
   const tOffer = useTranslations("offer");
   const format = useFormatter();
   const Icon = LABEL_ICON[pick.label];
+  const recommended = pick.label === "balanced";
   const money = (value: number) =>
     format.number(value, {
       style: "currency",
@@ -65,20 +67,39 @@ function PickCard({ pick, offer, score }: { pick: Pick; offer: Offer; score?: Of
     });
   const duration =
     offer.total_duration_min != null ? splitDuration(offer.total_duration_min) : null;
+  const carriers = legCarriers(offer.outbound, offer);
 
   return (
     <Card
       className={cn(
-        "h-full gap-3 py-4",
-        pick.label === "balanced" && "border-primary/60 ring-primary/15 ring-2",
+        "lift relative h-full gap-3 py-4",
+        recommended
+          ? "border-primary/50 from-primary/[0.07] to-card bg-gradient-to-b"
+          : "hover:border-primary/30",
       )}
       data-testid="top-pick"
       data-label={pick.label}
     >
       <CardHeader className="gap-1 px-4">
-        <div className="flex items-center gap-2 font-medium">
-          <Icon className="size-4" aria-hidden />
-          {t(`label.${pick.label}`)}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 font-medium">
+            <span
+              className={cn(
+                "grid size-7 place-items-center rounded-lg",
+                recommended ? "bg-primary text-primary-foreground" : "bg-accent text-primary",
+              )}
+            >
+              <Icon className="size-4" aria-hidden />
+            </span>
+            {t(`label.${pick.label}`)}
+          </div>
+          {carriers.length > 0 && (
+            <span className="flex gap-0.5">
+              {carriers.map((code) => (
+                <AirlineLogo key={code} code={code} url={offer.airline_logos?.[code]} />
+              ))}
+            </span>
+          )}
         </div>
         {pick.also.length > 0 && (
           <p className="text-muted-foreground text-xs">
@@ -90,7 +111,9 @@ function PickCard({ pick, offer, score }: { pick: Pick; offer: Offer; score?: Of
       </CardHeader>
       <CardContent className="grid gap-3 px-4">
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-2xl font-semibold tabular-nums">{money(offer.price)}</span>
+          <span className="text-2xl font-bold tracking-tight tabular-nums">
+            {money(offer.price)}
+          </span>
           <span className="text-muted-foreground text-right text-xs">
             {duration
               ? tOffer("duration", {
@@ -103,11 +126,24 @@ function PickCard({ pick, offer, score }: { pick: Pick; offer: Offer; score?: Of
           </span>
         </div>
 
-        {score && <ScoreDetails score={score} money={money} />}
+        {score && (
+          <details className="group text-xs">
+            <summary className="text-muted-foreground hover:text-primary flex w-fit cursor-pointer list-none items-center gap-1 rounded transition-colors select-none">
+              <ChevronRight
+                className="size-3.5 transition-transform group-open:rotate-90"
+                aria-hidden
+              />
+              {tOffer("whyScore")}
+            </summary>
+            <div className="mt-2">
+              <ScoreDetails score={score} money={money} />
+            </div>
+          </details>
+        )}
 
         <a
           href={`#${offerAnchor(pick.offer_key)}`}
-          className="text-muted-foreground hover:text-foreground text-xs underline-offset-2 hover:underline"
+          className="text-primary mt-auto w-fit text-xs font-medium underline-offset-4 hover:underline"
         >
           {t("details")}
         </a>

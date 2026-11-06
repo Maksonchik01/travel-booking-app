@@ -1196,6 +1196,14 @@
             "type": "array",
             "title": "Airlines"
           },
+          "airline_logos": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Airline Logos",
+            "default": {}
+          },
           "details_level": {
             "type": "string",
             "enum": [
