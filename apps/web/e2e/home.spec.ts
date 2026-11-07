@@ -52,7 +52,7 @@ test("пошук: підказки міст → результати → філ�
   await expect(page).toHaveURL(/from=WAW/);
   await expect(cards).toHaveCount(1);
   await expect(page.getByText("1 варіант з 4")).toBeVisible();
-  await page.getByRole("link", { name: "Скинути фільтри" }).click();
+  await page.getByRole("link", { name: "Скинути всі" }).click();
   await expect(cards).toHaveCount(4);
 
   // Сортування за оцінкою.
@@ -259,4 +259,96 @@ test("кабінет: реєстрація → профіль → історія
   await page.getByLabel("Пароль", { exact: true }).fill("password123");
   await page.getByRole("button", { name: "Увійти", exact: true }).click();
   await expect(page.getByText("Невірний логін або пароль.")).toBeVisible();
+});
+
+test("сім'я з багажем: ціна за всіх, умови багажу, найдешевший — з багажем", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&adults=2&children=1&lap=1&bag=checked");
+
+  await expect(page.getByTestId("offer-card").first()).toBeVisible();
+  // Ціна — за весь склад, а не «за 1 дорослого» (ADR 0013).
+  await expect(page.getByText("разом за 4 пасажирів").first()).toBeVisible();
+  // У mock умови багажу відомі: кожна картка показує розбивку й ціну з валізою.
+  await expect(page.getByTestId("baggage").first()).toContainText("Зареєстрований");
+  await expect(page.getByTestId("baggage-total").first()).toContainText(/З багажем|у тарифі/);
+  await expect(page.getByTestId("cheapest-basis")).toBeVisible();
+  await page.screenshot({ path: "test-results/family-baggage.png", fullPage: true });
+});
+
+test("розширені фільтри: час туди й назад, пересадки, бюджет — з URL і без нових запитів", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12");
+  const all = await page.getByTestId("offer-card").count();
+  expect(all).toBeGreaterThan(1);
+
+  await page.goto(
+    "/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12&dep=morning,afternoon&rdeph=12-23&maxlay=6&maxt=900",
+  );
+
+  await expect(page.getByRole("group", { name: "Виліт назад" })).toBeVisible();
+  await expect(page.getByLabel("Виліт назад: з години")).toHaveValue("12");
+  await expect(page.getByLabel("Одна пересадка, не довше")).toHaveValue("6");
+  const filtered = await page.getByTestId("offer-card").count();
+  expect(filtered).toBeLessThanOrEqual(all);
+  await page.screenshot({ path: "test-results/filters.png", fullPage: true });
+
+  // Розширені фільтри розгорнуті, бо серед них є активні; лічильник — усі активні.
+  await expect(page.getByTestId("filters-count")).toHaveText("4");
+  // «Зберегти налаштування» (гість — у браузері) → новий пошук пропонує їх застосувати.
+  await page.getByRole("button", { name: "Зберегти налаштування" }).click();
+  await expect(page.getByText(/Збережено в цьому браузері/)).toBeVisible();
+  await page.goto("/");
+  await expect(
+    page.getByRole("checkbox", { name: "Застосувати збережені фільтри (4)" }),
+  ).toBeChecked();
+});
+
+test("гнучкі дати: альтернативні дати й перехід на точні", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12&flex=3");
+
+  await expect(page.getByRole("heading", { name: "Альтернативні дати" })).toBeVisible();
+  const options = page.getByTestId("date-option");
+  expect(await options.count()).toBeGreaterThan(1);
+  await expect(page.getByLabel("Гнучкість дат")).toHaveValue("3");
+
+  await options.first().click();
+  await expect(page).not.toHaveURL(/flex=/);
+  await expect(page.getByTestId("offer-card").first()).toBeVisible();
+});
+
+test("3–5 ночей у грудні: форма без дати повернення, ночі в альтернативних датах", async ({
+  page,
+}) => {
+  // Туди й назад (є повернення) — тоді для місяця з'являються поля ночей.
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+  await page.getByLabel("Гнучкість дат").selectOption("month");
+  await expect(page.getByLabel("Повернення")).toBeDisabled();
+  await page.getByLabel("Ночей від").selectOption("3");
+  await page.getByLabel("Ночей до").selectOption("5");
+  await page.getByRole("button", { name: "Шукати" }).click();
+
+  await expect(page).toHaveURL(/flex=month/);
+  await expect(page).toHaveURL(/nmin=3&nmax=5/);
+  await expect(page.getByRole("heading", { name: "Альтернативні дати" })).toBeVisible();
+  // Кожна пара дат — у межах 3–5 ночей.
+  for (const text of await page.getByTestId("nights").allTextContents()) {
+    expect(text).toMatch(/^[345] ноч/);
+  }
+});
+
+test("матриця туди-назад і календар: гортання місяців, вибір дати без форми", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12");
+
+  await expect(page.getByRole("heading", { name: "Матриця цін туди й назад" })).toBeVisible();
+  const cells = page.getByTestId("matrix-cell");
+  expect(await cells.count()).toBeGreaterThan(5);
+  await page.screenshot({ path: "test-results/matrix.png", fullPage: true });
+
+  await page.getByRole("link", { name: "Наступний місяць" }).click();
+  await expect(page).toHaveURL(/cal=2027-01/);
+  await expect(page.getByRole("heading", { name: /Календар цін — січень 2027/ })).toBeVisible();
+
+  await cells.first().click();
+  await expect(page).not.toHaveURL(/depart=2026-12-05&return=2026-12-12/);
+  await expect(page.getByTestId("offer-card").first()).toBeVisible();
 });

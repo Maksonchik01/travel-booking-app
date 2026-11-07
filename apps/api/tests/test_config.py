@@ -4,6 +4,7 @@ import pytest
 from tickets_api.core.config import Settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry, scrub_breadcrumb
+from tickets_api.domain.accounts import clean_flight_filters
 
 
 def test_cors_origins_are_parsed_from_comma_separated_env(
@@ -143,3 +144,9 @@ def test_secret_pasted_with_quotes_is_unquoted(raw: str, monkeypatch: pytest.Mon
 def test_bad_sentry_dsn_does_not_crash_startup(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SENTRY_DSN", "not a dsn")
     assert init_sentry(Settings(_env_file=None)) is False
+
+
+def test_clean_flight_filters_drops_unknown_and_odd_values() -> None:
+    assert clean_flight_filters("deph=21-2&al=FR,W6&cur=USD&maxp=1 OR 1") == "deph=21-2&al=FR%2CW6"
+    assert clean_flight_filters("from=WAW") is None
+    assert clean_flight_filters("") is None

@@ -33,6 +33,11 @@ export function TopPicks({ scoring, offers }: { scoring: ScoringResult; offers: 
           <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
           {t("formula", { profile: tProfile(scoring.profile) })}
         </p>
+        {scoring.cheapest_basis === "with_baggage" && (
+          <p className="text-muted-foreground text-xs" data-testid="cheapest-basis">
+            {t("cheapestWithBaggage")}
+          </p>
+        )}
       </div>
       <ol className="grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))]">
         {picks.map((pick) => (

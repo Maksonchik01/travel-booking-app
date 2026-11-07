@@ -95,7 +95,8 @@ async def test_combos_totals_and_picks() -> None:
     stays = {f"{s.source}:{s.id}": s for s in result.stays}
     for combo in result.combos:
         offer, stay = offers[combo.offer_key], stays[combo.stay_key]
-        assert combo.flight_total == offer.price * 2
+        # Ціна перельоту вже за обох дорослих (ADR 0013) — не множимо вдруге.
+        assert combo.flight_total == offer.price
         assert combo.stay_total == stay.total_price
         assert combo.money_total == combo.flight_total + combo.stay_total
         assert stay.nights == combo.window.nights
@@ -128,9 +129,15 @@ async def test_budget_filters_picks_or_reports_shortfall() -> None:
     assert impossible.budget.shortfall == cheapest - 10
 
 
-async def test_children_are_flagged_and_stays_failure_keeps_flights() -> None:
-    with_kids = await planner().plan(QUERY.model_copy(update={"children": 1}))
-    assert all("children_not_priced" in c.warnings for c in with_kids.combos)
+async def test_children_are_priced_and_stays_failure_keeps_flights() -> None:
+    alone = await planner().plan(QUERY.model_copy(update={"adults": 1}))
+    with_kid = await planner().plan(QUERY.model_copy(update={"adults": 1, "children": 1}))
+    # Дитячий тариф рахує джерело: переліт дорожчий, але не вдвічі (mock: дитина — 75 %).
+    assert (
+        min(c.flight_total for c in alone.combos)
+        < min(c.flight_total for c in with_kid.combos)
+        < 2 * min(c.flight_total for c in alone.combos)
+    )
 
     class Broken:
         name = "broken"

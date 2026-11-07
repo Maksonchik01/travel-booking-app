@@ -74,8 +74,9 @@ def check(result: ParseResult, expected: dict[str, Any]) -> list[str]:
         length = (q.return_date - q.departure_date).days if q.return_date else None
         if length != expected["trip_length"]:
             fail("trip_length", length)
-    if "adults" in expected and q.passengers.adults != expected["adults"]:
-        fail("adults", q.passengers.adults)
+    for field in ("adults", "children", "infants"):
+        if field in expected and getattr(q.passengers, field) != expected[field]:
+            fail(field, getattr(q.passengers, field))
     if "direct_only" in expected and q.direct_only != expected["direct_only"]:
         fail("direct_only", q.direct_only)
     if "max_stops" in expected and q.filters.max_stops != expected["max_stops"]:

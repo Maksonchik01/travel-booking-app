@@ -195,14 +195,16 @@ function AlertPanel({
                 min={1}
                 step={1}
                 inputMode="numeric"
-                aria-label={t("threshold")}
+                aria-label={t("threshold", { currency: query.currency ?? "EUR" })}
                 value={threshold}
                 onChange={(e) => setThreshold(e.target.value)}
                 disabled={condition !== "below_price"}
                 required={condition === "below_price"}
                 className={cn(FIELD_CLASS, "border-input h-9 w-24 border px-2 text-sm")}
               />
-              <span className="text-muted-foreground">{t("perAdult")}</span>
+              <span className="text-muted-foreground">
+                {t("perAdult", { currency: query.currency ?? "EUR" })}
+              </span>
             </label>
             <label className="flex items-center gap-2">
               <input

@@ -60,6 +60,8 @@ def build_ai_service(
                 round_trip=query.return_date is not None,
                 currency=query.currency,
                 best_price=best_price,
+                party=query.passengers.code,
+                cabin=query.cabin,
             )
 
     service: AIService

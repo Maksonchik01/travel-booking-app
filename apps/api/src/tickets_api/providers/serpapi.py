@@ -28,7 +28,16 @@ from zoneinfo import ZoneInfo
 import httpx
 import structlog
 
-from tickets_api.domain.flights import CalendarDay, FlightQuery, Layover, Leg, Offer, Segment
+from tickets_api.domain.flights import (
+    Cabin,
+    CalendarDay,
+    FlightQuery,
+    Layover,
+    Leg,
+    Offer,
+    Segment,
+)
+from tickets_api.domain.sellers import GOOGLE_BOOKING_URL, BookingLink, SellerOffer
 from tickets_api.providers.base import ProviderError, ProviderRateLimitedError
 from tickets_api.reference.airports import AirportDirectory
 
@@ -42,6 +51,12 @@ GOOGLE_FLIGHTS_PREFIX = "https://www.google.com/travel/flights"
 AIRLINE_LOGO_PREFIX = "https://www.gstatic.com/flights/airline_logos/"
 NO_RESULTS_MARKER = "hasn't returned any results"
 NIGHT_START, NIGHT_END = time(0, 0), time(6, 0)
+TRAVEL_CLASS: dict[Cabin, str] = {
+    "economy": "1",
+    "premium_economy": "2",
+    "business": "3",
+    "first": "4",
+}
 
 
 class _Budget:
@@ -86,22 +101,15 @@ class SerpApiFlightProvider:
     async def search(self, query: FlightQuery) -> list[Offer]:
         budget = _Budget(self._max_requests)
         collected_at = self._clock().replace(microsecond=0)
-        base_params = {
-            "departure_id": ",".join(
-                self._airports.airports_for(query.origin, query.origin_radius_km)
-            ),
-            "arrival_id": ",".join(
-                self._airports.airports_for(query.destination, query.destination_radius_km)
-            ),
-            "currency": query.currency,
-            "hl": "en",
-            # Ціна за одного дорослого — як і в інших джерелах (Offer.price).
-            "adults": "1",
-            **({"stops": "1"} if query.direct_only else {}),
-            **({"gl": self._market} if self._market else {}),
-        }
+        base_params = self._base_params(query)
         offers: dict[str, Offer] = {}
-        for dep, ret in self._date_pairs(query, collected_at.date()):
+        pairs = self._date_pairs(query, collected_at.date())
+        # Конкретні пари з кешованих кандидатів (ADR 0016): бюджет ділимо порівну, щоб
+        # перевірити кожну, а не витратити все на першу (туди-назад: виліт + 1 повернення).
+        returns_per_date = self._returns_per_date
+        if query.check_dates and pairs:
+            returns_per_date = max(1, min(returns_per_date, self._max_requests // len(pairs) - 1))
+        for dep, ret in pairs:
             if ret is None:
                 if not budget.take():
                     break
@@ -114,7 +122,8 @@ class SerpApiFlightProvider:
                         offers.setdefault(offer.id, offer)
                 continue
 
-            if not budget.take():
+            # Виліт без жодного повернення — марний запит: потрібно щонайменше два.
+            if budget.left < 2 or not budget.take():
                 break
             rt_params = {
                 **base_params,
@@ -126,7 +135,7 @@ class SerpApiFlightProvider:
             outbound_options = sorted(
                 (it for it in _itineraries(body) if it.get("departure_token")),
                 key=lambda it: _price(it.get("price")) or Decimal("Infinity"),
-            )[: self._returns_per_date]
+            )[:returns_per_date]
             selected = [out for out in outbound_options if budget.take()]
             # Зворотні рейси для кожного вильоту — незалежні запити: паралельно, не по черзі.
             responses = await asyncio.gather(
@@ -145,6 +154,52 @@ class SerpApiFlightProvider:
         matches = self._airports.route_filter(query)
         return sorted(filter(matches, offers.values()), key=lambda o: (o.price, o.id))
 
+    async def sellers(self, query: FlightQuery, booking_ref: str) -> list[SellerOffer]:
+        """Варіанти бронювання (`booking_token`): продавці й їхня ціна зараз — 1 запит квоти.
+
+        Звірено з реальними відповідями (tests/fixtures/serpapi/booking_*.json): кожен варіант —
+        `together` з `book_with`, `airline`, `price`, `baggage_prices` і `booking_request`
+        (POST на google.com/travel/clk з `post_data`). Окремі квитки туди й назад
+        (`departing`/`returning`) у записах не траплялись — їх пропускаємо, а не вгадуємо.
+        """
+        params = {
+            **self._base_params(query),
+            "type": "1" if query.return_date else "2",
+            "outbound_date": query.departure_date.isoformat(),
+            **({"return_date": query.return_date.isoformat()} if query.return_date else {}),
+            "booking_token": booking_ref,
+        }
+        body, _ = await self._get(params)
+        checked_at = self._clock().replace(microsecond=0)
+        return [
+            seller
+            for option in body.get("booking_options") or []
+            if (seller := _seller(option, query.currency, checked_at)) is not None
+        ]
+
+    def _base_params(self, query: FlightQuery) -> dict[str, str]:
+        return {
+            "departure_id": ",".join(
+                self._airports.airports_for(query.origin, query.origin_radius_km)
+            ),
+            "arrival_id": ",".join(
+                self._airports.airports_for(query.destination, query.destination_radius_km)
+            ),
+            "currency": query.currency,
+            "hl": "en",
+            # Ціна у відповіді — за весь склад (перевірено фікстурою pax_family.json), тож
+            # передаємо склад як є і нічого не множимо (ADR 0013).
+            "adults": str(query.passengers.adults),
+            **_non_default(
+                children=query.passengers.children,
+                infants_on_lap=query.passengers.infants,
+                infants_in_seat=query.passengers.infants_in_seat,
+            ),
+            **({"travel_class": TRAVEL_CLASS[query.cabin]} if query.cabin != "economy" else {}),
+            **({"stops": "1"} if query.direct_only else {}),
+            **({"gl": self._market} if self._market else {}),
+        }
+
     async def calendar(
         self, origin: str, destination: str, month: date, currency: str
     ) -> list[CalendarDay]:
@@ -154,7 +209,21 @@ class SerpApiFlightProvider:
     # --- внутрішнє -----------------------------------------------------------------
 
     def _date_pairs(self, query: FlightQuery, today: date) -> list[tuple[date, date | None]]:
-        """Дати від запитаної назовні (0, −1, +1, −2, …): бюджет витрачається на найближчі."""
+        """Дати від запитаної назовні (0, −1, +1, −2, …): бюджет витрачається на найближчі.
+
+        `check_dates` — пари, обрані з кешованих кандидатів; період — дні від початку,
+        повернення на ту саму тривалість поїздки.
+        """
+        if query.check_dates:
+            return [(p.departure, p.return_date) for p in query.check_dates if p.departure >= today]
+        if query.departure_until is not None:
+            start, end = query.departure_window
+            length = timedelta(days=query.trip_days or 0)
+            return [
+                (day, day + length if query.return_date else None)
+                for day in (start + timedelta(days=i) for i in range((end - start).days + 1))
+                if day >= today
+            ]
         shifts = sorted(range(-query.flex_days, query.flex_days + 1), key=lambda s: (abs(s), s))
         pairs = []
         for shift in shifts:
@@ -231,6 +300,9 @@ class SerpApiFlightProvider:
             collected_at=collected_at,
             found_at=collected_at,  # живий пошук: ціна актуальна на момент запиту
             deep_link=url,
+            price_status="live",
+            cabin=query.cabin,
+            booking_ref=_booking_token(back or out),
         )
 
     def _leg(self, itinerary: dict[str, Any]) -> Leg | None:
@@ -342,3 +414,46 @@ def _price(value: Any) -> Decimal | None:
     except InvalidOperation:
         return None
     return price if price > 0 else None
+
+
+def _non_default(**counts: int) -> dict[str, str]:
+    """Лише ненульові лічильники: типові значення SerpApi — 0, запит лишається коротшим."""
+    return {name: str(n) for name, n in counts.items() if n}
+
+
+def _booking_token(itinerary: dict[str, Any]) -> str | None:
+    """Токен варіантів бронювання (продавці й свіжа ціна) — для туди-назад з відповіді із
+    поверненнями (там ціна всієї поїздки)."""
+    token = itinerary.get("booking_token")
+    return token if isinstance(token, str) and 0 < len(token) <= 4096 else None
+
+
+def _seller(option: Any, currency: str, checked_at: datetime) -> SellerOffer | None:
+    together = option.get("together") if isinstance(option, dict) else None
+    if not isinstance(together, dict):
+        return None
+    price = _price(together.get("price"))
+    name = together.get("book_with")
+    if price is None or not isinstance(name, str) or not name:
+        return None
+    included = [b for b in together.get("baggage_prices") or [] if isinstance(b, str)]
+    request = together.get("booking_request")
+    link = None
+    if (
+        isinstance(request, dict)
+        and request.get("url") == GOOGLE_BOOKING_URL
+        and isinstance(request.get("post_data"), str)
+    ):
+        link = BookingLink(url=GOOGLE_BOOKING_URL, method="POST", post_data=request["post_data"])
+    return SellerOffer(
+        seller=name,
+        is_airline=together.get("airline") is True,
+        price=price,
+        currency=currency,
+        included=included,
+        fare_name=together.get("option_title")
+        if isinstance(together.get("option_title"), str)
+        else None,
+        link=link,
+        checked_at=checked_at,
+    )

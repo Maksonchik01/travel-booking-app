@@ -1,9 +1,11 @@
 """Акаунти й кабінет: вхідні дані й те, що бачить користувач. Без I/O."""
 
+import re
 from datetime import datetime
 from typing import Annotated, Literal
+from urllib.parse import parse_qsl, urlencode
 
-from pydantic import AfterValidator, BaseModel, BeforeValidator, StringConstraints
+from pydantic import AfterValidator, BaseModel, BeforeValidator, Field, StringConstraints
 
 from tickets_api.domain.alerts import AlertView, Email
 from tickets_api.domain.flights import _StrictInput
@@ -56,6 +58,47 @@ class ProfileBody(_StrictInput):
     last_name: OptionalName = None
 
 
+# Ключі фільтрів видачі в URL (apps/web/src/lib/search-params.ts) — і нічого іншого.
+FLIGHT_FILTER_KEYS = frozenset(
+    {
+        "stops",
+        "al",
+        "xal",
+        "dep",
+        "deph",
+        "arr",
+        "arrh",
+        "rdep",
+        "rdeph",
+        "rarr",
+        "rarrh",
+        "maxh",
+        "maxlay",
+        "minlay",
+        "minself",
+        "maxp",
+        "maxt",
+    }
+)
+_FILTER_VALUE = re.compile(r"^[A-Za-z0-9,\-]{1,100}$")
+
+
+def clean_flight_filters(raw: str | None) -> str | None:
+    """Лише відомі ключі з простими значеннями; порожньо — None. Решту фільтр розбере сам."""
+    if not raw:
+        return None
+    kept = [
+        (k, v)
+        for k, v in parse_qsl(raw, keep_blank_values=False)
+        if k in FLIGHT_FILTER_KEYS and _FILTER_VALUE.match(v)
+    ]
+    return urlencode(kept) or None
+
+
+class FlightFiltersBody(_StrictInput):
+    flight_filters: str | None = Field(default=None, max_length=1000)
+
+
 class EmailBody(_StrictInput):
     email: Email
 
@@ -91,6 +134,8 @@ class Account(BaseModel):
     has_password: bool
     google_linked: bool
     telegram_linked: bool
+    flight_filters: str | None = None
+    """Збережені фільтри пошуку перельотів (рядок URL); веб додає їх до нового пошуку."""
     created_at: datetime
 
 

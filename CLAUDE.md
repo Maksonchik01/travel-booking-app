@@ -31,7 +31,23 @@
 - **Travelpayouts віддає кешовані ціни**, а не живі тарифи. В UI завжди показуємо вік ціни.
   Amadeus Self-Service не використовуємо. Деталей пересадок Travelpayouts не дає:
   `layovers=None` = «невідомо», не «немає» ([ADR 0004](docs/adr/0004-unknown-layover-details.md)).
-- **Ціни — Decimal**, `Offer.price` — за одного дорослого. Валюта за замовчуванням EUR.
+- **Ціни — Decimal**, `Offer.price` — за весь склад пасажирів і клас запиту ([ADR 0013](docs/adr/0013-party-pricing.md)):
+  дорослий тариф на дітей не множимо; джерело, що не вміє склад/клас, кидає
+  `ProviderUnsupportedError` (статус `unsupported`). Скоринг множить штрафи часу/пересадок/ризиків
+  на `Passengers.seated`; історія цін пише `party` і `cabin`. Валюта за замовчуванням EUR.
+- **Гнучкі дати** ([ADR 0016](docs/adr/0016-flexible-dates.md)): `flex_days` / `departure_until`;
+  кандидати з кешованого календарного джерела → `check_dates` для живого (бюджет ділиться);
+  `FlightSearchResult.date_options` з `verified`. URL: `flex=1|3|7|month|range&until=`;
+  ночі (2b) `nmin=&nmax=` — від дати прильоту (`stay_nights`), фільтр і для живих пропозицій.
+  Календар `cal=YYYY-MM`; матриця `GET /flights/matrix` — лише кешовані джерела, без живих запитів.
+- **Продавці** ([ADR 0017](docs/adr/0017-sellers-and-price-check.md)): `Offer.price_status`/`cabin`/
+  `booking_ref`; однаковий рейс — `groups` (одна картка); `POST /flights/sellers` — на вимогу
+  (1 запит SerpApi, кеш 30 хв), це й перевірка ціни перед переходом; без неї — «підтверджує продавець».
+- **Валюта** ([ADR 0015](docs/adr/0015-currency-ecb-rates.md)): EUR/USD/GBP/PLN, ціни — від джерела;
+  ваги скорингу переводяться за курсом ЄЦБ (`providers/fx.py`, кеш у Redis), без курсу — не оцінюємо.
+- **Багаж** ([ADR 0014](docs/adr/0014-baggage-final-price.md)): `FlightQuery.baggage` (не в запит
+  джерела), `Offer.baggage` (None — невідомо), `scoring/baggage.py` → `FlightSearchResult.baggage`;
+  «найдешевший» — серед відомих кінцевих вартостей, якщо такі є.
 - **Скоринг** ([ADR 0005](docs/adr/0005-scoring-engine.md)): багаж не входить у вартість,
   невідомі деталі пересадок — лише попередження, без штрафу. Ваги змінюються в
   `scoring/config.toml`; після зміни ваг свідомо перераховуй еталони в
@@ -171,8 +187,12 @@ make migrate        alembic upgrade head
   (`trip=ow` без JS ігнорує повернення).
 - **Web-житло:** `/stays?city=&in=&out=&adults=&children=&prio=&sort=`, фільтри
   `maxp=&rating=&cancel=&kind=` — `src/lib/stay-params.ts`.
-- **Web-пошук:** стан пошуку живе в URL (`?from=&to=&depart=&return=&flex=&adults=&direct=&sort=`,
-  сусідні `fromNear=1`/`toNear=1`, фільтри `stops=&al=&dep=&maxh=`),
+- **Web-пошук:** стан пошуку живе в URL (`?from=&to=&depart=&return=&flex=&adults=&children=&lap=&seat=&cabin=&bag=&cur=&direct=&sort=`,
+  сусідні `fromNear=1`/`toNear=1`, фільтри `stops=&al=&xal=&dep=&deph=&arr=&arrh=&rdep=&rdeph=&rarr=&rarrh=&maxh=&maxlay=&minlay=&minself=&maxp=&maxt=`;
+  частини доби — ранок 05–12, день 12–17, вечір 17–22, ніч 22–05 за місцевим часом аеропорту),
+  панель фільтрів — основні на виду, решта в «Розширених фільтрах» (`result-filters.tsx`);
+  «Зберегти налаштування» — `src/lib/saved-filters.ts` (localStorage) + `users.flight_filters`
+  (`PUT /account/flight-filters`, лише ключі фільтрів); новий пошук додає їх з позначкою у формі,
   розбір і серіалізація — `src/lib/search-params.ts`. Сторінка серверна, API викликається
   з сервера (`src/lib/api.ts`), форма — `next/form` (працює й без JS).
 - **Логотипи авіакомпаній:** `Offer.airline_logos` (код → URL) заповнює лише SerpApi з

@@ -30,6 +30,12 @@ export default defineConfig({
         TELEGRAM_BOT_USERNAME: "",
         SMTP_HOST: "",
         SENTRY_DSN: "",
+        // Ліміти запитів на відвідувача (core/rate_limit.py) рахуються в спільному Redis:
+        // кілька прогонів e2e за годину не повинні в них впиратися.
+        RATE_LIMIT_SEARCH_PER_HOUR: "100000",
+        RATE_LIMIT_AI_PER_HOUR: "100000",
+        RATE_LIMIT_AUTH_PER_HOUR: "100000",
+        RATE_LIMIT_CLICKS_PER_HOUR: "100000",
         LOG_LEVEL: "WARNING",
       },
       reuseExistingServer: false,

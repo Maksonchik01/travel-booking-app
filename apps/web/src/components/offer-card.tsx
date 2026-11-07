@@ -1,4 +1,13 @@
-import type { Leg, Offer, OfferScore, PickLabel } from "@tickets/shared";
+import type {
+  BagAllowance,
+  Baggage,
+  BaggageCost,
+  BaggageNeed,
+  Leg,
+  Offer,
+  OfferScore,
+  PickLabel,
+} from "@tickets/shared";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -37,9 +46,21 @@ export function OfferCard({
   pickLabel,
   score,
   airlineNames,
+  travellers = 1,
+  baggageCost,
+  baggageNeed = "none",
+  sellers,
 }: {
   offer: Offer;
   now: Date;
+  /** Вартість з багажем, який обрав користувач (рахує API, ADR 0014); немає — багаж не потрібен. */
+  baggageCost?: BaggageCost;
+  /** Багаж, який обрав користувач: картка показує умови саме цих місць. */
+  baggageNeed?: BaggageNeed;
+  /** Блок «Пропозиції продавців» (клієнтський компонент) — під основним вмістом. */
+  sellers?: React.ReactNode;
+  /** Скільки пасажирів у ціні (вона за весь склад запиту, ADR 0013). */
+  travellers?: number;
   pickLabel?: PickLabel;
   score?: OfferScore;
   /** IATA-код → назва (з фасетів пошуку); невідомі показуємо кодом. */
@@ -124,14 +145,21 @@ export function OfferCard({
               maximumFractionDigits: 0,
             })}
           </p>
-          <p className="text-muted-foreground text-xs">{t("perAdult")}</p>
+          <p className="text-muted-foreground text-xs">
+            {travellers > 1 ? t("forPassengers", { count: travellers }) : t("perAdult")}
+          </p>
           <p className="text-muted-foreground mt-1 text-xs" data-testid="price-age">
             {age}
           </p>
         </div>
 
         <div className="grid w-full gap-2 text-xs sm:w-auto">
-          <BaggageNote included={offer.baggage_included ?? null} />
+          {baggageNeed !== "none" ? (
+            <BaggageDetails baggage={offer.baggage} need={baggageNeed} money={money} />
+          ) : (
+            <BaggageNote included={offer.baggage_included ?? null} />
+          )}
+          {baggageCost && <BaggageTotal cost={baggageCost} money={money} />}
           <p className="text-muted-foreground flex items-start gap-1.5" data-testid="seller">
             <Store className="mt-px size-3.5 shrink-0" aria-hidden />
             <span>
@@ -158,6 +186,8 @@ export function OfferCard({
           )}
         </div>
       </aside>
+      {/* Продавці (модуль 3) — на всю ширину картки. */}
+      {sellers && <div className="sm:col-span-2">{sellers}</div>}
     </Card>
   );
 }
@@ -327,6 +357,79 @@ function Layovers({ leg }: { leg: Leg }) {
         );
       })}
     </ul>
+  );
+}
+
+/** Які місця багажу потрібні для вибору користувача (як BAGS_FOR_NEED в API). */
+const BAGS_FOR_NEED: Record<BaggageNeed, (keyof Baggage)[]> = {
+  none: [],
+  personal_item: ["personal_item"],
+  carry_on: ["personal_item", "carry_on"],
+  checked: ["personal_item", "checked"],
+  checked_extra: ["personal_item", "checked", "checked_extra"],
+};
+
+/** Умови саме тих місць багажу, що обрав користувач: у тарифі / за плату / недоступно / невідомо. */
+function BaggageDetails({
+  baggage,
+  need,
+  money,
+}: {
+  baggage: Baggage | null | undefined;
+  need: BaggageNeed;
+  money: (value: number) => string;
+}) {
+  const t = useTranslations("offer");
+  const status = (a: BagAllowance | null | undefined) =>
+    !a
+      ? t("bag.unknown")
+      : a.status === "included"
+        ? t("bag.included")
+        : a.status === "not_available"
+          ? t("bag.notAvailable")
+          : a.fee != null
+            ? t("bag.fee", { fee: money(a.fee) })
+            : t("bag.feeUnknown");
+  return (
+    <ul className="text-muted-foreground grid gap-0.5" data-testid="baggage">
+      {BAGS_FOR_NEED[need].map((row) => (
+        <li
+          key={row}
+          className={cn(
+            "flex items-start gap-1.5",
+            baggage?.[row]?.status === "included" && "text-emerald-700 dark:text-emerald-400",
+          )}
+        >
+          <Briefcase className="mt-px size-3.5 shrink-0" aria-hidden />
+          <span>
+            {t(`bag.${row}`)}: {status(baggage?.[row])}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Кінцева вартість з потрібним багажем — або чесне «невідомо» (не «безкоштовно»). */
+function BaggageTotal({ cost, money }: { cost: BaggageCost; money: (value: number) => string }) {
+  const t = useTranslations("offer");
+  if (cost.status === "included" || cost.status === "extra") {
+    return (
+      <p className="font-medium" data-testid="baggage-total">
+        {cost.status === "included"
+          ? t("withBaggageIncluded")
+          : t("withBaggage", { total: money(cost.total ?? 0) })}
+      </p>
+    );
+  }
+  return (
+    <p
+      className="flex items-start gap-1.5 text-amber-700 dark:text-amber-400"
+      data-testid="baggage-total"
+    >
+      <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden />
+      {cost.status === "not_available" ? t("baggageNotAvailable") : t("baggageCostUnknown")}
+    </p>
   );
 }
 

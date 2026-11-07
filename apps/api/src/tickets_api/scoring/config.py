@@ -52,6 +52,29 @@ class ScoringConfig(_Strict):
             raise ValueError(f"у конфігу бракує профілів: {sorted(missing)}")
         return self
 
+    def in_currency(self, currency: str, rate: Decimal) -> "ScoringConfig":
+        """Ті самі ваги в іншій валюті: гроші × курс (одиниць `currency` за одиницю нашої).
+
+        Лише гроші (вартість години, пересадки, штрафи); пороги в хвилинах і годинах — як є.
+        """
+        if currency == self.currency:
+            return self
+        return self.model_copy(
+            update={
+                "currency": currency,
+                "profiles": {
+                    name: ProfileWeights(
+                        lambda_time_per_hour=w.lambda_time_per_hour * rate,
+                        lambda_stop=w.lambda_stop * rate,
+                    )
+                    for name, w in self.profiles.items()
+                },
+                "penalties": Penalties(
+                    **{k: v * rate for k, v in self.penalties.model_dump().items()}
+                ),
+            }
+        )
+
 
 def load_scoring_config(path: Path) -> ScoringConfig:
     # parse_float=Decimal: суми в грошах не проходять через float.

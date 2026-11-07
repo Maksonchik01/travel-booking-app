@@ -28,6 +28,9 @@ class PriceObservation(Base):
     source: Mapped[str] = mapped_column(String(32))
     kind: Mapped[str] = mapped_column(String(16))
     """offer — повна пропозиція з пошуку; calendar_min — мінімум дня з календаря."""
+    party: Mapped[str] = mapped_column(String(16), server_default="1a0c0l0s")
+    """Склад пасажирів, за який ця ціна (Passengers.code). Статистика порівнює лише однакові."""
+    cabin: Mapped[str] = mapped_column(String(16), server_default="economy")
     observation_key: Mapped[str] = mapped_column(String(64))
     collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     found_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -178,6 +181,8 @@ class User(Base):
     """Лише підтверджена адреса; нова чекає підтвердження в auth_tokens."""
     google_sub: Mapped[str | None] = mapped_column(String(64), unique=True)
     telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
+    flight_filters: Mapped[str | None] = mapped_column(String(1000))
+    """Збережені фільтри пошуку перельотів: рядок URL (`stops=1&dep=morning`), відомі ключі."""
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

@@ -332,3 +332,93 @@ async def test_nearby_airports_go_into_the_same_request(
     assert route.call_count == 1  # сусідні аеропорти не коштують додаткових запитів
     assert route.calls.last.request.url.params["departure_id"] == "WAW,WMI,LCJ"
     assert route.calls.last.request.url.params["arrival_id"] == "BCN"
+
+
+@respx.mock
+async def test_family_is_priced_by_source_not_multiplied(
+    provider: SerpApiFlightProvider,
+) -> None:
+    # Записано з adults=2, children=1, infants_on_lap=1, infants_in_seat=1: ціна в SerpApi —
+    # за весь склад (227 € проти 48 € за одного дорослого у pax_1adult.json, не 5 × 48).
+    route = respx.get(URL).mock(return_value=httpx.Response(200, json=recorded("pax_family")))
+    family = {"adults": 2, "children": 1, "infants": 1, "infants_in_seat": 1}
+
+    offers = await provider.search(one_way(passengers=family))
+
+    params = dict(route.calls.last.request.url.params)
+    assert {k: params[k] for k in ("adults", "children", "infants_on_lap", "infants_in_seat")} == {
+        "adults": "2",
+        "children": "1",
+        "infants_on_lap": "1",
+        "infants_in_seat": "1",
+    }
+    assert "travel_class" not in params  # економ — типове значення SerpApi
+    wizz = next(
+        o
+        for o in offers
+        if o.outbound.segments and o.outbound.segments[0].flight_number == "W61475"
+    )
+    assert wizz.price == Decimal(227)
+
+
+@respx.mock
+async def test_business_class_is_requested(provider: SerpApiFlightProvider) -> None:
+    route = respx.get(URL).mock(return_value=httpx.Response(200, json=recorded("pax_business")))
+
+    offers = await provider.search(one_way(cabin="business"))
+
+    assert route.calls.last.request.url.params["travel_class"] == "3"
+    assert offers
+    assert min(o.price for o in offers) > Decimal(300)  # у pax_1adult найдешевший — 48 €
+
+
+@respx.mock
+async def test_check_dates_split_the_budget_between_pairs(client: httpx.AsyncClient) -> None:
+    # Гнучкий пошук (ADR 0016): дві пари з кешованих кандидатів, бюджет 4 запити —
+    # кожній парі виліт + одне повернення, а не все на першу.
+    rt = recorded("rt")
+    route = respx.get(URL).mock(
+        side_effect=lambda r: httpx.Response(
+            200, json=recorded("return") if "departure_token" in r.url.params else rt
+        )
+    )
+    provider = make_provider(client, returns_per_date=2, max_requests_per_search=4)
+
+    await provider.search(
+        FlightQuery.model_validate(
+            {
+                "origin": "WAW",
+                "destination": "LIS",
+                "departure_date": "2026-12-01",
+                "return_date": "2026-12-08",
+                "flex_days": 7,
+                "check_dates": [
+                    {"departure": "2026-12-05", "return_date": "2026-12-12"},
+                    {"departure": "2026-12-03", "return_date": "2026-12-10"},
+                ],
+            }
+        )
+    )
+
+    calls = [c.request.url.params for c in route.calls]
+    assert route.call_count == 4
+    outbound = [(p["outbound_date"], p["return_date"]) for p in calls if "departure_token" not in p]
+    assert outbound == [("2026-12-05", "2026-12-12"), ("2026-12-03", "2026-12-10")]
+
+
+@respx.mock
+async def test_period_walks_days_from_start_with_same_trip_length(
+    client: httpx.AsyncClient,
+) -> None:
+    route = respx.get(URL).mock(return_value=httpx.Response(200, json=NO_RESULTS))
+    provider = make_provider(client, max_requests_per_search=3)
+
+    await provider.search(
+        one_way(departure_date=date(2026, 12, 1), departure_until=date(2026, 12, 31))
+    )
+
+    assert [c.request.url.params["outbound_date"] for c in route.calls] == [
+        "2026-12-01",
+        "2026-12-02",
+        "2026-12-03",
+    ]

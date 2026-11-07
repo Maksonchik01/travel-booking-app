@@ -61,7 +61,10 @@ def trip_input(result: TripSearchResult, airline_names: dict[str, str]) -> dict[
         "combinations_checked": len(result.combos),
         "flights_found": result.flights_found,
         "sources_failed": [p.provider for p in result.providers if p.status != "ok"],
-        "note": "flight prices are per adult (no child fares); stays — whole room with taxes",
+        "note": (
+            "flight prices are for all travellers (adults and children); "
+            "stays — whole room with taxes"
+        ),
     }
 
 

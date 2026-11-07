@@ -32,7 +32,7 @@ EARLY_ARRIVAL_HOUR = 6
 """Приліт до 06:00 — заселення зазвичай з 14:00, а ніч перед прильотом у суму не входить."""
 
 TripPickLabel = Literal["cheapest", "best_value", "comfort"]
-TripWarning = Literal["early_arrival", "children_not_priced", "value_unknown"]
+TripWarning = Literal["early_arrival", "value_unknown"]
 LABEL_PRECEDENCE: tuple[TripPickLabel, ...] = ("best_value", "cheapest", "comfort")
 DISPLAY_ORDER: tuple[TripPickLabel, ...] = ("cheapest", "best_value", "comfort")
 
@@ -106,7 +106,7 @@ class TripPlanner:
             departure_date=query.departure_date,
             return_date=query.return_date,
             flex_days=query.flex_days,
-            passengers={"adults": query.adults},
+            passengers={"adults": query.adults, "children": query.children},
             direct_only=query.direct_only,
             currency=query.currency,
             profile=FLIGHT_PROFILE[query.profile],
@@ -200,21 +200,19 @@ def _combo(
     stay_score: StayScore | None,
     window: StayWindow,
 ) -> TripCombo:
-    adults = Decimal(query.adults)
-    flight_total = offer.price * adults
+    # Ціна й оцінка перельоту вже за всіх пасажирів (ADR 0013), тож нічого не множимо.
+    flight_total = offer.price
     flight_value = flight_score.breakdown.total if flight_score else None
     stay_value = stay_score.breakdown.total if stay_score else None
     value = (
         None
         if flight_value is None or stay_value is None
-        else flight_value * adults + stay_value * window.nights
+        else flight_value + stay_value * window.nights
     )
     warnings: list[TripWarning] = []
     arrival = offer.outbound.arrival_at
     if arrival is not None and arrival.hour < EARLY_ARRIVAL_HOUR:
         warnings.append("early_arrival")
-    if query.children:
-        warnings.append("children_not_priced")
     if value is None:
         warnings.append("value_unknown")
     return TripCombo(

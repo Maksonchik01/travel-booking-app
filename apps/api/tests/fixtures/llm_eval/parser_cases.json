@@ -372,9 +372,7 @@
     ],
     "departure": "2026-12-01",
     "adults": 1,
-    "notes_include": [
-     "children_not_priced"
-    ]
+    "children": 1
    }
   },
   {
@@ -452,9 +450,7 @@
     ],
     "departure": "2026-12-05",
     "adults": 4,
-    "notes_include": [
-     "children_not_priced"
-    ]
+    "infants": 1
    }
   },
   {

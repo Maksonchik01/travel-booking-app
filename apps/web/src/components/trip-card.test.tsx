@@ -40,6 +40,7 @@ const OFFER: Offer = {
   found_on: null,
   expires_at: null,
   deep_link: null,
+  price_status: "cached",
   seller: null,
   reported_total_duration_min: null,
   stops: 0,
@@ -78,13 +79,13 @@ const COMBO: TripCombo = {
   offer_key: "mock:f1",
   stay_key: "mock:s1",
   window: { check_in: "2026-12-05", check_out: "2026-12-08", nights: 3 },
-  flight_price: 88,
+  flight_price: 176,
   flight_total: 176,
   stay_total: 231,
   money_total: 407,
   value_total: 480.5,
   currency: "EUR",
-  warnings: ["children_not_priced"],
+  warnings: ["early_arrival"],
 };
 
 describe("TripCard", () => {
@@ -109,10 +110,10 @@ describe("TripCard", () => {
     expect(screen.getByText("також найдешевша")).toBeInTheDocument();
     expect(screen.getByTestId("trip-total")).toHaveTextContent("407 €");
     const breakdown = screen.getByTestId("trip-breakdown");
-    expect(breakdown).toHaveTextContent("Переліт: 2 × 88 €176 €");
+    // Ціна перельоту вже за обох — без «2 × …» (ADR 0013).
+    expect(breakdown).toHaveTextContent("Переліт176 €");
     expect(breakdown).toHaveTextContent("Житло, 3 ночі231 €");
     expect(screen.getByText("Pension Rosa")).toBeInTheDocument();
-    expect(screen.getByText("Без дитячих квитків")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Рейс/ })).toHaveAttribute(
       "href",
       "/?from=WAW&to=LIS#offer-mock-f1",

@@ -34,7 +34,11 @@ import httpx
 import structlog
 
 from tickets_api.domain.flights import CalendarDay, FlightQuery, Leg, Offer
-from tickets_api.providers.base import ProviderError, ProviderRateLimitedError
+from tickets_api.providers.base import (
+    ProviderError,
+    ProviderRateLimitedError,
+    ProviderUnsupportedError,
+)
 from tickets_api.reference.airports import AirportDirectory
 
 log = structlog.get_logger(__name__)
@@ -70,6 +74,13 @@ class TravelpayoutsFlightProvider:
         self._clock = clock or (lambda: datetime.now(UTC))
 
     async def search(self, query: FlightQuery) -> list[Offer]:
+        # Кешовані ціни — лише за одного дорослого в економі. Дорослих множимо (тариф той
+        # самий), а дітей і немовлят — ні: їхній тариф інший і невідомий (ADR 0013).
+        if not query.passengers.adults_only:
+            raise ProviderUnsupportedError(self.name, "passengers")
+        if query.cabin != "economy":
+            raise ProviderUnsupportedError(self.name, "cabin")
+        adults = query.passengers.adults
         dep_from, dep_to = query.departure_window
         ret_window = query.return_window
         offers: dict[str, Offer] = {}
@@ -105,6 +116,8 @@ class TravelpayoutsFlightProvider:
                     continue
                 if matches is not None and not matches(offer):
                     continue
+                if adults > 1:
+                    offer = offer.model_copy(update={"price": offer.price * adults})
                 offers.setdefault(offer.id, offer)
         return sorted(offers.values(), key=lambda o: (o.price, o.id))
 
@@ -147,7 +160,7 @@ class TravelpayoutsFlightProvider:
     # --- внутрішнє -----------------------------------------------------------------
 
     def _date_params(self, query: FlightQuery) -> list[tuple[str, str | None]]:
-        if query.flex_days == 0:
+        if not query.is_flexible:
             ret = query.return_date.isoformat() if query.return_date else None
             return [(query.departure_date.isoformat(), ret)]
         dep_months = _months_between(*query.departure_window)
@@ -249,6 +262,8 @@ class TravelpayoutsFlightProvider:
                 expires_at=_parse_datetime(raw.get("expires_at")),
                 deep_link=self._deep_link(link),
                 seller=str(raw.get("gate") or "") or None,
+                price_status="cached",
+                cabin="economy",
                 reported_total_duration_min=total,
             )
         except (KeyError, ValueError, TypeError) as exc:

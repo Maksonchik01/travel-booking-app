@@ -4,3723 +4,4215 @@
  */
 
 export interface paths {
-    "/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Health
-         * @description Liveness: процес живий. Залежності не перевіряє.
-         */
-        get: operations["health_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/health/ready": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Ready
-         * @description Readiness: перевіряє Postgres і Redis. 503, якщо хоч одна залежність недоступна.
-         */
-        get: operations["ready_health_ready_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Health
+     * @description Liveness: процес живий. Залежності не перевіряє.
+     */
+    get: operations["health_health_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/health/ready": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/flights/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Search Flights
-         * @description Пошук у всіх увімкнених провайдерах. Ціни кешовані: дивись collected_at / found_at.
-         *
-         *     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
-         */
-        post: operations["search_flights_flights_search_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Ready
+     * @description Readiness: перевіряє Postgres і Redis. 503, якщо хоч одна залежність недоступна.
+     */
+    get: operations["ready_health_ready_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/flights/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/flights/calendar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Price Calendar
-         * @description Найнижча відома ціна на кожен день місяця (в один бік).
-         */
-        get: operations["price_calendar_flights_calendar_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Search Flights
+     * @description Пошук у всіх увімкнених провайдерах. Ціни кешовані: дивись collected_at / found_at.
+     *
+     *     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
+     */
+    post: operations["search_flights_flights_search_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/flights/calendar": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/places": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Search Places
-         * @description Автодоповнення з локального довідника (без звернень до провайдерів).
-         *
-         *     `kind=any` — міста й аеропорти (перельоти), `kind=city` — лише міста (житло).
-         */
-        get: operations["search_places_places_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Price Calendar
+     * @description Найнижча відома ціна на кожен день місяця (в один бік).
+     */
+    get: operations["price_calendar_flights_calendar_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/flights/matrix": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/stays/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Search Stays
-         * @description Житло в місті на дати, з value-score і трьома рекомендованими варіантами.
-         *
-         *     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
-         */
-        post: operations["search_stays_stays_search_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Price Matrix
+     * @description Матриця туди-назад: виліт × повернення, у клітинці — загальна ціна (кешована,
+     *     орієнтовна, за одного дорослого). До 14 днів по кожній осі; живих запитів не робить.
+     */
+    get: operations["price_matrix_flights_matrix_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/flights/sellers": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/trips/search": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Search Trips
-         * @description Переліт туди-назад + житло на дати рейсу, з загальною сумою і трьома варіантами.
-         *
-         *     Перельоти — звичайний пошук (живі ціни витрачають квоту), житло — на дати кожного
-         *     рекомендованого рейсу. Збій джерела видно в `providers[].status`.
-         */
-        post: operations["search_trips_trips_search_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Flight Sellers
+     * @description Продавці рейсу й свіжа ціна в кожного — на вимогу (1 запит квоти SerpApi, кеш 30 хв).
+     *
+     *     Це й перевірка перед переходом: якщо ціна змінилась, UI показує нову.
+     */
+    post: operations["flight_sellers_flights_sellers_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/places": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/alerts/channels": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Channels
-         * @description Які канали працюють наживо, а які — mock (лише лог, без ключів).
-         */
-        get: operations["channels_alerts_channels_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Search Places
+     * @description Автодоповнення з локального довідника (без звернень до провайдерів).
+     *
+     *     `kind=any` — міста й аеропорти (перельоти), `kind=city` — лише міста (житло).
+     */
+    get: operations["search_places_places_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/stays/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/alerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Alert
-         * @description Нова підписка (pending): підтвердження — /start у боті або посилання з листа.
-         *
-         *     Якщо запит від користувача з сесією — підписка з'явиться в його кабінеті.
-         */
-        post: operations["create_alert_alerts_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Search Stays
+     * @description Житло в місті на дати, з value-score і трьома рекомендованими варіантами.
+     *
+     *     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
+     */
+    post: operations["search_stays_stays_search_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/trips/search": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/alerts/manage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Manage Alert */
-        get: operations["manage_alert_alerts_manage_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Search Trips
+     * @description Переліт туди-назад + житло на дати рейсу, з загальною сумою і трьома варіантами.
+     *
+     *     Перельоти — звичайний пошук (живі ціни витрачають квоту), житло — на дати кожного
+     *     рекомендованого рейсу. Збій джерела видно в `providers[].status`.
+     */
+    post: operations["search_trips_trips_search_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/alerts/channels": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/alerts/confirm": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Confirm Alert
-         * @description Підтвердження email-підписки (подвійна згода).
-         */
-        post: operations["confirm_alert_alerts_confirm_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Channels
+     * @description Які канали працюють наживо, а які — mock (лише лог, без ключів).
+     */
+    get: operations["channels_alerts_channels_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/alerts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/alerts/stop": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Stop Alert */
-        post: operations["stop_alert_alerts_stop_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Create Alert
+     * @description Нова підписка (pending): підтвердження — /start у боті або посилання з листа.
+     *
+     *     Якщо запит від користувача з сесією — підписка з'явиться в його кабінеті.
+     */
+    post: operations["create_alert_alerts_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/alerts/manage": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Auth Status */
-        get: operations["auth_status_auth_status_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Manage Alert */
+    get: operations["manage_alert_alerts_manage_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/alerts/confirm": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register */
-        post: operations["register_auth_register_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Confirm Alert
+     * @description Підтвердження email-підписки (подвійна згода).
+     */
+    post: operations["confirm_alert_alerts_confirm_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/alerts/stop": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Login */
-        post: operations["login_auth_login_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Stop Alert */
+    post: operations["stop_alert_alerts_stop_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Logout */
-        post: operations["logout_auth_logout_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Auth Status */
+    get: operations["auth_status_auth_status_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/register": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/google/start": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Google Start
-         * @description URL для переходу в Google. Режим link — прив'язати Google до відкритої сесії.
-         */
-        post: operations["google_start_auth_google_start_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Register */
+    post: operations["register_auth_register_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/google/callback": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Google Callback
-         * @description Код від Google → сесія (вхід) або null (прив'язка до вже відкритої сесії).
-         */
-        post: operations["google_callback_auth_google_callback_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Login */
+    post: operations["login_auth_login_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/email/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Verify Email */
-        post: operations["verify_email_auth_email_verify_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Logout */
+    post: operations["logout_auth_logout_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/google/start": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/password/forgot": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Forgot Password */
-        post: operations["forgot_password_auth_password_forgot_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Google Start
+     * @description URL для переходу в Google. Режим link — прив'язати Google до відкритої сесії.
+     */
+    post: operations["google_start_auth_google_start_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/google/callback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/password/reset": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reset Password */
-        post: operations["reset_password_auth_password_reset_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Google Callback
+     * @description Код від Google → сесія (вхід) або null (прив'язка до вже відкритої сесії).
+     */
+    post: operations["google_callback_auth_google_callback_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/email/verify": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/auth/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Me
-         * @description Швидка перевірка сесії для шапки сайту: лише логін та ім'я.
-         */
-        get: operations["me_auth_me_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Verify Email */
+    post: operations["verify_email_auth_email_verify_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/password/forgot": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Account */
-        get: operations["get_account_account_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Forgot Password */
+    post: operations["forgot_password_auth_password_forgot_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/password/reset": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/profile": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** Update Profile */
-        patch: operations["update_profile_account_profile_patch"];
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Reset Password */
+    post: operations["reset_password_auth_password_reset_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/auth/me": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/email": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Change Email
-         * @description Лист із посиланням на НОВУ адресу; основною вона стане після переходу за ним.
-         */
-        post: operations["change_email_account_email_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * Me
+     * @description Швидка перевірка сесії для шапки сайту: лише логін та ім'я.
+     */
+    get: operations["me_auth_me_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Change Password */
-        post: operations["change_password_account_password_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Account */
+    get: operations["get_account_account_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/profile": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/telegram/link": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Telegram Link
-         * @description Одноразове (30 хв) посилання в бота, яке прив'яже чат до акаунта.
-         */
-        post: operations["telegram_link_account_telegram_link_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    /** Update Profile */
+    patch: operations["update_profile_account_profile_patch"];
+    trace?: never;
+  };
+  "/account/flight-filters": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/telegram": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unlink Telegram */
-        delete: operations["unlink_telegram_account_telegram_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /**
+     * Save Flight Filters
+     * @description «Зберегти налаштування» фільтрів: веб додає їх до кожного нового пошуку.
+     */
+    put: operations["save_flight_filters_account_flight_filters_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/email": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/google": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Unlink Google */
-        delete: operations["unlink_google_account_google_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Change Email
+     * @description Лист із посиланням на НОВУ адресу; основною вона стане після переходу за ним.
+     */
+    post: operations["change_email_account_email_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/password": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/delete": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Delete Account
-         * @description Видалення акаунта з усіма даними (GDPR). Потрібен пароль або власний логін.
-         */
-        post: operations["delete_account_account_delete_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Change Password */
+    post: operations["change_password_account_password_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/telegram/link": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/searches": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Searches */
-        get: operations["searches_account_searches_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Telegram Link
+     * @description Одноразове (30 хв) посилання в бота, яке прив'яже чат до акаунта.
+     */
+    post: operations["telegram_link_account_telegram_link_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/telegram": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Record Search */
-        post: operations["record_search_account_history_post"];
-        /** Clear History */
-        delete: operations["clear_history_account_history_delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Unlink Telegram */
+    delete: operations["unlink_telegram_account_telegram_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/google": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/saved": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Save Search */
-        post: operations["save_search_account_saved_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Unlink Google */
+    delete: operations["unlink_google_account_google_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/searches/{entry_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Search */
-        delete: operations["delete_search_account_searches__entry_id__delete"];
-        options?: never;
-        head?: never;
-        /** Rename Search */
-        patch: operations["rename_search_account_searches__entry_id__patch"];
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Delete Account
+     * @description Видалення акаунта з усіма даними (GDPR). Потрібен пароль або власний логін.
+     */
+    post: operations["delete_account_account_delete_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/searches": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/account/alerts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** My Alerts */
-        get: operations["my_alerts_account_alerts_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Searches */
+    get: operations["searches_account_searches_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/history": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ai/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Ai Status */
-        get: operations["ai_status_ai_status_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Record Search */
+    post: operations["record_search_account_history_post"];
+    /** Clear History */
+    delete: operations["clear_history_account_history_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/saved": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ai/parse": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Parse Request
-         * @description Текст природною мовою → структурований пошук (або одне уточнююче питання).
-         */
-        post: operations["parse_request_ai_parse_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Save Search */
+    post: operations["save_search_account_saved_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/account/searches/{entry_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ai/chat": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Chat
-         * @description Репліка розмови з агентом. Сервер розмову не зберігає — її надсилає клієнт.
-         */
-        post: operations["chat_ai_chat_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    post?: never;
+    /** Delete Search */
+    delete: operations["delete_search_account_searches__entry_id__delete"];
+    options?: never;
+    head?: never;
+    /** Rename Search */
+    patch: operations["rename_search_account_searches__entry_id__patch"];
+    trace?: never;
+  };
+  "/account/alerts": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ai/stays/analysis": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Analyze Stays
-         * @description Резюме відгуків і порівняння вибраних об'єктів. Value-score — з коду, не з моделі.
-         */
-        post: operations["analyze_stays_ai_stays_analysis_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** My Alerts */
+    get: operations["my_alerts_account_alerts_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ai/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ai/explain": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Explain Results
-         * @description Пояснення найкращих варіантів пошуку. Числа — лише з результатів скорингу.
-         */
-        post: operations["explain_results_ai_explain_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Ai Status */
+    get: operations["ai_status_ai_status_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ai/parse": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/outbound/clicks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Log Click
-         * @description Облік переходу на партнера (для `/ops/summary`). Редирект від цього не залежить.
-         *
-         *     Збій БД — 503 без винятку назовні: веб викликає це вже після редиректу.
-         */
-        post: operations["log_click_outbound_clicks_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Parse Request
+     * @description Текст природною мовою → структурований пошук (або одне уточнююче питання).
+     */
+    post: operations["parse_request_ai_parse_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ai/chat": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/ops/summary": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Ops Summary
-         * @description Зведення для власника. Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.
-         *
-         *     Без INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.
-         */
-        get: operations["ops_summary_ops_summary_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Chat
+     * @description Репліка розмови з агентом. Сервер розмову не зберігає — її надсилає клієнт.
+     */
+    post: operations["chat_ai_chat_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ai/stays/analysis": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    get?: never;
+    put?: never;
+    /**
+     * Analyze Stays
+     * @description Резюме відгуків і порівняння вибраних об'єктів. Value-score — з коду, не з моделі.
+     */
+    post: operations["analyze_stays_ai_stays_analysis_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ai/explain": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Explain Results
+     * @description Пояснення найкращих варіантів пошуку. Числа — лише з результатів скорингу.
+     */
+    post: operations["explain_results_ai_explain_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/outbound/clicks": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Log Click
+     * @description Облік переходу на партнера (для `/ops/summary`). Редирект від цього не залежить.
+     *
+     *     Збій БД — 503 без винятку назовні: веб викликає це вже після редиректу.
+     */
+    post: operations["log_click_outbound_clicks_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/ops/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Ops Summary
+     * @description Зведення для власника. Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.
+     *
+     *     Без INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.
+     */
+    get: operations["ops_summary_ops_summary_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /** AIStatus */
-        AIStatus: {
-            /** Enabled */
-            enabled: boolean;
-            /**
-             * Provider
-             * @enum {string}
-             */
-            provider: "off" | "mock" | "deepseek";
-        };
-        /** Account */
-        Account: {
-            /** Id */
-            id: string;
-            /** Username */
-            username: string;
-            /** First Name */
-            first_name: string | null;
-            /** Last Name */
-            last_name: string | null;
-            /** Email */
-            email: string | null;
-            /** Pending Email */
-            pending_email: string | null;
-            /** Has Password */
-            has_password: boolean;
-            /** Google Linked */
-            google_linked: boolean;
-            /** Telegram Linked */
-            telegram_linked: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-        };
-        /** AccountAlert */
-        AccountAlert: {
-            /** Id */
-            id: string;
-            /** Origin */
-            origin: string;
-            /** Destination */
-            destination: string;
-            /**
-             * Departure Date
-             * Format: date
-             */
-            departure_date: string;
-            /** Return Date */
-            return_date: string | null;
-            /** Adults */
-            adults: number;
-            /**
-             * Condition
-             * @enum {string}
-             */
-            condition: "below_price" | "below_typical";
-            /** Threshold */
-            threshold: number | null;
-            /** Currency */
-            currency: string;
-            /**
-             * Channel
-             * @enum {string}
-             */
-            channel: "telegram" | "email";
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "pending" | "active" | "stopped" | "expired";
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Last Checked At */
-            last_checked_at: string | null;
-            /** Last Price */
-            last_price: number | null;
-            /** Last Notified Price */
-            last_notified_price: number | null;
-            /** Last Notified At */
-            last_notified_at: string | null;
-            /** Manage Token */
-            manage_token: string;
-        };
-        /** Activity */
-        Activity: {
-            /** Price Observations 24H */
-            price_observations_24h: {
-                [key: string]: number;
-            };
-            /** Users */
-            users: number;
-            /** Active Alerts */
-            active_alerts: number;
-        };
-        /** AdvisorOption */
-        AdvisorOption: {
-            /** Id */
-            id: string;
-            /**
-             * Pros
-             * @default []
-             */
-            pros: string[];
-            /**
-             * Cons
-             * @default []
-             */
-            cons: string[];
-            /**
-             * Risks
-             * @default []
-             */
-            risks: string[];
-            /**
-             * One Liner
-             * @default
-             */
-            one_liner: string;
-        };
-        /** AirlineFacet */
-        AirlineFacet: {
-            /** Code */
-            code: string;
-            /** Name */
-            name: string | null;
-            /** Offers */
-            offers: number;
-        };
-        /** AlertCreate */
-        AlertCreate: {
-            /** Origin */
-            origin: string;
-            /** Destination */
-            destination: string;
-            /**
-             * Departure Date
-             * Format: date
-             */
-            departure_date: string;
-            /** Return Date */
-            return_date?: string | null;
-            /**
-             * Adults
-             * @default 1
-             */
-            adults: number;
-            /**
-             * Condition
-             * @default below_price
-             * @enum {string}
-             */
-            condition: "below_price" | "below_typical";
-            /** Threshold */
-            threshold?: number | null;
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
-            /**
-             * Channel
-             * @default telegram
-             * @enum {string}
-             */
-            channel: "telegram" | "email";
-            /** Email */
-            email?: string | null;
-        };
-        /** AlertCreated */
-        AlertCreated: {
-            /** Id */
-            id: string;
-            /** Status */
-            status: string;
-            /**
-             * Channel
-             * @enum {string}
-             */
-            channel: "telegram" | "email";
-            /** Manage Token */
-            manage_token: string;
-            /** Telegram Link */
-            telegram_link?: string | null;
-        };
-        /**
-         * AlertView
-         * @description Що бачить власник підписки на сторінці керування (без контактних даних).
-         */
-        AlertView: {
-            /** Id */
-            id: string;
-            /** Origin */
-            origin: string;
-            /** Destination */
-            destination: string;
-            /**
-             * Departure Date
-             * Format: date
-             */
-            departure_date: string;
-            /** Return Date */
-            return_date: string | null;
-            /** Adults */
-            adults: number;
-            /**
-             * Condition
-             * @enum {string}
-             */
-            condition: "below_price" | "below_typical";
-            /** Threshold */
-            threshold: number | null;
-            /** Currency */
-            currency: string;
-            /**
-             * Channel
-             * @enum {string}
-             */
-            channel: "telegram" | "email";
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "pending" | "active" | "stopped" | "expired";
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Last Checked At */
-            last_checked_at: string | null;
-            /** Last Price */
-            last_price: number | null;
-            /** Last Notified Price */
-            last_notified_price: number | null;
-            /** Last Notified At */
-            last_notified_at: string | null;
-        };
-        /** AuthStatus */
-        AuthStatus: {
-            /** Google */
-            google: boolean;
-            /**
-             * Email
-             * @enum {string}
-             */
-            email: "live" | "mock";
-        };
-        /** Availability */
-        Availability: {
-            /**
-             * Available
-             * @default false
-             */
-            available: boolean;
-            /**
-             * Text
-             * @default
-             */
-            text: string;
-        };
-        /**
-         * CalendarDay
-         * @description Найнижча відома ціна на конкретну дату вильоту.
-         */
-        CalendarDay: {
-            /**
-             * Date
-             * Format: date
-             */
-            date: string;
-            /** Price */
-            price: number;
-            /** Currency */
-            currency: string;
-            /** Stops */
-            stops?: number | null;
-            /** Airline */
-            airline?: string | null;
-            /** Source */
-            source: string;
-            /**
-             * Collected At
-             * Format: date-time
-             */
-            collected_at: string;
-            /** Found At */
-            found_at?: string | null;
-            /** Found On */
-            found_on?: string | null;
-        };
-        /** CalendarResult */
-        CalendarResult: {
-            /** Days */
-            days: components["schemas"]["CalendarDay"][];
-            /** Providers */
-            providers: components["schemas"]["ProviderStatus"][];
-        };
-        /** ChannelStatus */
-        ChannelStatus: {
-            /**
-             * Telegram
-             * @enum {string}
-             */
-            telegram: "live" | "mock";
-            /**
-             * Email
-             * @enum {string}
-             */
-            email: "live" | "mock";
-            /** Bot Username */
-            bot_username: string | null;
-        };
-        /** ChatBody */
-        ChatBody: {
-            /** Messages */
-            messages: components["schemas"]["ChatTurn"][];
-            /**
-             * Mode
-             * @default flights
-             * @enum {string}
-             */
-            mode: "flights" | "stays" | "trip";
-            current_search?: components["schemas"]["FlightQuery"] | null;
-            current_stay_search?: components["schemas"]["StayQuery"] | null;
-            /** Home Airport */
-            home_airport?: string | null;
-        };
-        /** ChatReply */
-        ChatReply: {
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "ok" | "fallback" | "unavailable";
-            /** Reply */
-            reply?: string | null;
-            search?: components["schemas"]["FlightQuery"] | null;
-            stay_search?: components["schemas"]["StayQuery"] | null;
-            trip_search?: components["schemas"]["TripQuery"] | null;
-        };
-        /**
-         * ChatTurn
-         * @description Репліка розмови. Приходить від клієнта — для моделі це лише дані.
-         */
-        ChatTurn: {
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "user" | "assistant";
-            /** Text */
-            text: string;
-        };
-        /** CheckResult */
-        CheckResult: {
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "ok" | "error";
-            /** Latency Ms */
-            latency_ms?: number | null;
-            /** Error */
-            error?: string | null;
-        };
-        /**
-         * ClickIn
-         * @description Клік «Забронювати». Посилання перевіряє й редиректить веб; сюди — лише облік.
-         */
-        ClickIn: {
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "flight" | "stay";
-            /**
-             * Source
-             * @example travelpayouts
-             */
-            source: string;
-            /**
-             * Host
-             * @example www.aviasales.com
-             */
-            host: string;
-        };
-        /** Clicks */
-        Clicks: {
-            /** Total 24H */
-            total_24h: number;
-            /** Total 7D */
-            total_7d: number;
-            /** By Source 7D */
-            by_source_7d: {
-                [key: string]: number;
-            };
-        };
-        /** DeleteAccountBody */
-        DeleteAccountBody: {
-            /** Confirm */
-            confirm: string;
-        };
-        /** EmailBody */
-        EmailBody: {
-            /** Email */
-            email: string;
-        };
-        /** ExplainResult */
-        ExplainResult: {
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "ok" | "no_options" | "unavailable" | "rejected";
-            explanation?: components["schemas"]["Explanation"] | null;
-        };
-        /** Explanation */
-        Explanation: {
-            /** Summary */
-            summary: string;
-            /** Recommended Id */
-            recommended_id: string;
-            /**
-             * Recommendation Reason
-             * @default
-             */
-            recommendation_reason: string;
-            /**
-             * Options
-             * @default []
-             */
-            options: components["schemas"]["AdvisorOption"][];
-            /**
-             * @default {
-             *       "available": false,
-             *       "text": ""
-             *     }
-             */
-            price_assessment: components["schemas"]["Availability"];
-            /**
-             * @default {
-             *       "available": false,
-             *       "text": ""
-             *     }
-             */
-            timing_advice: components["schemas"]["Availability"];
-            /**
-             * Data Freshness Note
-             * @default
-             */
-            data_freshness_note: string;
-            /**
-             * Flags
-             * @default []
-             */
-            flags: string[];
-        };
-        /** FlightQuery */
-        FlightQuery: {
-            /** Origin */
-            origin: string;
-            /** Destination */
-            destination: string;
-            /**
-             * Departure Date
-             * Format: date
-             */
-            departure_date: string;
-            /** Return Date */
-            return_date?: string | null;
-            /**
-             * Flex Days
-             * @default 0
-             */
-            flex_days: number;
-            /**
-             * @default {
-             *       "adults": 1,
-             *       "children": 0,
-             *       "infants": 0
-             *     }
-             */
-            passengers: components["schemas"]["Passengers"];
-            /**
-             * Direct Only
-             * @default false
-             */
-            direct_only: boolean;
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
-            /**
-             * Profile
-             * @default balanced
-             * @enum {string}
-             */
-            profile: "budget" | "balanced" | "time_is_money";
-            /**
-             * Origin Radius Km
-             * @default 0
-             */
-            origin_radius_km: number;
-            /**
-             * Destination Radius Km
-             * @default 0
-             */
-            destination_radius_km: number;
-            /**
-             * @default {
-             *       "airlines": [],
-             *       "departure_periods": []
-             *     }
-             */
-            filters: components["schemas"]["OfferFilters"];
-        };
-        /** FlightSearchResult */
-        FlightSearchResult: {
-            /** Offers */
-            offers: components["schemas"]["Offer"][];
-            /** Providers */
-            providers: components["schemas"]["ProviderStatus"][];
-            scoring: components["schemas"]["ScoringResult"];
-            facets: components["schemas"]["SearchFacets"];
-        };
-        /** GoogleCallbackBody */
-        GoogleCallbackBody: {
-            /** Code */
-            code: string;
-            /** State */
-            state: string;
-        };
-        /** GoogleStart */
-        GoogleStart: {
-            /** Url */
-            url: string;
-            /** State */
-            state: string;
-        };
-        /** GoogleStartBody */
-        GoogleStartBody: {
-            /**
-             * Mode
-             * @default login
-             * @enum {string}
-             */
-            mode: "login" | "link";
-        };
-        /** Guests */
-        Guests: {
-            /**
-             * Adults
-             * @default 2
-             */
-            adults: number;
-            /**
-             * Children
-             * @default 0
-             */
-            children: number;
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** HealthResponse */
-        HealthResponse: {
-            /**
-             * Status
-             * @constant
-             */
-            status: "ok";
-            /** Version */
-            version: string;
-        };
-        /** KindFacet */
-        KindFacet: {
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "hotel" | "apartment" | "hostel" | "guesthouse";
-            /** Stays */
-            stays: number;
-        };
-        /** LLMSpend */
-        LLMSpend: {
-            /** Calls 24H */
-            calls_24h: number;
-            /** Errors 24H */
-            errors_24h: number;
-            /** Cost Usd 24H */
-            cost_usd_24h: string;
-            /** Cost Usd 30D */
-            cost_usd_30d: string;
-        };
-        /** Layover */
-        Layover: {
-            /** Airport */
-            airport: string;
-            /** Duration Min */
-            duration_min: number;
-            /** Overnight */
-            overnight: boolean;
-            /** Self Transfer */
-            self_transfer: boolean | null;
-        };
-        /**
-         * Leg
-         * @description Один напрямок подорожі (туди або назад).
-         */
-        Leg: {
-            /** Origin */
-            origin: string;
-            /** Destination */
-            destination: string;
-            /**
-             * Departure At
-             * Format: date-time
-             */
-            departure_at: string;
-            /** Arrival At */
-            arrival_at?: string | null;
-            /** Duration Min */
-            duration_min?: number | null;
-            /** Stops */
-            stops: number;
-            /** Segments */
-            segments?: components["schemas"]["Segment"][] | null;
-            /** Layovers */
-            layovers?: components["schemas"]["Layover"][] | null;
-            /** Flight Number */
-            flight_number?: string | null;
-        };
-        /** LoginBody */
-        LoginBody: {
-            /** Login */
-            login: string;
-            /** Password */
-            password: string;
-        };
-        /** Offer */
-        Offer: {
-            /** Id */
-            id: string;
-            /** Source */
-            source: string;
-            /** Price */
-            price: number;
-            /** Currency */
-            currency: string;
-            outbound: components["schemas"]["Leg"];
-            inbound?: components["schemas"]["Leg"] | null;
-            /** Airlines */
-            airlines: string[];
-            /**
-             * Airline Logos
-             * @default {}
-             */
-            airline_logos: {
-                [key: string]: string;
-            };
-            /**
-             * Details Level
-             * @enum {string}
-             */
-            details_level: "full" | "summary";
-            /** Baggage Included */
-            baggage_included?: boolean | null;
-            /**
-             * Collected At
-             * Format: date-time
-             */
-            collected_at: string;
-            /** Found At */
-            found_at?: string | null;
-            /** Found On */
-            found_on?: string | null;
-            /** Expires At */
-            expires_at?: string | null;
-            /** Deep Link */
-            deep_link?: string | null;
-            /** Seller */
-            seller?: string | null;
-            /** Reported Total Duration Min */
-            reported_total_duration_min?: number | null;
-            /** Stops */
-            readonly stops: number;
-            /** Total Duration Min */
-            readonly total_duration_min: number | null;
-        };
-        /**
-         * OfferFilters
-         * @description Фільтри видачі. Застосовуються ПІСЛЯ провайдерів: до запиту й кешу не входять.
-         *
-         *     Невідоме значення (тривалість, авіакомпанія) не відсікає пропозицію — як і в
-         *     скорингу, «невідомо» не означає «погано» (ADR 0004).
-         */
-        OfferFilters: {
-            /** Max Stops */
-            max_stops?: number | null;
-            /** Airlines */
-            airlines?: string[];
-            /** Departure Periods */
-            departure_periods?: ("night" | "morning" | "afternoon" | "evening")[];
-            /** Max Duration Hours */
-            max_duration_hours?: number | null;
-            /** Max Price */
-            max_price?: number | null;
-        };
-        /** OfferScore */
-        OfferScore: {
-            /** Offer Key */
-            offer_key: string;
-            breakdown: components["schemas"]["ScoreBreakdown"];
-            /** Warnings */
-            warnings: components["schemas"]["ScoreWarning"][];
-            /** Pareto Optimal */
-            pareto_optimal: boolean;
-        };
-        /** OpsSummary */
-        OpsSummary: {
-            /**
-             * Generated At
-             * Format: date-time
-             */
-            generated_at: string;
-            serpapi: components["schemas"]["SerpApiQuota"] | null;
-            llm: components["schemas"]["LLMSpend"] | null;
-            clicks: components["schemas"]["Clicks"] | null;
-            activity: components["schemas"]["Activity"] | null;
-            /** Problems */
-            problems: string[];
-        };
-        /** ParseRequest */
-        ParseRequest: {
-            /** Message */
-            message: string;
-            /** Home Airport */
-            home_airport?: string | null;
-            /**
-             * History
-             * @default []
-             */
-            history: components["schemas"]["Turn"][];
-        };
-        /** ParseResult */
-        ParseResult: {
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "search" | "clarify" | "unsupported" | "unavailable";
-            query?: components["schemas"]["FlightQuery"] | null;
-            /** Clarifying Question */
-            clarifying_question?: string | null;
-            /**
-             * Notes
-             * @default []
-             */
-            notes: ("origin_from_home" | "date_from_calendar" | "date_from_range_middle" | "return_from_trip_length" | "budget_applied" | "budget_not_applied" | "overnight_layover_scored" | "self_transfer_scored" | "children_not_priced" | "stays_later")[];
-            /**
-             * Flags
-             * @default []
-             */
-            flags: string[];
-        };
-        /** Passengers */
-        Passengers: {
-            /**
-             * Adults
-             * @default 1
-             */
-            adults: number;
-            /**
-             * Children
-             * @default 0
-             */
-            children: number;
-            /**
-             * Infants
-             * @default 0
-             */
-            infants: number;
-        };
-        /** PasswordChangeBody */
-        PasswordChangeBody: {
-            /** Current Password */
-            current_password?: string | null;
-            /** New Password */
-            new_password: string;
-        };
-        /** PasswordResetBody */
-        PasswordResetBody: {
-            /** Token */
-            token: string;
-            /** New Password */
-            new_password: string;
-        };
-        /** Pick */
-        Pick: {
-            /**
-             * Label
-             * @enum {string}
-             */
-            label: "cheapest" | "fastest" | "balanced";
-            /** Offer Key */
-            offer_key: string;
-            /**
-             * Also
-             * @default []
-             */
-            also: ("cheapest" | "fastest" | "balanced")[];
-        };
-        /**
-         * Place
-         * @description Варіант автодоповнення: аеропорт або місто, де жоден аеропорт не має коду міста.
-         */
-        Place: {
-            /** Code */
-            code: string;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "airport" | "city";
-            /** Name */
-            name: string;
-            /** City Name */
-            city_name: string;
-            /** Country Name */
-            country_name: string;
-            /** Airports */
-            airports: string[];
-        };
-        /** ProfileBody */
-        ProfileBody: {
-            /** First Name */
-            first_name?: string | null;
-            /** Last Name */
-            last_name?: string | null;
-        };
-        /** ProviderStatus */
-        ProviderStatus: {
-            /** Provider */
-            provider: string;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "ok" | "error" | "timeout" | "rate_limited";
-            /** Error */
-            error?: string | null;
-            /**
-             * Results
-             * @default 0
-             */
-            results: number;
-        };
-        /** ReadinessResponse */
-        ReadinessResponse: {
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "ok" | "degraded";
-            /** Checks */
-            checks: {
-                [key: string]: components["schemas"]["CheckResult"];
-            };
-        };
-        /** RegisterBody */
-        RegisterBody: {
-            /** Username */
-            username: string;
-            /** Password */
-            password: string;
-            /** First Name */
-            first_name?: string | null;
-            /** Last Name */
-            last_name?: string | null;
-        };
-        /** RiskPenalty */
-        RiskPenalty: {
-            /**
-             * Code
-             * @enum {string}
-             */
-            code: "short_layover" | "overnight_layover" | "self_transfer" | "night_departure";
-            /**
-             * Leg
-             * @enum {string}
-             */
-            leg: "outbound" | "inbound";
-            /** Amount */
-            amount: number;
-            /** Airport */
-            airport?: string | null;
-        };
-        /** ScoreBreakdown */
-        ScoreBreakdown: {
-            /** Price */
-            price: number;
-            /** Time Penalty */
-            time_penalty: number | null;
-            /** Stop Penalty */
-            stop_penalty: number;
-            /** Risk Penalties */
-            risk_penalties: components["schemas"]["RiskPenalty"][];
-            /** Risk Total */
-            risk_total: number;
-            /** Total */
-            total: number | null;
-        };
-        /** ScoreWarning */
-        ScoreWarning: {
-            /**
-             * Code
-             * @enum {string}
-             */
-            code: "layover_details_unknown" | "long_layover" | "baggage_not_included" | "baggage_unknown" | "duration_unknown";
-            /** Leg */
-            leg?: ("outbound" | "inbound") | null;
-            /** Airport */
-            airport?: string | null;
-        };
-        /** ScoringResult */
-        ScoringResult: {
-            /**
-             * Profile
-             * @enum {string}
-             */
-            profile: "budget" | "balanced" | "time_is_money";
-            /** Currency */
-            currency: string;
-            /** Min Duration Min */
-            min_duration_min: number | null;
-            /** Scores */
-            scores: components["schemas"]["OfferScore"][];
-            /** Picks */
-            picks: components["schemas"]["Pick"][];
-            /**
-             * Unscored Offer Keys
-             * @default []
-             */
-            unscored_offer_keys: string[];
-        };
-        /** SearchEntryBody */
-        SearchEntryBody: {
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "flights" | "stays" | "trip";
-            /** Params */
-            params: string;
-            /** Title */
-            title: string;
-        };
-        /** SearchEntryOut */
-        SearchEntryOut: {
-            /** Id */
-            id: string;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "flights" | "stays" | "trip";
-            /** Params */
-            params: string;
-            /** Title */
-            title: string;
-            /** Saved */
-            saved: boolean;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-        };
-        /** SearchEntryRename */
-        SearchEntryRename: {
-            /** Title */
-            title: string;
-        };
-        /**
-         * SearchFacets
-         * @description Що є у видачі ДО фільтрів — щоб UI показав доступні варіанти фільтрів.
-         */
-        SearchFacets: {
-            /** Total Offers */
-            total_offers: number;
-            /** Airlines */
-            airlines: components["schemas"]["AirlineFacet"][];
-        };
-        /** Segment */
-        Segment: {
-            /** Origin */
-            origin: string;
-            /** Destination */
-            destination: string;
-            /**
-             * Departure At
-             * Format: date-time
-             */
-            departure_at: string;
-            /**
-             * Arrival At
-             * Format: date-time
-             */
-            arrival_at: string;
-            /** Carrier */
-            carrier: string;
-            /** Flight Number */
-            flight_number: string;
-            /** Duration Min */
-            duration_min: number;
-        };
-        /** SerpApiQuota */
-        SerpApiQuota: {
-            /** Searches Per Month */
-            searches_per_month?: number | null;
-            /** This Month Usage */
-            this_month_usage?: number | null;
-            /** Plan Searches Left */
-            plan_searches_left?: number | null;
-            /** Total Searches Left */
-            total_searches_left?: number | null;
-            /** This Hour Searches */
-            this_hour_searches?: number | null;
-        };
-        /**
-         * SessionOut
-         * @description Токен сесії — лише для веб-сервера (кладе його в httpOnly-cookie), не для браузера.
-         */
-        SessionOut: {
-            /** Token */
-            token: string;
-            /**
-             * Expires At
-             * Format: date-time
-             */
-            expires_at: string;
-        };
-        /** Stay */
-        Stay: {
-            /** Id */
-            id: string;
-            /** Source */
-            source: string;
-            /** Name */
-            name: string;
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "hotel" | "apartment" | "hostel" | "guesthouse";
-            /** Stars */
-            stars?: number | null;
-            /** Price Per Night */
-            price_per_night: number;
-            /** Total Price */
-            total_price: number;
-            /** Currency */
-            currency: string;
-            /** Nights */
-            nights: number;
-            /** Rating */
-            rating?: number | null;
-            /**
-             * Review Count
-             * @default 0
-             */
-            review_count: number;
-            /** Latitude */
-            latitude?: number | null;
-            /** Longitude */
-            longitude?: number | null;
-            /** Distance To Center Km */
-            distance_to_center_km?: number | null;
-            /** Distance To Transit M */
-            distance_to_transit_m?: number | null;
-            /** Cancellation */
-            cancellation?: ("free" | "partial" | "non_refundable") | null;
-            /** Free Cancellation Until */
-            free_cancellation_until?: string | null;
-            /** Amenities */
-            amenities?: ("wifi" | "breakfast" | "parking" | "pool" | "gym" | "kitchen" | "air_conditioning" | "spa" | "pets" | "airport_shuttle")[];
-            /** District */
-            district?: string | null;
-            /** Image Url */
-            image_url?: string | null;
-            /** Deep Link */
-            deep_link?: string | null;
-            /** Seller */
-            seller?: string | null;
-            /**
-             * Collected At
-             * Format: date-time
-             */
-            collected_at: string;
-            /** Found At */
-            found_at?: string | null;
-        };
-        /** StayAnalysis */
-        StayAnalysis: {
-            /**
-             * Stays
-             * @default []
-             */
-            stays: components["schemas"]["StayInsight"][];
-            /** Top Pick Id */
-            top_pick_id: string;
-            /**
-             * Top Pick Reason
-             * @default
-             */
-            top_pick_reason: string;
-            /**
-             * Price Vs Location Note
-             * @default
-             */
-            price_vs_location_note: string;
-            /**
-             * Flags
-             * @default []
-             */
-            flags: string[];
-        };
-        /** StayAnalysisBody */
-        StayAnalysisBody: {
-            query: components["schemas"]["StayQuery"];
-            /** Stay Keys */
-            stay_keys: string[];
-        };
-        /** StayAnalysisResult */
-        StayAnalysisResult: {
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "ok" | "no_stays" | "unavailable" | "rejected";
-            analysis?: components["schemas"]["StayAnalysis"] | null;
-        };
-        /**
-         * StayFacets
-         * @description Що є у видачі ДО фільтрів — для варіантів фільтрів у UI.
-         */
-        StayFacets: {
-            /** Total Stays */
-            total_stays: number;
-            /** Kinds */
-            kinds: components["schemas"]["KindFacet"][];
-            /** Min Price Per Night */
-            min_price_per_night: number | null;
-            /** Max Price Per Night */
-            max_price_per_night: number | null;
-        };
-        /**
-         * StayFilters
-         * @description Фільтри видачі: як і для перельотів, застосовуються після провайдерів.
-         */
-        StayFilters: {
-            /** Max Price Per Night */
-            max_price_per_night?: number | null;
-            /** Min Rating */
-            min_rating?: number | null;
-            /**
-             * Free Cancellation
-             * @default false
-             */
-            free_cancellation: boolean;
-            /** Kinds */
-            kinds?: ("hotel" | "apartment" | "hostel" | "guesthouse")[];
-        };
-        /** StayInsight */
-        StayInsight: {
-            /** Id */
-            id: string;
-            /**
-             * Pros
-             * @default []
-             */
-            pros: string[];
-            /**
-             * Cons
-             * @default []
-             */
-            cons: string[];
-            /**
-             * Red Flags
-             * @default []
-             */
-            red_flags: string[];
-            /**
-             * Reliability
-             * @default medium
-             * @enum {string}
-             */
-            reliability: "high" | "medium" | "low";
-            /**
-             * Reliability Note
-             * @default
-             */
-            reliability_note: string;
-            /**
-             * Best For
-             * @default
-             */
-            best_for: string;
-        };
-        /** StayPick */
-        StayPick: {
-            /**
-             * Label
-             * @enum {string}
-             */
-            label: "cheapest" | "top_rated" | "balanced";
-            /** Stay Key */
-            stay_key: string;
-            /**
-             * Also
-             * @default []
-             */
-            also: ("cheapest" | "top_rated" | "balanced")[];
-        };
-        /**
-         * StayPlace
-         * @description Місто пошуку (для заголовка й відстаней).
-         */
-        StayPlace: {
-            /** Code */
-            code: string;
-            /** Name */
-            name: string;
-            /** Country */
-            country: string;
-        };
-        /** StayQuery */
-        StayQuery: {
-            /** City */
-            city: string;
-            /**
-             * Check In
-             * Format: date
-             */
-            check_in: string;
-            /**
-             * Check Out
-             * Format: date
-             */
-            check_out: string;
-            /**
-             * @default {
-             *       "adults": 2,
-             *       "children": 0
-             *     }
-             */
-            guests: components["schemas"]["Guests"];
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
-            /**
-             * Profile
-             * @default balanced
-             * @enum {string}
-             */
-            profile: "budget" | "balanced" | "center";
-            /**
-             * @default {
-             *       "free_cancellation": false,
-             *       "kinds": []
-             *     }
-             */
-            filters: components["schemas"]["StayFilters"];
-        };
-        /** StayScore */
-        StayScore: {
-            /** Stay Key */
-            stay_key: string;
-            breakdown: components["schemas"]["StayScoreBreakdown"];
-            /** Warnings */
-            warnings: components["schemas"]["StayWarning"][];
-            /** Pareto Optimal */
-            pareto_optimal: boolean;
-        };
-        /** StayScoreBreakdown */
-        StayScoreBreakdown: {
-            /** Price */
-            price: number;
-            /** Distance Penalty */
-            distance_penalty: number;
-            /** Transit Penalty */
-            transit_penalty: number;
-            /** Rating Penalty */
-            rating_penalty: number;
-            /** Cancellation Penalty */
-            cancellation_penalty: number;
-            /** Adjusted Rating */
-            adjusted_rating: number | null;
-            /** Total */
-            total: number;
-        };
-        /** StayScoringResult */
-        StayScoringResult: {
-            /**
-             * Profile
-             * @enum {string}
-             */
-            profile: "budget" | "balanced" | "center";
-            /** Currency */
-            currency: string;
-            /** Scores */
-            scores: components["schemas"]["StayScore"][];
-            /** Picks */
-            picks: components["schemas"]["StayPick"][];
-            /**
-             * Unscored Stay Keys
-             * @default []
-             */
-            unscored_stay_keys: string[];
-        };
-        /** StaySearchResult */
-        StaySearchResult: {
-            place: components["schemas"]["StayPlace"] | null;
-            /** Stays */
-            stays: components["schemas"]["Stay"][];
-            /** Providers */
-            providers: components["schemas"]["ProviderStatus"][];
-            scoring: components["schemas"]["StayScoringResult"];
-            facets: components["schemas"]["StayFacets"];
-        };
-        /** StayWarning */
-        StayWarning: {
-            /**
-             * Code
-             * @enum {string}
-             */
-            code: "few_reviews" | "no_rating" | "distance_unknown" | "transit_unknown" | "cancellation_unknown";
-        };
-        /** StayWindow */
-        StayWindow: {
-            /**
-             * Check In
-             * Format: date
-             */
-            check_in: string;
-            /**
-             * Check Out
-             * Format: date
-             */
-            check_out: string;
-            /** Nights */
-            nights: number;
-        };
-        /** TripBudget */
-        TripBudget: {
-            /** Budget */
-            budget: number;
-            /** Within */
-            within: number;
-            /** Shortfall */
-            shortfall: number | null;
-        };
-        /** TripCombo */
-        TripCombo: {
-            /** Key */
-            key: string;
-            /** Offer Key */
-            offer_key: string;
-            /** Stay Key */
-            stay_key: string;
-            window: components["schemas"]["StayWindow"];
-            /** Flight Price */
-            flight_price: number;
-            /** Flight Total */
-            flight_total: number;
-            /** Stay Total */
-            stay_total: number;
-            /** Money Total */
-            money_total: number;
-            /** Value Total */
-            value_total: number | null;
-            /** Currency */
-            currency: string;
-            /**
-             * Warnings
-             * @default []
-             */
-            warnings: ("early_arrival" | "children_not_priced" | "value_unknown")[];
-        };
-        /** TripPick */
-        TripPick: {
-            /**
-             * Label
-             * @enum {string}
-             */
-            label: "cheapest" | "best_value" | "comfort";
-            /** Combo Key */
-            combo_key: string;
-            /**
-             * Also
-             * @default []
-             */
-            also: ("cheapest" | "best_value" | "comfort")[];
-        };
-        /** TripQuery */
-        TripQuery: {
-            /** Origin */
-            origin: string;
-            /** Destination */
-            destination: string;
-            /**
-             * Departure Date
-             * Format: date
-             */
-            departure_date: string;
-            /**
-             * Return Date
-             * Format: date
-             */
-            return_date: string;
-            /**
-             * Flex Days
-             * @default 0
-             */
-            flex_days: number;
-            /**
-             * Adults
-             * @default 2
-             */
-            adults: number;
-            /**
-             * Children
-             * @default 0
-             */
-            children: number;
-            /**
-             * Direct Only
-             * @default false
-             */
-            direct_only: boolean;
-            /**
-             * Profile
-             * @default balanced
-             * @enum {string}
-             */
-            profile: "budget" | "balanced" | "comfort";
-            /** Budget Total */
-            budget_total?: number | null;
-            /**
-             * Currency
-             * @default EUR
-             */
-            currency: string;
-        };
-        /** TripSearchResult */
-        TripSearchResult: {
-            query: components["schemas"]["TripQuery"];
-            flight_query: components["schemas"]["FlightQuery"];
-            /** Stay Queries */
-            stay_queries: components["schemas"]["StayQuery"][];
-            /** Offers */
-            offers: components["schemas"]["Offer"][];
-            /** Stays */
-            stays: components["schemas"]["Stay"][];
-            /** Combos */
-            combos: components["schemas"]["TripCombo"][];
-            /** Picks */
-            picks: components["schemas"]["TripPick"][];
-            budget?: components["schemas"]["TripBudget"] | null;
-            /** Providers */
-            providers: components["schemas"]["ProviderStatus"][];
-            /** Flights Found */
-            flights_found: number;
-            /** Airlines */
-            airlines: components["schemas"]["AirlineFacet"][];
-        };
-        /**
-         * Turn
-         * @description Репліка діалогу уточнень. Приходить від клієнта — для моделі це лише дані.
-         */
-        Turn: {
-            /**
-             * Role
-             * @enum {string}
-             */
-            role: "user" | "assistant";
-            /** Text */
-            text: string;
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-            /** Input */
-            input?: unknown;
-            /** Context */
-            ctx?: Record<string, never>;
-        };
-        /** TokenBody */
-        tickets_api__api__alerts__TokenBody: {
-            /** Token */
-            token: string;
-        };
-        /** TokenBody */
-        tickets_api__domain__accounts__TokenBody: {
-            /** Token */
-            token: string;
-        };
+  schemas: {
+    /** AIStatus */
+    AIStatus: {
+      /** Enabled */
+      enabled: boolean;
+      /**
+       * Provider
+       * @enum {string}
+       */
+      provider: "off" | "mock" | "deepseek";
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /** Account */
+    Account: {
+      /** Id */
+      id: string;
+      /** Username */
+      username: string;
+      /** First Name */
+      first_name: string | null;
+      /** Last Name */
+      last_name: string | null;
+      /** Email */
+      email: string | null;
+      /** Pending Email */
+      pending_email: string | null;
+      /** Has Password */
+      has_password: boolean;
+      /** Google Linked */
+      google_linked: boolean;
+      /** Telegram Linked */
+      telegram_linked: boolean;
+      /** Flight Filters */
+      flight_filters?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+    };
+    /** AccountAlert */
+    AccountAlert: {
+      /** Id */
+      id: string;
+      /** Origin */
+      origin: string;
+      /** Destination */
+      destination: string;
+      /**
+       * Departure Date
+       * Format: date
+       */
+      departure_date: string;
+      /** Return Date */
+      return_date: string | null;
+      /** Adults */
+      adults: number;
+      /**
+       * Condition
+       * @enum {string}
+       */
+      condition: "below_price" | "below_typical";
+      /** Threshold */
+      threshold: number | null;
+      /** Currency */
+      currency: string;
+      /**
+       * Channel
+       * @enum {string}
+       */
+      channel: "telegram" | "email";
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "pending" | "active" | "stopped" | "expired";
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Last Checked At */
+      last_checked_at: string | null;
+      /** Last Price */
+      last_price: number | null;
+      /** Last Notified Price */
+      last_notified_price: number | null;
+      /** Last Notified At */
+      last_notified_at: string | null;
+      /** Manage Token */
+      manage_token: string;
+    };
+    /** Activity */
+    Activity: {
+      /** Price Observations 24H */
+      price_observations_24h: {
+        [key: string]: number;
+      };
+      /** Users */
+      users: number;
+      /** Active Alerts */
+      active_alerts: number;
+    };
+    /** AdvisorOption */
+    AdvisorOption: {
+      /** Id */
+      id: string;
+      /**
+       * Pros
+       * @default []
+       */
+      pros: string[];
+      /**
+       * Cons
+       * @default []
+       */
+      cons: string[];
+      /**
+       * Risks
+       * @default []
+       */
+      risks: string[];
+      /**
+       * One Liner
+       * @default
+       */
+      one_liner: string;
+    };
+    /** AirlineFacet */
+    AirlineFacet: {
+      /** Code */
+      code: string;
+      /** Name */
+      name: string | null;
+      /** Offers */
+      offers: number;
+    };
+    /** AlertCreate */
+    AlertCreate: {
+      /** Origin */
+      origin: string;
+      /** Destination */
+      destination: string;
+      /**
+       * Departure Date
+       * Format: date
+       */
+      departure_date: string;
+      /** Return Date */
+      return_date?: string | null;
+      /**
+       * Adults
+       * @default 1
+       */
+      adults: number;
+      /**
+       * Condition
+       * @default below_price
+       * @enum {string}
+       */
+      condition: "below_price" | "below_typical";
+      /** Threshold */
+      threshold?: number | null;
+      /**
+       * Currency
+       * @default EUR
+       */
+      currency: string;
+      /**
+       * Channel
+       * @default telegram
+       * @enum {string}
+       */
+      channel: "telegram" | "email";
+      /** Email */
+      email?: string | null;
+    };
+    /** AlertCreated */
+    AlertCreated: {
+      /** Id */
+      id: string;
+      /** Status */
+      status: string;
+      /**
+       * Channel
+       * @enum {string}
+       */
+      channel: "telegram" | "email";
+      /** Manage Token */
+      manage_token: string;
+      /** Telegram Link */
+      telegram_link?: string | null;
+    };
+    /**
+     * AlertView
+     * @description Що бачить власник підписки на сторінці керування (без контактних даних).
+     */
+    AlertView: {
+      /** Id */
+      id: string;
+      /** Origin */
+      origin: string;
+      /** Destination */
+      destination: string;
+      /**
+       * Departure Date
+       * Format: date
+       */
+      departure_date: string;
+      /** Return Date */
+      return_date: string | null;
+      /** Adults */
+      adults: number;
+      /**
+       * Condition
+       * @enum {string}
+       */
+      condition: "below_price" | "below_typical";
+      /** Threshold */
+      threshold: number | null;
+      /** Currency */
+      currency: string;
+      /**
+       * Channel
+       * @enum {string}
+       */
+      channel: "telegram" | "email";
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "pending" | "active" | "stopped" | "expired";
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Last Checked At */
+      last_checked_at: string | null;
+      /** Last Price */
+      last_price: number | null;
+      /** Last Notified Price */
+      last_notified_price: number | null;
+      /** Last Notified At */
+      last_notified_at: string | null;
+    };
+    /** AuthStatus */
+    AuthStatus: {
+      /** Google */
+      google: boolean;
+      /**
+       * Email
+       * @enum {string}
+       */
+      email: "live" | "mock";
+    };
+    /** Availability */
+    Availability: {
+      /**
+       * Available
+       * @default false
+       */
+      available: boolean;
+      /**
+       * Text
+       * @default
+       */
+      text: string;
+    };
+    /** BagAllowance */
+    BagAllowance: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "included" | "fee" | "not_available";
+      /** Fee */
+      fee?: number | null;
+    };
+    /**
+     * Baggage
+     * @description Умови багажу тарифу від джерела. None в полі — невідомо (а не «немає»), ADR 0004.
+     */
+    Baggage: {
+      personal_item?: components["schemas"]["BagAllowance"] | null;
+      carry_on?: components["schemas"]["BagAllowance"] | null;
+      checked?: components["schemas"]["BagAllowance"] | null;
+      checked_extra?: components["schemas"]["BagAllowance"] | null;
+    };
+    /** BaggageCost */
+    BaggageCost: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "included" | "extra" | "unknown" | "not_available";
+      /** Extra */
+      extra: number | null;
+      /** Total */
+      total: number | null;
+      /** Unknown */
+      unknown: ("personal_item" | "carry_on" | "checked" | "checked_extra")[];
+    };
+    /** BookingLink */
+    BookingLink: {
+      /** Url */
+      url: string;
+      /**
+       * Method
+       * @default GET
+       * @enum {string}
+       */
+      method: "GET" | "POST";
+      /** Post Data */
+      post_data?: string | null;
+    };
+    /**
+     * CalendarDay
+     * @description Найнижча відома ціна на конкретну дату вильоту.
+     */
+    CalendarDay: {
+      /**
+       * Date
+       * Format: date
+       */
+      date: string;
+      /** Price */
+      price: number;
+      /** Currency */
+      currency: string;
+      /** Stops */
+      stops?: number | null;
+      /** Airline */
+      airline?: string | null;
+      /** Source */
+      source: string;
+      /**
+       * Collected At
+       * Format: date-time
+       */
+      collected_at: string;
+      /** Found At */
+      found_at?: string | null;
+      /** Found On */
+      found_on?: string | null;
+    };
+    /** CalendarResult */
+    CalendarResult: {
+      /** Days */
+      days: components["schemas"]["CalendarDay"][];
+      /** Providers */
+      providers: components["schemas"]["ProviderStatus"][];
+    };
+    /** ChannelStatus */
+    ChannelStatus: {
+      /**
+       * Telegram
+       * @enum {string}
+       */
+      telegram: "live" | "mock";
+      /**
+       * Email
+       * @enum {string}
+       */
+      email: "live" | "mock";
+      /** Bot Username */
+      bot_username: string | null;
+    };
+    /** ChatBody */
+    ChatBody: {
+      /** Messages */
+      messages: components["schemas"]["ChatTurn"][];
+      /**
+       * Mode
+       * @default flights
+       * @enum {string}
+       */
+      mode: "flights" | "stays" | "trip";
+      current_search?: components["schemas"]["FlightQuery"] | null;
+      current_stay_search?: components["schemas"]["StayQuery"] | null;
+      /** Home Airport */
+      home_airport?: string | null;
+    };
+    /** ChatReply */
+    ChatReply: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "fallback" | "unavailable";
+      /** Reply */
+      reply?: string | null;
+      search?: components["schemas"]["FlightQuery"] | null;
+      stay_search?: components["schemas"]["StayQuery"] | null;
+      trip_search?: components["schemas"]["TripQuery"] | null;
+    };
+    /**
+     * ChatTurn
+     * @description Репліка розмови. Приходить від клієнта — для моделі це лише дані.
+     */
+    ChatTurn: {
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "user" | "assistant";
+      /** Text */
+      text: string;
+    };
+    /** CheckResult */
+    CheckResult: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "error";
+      /** Latency Ms */
+      latency_ms?: number | null;
+      /** Error */
+      error?: string | null;
+    };
+    /**
+     * ClickIn
+     * @description Клік «Забронювати». Посилання перевіряє й редиректить веб; сюди — лише облік.
+     */
+    ClickIn: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "flight" | "stay";
+      /**
+       * Source
+       * @example travelpayouts
+       */
+      source: string;
+      /**
+       * Host
+       * @example www.aviasales.com
+       */
+      host: string;
+    };
+    /** Clicks */
+    Clicks: {
+      /** Total 24H */
+      total_24h: number;
+      /** Total 7D */
+      total_7d: number;
+      /** By Source 7D */
+      by_source_7d: {
+        [key: string]: number;
+      };
+    };
+    /** DateOption */
+    DateOption: {
+      /**
+       * Departure
+       * Format: date
+       */
+      departure: string;
+      /** Return Date */
+      return_date: string | null;
+      /** Price */
+      price: number;
+      /** Currency */
+      currency: string;
+      /** Verified */
+      verified: boolean;
+      /** Found At */
+      found_at: string | null;
+      /** Found On */
+      found_on: string | null;
+      /** Offers */
+      offers: number;
+      /** Nights */
+      nights?: number | null;
+      /**
+       * Nights Approximate
+       * @default false
+       */
+      nights_approximate: boolean;
+    };
+    /** DatePair */
+    DatePair: {
+      /**
+       * Departure
+       * Format: date
+       */
+      departure: string;
+      /** Return Date */
+      return_date?: string | null;
+    };
+    /** DeleteAccountBody */
+    DeleteAccountBody: {
+      /** Confirm */
+      confirm: string;
+    };
+    /** EmailBody */
+    EmailBody: {
+      /** Email */
+      email: string;
+    };
+    /** ExplainResult */
+    ExplainResult: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "no_options" | "unavailable" | "rejected";
+      explanation?: components["schemas"]["Explanation"] | null;
+    };
+    /** Explanation */
+    Explanation: {
+      /** Summary */
+      summary: string;
+      /** Recommended Id */
+      recommended_id: string;
+      /**
+       * Recommendation Reason
+       * @default
+       */
+      recommendation_reason: string;
+      /**
+       * Options
+       * @default []
+       */
+      options: components["schemas"]["AdvisorOption"][];
+      /**
+       * @default {
+       *       "available": false,
+       *       "text": ""
+       *     }
+       */
+      price_assessment: components["schemas"]["Availability"];
+      /**
+       * @default {
+       *       "available": false,
+       *       "text": ""
+       *     }
+       */
+      timing_advice: components["schemas"]["Availability"];
+      /**
+       * Data Freshness Note
+       * @default
+       */
+      data_freshness_note: string;
+      /**
+       * Flags
+       * @default []
+       */
+      flags: string[];
+    };
+    /** FlightFiltersBody */
+    FlightFiltersBody: {
+      /** Flight Filters */
+      flight_filters?: string | null;
+    };
+    /** FlightQuery */
+    FlightQuery: {
+      /** Origin */
+      origin: string;
+      /** Destination */
+      destination: string;
+      /**
+       * Departure Date
+       * Format: date
+       */
+      departure_date: string;
+      /** Return Date */
+      return_date?: string | null;
+      /**
+       * Flex Days
+       * @default 0
+       */
+      flex_days: number;
+      /** Departure Until */
+      departure_until?: string | null;
+      /** Min Nights */
+      min_nights?: number | null;
+      /** Max Nights */
+      max_nights?: number | null;
+      /** Check Dates */
+      check_dates?: components["schemas"]["DatePair"][] | null;
+      /**
+       * @default {
+       *       "adults": 1,
+       *       "children": 0,
+       *       "infants": 0,
+       *       "infants_in_seat": 0
+       *     }
+       */
+      passengers: components["schemas"]["Passengers"];
+      /**
+       * Cabin
+       * @default economy
+       * @enum {string}
+       */
+      cabin: "economy" | "premium_economy" | "business" | "first";
+      /**
+       * Baggage
+       * @default none
+       * @enum {string}
+       */
+      baggage:
+        "none" | "personal_item" | "carry_on" | "checked" | "checked_extra";
+      /**
+       * Direct Only
+       * @default false
+       */
+      direct_only: boolean;
+      /**
+       * Currency
+       * @default EUR
+       */
+      currency: string;
+      /**
+       * Profile
+       * @default balanced
+       * @enum {string}
+       */
+      profile: "budget" | "balanced" | "time_is_money";
+      /**
+       * Origin Radius Km
+       * @default 0
+       */
+      origin_radius_km: number;
+      /**
+       * Destination Radius Km
+       * @default 0
+       */
+      destination_radius_km: number;
+      /**
+       * @default {
+       *       "airlines": [],
+       *       "excluded_airlines": [],
+       *       "departure_periods": [],
+       *       "arrival_periods": [],
+       *       "return_departure_periods": [],
+       *       "return_arrival_periods": []
+       *     }
+       */
+      filters: components["schemas"]["OfferFilters"];
+    };
+    /** FlightSearchResult */
+    FlightSearchResult: {
+      /** Offers */
+      offers: components["schemas"]["Offer"][];
+      /** Providers */
+      providers: components["schemas"]["ProviderStatus"][];
+      scoring: components["schemas"]["ScoringResult"];
+      facets: components["schemas"]["SearchFacets"];
+      /**
+       * Baggage
+       * @default {}
+       */
+      baggage: {
+        [key: string]: components["schemas"]["BaggageCost"];
+      };
+      /**
+       * Groups
+       * @default []
+       */
+      groups: components["schemas"]["OfferGroup"][];
+      /**
+       * Date Options
+       * @default []
+       */
+      date_options: components["schemas"]["DateOption"][];
+    };
+    /** GoogleCallbackBody */
+    GoogleCallbackBody: {
+      /** Code */
+      code: string;
+      /** State */
+      state: string;
+    };
+    /** GoogleStart */
+    GoogleStart: {
+      /** Url */
+      url: string;
+      /** State */
+      state: string;
+    };
+    /** GoogleStartBody */
+    GoogleStartBody: {
+      /**
+       * Mode
+       * @default login
+       * @enum {string}
+       */
+      mode: "login" | "link";
+    };
+    /** Guests */
+    Guests: {
+      /**
+       * Adults
+       * @default 2
+       */
+      adults: number;
+      /**
+       * Children
+       * @default 0
+       */
+      children: number;
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
+    };
+    /** HealthResponse */
+    HealthResponse: {
+      /**
+       * Status
+       * @constant
+       */
+      status: "ok";
+      /** Version */
+      version: string;
+    };
+    /**
+     * HourRange
+     * @description Власний діапазон годин [start, end) за місцевим часом; end < start — через північ.
+     */
+    HourRange: {
+      /** Start */
+      start: number;
+      /** End */
+      end: number;
+    };
+    /** KindFacet */
+    KindFacet: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "hotel" | "apartment" | "hostel" | "guesthouse";
+      /** Stays */
+      stays: number;
+    };
+    /** LLMSpend */
+    LLMSpend: {
+      /** Calls 24H */
+      calls_24h: number;
+      /** Errors 24H */
+      errors_24h: number;
+      /** Cost Usd 24H */
+      cost_usd_24h: string;
+      /** Cost Usd 30D */
+      cost_usd_30d: string;
+    };
+    /** Layover */
+    Layover: {
+      /** Airport */
+      airport: string;
+      /** Duration Min */
+      duration_min: number;
+      /** Overnight */
+      overnight: boolean;
+      /** Self Transfer */
+      self_transfer: boolean | null;
+    };
+    /**
+     * Leg
+     * @description Один напрямок подорожі (туди або назад).
+     */
+    Leg: {
+      /** Origin */
+      origin: string;
+      /** Destination */
+      destination: string;
+      /**
+       * Departure At
+       * Format: date-time
+       */
+      departure_at: string;
+      /** Arrival At */
+      arrival_at?: string | null;
+      /** Duration Min */
+      duration_min?: number | null;
+      /** Stops */
+      stops: number;
+      /** Segments */
+      segments?: components["schemas"]["Segment"][] | null;
+      /** Layovers */
+      layovers?: components["schemas"]["Layover"][] | null;
+      /** Flight Number */
+      flight_number?: string | null;
+    };
+    /** LoginBody */
+    LoginBody: {
+      /** Login */
+      login: string;
+      /** Password */
+      password: string;
+    };
+    /** MatrixCell */
+    MatrixCell: {
+      /**
+       * Departure
+       * Format: date
+       */
+      departure: string;
+      /**
+       * Return Date
+       * Format: date
+       */
+      return_date: string;
+      /** Price */
+      price: number;
+      /** Currency */
+      currency: string;
+      /** Stops */
+      stops: number;
+      /** Source */
+      source: string;
+      /** Found At */
+      found_at: string | null;
+      /** Found On */
+      found_on: string | null;
+    };
+    /** Offer */
+    Offer: {
+      /** Id */
+      id: string;
+      /** Source */
+      source: string;
+      /** Price */
+      price: number;
+      /** Currency */
+      currency: string;
+      outbound: components["schemas"]["Leg"];
+      inbound?: components["schemas"]["Leg"] | null;
+      /** Airlines */
+      airlines: string[];
+      /**
+       * Airline Logos
+       * @default {}
+       */
+      airline_logos: {
+        [key: string]: string;
+      };
+      /**
+       * Details Level
+       * @enum {string}
+       */
+      details_level: "full" | "summary";
+      /** Baggage Included */
+      baggage_included?: boolean | null;
+      baggage?: components["schemas"]["Baggage"] | null;
+      /**
+       * Collected At
+       * Format: date-time
+       */
+      collected_at: string;
+      /** Found At */
+      found_at?: string | null;
+      /** Found On */
+      found_on?: string | null;
+      /** Expires At */
+      expires_at?: string | null;
+      /** Deep Link */
+      deep_link?: string | null;
+      /** Seller */
+      seller?: string | null;
+      /**
+       * Price Status
+       * @default cached
+       * @enum {string}
+       */
+      price_status: "live" | "cached";
+      /** Cabin */
+      cabin?: ("economy" | "premium_economy" | "business" | "first") | null;
+      /** Fare Name */
+      fare_name?: string | null;
+      /** Taxes */
+      taxes?: number | null;
+      /** Booking Ref */
+      booking_ref?: string | null;
+      /** Reported Total Duration Min */
+      reported_total_duration_min?: number | null;
+      /** Stops */
+      readonly stops: number;
+      /** Total Duration Min */
+      readonly total_duration_min: number | null;
+    };
+    /**
+     * OfferFilters
+     * @description Фільтри видачі. Застосовуються ПІСЛЯ провайдерів: до запиту й кешу не входять.
+     *
+     *     Невідоме значення (тривалість, авіакомпанія) не відсікає пропозицію — як і в
+     *     скорингу, «невідомо» не означає «погано» (ADR 0004).
+     */
+    OfferFilters: {
+      /** Max Stops */
+      max_stops?: number | null;
+      /** Airlines */
+      airlines?: string[];
+      /** Excluded Airlines */
+      excluded_airlines?: string[];
+      /** Departure Periods */
+      departure_periods?: ("night" | "morning" | "afternoon" | "evening")[];
+      departure_hours?: components["schemas"]["HourRange"] | null;
+      /** Arrival Periods */
+      arrival_periods?: ("night" | "morning" | "afternoon" | "evening")[];
+      arrival_hours?: components["schemas"]["HourRange"] | null;
+      /** Return Departure Periods */
+      return_departure_periods?: (
+        "night" | "morning" | "afternoon" | "evening"
+      )[];
+      return_departure_hours?: components["schemas"]["HourRange"] | null;
+      /** Return Arrival Periods */
+      return_arrival_periods?: (
+        "night" | "morning" | "afternoon" | "evening"
+      )[];
+      return_arrival_hours?: components["schemas"]["HourRange"] | null;
+      /** Max Duration Hours */
+      max_duration_hours?: number | null;
+      /** Max Layover Hours */
+      max_layover_hours?: number | null;
+      /** Min Layover Min */
+      min_layover_min?: number | null;
+      /** Min Self Transfer Min */
+      min_self_transfer_min?: number | null;
+      /** Max Price */
+      max_price?: number | null;
+      /** Max Total Price */
+      max_total_price?: number | null;
+    };
+    /** OfferGroup */
+    OfferGroup: {
+      /** Key */
+      key: string;
+      /** Offer Keys */
+      offer_keys: string[];
+    };
+    /** OfferScore */
+    OfferScore: {
+      /** Offer Key */
+      offer_key: string;
+      breakdown: components["schemas"]["ScoreBreakdown"];
+      /** Warnings */
+      warnings: components["schemas"]["ScoreWarning"][];
+      /** Pareto Optimal */
+      pareto_optimal: boolean;
+    };
+    /** OpsSummary */
+    OpsSummary: {
+      /**
+       * Generated At
+       * Format: date-time
+       */
+      generated_at: string;
+      serpapi: components["schemas"]["SerpApiQuota"] | null;
+      llm: components["schemas"]["LLMSpend"] | null;
+      clicks: components["schemas"]["Clicks"] | null;
+      activity: components["schemas"]["Activity"] | null;
+      /** Problems */
+      problems: string[];
+    };
+    /** ParseRequest */
+    ParseRequest: {
+      /** Message */
+      message: string;
+      /** Home Airport */
+      home_airport?: string | null;
+      /**
+       * History
+       * @default []
+       */
+      history: components["schemas"]["Turn"][];
+    };
+    /** ParseResult */
+    ParseResult: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "search" | "clarify" | "unsupported" | "unavailable";
+      query?: components["schemas"]["FlightQuery"] | null;
+      /** Clarifying Question */
+      clarifying_question?: string | null;
+      /**
+       * Notes
+       * @default []
+       */
+      notes: (
+        | "origin_from_home"
+        | "date_from_calendar"
+        | "date_from_range_middle"
+        | "return_from_trip_length"
+        | "budget_applied"
+        | "budget_not_applied"
+        | "overnight_layover_scored"
+        | "self_transfer_scored"
+        | "stays_later"
+      )[];
+      /**
+       * Flags
+       * @default []
+       */
+      flags: string[];
+    };
+    /**
+     * Passengers
+     * @description Склад пасажирів. Ціну за весь склад рахує джерело (ADR 0013), ми тариф не множимо.
+     */
+    Passengers: {
+      /**
+       * Adults
+       * @default 1
+       */
+      adults: number;
+      /**
+       * Children
+       * @default 0
+       */
+      children: number;
+      /**
+       * Infants
+       * @default 0
+       */
+      infants: number;
+      /**
+       * Infants In Seat
+       * @default 0
+       */
+      infants_in_seat: number;
+    };
+    /** PasswordChangeBody */
+    PasswordChangeBody: {
+      /** Current Password */
+      current_password?: string | null;
+      /** New Password */
+      new_password: string;
+    };
+    /** PasswordResetBody */
+    PasswordResetBody: {
+      /** Token */
+      token: string;
+      /** New Password */
+      new_password: string;
+    };
+    /** Pick */
+    Pick: {
+      /**
+       * Label
+       * @enum {string}
+       */
+      label: "cheapest" | "fastest" | "balanced";
+      /** Offer Key */
+      offer_key: string;
+      /**
+       * Also
+       * @default []
+       */
+      also: ("cheapest" | "fastest" | "balanced")[];
+    };
+    /**
+     * Place
+     * @description Варіант автодоповнення: аеропорт або місто, де жоден аеропорт не має коду міста.
+     */
+    Place: {
+      /** Code */
+      code: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "airport" | "city";
+      /** Name */
+      name: string;
+      /** City Name */
+      city_name: string;
+      /** Country Name */
+      country_name: string;
+      /** Airports */
+      airports: string[];
+    };
+    /**
+     * PriceMatrix
+     * @description Матриця туди-назад (модуль 2c): виліт × повернення, лише кешовані джерела календаря.
+     */
+    PriceMatrix: {
+      /** Departures */
+      departures: string[];
+      /** Returns */
+      returns: string[];
+      /** Cells */
+      cells: components["schemas"]["MatrixCell"][];
+      /** Providers */
+      providers: components["schemas"]["ProviderStatus"][];
+    };
+    /** ProfileBody */
+    ProfileBody: {
+      /** First Name */
+      first_name?: string | null;
+      /** Last Name */
+      last_name?: string | null;
+    };
+    /** ProviderStatus */
+    ProviderStatus: {
+      /** Provider */
+      provider: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "error" | "timeout" | "rate_limited" | "unsupported";
+      /** Error */
+      error?: string | null;
+      /**
+       * Results
+       * @default 0
+       */
+      results: number;
+    };
+    /** ReadinessResponse */
+    ReadinessResponse: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "degraded";
+      /** Checks */
+      checks: {
+        [key: string]: components["schemas"]["CheckResult"];
+      };
+    };
+    /** RegisterBody */
+    RegisterBody: {
+      /** Username */
+      username: string;
+      /** Password */
+      password: string;
+      /** First Name */
+      first_name?: string | null;
+      /** Last Name */
+      last_name?: string | null;
+    };
+    /** RiskPenalty */
+    RiskPenalty: {
+      /**
+       * Code
+       * @enum {string}
+       */
+      code:
+        | "short_layover"
+        | "overnight_layover"
+        | "self_transfer"
+        | "night_departure";
+      /**
+       * Leg
+       * @enum {string}
+       */
+      leg: "outbound" | "inbound";
+      /** Amount */
+      amount: number;
+      /** Airport */
+      airport?: string | null;
+    };
+    /** ScoreBreakdown */
+    ScoreBreakdown: {
+      /** Price */
+      price: number;
+      /** Time Penalty */
+      time_penalty: number | null;
+      /** Stop Penalty */
+      stop_penalty: number;
+      /** Risk Penalties */
+      risk_penalties: components["schemas"]["RiskPenalty"][];
+      /** Risk Total */
+      risk_total: number;
+      /** Total */
+      total: number | null;
+    };
+    /** ScoreWarning */
+    ScoreWarning: {
+      /**
+       * Code
+       * @enum {string}
+       */
+      code:
+        | "layover_details_unknown"
+        | "long_layover"
+        | "baggage_not_included"
+        | "baggage_unknown"
+        | "duration_unknown";
+      /** Leg */
+      leg?: ("outbound" | "inbound") | null;
+      /** Airport */
+      airport?: string | null;
+    };
+    /** ScoringResult */
+    ScoringResult: {
+      /**
+       * Profile
+       * @enum {string}
+       */
+      profile: "budget" | "balanced" | "time_is_money";
+      /** Currency */
+      currency: string;
+      /** Min Duration Min */
+      min_duration_min: number | null;
+      /** Scores */
+      scores: components["schemas"]["OfferScore"][];
+      /** Picks */
+      picks: components["schemas"]["Pick"][];
+      /**
+       * Unscored Offer Keys
+       * @default []
+       */
+      unscored_offer_keys: string[];
+      /**
+       * Cheapest Basis
+       * @default ticket
+       * @enum {string}
+       */
+      cheapest_basis: "ticket" | "with_baggage";
+    };
+    /** SearchEntryBody */
+    SearchEntryBody: {
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "flights" | "stays" | "trip";
+      /** Params */
+      params: string;
+      /** Title */
+      title: string;
+    };
+    /** SearchEntryOut */
+    SearchEntryOut: {
+      /** Id */
+      id: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "flights" | "stays" | "trip";
+      /** Params */
+      params: string;
+      /** Title */
+      title: string;
+      /** Saved */
+      saved: boolean;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+    };
+    /** SearchEntryRename */
+    SearchEntryRename: {
+      /** Title */
+      title: string;
+    };
+    /**
+     * SearchFacets
+     * @description Що є у видачі ДО фільтрів — щоб UI показав доступні варіанти фільтрів.
+     */
+    SearchFacets: {
+      /** Total Offers */
+      total_offers: number;
+      /** Airlines */
+      airlines: components["schemas"]["AirlineFacet"][];
+    };
+    /** Segment */
+    Segment: {
+      /** Origin */
+      origin: string;
+      /** Destination */
+      destination: string;
+      /**
+       * Departure At
+       * Format: date-time
+       */
+      departure_at: string;
+      /**
+       * Arrival At
+       * Format: date-time
+       */
+      arrival_at: string;
+      /** Carrier */
+      carrier: string;
+      /** Flight Number */
+      flight_number: string;
+      /** Duration Min */
+      duration_min: number;
+    };
+    /** SellerOffer */
+    SellerOffer: {
+      /** Seller */
+      seller: string;
+      /** Is Airline */
+      is_airline: boolean;
+      /** Price */
+      price: number;
+      /** Currency */
+      currency: string;
+      /** Included */
+      included?: string[];
+      /** Fare Name */
+      fare_name?: string | null;
+      link?: components["schemas"]["BookingLink"] | null;
+      /**
+       * Checked At
+       * Format: date-time
+       */
+      checked_at: string;
+    };
+    /** SellersRequest */
+    SellersRequest: {
+      query: components["schemas"]["FlightQuery"];
+      /** Source */
+      source: string;
+      /** Booking Ref */
+      booking_ref: string;
+    };
+    /** SellersResult */
+    SellersResult: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "unsupported" | "error" | "rate_limited";
+      /**
+       * Sellers
+       * @default []
+       */
+      sellers: components["schemas"]["SellerOffer"][];
+      /** Checked At */
+      checked_at?: string | null;
+    };
+    /** SerpApiQuota */
+    SerpApiQuota: {
+      /** Searches Per Month */
+      searches_per_month?: number | null;
+      /** This Month Usage */
+      this_month_usage?: number | null;
+      /** Plan Searches Left */
+      plan_searches_left?: number | null;
+      /** Total Searches Left */
+      total_searches_left?: number | null;
+      /** This Hour Searches */
+      this_hour_searches?: number | null;
+    };
+    /**
+     * SessionOut
+     * @description Токен сесії — лише для веб-сервера (кладе його в httpOnly-cookie), не для браузера.
+     */
+    SessionOut: {
+      /** Token */
+      token: string;
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+    };
+    /** Stay */
+    Stay: {
+      /** Id */
+      id: string;
+      /** Source */
+      source: string;
+      /** Name */
+      name: string;
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "hotel" | "apartment" | "hostel" | "guesthouse";
+      /** Stars */
+      stars?: number | null;
+      /** Price Per Night */
+      price_per_night: number;
+      /** Total Price */
+      total_price: number;
+      /** Currency */
+      currency: string;
+      /** Nights */
+      nights: number;
+      /** Rating */
+      rating?: number | null;
+      /**
+       * Review Count
+       * @default 0
+       */
+      review_count: number;
+      /** Latitude */
+      latitude?: number | null;
+      /** Longitude */
+      longitude?: number | null;
+      /** Distance To Center Km */
+      distance_to_center_km?: number | null;
+      /** Distance To Transit M */
+      distance_to_transit_m?: number | null;
+      /** Cancellation */
+      cancellation?: ("free" | "partial" | "non_refundable") | null;
+      /** Free Cancellation Until */
+      free_cancellation_until?: string | null;
+      /** Amenities */
+      amenities?: (
+        | "wifi"
+        | "breakfast"
+        | "parking"
+        | "pool"
+        | "gym"
+        | "kitchen"
+        | "air_conditioning"
+        | "spa"
+        | "pets"
+        | "airport_shuttle"
+      )[];
+      /** District */
+      district?: string | null;
+      /** Image Url */
+      image_url?: string | null;
+      /** Deep Link */
+      deep_link?: string | null;
+      /** Seller */
+      seller?: string | null;
+      /**
+       * Collected At
+       * Format: date-time
+       */
+      collected_at: string;
+      /** Found At */
+      found_at?: string | null;
+    };
+    /** StayAnalysis */
+    StayAnalysis: {
+      /**
+       * Stays
+       * @default []
+       */
+      stays: components["schemas"]["StayInsight"][];
+      /** Top Pick Id */
+      top_pick_id: string;
+      /**
+       * Top Pick Reason
+       * @default
+       */
+      top_pick_reason: string;
+      /**
+       * Price Vs Location Note
+       * @default
+       */
+      price_vs_location_note: string;
+      /**
+       * Flags
+       * @default []
+       */
+      flags: string[];
+    };
+    /** StayAnalysisBody */
+    StayAnalysisBody: {
+      query: components["schemas"]["StayQuery"];
+      /** Stay Keys */
+      stay_keys: string[];
+    };
+    /** StayAnalysisResult */
+    StayAnalysisResult: {
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "ok" | "no_stays" | "unavailable" | "rejected";
+      analysis?: components["schemas"]["StayAnalysis"] | null;
+    };
+    /**
+     * StayFacets
+     * @description Що є у видачі ДО фільтрів — для варіантів фільтрів у UI.
+     */
+    StayFacets: {
+      /** Total Stays */
+      total_stays: number;
+      /** Kinds */
+      kinds: components["schemas"]["KindFacet"][];
+      /** Min Price Per Night */
+      min_price_per_night: number | null;
+      /** Max Price Per Night */
+      max_price_per_night: number | null;
+    };
+    /**
+     * StayFilters
+     * @description Фільтри видачі: як і для перельотів, застосовуються після провайдерів.
+     */
+    StayFilters: {
+      /** Max Price Per Night */
+      max_price_per_night?: number | null;
+      /** Min Rating */
+      min_rating?: number | null;
+      /**
+       * Free Cancellation
+       * @default false
+       */
+      free_cancellation: boolean;
+      /** Kinds */
+      kinds?: ("hotel" | "apartment" | "hostel" | "guesthouse")[];
+    };
+    /** StayInsight */
+    StayInsight: {
+      /** Id */
+      id: string;
+      /**
+       * Pros
+       * @default []
+       */
+      pros: string[];
+      /**
+       * Cons
+       * @default []
+       */
+      cons: string[];
+      /**
+       * Red Flags
+       * @default []
+       */
+      red_flags: string[];
+      /**
+       * Reliability
+       * @default medium
+       * @enum {string}
+       */
+      reliability: "high" | "medium" | "low";
+      /**
+       * Reliability Note
+       * @default
+       */
+      reliability_note: string;
+      /**
+       * Best For
+       * @default
+       */
+      best_for: string;
+    };
+    /** StayPick */
+    StayPick: {
+      /**
+       * Label
+       * @enum {string}
+       */
+      label: "cheapest" | "top_rated" | "balanced";
+      /** Stay Key */
+      stay_key: string;
+      /**
+       * Also
+       * @default []
+       */
+      also: ("cheapest" | "top_rated" | "balanced")[];
+    };
+    /**
+     * StayPlace
+     * @description Місто пошуку (для заголовка й відстаней).
+     */
+    StayPlace: {
+      /** Code */
+      code: string;
+      /** Name */
+      name: string;
+      /** Country */
+      country: string;
+    };
+    /** StayQuery */
+    StayQuery: {
+      /** City */
+      city: string;
+      /**
+       * Check In
+       * Format: date
+       */
+      check_in: string;
+      /**
+       * Check Out
+       * Format: date
+       */
+      check_out: string;
+      /**
+       * @default {
+       *       "adults": 2,
+       *       "children": 0
+       *     }
+       */
+      guests: components["schemas"]["Guests"];
+      /**
+       * Currency
+       * @default EUR
+       */
+      currency: string;
+      /**
+       * Profile
+       * @default balanced
+       * @enum {string}
+       */
+      profile: "budget" | "balanced" | "center";
+      /**
+       * @default {
+       *       "free_cancellation": false,
+       *       "kinds": []
+       *     }
+       */
+      filters: components["schemas"]["StayFilters"];
+    };
+    /** StayScore */
+    StayScore: {
+      /** Stay Key */
+      stay_key: string;
+      breakdown: components["schemas"]["StayScoreBreakdown"];
+      /** Warnings */
+      warnings: components["schemas"]["StayWarning"][];
+      /** Pareto Optimal */
+      pareto_optimal: boolean;
+    };
+    /** StayScoreBreakdown */
+    StayScoreBreakdown: {
+      /** Price */
+      price: number;
+      /** Distance Penalty */
+      distance_penalty: number;
+      /** Transit Penalty */
+      transit_penalty: number;
+      /** Rating Penalty */
+      rating_penalty: number;
+      /** Cancellation Penalty */
+      cancellation_penalty: number;
+      /** Adjusted Rating */
+      adjusted_rating: number | null;
+      /** Total */
+      total: number;
+    };
+    /** StayScoringResult */
+    StayScoringResult: {
+      /**
+       * Profile
+       * @enum {string}
+       */
+      profile: "budget" | "balanced" | "center";
+      /** Currency */
+      currency: string;
+      /** Scores */
+      scores: components["schemas"]["StayScore"][];
+      /** Picks */
+      picks: components["schemas"]["StayPick"][];
+      /**
+       * Unscored Stay Keys
+       * @default []
+       */
+      unscored_stay_keys: string[];
+    };
+    /** StaySearchResult */
+    StaySearchResult: {
+      place: components["schemas"]["StayPlace"] | null;
+      /** Stays */
+      stays: components["schemas"]["Stay"][];
+      /** Providers */
+      providers: components["schemas"]["ProviderStatus"][];
+      scoring: components["schemas"]["StayScoringResult"];
+      facets: components["schemas"]["StayFacets"];
+    };
+    /** StayWarning */
+    StayWarning: {
+      /**
+       * Code
+       * @enum {string}
+       */
+      code:
+        | "few_reviews"
+        | "no_rating"
+        | "distance_unknown"
+        | "transit_unknown"
+        | "cancellation_unknown";
+    };
+    /** StayWindow */
+    StayWindow: {
+      /**
+       * Check In
+       * Format: date
+       */
+      check_in: string;
+      /**
+       * Check Out
+       * Format: date
+       */
+      check_out: string;
+      /** Nights */
+      nights: number;
+    };
+    /** TripBudget */
+    TripBudget: {
+      /** Budget */
+      budget: number;
+      /** Within */
+      within: number;
+      /** Shortfall */
+      shortfall: number | null;
+    };
+    /** TripCombo */
+    TripCombo: {
+      /** Key */
+      key: string;
+      /** Offer Key */
+      offer_key: string;
+      /** Stay Key */
+      stay_key: string;
+      window: components["schemas"]["StayWindow"];
+      /** Flight Price */
+      flight_price: number;
+      /** Flight Total */
+      flight_total: number;
+      /** Stay Total */
+      stay_total: number;
+      /** Money Total */
+      money_total: number;
+      /** Value Total */
+      value_total: number | null;
+      /** Currency */
+      currency: string;
+      /**
+       * Warnings
+       * @default []
+       */
+      warnings: ("early_arrival" | "value_unknown")[];
+    };
+    /** TripPick */
+    TripPick: {
+      /**
+       * Label
+       * @enum {string}
+       */
+      label: "cheapest" | "best_value" | "comfort";
+      /** Combo Key */
+      combo_key: string;
+      /**
+       * Also
+       * @default []
+       */
+      also: ("cheapest" | "best_value" | "comfort")[];
+    };
+    /** TripQuery */
+    TripQuery: {
+      /** Origin */
+      origin: string;
+      /** Destination */
+      destination: string;
+      /**
+       * Departure Date
+       * Format: date
+       */
+      departure_date: string;
+      /**
+       * Return Date
+       * Format: date
+       */
+      return_date: string;
+      /**
+       * Flex Days
+       * @default 0
+       */
+      flex_days: number;
+      /**
+       * Adults
+       * @default 2
+       */
+      adults: number;
+      /**
+       * Children
+       * @default 0
+       */
+      children: number;
+      /**
+       * Direct Only
+       * @default false
+       */
+      direct_only: boolean;
+      /**
+       * Profile
+       * @default balanced
+       * @enum {string}
+       */
+      profile: "budget" | "balanced" | "comfort";
+      /** Budget Total */
+      budget_total?: number | null;
+      /**
+       * Currency
+       * @default EUR
+       */
+      currency: string;
+    };
+    /** TripSearchResult */
+    TripSearchResult: {
+      query: components["schemas"]["TripQuery"];
+      flight_query: components["schemas"]["FlightQuery"];
+      /** Stay Queries */
+      stay_queries: components["schemas"]["StayQuery"][];
+      /** Offers */
+      offers: components["schemas"]["Offer"][];
+      /** Stays */
+      stays: components["schemas"]["Stay"][];
+      /** Combos */
+      combos: components["schemas"]["TripCombo"][];
+      /** Picks */
+      picks: components["schemas"]["TripPick"][];
+      budget?: components["schemas"]["TripBudget"] | null;
+      /** Providers */
+      providers: components["schemas"]["ProviderStatus"][];
+      /** Flights Found */
+      flights_found: number;
+      /** Airlines */
+      airlines: components["schemas"]["AirlineFacet"][];
+    };
+    /**
+     * Turn
+     * @description Репліка діалогу уточнень. Приходить від клієнта — для моделі це лише дані.
+     */
+    Turn: {
+      /**
+       * Role
+       * @enum {string}
+       */
+      role: "user" | "assistant";
+      /** Text */
+      text: string;
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+      /** Input */
+      input?: unknown;
+      /** Context */
+      ctx?: Record<string, never>;
+    };
+    /** TokenBody */
+    tickets_api__api__alerts__TokenBody: {
+      /** Token */
+      token: string;
+    };
+    /** TokenBody */
+    tickets_api__domain__accounts__TokenBody: {
+      /** Token */
+      token: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HealthResponse"];
-                };
-            };
-        };
+  health_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    ready_health_ready_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReadinessResponse"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReadinessResponse"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["HealthResponse"];
         };
+      };
     };
-    search_flights_flights_search_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FlightQuery"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FlightSearchResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  ready_health_ready_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    price_calendar_flights_calendar_get: {
-        parameters: {
-            query: {
-                origin: string;
-                destination: string;
-                month: string;
-                currency?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CalendarResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["ReadinessResponse"];
         };
+      };
+      /** @description Service Unavailable */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ReadinessResponse"];
+        };
+      };
     };
-    search_places_places_get: {
-        parameters: {
-            query: {
-                q: string;
-                limit?: number;
-                lang?: "uk" | "en";
-                kind?: "any" | "city";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Place"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  search_flights_flights_search_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    search_stays_stays_search_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StayQuery"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StaySearchResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FlightQuery"];
+      };
     };
-    search_trips_trips_search_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TripQuery"];
-            };
+        content: {
+          "application/json": components["schemas"]["FlightSearchResult"];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TripSearchResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    channels_alerts_channels_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChannelStatus"];
-                };
-            };
-        };
+  };
+  price_calendar_flights_calendar_get: {
+    parameters: {
+      query: {
+        origin: string;
+        destination: string;
+        month: string;
+        currency?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    create_alert_alerts_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AlertCreate"];
-            };
+        content: {
+          "application/json": components["schemas"]["CalendarResult"];
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AlertCreated"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    manage_alert_alerts_manage_get: {
-        parameters: {
-            query: {
-                token: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AlertView"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  price_matrix_flights_matrix_get: {
+    parameters: {
+      query: {
+        origin: string;
+        destination: string;
+        depart_from: string;
+        depart_to: string;
+        return_from: string;
+        return_to: string;
+        currency?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    confirm_alert_alerts_confirm_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["tickets_api__api__alerts__TokenBody"];
-            };
+        content: {
+          "application/json": components["schemas"]["PriceMatrix"];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AlertView"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    stop_alert_alerts_stop_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["tickets_api__api__alerts__TokenBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AlertView"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  flight_sellers_flights_sellers_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    auth_status_auth_status_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthStatus"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SellersRequest"];
+      };
     };
-    register_auth_register_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterBody"];
-            };
+        content: {
+          "application/json": components["schemas"]["SellersResult"];
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    login_auth_login_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  search_places_places_get: {
+    parameters: {
+      query: {
+        q: string;
+        limit?: number;
+        lang?: "uk" | "en";
+        kind?: "any" | "city";
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    logout_auth_logout_post: {
-        parameters: {
-            query?: {
-                everywhere?: boolean;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["Place"][];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    google_start_auth_google_start_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GoogleStartBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GoogleStart"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  search_stays_stays_search_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    google_callback_auth_google_callback_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GoogleCallbackBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionOut"] | null;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["StayQuery"];
+      };
     };
-    verify_email_auth_email_verify_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["tickets_api__domain__accounts__TokenBody"];
-            };
+        content: {
+          "application/json": components["schemas"]["StaySearchResult"];
         };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    forgot_password_auth_password_forgot_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EmailBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  search_trips_trips_search_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    reset_password_auth_password_reset_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PasswordResetBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SessionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TripQuery"];
+      };
     };
-    me_auth_me_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["TripSearchResult"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    get_account_account_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Account"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  channels_alerts_channels_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    update_profile_account_profile_patch: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ProfileBody"];
-            };
+        content: {
+          "application/json": components["schemas"]["ChannelStatus"];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Account"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+      };
     };
-    change_email_account_email_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EmailBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  create_alert_alerts_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
     };
-    change_password_account_password_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PasswordChangeBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AlertCreate"];
+      };
     };
-    telegram_link_account_telegram_link_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["AlertCreated"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    unlink_telegram_account_telegram_delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  manage_alert_alerts_manage_get: {
+    parameters: {
+      query: {
+        token: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    unlink_google_account_google_delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["AlertView"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    delete_account_account_delete_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["DeleteAccountBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  confirm_alert_alerts_confirm_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    searches_account_searches_get: {
-        parameters: {
-            query?: {
-                saved?: boolean;
-                limit?: number;
-            };
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchEntryOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["tickets_api__api__alerts__TokenBody"];
+      };
     };
-    record_search_account_history_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SearchEntryBody"];
-            };
+        content: {
+          "application/json": components["schemas"]["AlertView"];
         };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    clear_history_account_history_delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  stop_alert_alerts_stop_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    save_search_account_saved_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SearchEntryBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchEntryOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["tickets_api__api__alerts__TokenBody"];
+      };
     };
-    delete_search_account_searches__entry_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                entry_id: string;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["AlertView"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    rename_search_account_searches__entry_id__patch: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path: {
-                entry_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SearchEntryRename"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SearchEntryOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  auth_status_auth_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    my_alerts_account_alerts_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                authorization?: string | null;
-            };
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AccountAlert"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["AuthStatus"];
         };
+      };
     };
-    ai_status_ai_status_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AIStatus"];
-                };
-            };
-        };
+  };
+  register_auth_register_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    parse_request_ai_parse_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ParseRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ParseResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RegisterBody"];
+      };
     };
-    chat_ai_chat_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChatBody"];
-            };
+        content: {
+          "application/json": components["schemas"]["SessionOut"];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ChatReply"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    analyze_stays_ai_stays_analysis_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StayAnalysisBody"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StayAnalysisResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  login_auth_login_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    explain_results_ai_explain_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["FlightQuery"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ExplainResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginBody"];
+      };
     };
-    log_click_outbound_clicks_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ClickIn"];
-            };
+        content: {
+          "application/json": components["schemas"]["SessionOut"];
         };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    ops_summary_ops_summary_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "x-internal-key"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OpsSummary"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  logout_auth_logout_post: {
+    parameters: {
+      query?: {
+        everywhere?: boolean;
+      };
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
     };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  google_start_auth_google_start_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GoogleStartBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["GoogleStart"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  google_callback_auth_google_callback_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["GoogleCallbackBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SessionOut"] | null;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  verify_email_auth_email_verify_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["tickets_api__domain__accounts__TokenBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  forgot_password_auth_password_forgot_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmailBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  reset_password_auth_password_reset_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PasswordResetBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SessionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  me_auth_me_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_account_account_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Account"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_profile_account_profile_patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProfileBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Account"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  save_flight_filters_account_flight_filters_put: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FlightFiltersBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Account"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_email_account_email_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["EmailBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_password_account_password_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PasswordChangeBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  telegram_link_account_telegram_link_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": {
+            [key: string]: string;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  unlink_telegram_account_telegram_delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  unlink_google_account_google_delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_account_account_delete_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeleteAccountBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  searches_account_searches_get: {
+    parameters: {
+      query?: {
+        saved?: boolean;
+        limit?: number;
+      };
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SearchEntryOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  record_search_account_history_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SearchEntryBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  clear_history_account_history_delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  save_search_account_saved_post: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SearchEntryBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SearchEntryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_search_account_searches__entry_id__delete: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        entry_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  rename_search_account_searches__entry_id__patch: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path: {
+        entry_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SearchEntryRename"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SearchEntryOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  my_alerts_account_alerts_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        authorization?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AccountAlert"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  ai_status_ai_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AIStatus"];
+        };
+      };
+    };
+  };
+  parse_request_ai_parse_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ParseRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ParseResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  chat_ai_chat_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ChatBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ChatReply"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  analyze_stays_ai_stays_analysis_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["StayAnalysisBody"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["StayAnalysisResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  explain_results_ai_explain_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FlightQuery"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ExplainResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  log_click_outbound_clicks_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ClickIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  ops_summary_ops_summary_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        "x-internal-key"?: string | null;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OpsSummary"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
 }

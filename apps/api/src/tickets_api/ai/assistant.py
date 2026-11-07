@@ -55,7 +55,7 @@ SEARCH_TOOL = Tool(
     description=(
         "Search flights and score them. Returns up to 3 best options (cheapest, fastest, "
         "balanced) with ready-made texts for prices and durations, and which one the "
-        "scoring recommends. Prices are per adult."
+        "scoring recommends. Prices are for all passengers of the search together."
     ),
     parameters={
         "type": "object",
@@ -72,7 +72,7 @@ SEARCH_TOOL = Tool(
             },
             "adults": {"type": "integer", "minimum": 1, "maximum": 9},
             "direct_only": {"type": "boolean"},
-            "max_price": {"type": "integer", "description": "Max price per adult, EUR"},
+            "max_price": {"type": "integer", "description": "Max price per passenger, EUR"},
             "profile": {"type": "string", "enum": ["budget", "balanced", "time_is_money"]},
         },
         "required": ["origin", "destination", "departure_date"],
@@ -430,7 +430,7 @@ class TravelAssistant:
             ]
         payload["offers_found"] = len(result.offers)
         payload["sources_failed"] = [p.provider for p in result.providers if p.status != "ok"]
-        payload["prices_are"] = "per adult"
+        payload["prices_are"] = "total for all passengers of the search"
         return json.dumps(payload, ensure_ascii=False)
 
     async def _search_stays(

@@ -28,6 +28,7 @@ from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
 from tickets_api.llm.pricing import default_pricing, load_pricing
 from tickets_api.notifications.factory import build_mailer
+from tickets_api.providers.fx import EcbRates
 from tickets_api.providers.registry import build_providers, build_stay_providers
 from tickets_api.reference.airlines import default_airline_names
 from tickets_api.reference.airports import default_airport_directory
@@ -79,6 +80,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             scoring_config=scoring_config,
             record_history=PriceHistoryRecorder(app.state.sessionmaker).record,
             airline_names=default_airline_names(),
+            fx=EcbRates(app.state.http, app.state.redis).rate,
+            live_date_pairs=settings.flex_live_date_pairs,
         )
         app.state.stay_search = StaySearchService(
             build_stay_providers(settings.stay_providers),

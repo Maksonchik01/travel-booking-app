@@ -14,7 +14,11 @@ import httpx
 import pytest
 import respx
 from tickets_api.domain.flights import FlightQuery
-from tickets_api.providers.base import ProviderError, ProviderRateLimitedError
+from tickets_api.providers.base import (
+    ProviderError,
+    ProviderRateLimitedError,
+    ProviderUnsupportedError,
+)
 from tickets_api.providers.travelpayouts import (
     GROUPED_PRICES,
     PRICES_FOR_DATES,
@@ -297,3 +301,54 @@ async def test_only_requested_airport_with_directory(client: httpx.AsyncClient) 
 
     # API шукає по місту WAW і повертає рейс із Модліна (WMI) — обрано аеропорт WAW.
     assert await provider.search(query()) == []
+
+
+@respx.mock
+async def test_adults_share_one_fare(provider: TravelpayoutsFlightProvider) -> None:
+    respx.get(f"{BASE}{PRICES_FOR_DATES}").mock(return_value=ok([ticket(price=100)]))
+
+    offers = await provider.search(query(passengers={"adults": 3}))
+
+    # Тариф дорослого однаковий — множимо лише дорослих (ADR 0013).
+    assert [o.price for o in offers] == [Decimal(300)]
+
+
+@pytest.mark.parametrize(
+    ("overrides", "reason"),
+    [
+        ({"passengers": {"adults": 1, "children": 1}}, "passengers"),
+        ({"passengers": {"adults": 1, "infants": 1}}, "passengers"),
+        ({"cabin": "business"}, "cabin"),
+    ],
+)
+async def test_child_fares_and_cabins_are_unsupported_not_guessed(
+    provider: TravelpayoutsFlightProvider, overrides: dict[str, Any], reason: str
+) -> None:
+    with pytest.raises(ProviderUnsupportedError) as exc:
+        await provider.search(query(**overrides))
+    assert exc.value.message == reason
+
+
+@respx.mock
+async def test_period_mode_queries_whole_months(provider: TravelpayoutsFlightProvider) -> None:
+    route = respx.get(f"{BASE}{PRICES_FOR_DATES}").mock(return_value=ok([]))
+
+    await provider.search(
+        query(
+            departure_date=date(2026, 12, 20),
+            return_date=date(2026, 12, 24),
+            departure_until=date(2027, 1, 10),
+        )
+    )
+
+    # Період 20.12–10.01, повернення на 4 дні пізніше: місяці вильоту × місяці повернення.
+    params = [
+        (c.request.url.params["departure_at"], c.request.url.params["return_at"])
+        for c in route.calls
+    ]
+    assert params == [
+        ("2026-12", "2026-12"),
+        ("2026-12", "2027-01"),
+        ("2027-01", "2026-12"),
+        ("2027-01", "2027-01"),
+    ]

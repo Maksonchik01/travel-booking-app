@@ -169,7 +169,6 @@ Note = Literal[
     "budget_not_applied",
     "overnight_layover_scored",
     "self_transfer_scored",
-    "children_not_priced",
     "stays_later",
 ]
 
@@ -327,8 +326,6 @@ class QueryParser:
 
         filters, filter_notes = self._filters(parsed, context)
         notes += filter_notes
-        if parsed.passengers.children or parsed.passengers.infants:
-            notes.append("children_not_priced")
         try:
             query = FlightQuery(
                 origin=origin,
@@ -336,7 +333,12 @@ class QueryParser:
                 departure_date=departure,
                 return_date=return_date,
                 flex_days=min(flex, MAX_FLEX_DAYS),
-                passengers={"adults": parsed.passengers.adults},
+                # Діти й немовлята — у запит: ціну за весь склад рахує джерело (ADR 0013).
+                passengers={
+                    "adults": parsed.passengers.adults,
+                    "children": parsed.passengers.children,
+                    "infants": parsed.passengers.infants,
+                },
                 direct_only=parsed.preferences.max_stops == 0,
                 currency=context.currency,
                 profile=parsed.profile,
@@ -397,10 +399,15 @@ class QueryParser:
         max_price = None
         budget = parsed.budget
         if budget is not None:
-            # Фільтр — ціна за дорослого; «на все» (з житлом) чи в іншій валюті не застосовуємо.
+            # Фільтр — ціна на пасажира; «на все» (з житлом) чи в іншій валюті не застосовуємо.
             if budget.scope in (None, "flights") and budget.currency == context.currency:
                 # Ціле число одиниць валюти, округлення вниз: «до 300 € на двох» → до 150 €.
-                max_price = int(budget.amount // parsed.passengers.adults)
+                travellers = (
+                    parsed.passengers.adults
+                    + parsed.passengers.children
+                    + parsed.passengers.infants
+                )
+                max_price = int(budget.amount // max(travellers, 1))
                 notes.append("budget_applied")
             else:
                 notes.append("budget_not_applied")

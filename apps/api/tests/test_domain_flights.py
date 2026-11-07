@@ -130,3 +130,47 @@ def test_reported_total_duration_used_when_legs_unknown() -> None:
     )
 
     assert offer.total_duration_min == 1400
+
+
+@pytest.mark.parametrize(
+    ("passengers", "error"),
+    [
+        ({"adults": 1, "infants": 2}, "на руках"),
+        ({"adults": 1, "infants": 1, "infants_in_seat": 2}, "двох немовлят"),
+        ({"adults": 4, "children": 4, "infants_in_seat": 2}, "9 пасажирів"),
+    ],
+)
+def test_passenger_rules(passengers: dict[str, int], error: str) -> None:
+    with pytest.raises(ValidationError, match=error):
+        Passengers.model_validate(passengers)
+
+
+def test_passenger_counts_and_code() -> None:
+    p = Passengers(adults=2, children=1, infants=1, infants_in_seat=1)
+    assert (p.total, p.seated, p.adults_only, p.code) == (5, 4, False, "2a1c1l1s")
+    assert Passengers(adults=3).adults_only
+
+
+def test_period_mode_windows_and_validation() -> None:
+    q = FlightQuery(
+        origin="WAW",
+        destination="LIS",
+        departure_date=date(2026, 12, 1),
+        return_date=date(2026, 12, 5),
+        departure_until=date(2026, 12, 31),
+    )
+    assert q.is_flexible
+    assert q.departure_window == (date(2026, 12, 1), date(2026, 12, 31))
+    # Повернення зсувається разом з вильотом: та сама тривалість (4 дні).
+    assert q.return_window == (date(2026, 12, 5), date(2027, 1, 4))
+    exact = q.at_dates(date(2026, 12, 10), date(2026, 12, 14))
+    assert (exact.is_flexible, exact.departure_date, exact.check_dates) == (
+        False,
+        date(2026, 12, 10),
+        None,
+    )
+
+    with pytest.raises(ValidationError, match="62"):
+        q.model_validate({**q.model_dump(), "departure_until": date(2027, 3, 1)})
+    with pytest.raises(ValidationError, match="разом"):
+        q.model_validate({**q.model_dump(), "flex_days": 3})

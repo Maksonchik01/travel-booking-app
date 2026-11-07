@@ -22,6 +22,7 @@ from tickets_api.domain.flights import FlightQuery, Leg, Offer
 from tickets_api.llm.prompts import system_prompt
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message
 from tickets_api.repositories.price_history import PriceStats
+from tickets_api.scoring.baggage import BaggageCost
 from tickets_api.scoring.engine import OfferScore, Pick, PickLabel
 from tickets_api.services.flight_search import FlightSearchResult
 
@@ -47,6 +48,8 @@ OUTPUT_CONTRACT = """
   тривалості як у "duration_text", різниці — з "comparisons". Нових чисел не рахуй.
 - Ризики з "risk_penalties" і "warnings" обов'язково назви в "risks" відповідного варіанта.
 - null у "baggage_included" (і будь-якому полі) означає «невідомо», а НЕ «ні»/«не включено».
+- "total_with_baggage_text" — ціна з багажем, який обрав користувач (уже порахована);
+  "baggage_status": "unknown" — вартість багажу невідома: скажи, що її треба уточнити в продавця.
 - Вік ціни бери з "price_age_text" (у "data_freshness_note").
 - "recommended_id" = "recommended_by_scoring": ранжування вже зробив скоринг-рушій,
   ти пояснюєш його вибір, а не обираєш інший.
@@ -166,7 +169,9 @@ def advisor_input(
     airline_names = {a.code: a.name or a.code for a in result.facets.airlines}
     picks = [p for p in result.scoring.picks if p.offer_key in offers]
     options = [
-        _option(p, offers[p.offer_key], scores.get(p.offer_key), airline_names, now) for p in picks
+        _option(p, offers[p.offer_key], scores.get(p.offer_key), airline_names, now)
+        | _baggage_fields(result.baggage.get(p.offer_key), offers[p.offer_key].currency)
+        for p in picks
     ]
     comparisons = [
         _compare(a, offers[pa.offer_key], b, offers[pb.offer_key])
@@ -181,6 +186,10 @@ def advisor_input(
             "return_date": query.return_date.isoformat() if query.return_date else None,
             "profile": query.profile,
             "adults": query.passengers.adults,
+            "children": query.passengers.children,
+            "infants": query.passengers.infants + query.passengers.infants_in_seat,
+            "cabin": query.cabin,
+            "prices_are": "total for all passengers",
         },
         "options": options,
         "recommended_by_scoring": _recommended(picks),
@@ -200,6 +209,19 @@ def _recommended(picks: list[Pick]) -> str | None:
     """Найкраща оцінка для профілю — це «balanced»; без нього — перший із наявних."""
     labels = [p.label for p in picks]
     return "balanced" if "balanced" in labels else (labels[0] if labels else None)
+
+
+def _baggage_fields(cost: BaggageCost | None, currency: str) -> dict[str, Any]:
+    """Кінцева вартість з потрібним багажем (порахована кодом, ADR 0014); null — невідома."""
+    if cost is None:
+        return {}
+    return {
+        "baggage_status": cost.status,
+        "total_with_baggage": _num(cost.total),
+        "total_with_baggage_text": (
+            money_text(cost.total, currency) if cost.total is not None else None
+        ),
+    }
 
 
 def _option(

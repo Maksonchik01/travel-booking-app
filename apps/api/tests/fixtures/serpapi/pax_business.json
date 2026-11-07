@@ -1,0 +1,1049 @@
+{
+ "_meta": {
+  "recorded_at": "2026-11-07",
+  "request": "departure_id=WAW arrival_id=BCN outbound_date=2026-12-13 type=2 currency=EUR hl=en gl=pl adults=1 travel_class=3",
+  "note": "Реальна відповідь SerpApi Google Flights. search_metadata зведено до google_flights_url; ключа тут немає."
+ },
+ "search_metadata": {
+  "status": "Success",
+  "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=pl&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTEyLTEzagcIARIDV0FXcgcIARIDQkNOQAFIA3ABmAEC&tfu=EgIIAQ"
+ },
+ "best_flights": [
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 13:00"
+     },
+     "arrival_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-13 16:25"
+     },
+     "duration": 265,
+     "airplane": "Airbus A320neo",
+     "airline": "Tap Air Portugal",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TP.png",
+     "travel_class": "Business Class",
+     "flight_number": "TP 1205",
+     "legroom": "33 in",
+     "extensions": [
+      "Average legroom (33 in)",
+      "In-seat power & USB outlets",
+      "Carbon emissions estimate: 298 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-13 17:25"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 20:20"
+     },
+     "duration": 115,
+     "airplane": "Embraer 190",
+     "airline": "Tap Air Portugal",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TP.png",
+     "travel_class": "Business Class",
+     "flight_number": "TP 1038",
+     "legroom": "34 in",
+     "extensions": [
+      "Average legroom (34 in)",
+      "Carbon emissions estimate: 187 kg"
+     ],
+     "plane_and_crew_by": "Portugalia - Companhia Portuguesa"
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 60,
+     "name": "Lisbon Airport",
+     "id": "LIS"
+    }
+   ],
+   "total_duration": 440,
+   "carbon_emissions": {
+    "this_flight": 486000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 64
+   },
+   "price": 324,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TP.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZzFVVURFeU1EVjhWRkF4TURNNEdnc0l4ZndCRUFJYUEwVlZVamdjY01hWkFnPT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJMSVMiLG51bGwsIlRQIiwiMTIwNSJdLFsiTElTIiwiMjAyNi0xMi0xMyIsIkJDTiIsbnVsbCwiVFAiLCIxMDM4Il1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 14:30"
+     },
+     "arrival_airport": {
+      "name": "Zurich Airport",
+      "id": "ZRH",
+      "time": "2026-12-13 16:35"
+     },
+     "duration": 125,
+     "airplane": "Airbus A220-300 Passenger",
+     "airline": "SWISS",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+     "travel_class": "Business Class",
+     "flight_number": "LX 1349",
+     "legroom": "32 in",
+     "extensions": [
+      "Average legroom (32 in)",
+      "Carbon emissions estimate: 176 kg"
+     ],
+     "often_delayed_by_over_30_min": true
+    },
+    {
+     "departure_airport": {
+      "name": "Zurich Airport",
+      "id": "ZRH",
+      "time": "2026-12-13 17:20"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 19:05"
+     },
+     "duration": 105,
+     "airplane": "Airbus A321",
+     "airline": "SWISS",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+     "travel_class": "Business Class",
+     "flight_number": "LX 1956",
+     "legroom": "32 in",
+     "extensions": [
+      "Average legroom (32 in)",
+      "Carbon emissions estimate: 142 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 45,
+     "name": "Zurich Airport",
+     "id": "ZRH"
+    }
+   ],
+   "total_duration": 275,
+   "carbon_emissions": {
+    "this_flight": 319000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 8
+   },
+   "price": 411,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZzFNV0RFek5EbDhURmd4T1RVMkdnc0l5TUFDRUFJYUEwVlZVamdjY0xIbEFnPT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJaUkgiLG51bGwsIkxYIiwiMTM0OSJdLFsiWlJIIiwiMjAyNi0xMi0xMyIsIkJDTiIsbnVsbCwiTFgiLCIxOTU2Il1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 14:45"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 17:55"
+     },
+     "duration": 190,
+     "airplane": "Boeing 737MAX 8 Passenger",
+     "airline": "LOT",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+     "travel_class": "Business Class",
+     "flight_number": "LO 437",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat power & USB outlets",
+      "Stream media to your device",
+      "Carbon emissions estimate: 210 kg"
+     ]
+    }
+   ],
+   "total_duration": 190,
+   "carbon_emissions": {
+    "this_flight": 210000,
+    "typical_for_this_route": 296000,
+    "difference_percent": -29
+   },
+   "price": 443,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZ1ZNVHpRek54b0xDUHZaQWhBQ0dnTkZWVkk0SEhEWmdRTT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJCQ04iLG51bGwsIkxPIiwiNDM3Il1dXQ=="
+  }
+ ],
+ "other_flights": [
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 17:00"
+     },
+     "arrival_airport": {
+      "name": "Zurich Airport",
+      "id": "ZRH",
+      "time": "2026-12-13 19:05"
+     },
+     "duration": 125,
+     "airplane": "Boeing 737MAX 8 Passenger",
+     "airline": "LOT",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+     "travel_class": "Business Class",
+     "flight_number": "LO 409",
+     "ticket_also_sold_by": [
+      "SWISS"
+     ],
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat power & USB outlets",
+      "Carbon emissions estimate: 133 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Zurich Airport",
+      "id": "ZRH",
+      "time": "2026-12-13 21:10"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 23:00"
+     },
+     "duration": 110,
+     "airplane": "Airbus A321neo",
+     "airline": "SWISS",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LX.png",
+     "travel_class": "Business Class",
+     "flight_number": "LX 1950",
+     "legroom": "32 in",
+     "extensions": [
+      "Average legroom (32 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 115 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 125,
+     "name": "Zurich Airport",
+     "id": "ZRH"
+    }
+   ],
+   "total_duration": 360,
+   "carbon_emissions": {
+    "this_flight": 249000,
+    "typical_for_this_route": 296000,
+    "difference_percent": -16
+   },
+   "price": 371,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZ3hNVHpRd09YeE1XREU1TlRBYUN3anJvUUlRQWhvRFJWVlNPQnh3a01NQyIsW1siV0FXIiwiMjAyNi0xMi0xMyIsIlpSSCIsbnVsbCwiTE8iLCI0MDkiXSxbIlpSSCIsIjIwMjYtMTItMTMiLCJCQ04iLG51bGwsIkxYIiwiMTk1MCJdXV0="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 06:05"
+     },
+     "arrival_airport": {
+      "name": "Munich International Airport",
+      "id": "MUC",
+      "time": "2026-12-13 07:40"
+     },
+     "duration": 95,
+     "airplane": "Airbus A319",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Business Class",
+     "flight_number": "LH 1617",
+     "ticket_also_sold_by": [
+      "LOT"
+     ],
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Wi-Fi for a fee",
+      "Carbon emissions estimate: 149 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Munich International Airport",
+      "id": "MUC",
+      "time": "2026-12-13 08:50"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 11:00"
+     },
+     "duration": 130,
+     "airplane": "Airbus A320neo",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Business Class",
+     "flight_number": "LH 1810",
+     "legroom": "32 in",
+     "extensions": [
+      "Average legroom (32 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 145 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 70,
+     "name": "Munich International Airport",
+     "id": "MUC"
+    }
+   ],
+   "total_duration": 295,
+   "carbon_emissions": {
+    "this_flight": 295000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 0
+   },
+   "price": 374,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZzFNU0RFMk1UZDhURWd4T0RFd0dnc0l6S01DRUFJYUEwVlZVamdjY0l2RkFnPT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJNVUMiLG51bGwsIkxIIiwiMTYxNyJdLFsiTVVDIiwiMjAyNi0xMi0xMyIsIkJDTiIsbnVsbCwiTEgiLCIxODEwIl1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 14:40"
+     },
+     "arrival_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-13 16:30"
+     },
+     "duration": 110,
+     "airplane": "Airbus A319",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Business Class",
+     "flight_number": "LH 1345",
+     "ticket_also_sold_by": [
+      "LOT"
+     ],
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Wi-Fi for a fee",
+      "Carbon emissions estimate: 163 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-13 17:55"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 19:55"
+     },
+     "duration": 120,
+     "airplane": "Airbus A321",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Business Class",
+     "flight_number": "LH 1136",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Wi-Fi for a fee",
+      "Carbon emissions estimate: 179 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 85,
+     "name": "Frankfurt Airport",
+     "id": "FRA"
+    }
+   ],
+   "total_duration": 315,
+   "carbon_emissions": {
+    "this_flight": 342000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 16
+   },
+   "price": 382,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZzFNU0RFek5EVjhURWd4TVRNMkdnc0k1NmtDRUFJYUEwVlZVamdjY0lITUFnPT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJGUkEiLG51bGwsIkxIIiwiMTM0NSJdLFsiRlJBIiwiMjAyNi0xMi0xMyIsIkJDTiIsbnVsbCwiTEgiLCIxMTM2Il1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 18:35"
+     },
+     "arrival_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-13 20:25"
+     },
+     "duration": 110,
+     "airplane": "Airbus A321",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Business Class",
+     "flight_number": "LH 1347",
+     "ticket_also_sold_by": [
+      "LOT"
+     ],
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Wi-Fi for a fee",
+      "Carbon emissions estimate: 153 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-13 21:20"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 23:20"
+     },
+     "duration": 120,
+     "airplane": "Airbus A320",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Business Class",
+     "flight_number": "LH 1138",
+     "ticket_also_sold_by": [
+      "LOT"
+     ],
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Carbon emissions estimate: 161 kg"
+     ],
+     "often_delayed_by_over_30_min": true
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 55,
+     "name": "Frankfurt Airport",
+     "id": "FRA"
+    }
+   ],
+   "total_duration": 285,
+   "carbon_emissions": {
+    "this_flight": 315000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 6
+   },
+   "price": 382,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZzFNU0RFek5EZDhURWd4TVRNNEdnc0k1NmtDRUFJYUEwVlZVamdjY0lITUFnPT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJGUkEiLG51bGwsIkxIIiwiMTM0NyJdLFsiRlJBIiwiMjAyNi0xMi0xMyIsIkJDTiIsbnVsbCwiTEgiLCIxMTM4Il1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 17:25"
+     },
+     "arrival_airport": {
+      "name": "Aéroport de Paris-Charles de Gaulle",
+      "id": "CDG",
+      "time": "2026-12-13 20:00"
+     },
+     "duration": 155,
+     "airplane": "Airbus A220-300 Passenger",
+     "airline": "Air France",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AF.png",
+     "travel_class": "Business Class",
+     "flight_number": "AF 1047",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 206 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Aéroport de Paris-Charles de Gaulle",
+      "id": "CDG",
+      "time": "2026-12-13 21:00"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 22:55"
+     },
+     "duration": 115,
+     "airplane": "Airbus A320",
+     "airline": "Air France",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AF.png",
+     "travel_class": "Business Class",
+     "flight_number": "AF 1448",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Wi-Fi for a fee",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 130 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 60,
+     "name": "Aéroport de Paris-Charles de Gaulle",
+     "id": "CDG"
+    }
+   ],
+   "total_duration": 330,
+   "carbon_emissions": {
+    "this_flight": 337000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 14
+   },
+   "price": 388,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AF.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZzFCUmpFd05EZDhRVVl4TkRRNEdnc0l4NjRDRUFJYUEwVlZVamdjY0tmUkFnPT0iLFtbIldBVyIsIjIwMjYtMTItMTMiLCJDREciLG51bGwsIkFGIiwiMTA0NyJdLFsiQ0RHIiwiMjAyNi0xMi0xMyIsIkJDTiIsbnVsbCwiQUYiLCIxNDQ4Il1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 11:35"
+     },
+     "arrival_airport": {
+      "name": "Athens International Airport \"Eleftherios Venizelos\"",
+      "id": "ATH",
+      "time": "2026-12-13 15:05"
+     },
+     "duration": 150,
+     "airplane": "Airbus A320neo",
+     "airline": "Aegean",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/A3.png",
+     "travel_class": "Business Class",
+     "flight_number": "A3 871",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Free Wi-Fi",
+      "In-seat USB outlet",
+      "Stream media to your device",
+      "Carbon emissions estimate: 186 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Athens International Airport \"Eleftherios Venizelos\"",
+      "id": "ATH",
+      "time": "2026-12-13 16:40"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 18:45"
+     },
+     "duration": 185,
+     "airplane": "Airbus A320neo",
+     "airline": "Aegean",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/A3.png",
+     "travel_class": "Business Class",
+     "flight_number": "A3 712",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Free Wi-Fi",
+      "In-seat USB outlet",
+      "Stream media to your device",
+      "Carbon emissions estimate: 209 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 95,
+     "name": "Athens International Airport \"Eleftherios Venizelos\"",
+     "id": "ATH"
+    }
+   ],
+   "total_duration": 430,
+   "carbon_emissions": {
+    "this_flight": 396000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 34
+   },
+   "price": 432,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/A3.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZ3RCTXpnM01YeEJNemN4TWhvTENON1FBaEFDR2dORlZWSTRISEMwOXdJPSIsW1siV0FXIiwiMjAyNi0xMi0xMyIsIkFUSCIsbnVsbCwiQTMiLCI4NzEiXSxbIkFUSCIsIjIwMjYtMTItMTMiLCJCQ04iLG51bGwsIkEzIiwiNzEyIl1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 15:00"
+     },
+     "arrival_airport": {
+      "name": "Vienna International Airport",
+      "id": "VIE",
+      "time": "2026-12-13 16:20"
+     },
+     "duration": 80,
+     "airplane": "Embraer 195",
+     "airline": "Austrian",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+     "travel_class": "Business Class",
+     "flight_number": "OS 664",
+     "legroom": "29 in",
+     "extensions": [
+      "Average legroom (29 in)",
+      "Carbon emissions estimate: 131 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Vienna International Airport",
+      "id": "VIE",
+      "time": "2026-12-13 17:25"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 19:45"
+     },
+     "duration": 140,
+     "airplane": "Airbus A320",
+     "airline": "Austrian",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+     "travel_class": "Business Class",
+     "flight_number": "OS 405",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 201 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 65,
+     "name": "Vienna International Airport",
+     "id": "VIE"
+    }
+   ],
+   "total_duration": 285,
+   "carbon_emissions": {
+    "this_flight": 333000,
+    "typical_for_this_route": 296000,
+    "difference_percent": 13
+   },
+   "price": 473,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZ3RQVXpZMk5IeFBVelF3TlJvTENKTHhBaEFDR2dORlZWSTRISERGbXdNPSIsW1siV0FXIiwiMjAyNi0xMi0xMyIsIlZJRSIsbnVsbCwiT1MiLCI2NjQiXSxbIlZJRSIsIjIwMjYtMTItMTMiLCJCQ04iLG51bGwsIk9TIiwiNDA1Il1dXQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-13 15:30"
+     },
+     "arrival_airport": {
+      "name": "Vienna International Airport",
+      "id": "VIE",
+      "time": "2026-12-13 16:50"
+     },
+     "duration": 80,
+     "airplane": "Boeing 737MAX 8 Passenger",
+     "airline": "LOT",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+     "travel_class": "Business Class",
+     "flight_number": "LO 221",
+     "ticket_also_sold_by": [
+      "Austrian"
+     ],
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat power & USB outlets",
+      "Carbon emissions estimate: 90 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Vienna International Airport",
+      "id": "VIE",
+      "time": "2026-12-13 17:25"
+     },
+     "arrival_airport": {
+      "name": "Josep Tarradellas Barcelona-El Prat Airport",
+      "id": "BCN",
+      "time": "2026-12-13 19:45"
+     },
+     "duration": 140,
+     "airplane": "Airbus A320",
+     "airline": "Austrian",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/OS.png",
+     "travel_class": "Business Class",
+     "flight_number": "OS 405",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 201 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 35,
+     "name": "Vienna International Airport",
+     "id": "VIE"
+    }
+   ],
+   "total_duration": 255,
+   "carbon_emissions": {
+    "this_flight": 292000,
+    "typical_for_this_route": 296000,
+    "difference_percent": -1
+   },
+   "price": 514,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/multi.png",
+   "booking_token": "WyJDalJJVG5rNVJWcDBSRmRNYkUxQlEzVnFTMUZDUnkwdExTMHRMUzB0TFhCbVpHTXlORUZCUVVGQlIzSjJiemR2UlZOQ2RVVkJFZ3RNVHpJeU1YeFBVelF3TlJvTENLV1JBeEFDR2dORlZWSTRISEN3dndNPSIsW1siV0FXIiwiMjAyNi0xMi0xMyIsIlZJRSIsbnVsbCwiTE8iLCIyMjEiXSxbIlZJRSIsIjIwMjYtMTItMTMiLCJCQ04iLG51bGwsIk9TIiwiNDA1Il1dXQ=="
+  }
+ ],
+ "price_insights": {
+  "lowest_price": 324,
+  "price_level": "typical",
+  "typical_price_range": [
+   295,
+   415
+  ],
+  "price_history": [
+   [
+    1788818400,
+    328
+   ],
+   [
+    1788904800,
+    328
+   ],
+   [
+    1788991200,
+    327
+   ],
+   [
+    1789077600,
+    327
+   ],
+   [
+    1789164000,
+    326
+   ],
+   [
+    1789250400,
+    327
+   ],
+   [
+    1789336800,
+    322
+   ],
+   [
+    1789423200,
+    327
+   ],
+   [
+    1789509600,
+    326
+   ],
+   [
+    1789596000,
+    326
+   ],
+   [
+    1789682400,
+    325
+   ],
+   [
+    1789768800,
+    325
+   ],
+   [
+    1789855200,
+    325
+   ],
+   [
+    1789941600,
+    321
+   ],
+   [
+    1790028000,
+    325
+   ],
+   [
+    1790114400,
+    326
+   ],
+   [
+    1790200800,
+    326
+   ],
+   [
+    1790287200,
+    324
+   ],
+   [
+    1790373600,
+    324
+   ],
+   [
+    1790460000,
+    325
+   ],
+   [
+    1790546400,
+    325
+   ],
+   [
+    1790632800,
+    325
+   ],
+   [
+    1790719200,
+    325
+   ],
+   [
+    1790805600,
+    325
+   ],
+   [
+    1790892000,
+    325
+   ],
+   [
+    1790978400,
+    324
+   ],
+   [
+    1791064800,
+    324
+   ],
+   [
+    1791151200,
+    323
+   ],
+   [
+    1791237600,
+    324
+   ],
+   [
+    1791324000,
+    324
+   ],
+   [
+    1791410400,
+    325
+   ],
+   [
+    1791496800,
+    324
+   ],
+   [
+    1791583200,
+    324
+   ],
+   [
+    1791669600,
+    324
+   ],
+   [
+    1791756000,
+    324
+   ],
+   [
+    1791842400,
+    324
+   ],
+   [
+    1791928800,
+    324
+   ],
+   [
+    1792015200,
+    333
+   ],
+   [
+    1792101600,
+    335
+   ],
+   [
+    1792188000,
+    335
+   ],
+   [
+    1792274400,
+    335
+   ],
+   [
+    1792360800,
+    335
+   ],
+   [
+    1792447200,
+    335
+   ],
+   [
+    1792533600,
+    336
+   ],
+   [
+    1792620000,
+    336
+   ],
+   [
+    1792706400,
+    335
+   ],
+   [
+    1792792800,
+    323
+   ],
+   [
+    1792879200,
+    323
+   ],
+   [
+    1792969200,
+    323
+   ],
+   [
+    1793055600,
+    323
+   ],
+   [
+    1793142000,
+    324
+   ],
+   [
+    1793228400,
+    324
+   ],
+   [
+    1793314800,
+    325
+   ],
+   [
+    1793401200,
+    322
+   ],
+   [
+    1793487600,
+    322
+   ],
+   [
+    1793574000,
+    322
+   ],
+   [
+    1793660400,
+    323
+   ],
+   [
+    1793746800,
+    323
+   ],
+   [
+    1793833200,
+    325
+   ],
+   [
+    1793919600,
+    324
+   ],
+   [
+    1794006000,
+    324
+   ]
+  ]
+ },
+ "airports": [
+  {
+   "departure": [
+    {
+     "airport": {
+      "id": "WAW",
+      "name": "Warsaw Chopin Airport"
+     },
+     "city": "Warsaw",
+     "country": "Poland",
+     "country_code": "PL",
+     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHx25TjZC37XYjd35zw7q_e_LkTtU5W8UU5aNruIEFZ8jijgQfjKJekztMYYqNnWAaSzk5IOJCZwpmhg",
+     "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpYgCZaR1AQIUNfZw69CxHGT2OB0VmzHyYCmfyHLlH1lJ2D1OlspuNu2uN7sK40UqPj5Z_kAZhiUpZUUYlMqsL3_cZdxPEjp86EGSCGi4"
+    }
+   ],
+   "arrival": [
+    {
+     "airport": {
+      "id": "BCN",
+      "name": "Josep Tarradellas Barcelona-El Prat Airport"
+     },
+     "city": "Barcelona",
+     "country": "Spain",
+     "country_code": "ES",
+     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOk3xypjQxrqfZPlTUH5lubWcGBzOkdXv7IVkOL--w1FYohepC2Y1hN69JZMcmQsAOt2hIy7EWP0SfXA",
+     "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSm8RLrNH5mwpZ7VV_y8imJgifZndKGVUDYaU5-3_hF41Qrpet1SbU1az4wU48pwjNcbuAC9cYwCNqDCxMF1MgcMCvzO0P__9pb0Q9JBGM"
+    }
+   ]
+  }
+ ]
+}

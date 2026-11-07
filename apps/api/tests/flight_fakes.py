@@ -58,8 +58,10 @@ class StubProvider:
         self._error = error
         self._delay_s = delay_s
         self.calls = 0
+        self.queries: list[FlightQuery] = []
 
     async def search(self, query: FlightQuery) -> list[Offer]:
+        self.queries.append(query)
         return await self._respond(self._offers)
 
     async def calendar(

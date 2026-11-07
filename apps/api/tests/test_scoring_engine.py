@@ -154,3 +154,21 @@ def test_invalid_config_is_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(ValidationError, match="бракує профілів"):
         load_scoring_config(path)
+
+
+def test_time_and_stop_costs_scale_with_travellers() -> None:
+    # Ціна групи вже за всіх, тож і зайвий час та пересадки «коштують» за кожного.
+    offers = [
+        offer("fast", price=400, duration=120, stops=0),
+        offer("slow", price=360, duration=480, stops=1),
+    ]
+    alone = {s.offer_key: s.breakdown for s in score_offers(offers, "balanced", CONFIG).scores}
+    trio = {
+        s.offer_key: s.breakdown
+        for s in score_offers(offers, "balanced", CONFIG, travellers=3).scores
+    }
+    slow_alone, slow_trio = alone["t:slow"], trio["t:slow"]
+    assert slow_alone.time_penalty is not None
+    assert slow_trio.time_penalty == slow_alone.time_penalty * 3
+    assert slow_trio.stop_penalty == slow_alone.stop_penalty * 3
+    assert slow_trio.price == slow_alone.price

@@ -12,15 +12,25 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from tickets_api.db.models import PriceObservation
-from tickets_api.domain.flights import CalendarDay, Offer
+from tickets_api.domain.flights import CalendarDay, Offer, Passengers
 
 log = structlog.get_logger(__name__)
 
 BATCH_SIZE = 1000
 
 
-def offer_rows(origin: str, destination: str, offers: Sequence[Offer]) -> list[dict[str, Any]]:
-    """Маршрут — коди із запиту, а не фактичні аеропорти: WAW-запит може дати рейс з WMI."""
+def offer_rows(
+    origin: str,
+    destination: str,
+    offers: Sequence[Offer],
+    *,
+    party: str = Passengers().code,
+    cabin: str = "economy",
+) -> list[dict[str, Any]]:
+    """Маршрут — коди із запиту, а не фактичні аеропорти: WAW-запит може дати рейс з WMI.
+
+    Ціна — за склад `party` і клас `cabin` із запиту (ADR 0013).
+    """
     return [
         {
             "origin": origin.upper(),
@@ -32,6 +42,8 @@ def offer_rows(origin: str, destination: str, offers: Sequence[Offer]) -> list[d
             "stops": o.stops,
             "source": o.source,
             "kind": "offer",
+            "party": party,
+            "cabin": cabin,
             "observation_key": o.id,
             "collected_at": o.collected_at,
             "found_at": o.found_at,
@@ -120,6 +132,8 @@ async def route_price_stats(
     round_trip: bool,
     currency: str,
     best_price: Decimal,
+    party: str = Passengers().code,
+    cabin: str = "economy",
     window_days: int = 15,
 ) -> PriceStats | None:
     """Ціни повних пропозицій (kind=offer) того самого типу поїздки в межах ±window_days.
@@ -132,6 +146,8 @@ async def route_price_stats(
         p.destination == destination.upper(),
         p.currency == currency.upper(),
         p.kind == "offer",
+        p.party == party,
+        p.cabin == cabin,
         p.departure_date.between(
             departure - timedelta(days=window_days), departure + timedelta(days=window_days)
         ),

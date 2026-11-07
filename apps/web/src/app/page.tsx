@@ -1,4 +1,4 @@
-import type { Offer, OfferScore, PickLabel } from "@tickets/shared";
+import type { FlightSearchResult, Offer, OfferScore, PickLabel } from "@tickets/shared";
 import { Info, Plane, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -13,7 +13,10 @@ import { OfferCard } from "@/components/offer-card";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
 import { PriceAlert } from "@/components/price-alert";
+import { DateOptions } from "@/components/date-options";
 import { PriceCalendar } from "@/components/price-calendar";
+import { PriceMatrix } from "@/components/price-matrix";
+import { SellerOffers } from "@/components/seller-offers";
 import { ProviderAlerts } from "@/components/provider-alerts";
 import { ResultFilters } from "@/components/result-filters";
 import { SaveSearch } from "@/components/save-search";
@@ -29,19 +32,22 @@ import {
   fetchAIStatus,
   fetchAlertChannels,
   fetchCalendar,
+  fetchMatrix,
   searchFlights,
 } from "@/lib/api";
 import {
+  addDays,
   hasFilters,
   parseSearchParams,
   type RawSearchParams,
   type SearchState,
   SORT_KEYS,
   type SortKey,
+  passengerTotal,
   toSearchParams,
 } from "@/lib/search-params";
 import { dateRange, peopleCount } from "@/lib/summary";
-import { recordHistory, sessionToken } from "@/lib/session";
+import { recordHistory, savedFlightFilters, sessionToken } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -57,7 +63,9 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
     <div className="flex min-h-full flex-1 flex-col">
       <SiteHeader active="flights" />
       <main className="flex-1">
-        <section className="relative isolate overflow-hidden border-b">
+        {/* overflow-x-clip (не hidden) і z-10: розкривні блоки форми (пасажири, підказки міст)
+            можуть виходити за низ секції поверх результатів, а декор фону не дає горизонтального скролу. */}
+        <section className="relative isolate z-10 overflow-x-clip border-b">
           <HeroBackdrop />
           <div className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-5 sm:py-8">
             <Suspense fallback={null}>
@@ -109,17 +117,25 @@ async function HeroText({ searchParams }: { searchParams: Params }) {
 
 /** Форма і (коли увімкнено LLM) ШІ-помічник — у вкладках однієї картки. */
 async function SearchArea({ searchParams }: { searchParams: Params }) {
-  const [status, raw] = await Promise.all([fetchAIStatus(), searchParams]);
+  const [status, raw, savedFilters] = await Promise.all([
+    fetchAIStatus(),
+    searchParams,
+    savedFlightFilters(),
+  ]);
   const state = parseSearchParams(raw);
   // key: при новому пошуку форма скидається до значень з URL.
   const form = (
-    <SearchForm key={state ? toSearchParams(state).toString() : "empty"} initial={state} />
+    <SearchForm
+      key={state ? toSearchParams(state).toString() : "empty"}
+      initial={state}
+      savedFilters={savedFilters}
+    />
   );
   // На мобільному на сторінці результатів форма згортається в рядок «що шукаємо».
   const searchForm = state ? (
     <CollapsibleSearch
       title={`${state.query.origin} → ${state.query.destination}`}
-      details={`${await dateRange(state.query.departure_date, state.query.return_date)} · ${await peopleCount(state.query.passengers?.adults ?? 1)}`}
+      details={`${await dateRange(state.query.departure_date, state.query.return_date)} · ${await peopleCount(state.query.passengers?.adults ?? 1, passengerTotal(state.query.passengers) - (state.query.passengers?.adults ?? 1))}`}
     >
       {form}
     </CollapsibleSearch>
@@ -172,11 +188,16 @@ async function Results({ searchParams }: { searchParams: Params }) {
   }
 
   const { query } = state;
-  const month = query.departure_date.slice(0, 7);
-  const [result, calendar, alertChannels] = await Promise.all([
+  // Місяць календаря можна гортати (`cal=`), не змінюючи сам пошук.
+  const month = calendarMonth(raw.cal, query.departure_date);
+  const matrixRange = matrixWindow(query);
+  const [result, calendar, alertChannels, matrix] = await Promise.all([
     searchFlights(query),
     fetchCalendar(query.origin, query.destination, month, query.currency ?? "EUR"),
     fetchAlertChannels(),
+    matrixRange
+      ? fetchMatrix(query.origin, query.destination, ...matrixRange, query.currency ?? "EUR")
+      : null,
   ]);
   const now = new Date();
 
@@ -198,6 +219,18 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const { scoring, facets } = result.data;
   const scores = new Map<string, OfferScore>(scoring.scores.map((s) => [s.offer_key, s]));
   const offers = sortOffers(result.data.offers, state.sort, scores);
+  // Той самий рейс від кількох джерел — одна картка (найдешевша), решта — рядки продавців у ній.
+  const byKey = new Map(result.data.offers.map((o) => [`${o.source}:${o.id}`, o]));
+  const groupOf = new Map<string, string[]>();
+  for (const group of result.data.groups ?? []) {
+    for (const key of group.offer_keys) groupOf.set(key, group.offer_keys);
+  }
+  const isGroupLead = (o: Offer) => {
+    const key = `${o.source}:${o.id}`;
+    return (groupOf.get(key)?.[0] ?? key) === key;
+  };
+  const groupRows = (key: string): Offer[] =>
+    (groupOf.get(key) ?? [key]).flatMap((k) => byKey.get(k) ?? []);
   const pickLabels = new Map<string, PickLabel>(scoring.picks.map((p) => [p.offer_key, p.label]));
   const airlineNames = Object.fromEntries(facets.airlines.map((a) => [a.code, a.name]));
   const filtered = hasFilters(query.filters);
@@ -233,11 +266,17 @@ async function Results({ searchParams }: { searchParams: Params }) {
         </div>
       </div>
 
-      {/* Підписка на ціну маршруту (етап 7): поріг пропонуємо від найкращої ціни. */}
-      {alertChannels && (
+      {/* Підписка на ціну маршруту (етап 7): поріг пропонуємо від найкращої ціни. Перевірки
+          йдуть за кешованими цінами одного дорослого в економі (ADR 0010, 0013), тож для дітей
+          чи іншого класу підписку не пропонуємо, а ціну дорослих ділимо на дорослого. */}
+      {alertChannels && alertable(query) && (
         <PriceAlert
           query={query}
-          bestPrice={result.data.offers[0]?.price ?? null}
+          bestPrice={
+            result.data.offers[0]
+              ? Math.round(result.data.offers[0].price / (query.passengers?.adults ?? 1))
+              : null
+          }
           channels={alertChannels}
         />
       )}
@@ -245,9 +284,19 @@ async function Results({ searchParams }: { searchParams: Params }) {
       {/* 2. Проблеми з джерелами — до результатів, щоб було ясно, чому їх мало. */}
       <ProviderAlerts providers={result.data.providers} />
 
-      {/* 3. Сусідні дати — підказка, коли дешевше. */}
-      {calendar.ok && calendar.data.days.length > 0 ? (
-        <PriceCalendar month={month} days={calendar.data.days} state={state} />
+      {/* 3. Гнучкі дати: найкраща ціна на кожну пару дат (модуль 2a). */}
+      <DateOptions options={result.data.date_options ?? []} state={state} now={now} />
+
+      {/* 4. Сусідні дати — підказка, коли дешевше. */}
+      {matrix?.ok && <PriceMatrix matrix={matrix.data} state={state} />}
+      {calendar.ok ? (
+        <PriceCalendar
+          month={month}
+          days={calendar.data.days}
+          state={state}
+          now={now}
+          verified={verifiedDays(query, result.data)}
+        />
       ) : (
         !calendar.ok && (
           <p className="text-muted-foreground text-sm">
@@ -264,6 +313,8 @@ async function Results({ searchParams }: { searchParams: Params }) {
             filters={query.filters ?? {}}
             airlines={facets.airlines}
             baseParams={[...withoutFilters]}
+            roundTrip={!!query.return_date}
+            currency={query.currency ?? "EUR"}
           />
         )}
 
@@ -294,7 +345,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
             )
           ) : (
             <ShowMore
-              items={offers.map((offer) => {
+              items={offers.filter(isGroupLead).map((offer) => {
                 const key = `${offer.source}:${offer.id}`;
                 return {
                   key: offerAnchor(key),
@@ -305,6 +356,17 @@ async function Results({ searchParams }: { searchParams: Params }) {
                       pickLabel={pickLabels.get(key)}
                       score={scores.get(key)}
                       airlineNames={airlineNames}
+                      travellers={passengerTotal(state.query.passengers)}
+                      baggageCost={result.data.baggage?.[key]}
+                      baggageNeed={state.query.baggage ?? "none"}
+                      sellers={
+                        <SellerOffers
+                          offer={offer}
+                          rows={groupRows(key)}
+                          query={state.query}
+                          now={now.toISOString()}
+                        />
+                      }
                     />
                   ),
                 };
@@ -462,4 +524,50 @@ function ResultsSkeleton() {
       </div>
     </div>
   );
+}
+
+function alertable(query: SearchState["query"]): boolean {
+  const p = query.passengers;
+  const adultsOnly = !p?.children && !p?.infants && !p?.infants_in_seat;
+  return adultsOnly && (query.cabin ?? "economy") === "economy";
+}
+
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+const MATRIX_DAYS = 3;
+
+/** `cal=YYYY-MM` — місяць календаря; інакше місяць дати вильоту. */
+function calendarMonth(value: string | string[] | undefined, departure: string): string {
+  const cal = Array.isArray(value) ? value[0] : value;
+  return cal && MONTH.test(cal) ? cal : departure.slice(0, 7);
+}
+
+/** Матриця туди-назад: ±3 дні навколо дат пошуку (7 × 7), лише для туди й назад. */
+function matrixWindow(query: SearchState["query"]): [[string, string], [string, string]] | null {
+  if (!query.return_date) return null;
+  const around = (d: string): [string, string] => [
+    addDays(d, -MATRIX_DAYS),
+    addDays(d, MATRIX_DAYS),
+  ];
+  return [around(query.departure_date), around(query.return_date)];
+}
+
+/**
+ * Дні, ціну на які щойно перевірило живе джерело, — для позначки в календарі в один бік
+ * (ціни туди-назад з календарем в один бік не порівнюємо).
+ */
+function verifiedDays(
+  query: SearchState["query"],
+  result: FlightSearchResult,
+): Record<string, number> {
+  // Календар — ціна одного дорослого в економі: інший склад чи клас не порівнюємо.
+  const single = passengerTotal(query.passengers) === 1 && (query.cabin ?? "economy") === "economy";
+  if (query.return_date || !single) return {};
+  const days: Record<string, number> = {};
+  for (const o of result.date_options ?? []) {
+    if (o.verified) days[o.departure] = Math.min(days[o.departure] ?? Infinity, o.price);
+  }
+  if (!query.flex_days && !query.departure_until && result.offers.length > 0) {
+    days[query.departure_date] = Math.min(...result.offers.map((o) => o.price));
+  }
+  return days;
 }

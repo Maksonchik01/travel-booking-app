@@ -3,7 +3,11 @@ from typing import Any
 
 from flight_fakes import StubProvider, day, offers_for
 from tickets_api.domain.flights import FlightQuery, OfferFilters
-from tickets_api.providers.base import ProviderError, ProviderRateLimitedError
+from tickets_api.providers.base import (
+    ProviderError,
+    ProviderRateLimitedError,
+    ProviderUnsupportedError,
+)
 from tickets_api.scoring.config import default_scoring_config
 from tickets_api.services.flight_search import FlightSearchService
 
@@ -140,3 +144,53 @@ async def test_filters_apply_after_providers_and_history() -> None:
         ("FR", "Ryanair", 1),
         ("LO", None, 1),
     ]
+
+
+async def test_source_that_cannot_price_the_party_is_reported_not_guessed() -> None:
+    history = HistorySpy()
+    svc = service(
+        StubProvider("live", offers=offers_for("live", [400])),
+        StubProvider("cached", error=ProviderUnsupportedError("cached", "passengers")),
+        history=history,
+    )
+    family = QUERY.model_copy(
+        update={"passengers": {"adults": 2, "children": 1}, "cabin": "business"}
+    )
+
+    result = await svc.search(FlightQuery.model_validate(family.model_dump()))
+
+    assert [o.source for o in result.offers] == ["live"]
+    assert {p.provider: (p.status, p.error) for p in result.providers}["cached"] == (
+        "unsupported",
+        "passengers",
+    )
+    # В історії — за який склад і клас ця ціна: статистика не змішає її з ціною одного.
+    assert {(r["party"], r["cabin"]) for r in history.rows} == {("2a1c0l0s", "business")}
+
+
+async def test_budget_filter_is_per_passenger() -> None:
+    svc = service(StubProvider("a", offers=offers_for("a", [250, 350])))
+    query = FlightQuery.model_validate(
+        {
+            **QUERY.model_dump(),
+            "passengers": {"adults": 2, "children": 1},
+            "filters": OfferFilters(max_price=100).model_dump(),
+        }
+    )
+
+    result = await svc.search(query)
+
+    # 250 € за трьох ≤ 3 × 100 €, а 350 € — ні.
+    assert [int(o.price) for o in result.offers] == [250]
+
+
+async def test_baggage_costs_only_when_bags_are_needed() -> None:
+    svc = service(StubProvider("a", offers=offers_for("a", [100, 200])))
+
+    plain = await svc.search(QUERY)
+    with_bags = await svc.search(QUERY.model_copy(update={"baggage": "checked"}))
+
+    assert plain.baggage == {}
+    assert set(with_bags.baggage) == {"a:a-0", "a:a-1"}
+    # Джерело умов не дало — кінцева вартість невідома, а не «безкоштовно».
+    assert {c.status for c in with_bags.baggage.values()} == {"unknown"}

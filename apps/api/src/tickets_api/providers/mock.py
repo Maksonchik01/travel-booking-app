@@ -13,11 +13,15 @@ from datetime import UTC, date, datetime, time, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
 from tickets_api.domain.flights import (
+    BagAllowance,
+    Baggage,
+    Cabin,
     CalendarDay,
     FlightQuery,
     Layover,
     Leg,
     Offer,
+    Passengers,
     Segment,
 )
 
@@ -75,10 +79,18 @@ class MockFlightProvider:
     async def search(self, query: FlightQuery) -> list[Offer]:
         collected_at = self._clock().replace(microsecond=0)
         offers: list[Offer] = []
-        for shift in range(-query.flex_days, query.flex_days + 1):
-            dep = query.departure_date + timedelta(days=shift)
-            ret = query.return_date + timedelta(days=shift) if query.return_date else None
-            offers.extend(self._offers_for_dates(query, dep, ret, collected_at))
+        # Усі дні вікна (±дні чи період); повернення — на ту саму тривалість поїздки, а для
+        # пошуку за ночами — кілька тривалостей (до двох тижнів, щоб mock лишався швидким).
+        start, end = query.departure_window
+        lengths = [query.trip_days or 0]
+        if query.nights_range is not None:
+            low, high = query.nights_range
+            lengths = list(range(low, min(high, low + 13) + 1))
+        for i in range((end - start).days + 1):
+            dep = start + timedelta(days=i)
+            for days in lengths if query.return_date else [0]:
+                ret = dep + timedelta(days=days) if query.return_date else None
+                offers.extend(self._offers_for_dates(query, dep, ret, collected_at))
         return sorted(offers, key=lambda o: (o.price, o.id))
 
     async def calendar(
@@ -232,6 +244,8 @@ class MockFlightProvider:
         factor *= Decimal("0.7") if low_cost else Decimal(1)
         factor *= Decimal(str(round(rng.uniform(0.85, 1.25), 2)))
         price_eur = base_price_eur * factor * (Decimal("1.9") if inbound else Decimal(1))
+        # Як справжнє джерело: ціна за весь склад і клас, діти й немовлята — за своїм тарифом.
+        price_eur *= _party_factor(query.passengers) * CABIN_FACTOR[query.cabin]
         rate = RATES_FROM_EUR.get(query.currency, Decimal(1))
         currency = query.currency if query.currency in RATES_FROM_EUR else "EUR"
         price = (price_eur * rate).quantize(Decimal(1), rounding=ROUND_HALF_UP)
@@ -252,7 +266,58 @@ class MockFlightProvider:
             airlines=airlines,
             details_level="full",
             baggage_included=not low_cost,
+            baggage=_baggage(low_cost, legs=len(legs), rate=rate),
+            price_status="live",
+            cabin=query.cabin,
             collected_at=collected_at,
             found_at=collected_at - timedelta(hours=rng.randint(1, 30)),
             deep_link=None,
         )
+
+
+# Умовні тарифи mock: частка від дорослого тарифу і множник класу (не ринкові дані).
+CHILD_SHARE = Decimal("0.75")
+LAP_INFANT_SHARE = Decimal("0.1")
+SEAT_INFANT_SHARE = Decimal("0.75")
+CABIN_FACTOR: dict[Cabin, Decimal] = {
+    "economy": Decimal(1),
+    "premium_economy": Decimal("1.6"),
+    "business": Decimal(3),
+    "first": Decimal(5),
+}
+
+
+def _party_factor(p: Passengers) -> Decimal:
+    return (
+        p.adults
+        + p.children * CHILD_SHARE
+        + p.infants * LAP_INFANT_SHARE
+        + p.infants_in_seat * SEAT_INFANT_SHARE
+    )
+
+
+# Умовні збори mock за місце багажу на пасажира в один бік, EUR (не ринкові дані).
+LOW_COST_FEES_EUR = {"carry_on": Decimal(25), "checked": Decimal(35), "checked_extra": Decimal(50)}
+FULL_SERVICE_EXTRA_BAG_EUR = Decimal(60)
+
+
+def _baggage(low_cost: bool, *, legs: int, rate: Decimal) -> Baggage:
+    """Лоукост: у тарифі лише особиста річ, решта за плату; звичайний — усе, крім другої валізи."""
+
+    def fee(eur: Decimal) -> BagAllowance:
+        return BagAllowance(status="fee", fee=(eur * legs * rate).quantize(Decimal(1)))
+
+    included = BagAllowance(status="included")
+    if low_cost:
+        return Baggage(
+            personal_item=included,
+            carry_on=fee(LOW_COST_FEES_EUR["carry_on"]),
+            checked=fee(LOW_COST_FEES_EUR["checked"]),
+            checked_extra=fee(LOW_COST_FEES_EUR["checked_extra"]),
+        )
+    return Baggage(
+        personal_item=included,
+        carry_on=included,
+        checked=included,
+        checked_extra=fee(FULL_SERVICE_EXTRA_BAG_EUR),
+    )

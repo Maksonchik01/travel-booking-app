@@ -34,7 +34,7 @@ class TripQuery(_StrictInput):
     flex_days: int = Field(default=0, ge=0, le=MAX_TRIP_FLEX_DAYS)
     adults: int = Field(default=2, ge=1, le=9)
     children: int = Field(default=0, ge=0, le=8)
-    """Для житла; дитячих тарифів на перельоти немає — сума позначається як неповна."""
+    """І для житла, і для перельоту: ціну дітей рахує джерело (ADR 0013)."""
     direct_only: bool = False
     profile: TripProfile = "balanced"
     budget_total: int | None = Field(default=None, ge=1, le=1_000_000)

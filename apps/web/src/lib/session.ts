@@ -14,7 +14,7 @@ export type CallResult<T> = { ok: true; data: T } | { ok: false; status: number;
 
 /** Виклик API від імені користувача (токен з cookie → Authorization: Bearer). */
 export async function call<T = null>(
-  method: "GET" | "POST" | "PATCH" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   path: string,
   body?: unknown,
   token?: string | null,
@@ -79,6 +79,19 @@ export async function currentUser(): Promise<Me | null> {
   if (!token) return null;
   const result = await call<Me>("GET", "/auth/me", undefined, token);
   return result.ok ? result.data : null;
+}
+
+/** Збережені в профілі фільтри перельотів (для нового пошуку); гість чи помилка — null. */
+export async function savedFlightFilters(): Promise<string | null> {
+  const token = await sessionToken();
+  if (!token) return null;
+  const result = await call<{ flight_filters?: string | null }>(
+    "GET",
+    "/account",
+    undefined,
+    token,
+  );
+  return result.ok ? (result.data.flight_filters ?? null) : null;
 }
 
 /**

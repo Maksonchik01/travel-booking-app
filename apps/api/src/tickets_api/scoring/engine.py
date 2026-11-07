@@ -7,13 +7,14 @@
 деталі пересадок — лише попередження (рішення власника продукту, ADR 0005).
 """
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Literal
 
 from pydantic import BaseModel
 
 from tickets_api.domain.flights import Leg, Money, Offer
+from tickets_api.scoring.baggage import BaggageCost
 from tickets_api.scoring.config import Profile, ScoringConfig
 
 PickLabel = Literal["cheapest", "fastest", "balanced"]
@@ -80,6 +81,8 @@ class ScoringResult(BaseModel):
     picks: list[Pick]
     unscored_offer_keys: list[str] = []
     """Пропозиції в іншій валюті, ніж валюта скорингу: їх не порівнюємо."""
+    cheapest_basis: Literal["ticket", "with_baggage"] = "ticket"
+    """with_baggage — «найдешевший» обрано за кінцевою вартістю з потрібним багажем (ADR 0014)."""
 
 
 def offer_key(offer: Offer) -> str:
@@ -90,7 +93,17 @@ def _money(value: Decimal) -> Decimal:
     return value.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
-def score_offers(offers: Sequence[Offer], profile: Profile, config: ScoringConfig) -> ScoringResult:
+def score_offers(
+    offers: Sequence[Offer],
+    profile: Profile,
+    config: ScoringConfig,
+    *,
+    travellers: int = 1,
+    baggage: Mapping[str, BaggageCost] | None = None,
+) -> ScoringResult:
+    """`travellers` — скільки людей сидить у кріслах (ADR 0013): ціна вже за всіх, тож і
+    вартість зайвого часу, пересадок і ризиків множимо на них — для 1 людини як і раніше."""
+    people = Decimal(travellers)
     comparable = [o for o in offers if o.currency == config.currency]
     unscored = [offer_key(o) for o in offers if o.currency != config.currency]
     durations = [o.total_duration_min for o in comparable if o.total_duration_min is not None]
@@ -101,13 +114,17 @@ def score_offers(offers: Sequence[Offer], profile: Profile, config: ScoringConfi
     scores = []
     for offer in comparable:
         penalties, warnings = _risks(offer, config)
+        if travellers != 1:
+            penalties = [
+                p.model_copy(update={"amount": _money(p.amount * people)}) for p in penalties
+            ]
         risk_total = sum((p.amount for p in penalties), Decimal(0))
-        stop_penalty = _money(weights.lambda_stop * offer.stops)
+        stop_penalty = _money(weights.lambda_stop * offer.stops * people)
         time_penalty: Decimal | None = None
         total: Decimal | None = None
         if offer.total_duration_min is not None and min_duration is not None:
             extra_hours = Decimal(offer.total_duration_min - min_duration) / MINUTES_PER_HOUR
-            time_penalty = _money(weights.lambda_time_per_hour * extra_hours)
+            time_penalty = _money(weights.lambda_time_per_hour * extra_hours * people)
             total = _money(offer.price + time_penalty + stop_penalty + risk_total)
         scores.append(
             OfferScore(
@@ -130,8 +147,11 @@ def score_offers(offers: Sequence[Offer], profile: Profile, config: ScoringConfi
         currency=config.currency,
         min_duration_min=min_duration,
         scores=scores,
-        picks=_picks(comparable, {s.offer_key: s for s in scores}),
+        picks=_picks(comparable, {s.offer_key: s for s in scores}, baggage or {}),
         unscored_offer_keys=unscored,
+        cheapest_basis="with_baggage"
+        if _known_with_baggage(comparable, baggage or {})
+        else "ticket",
     )
 
 
@@ -195,13 +215,36 @@ def _pareto_keys(offers: Sequence[Offer]) -> set[str]:
     return {offer_key(o) for o in known if not any(dominates(other, o) for other in known)}
 
 
-def _picks(offers: Sequence[Offer], scores: dict[str, OfferScore]) -> list[Pick]:
+def _known_with_baggage(offers: Sequence[Offer], baggage: Mapping[str, BaggageCost]) -> list[Offer]:
+    """Пропозиції, чия кінцева вартість з потрібним багажем відома."""
+    return [
+        o for o in offers if (c := baggage.get(offer_key(o))) is not None and c.total is not None
+    ]
+
+
+def _picks(
+    offers: Sequence[Offer], scores: dict[str, OfferScore], baggage: Mapping[str, BaggageCost]
+) -> list[Pick]:
     if not offers:
         return []
     winners: dict[PickLabel, str] = {}
 
-    # Найдешевший — серед усіх (тривалість для нього не потрібна).
-    cheapest = min(offers, key=lambda o: (o.price, o.stops, offer_key(o)))
+    # Найдешевший (тривалість для нього не потрібна). Якщо кінцева вартість з багажем відома
+    # хоч для когось — лише серед таких і за нею: пропозиція з невідомими обов'язковими
+    # платежами не може бути «найдешевшою» поряд з відомими (ADR 0014).
+    known = _known_with_baggage(offers, baggage)
+    if known:
+        cheapest = min(
+            known,
+            key=lambda o: (baggage[offer_key(o)].total or o.price, o.stops, offer_key(o)),
+        )
+    else:
+        possible = [
+            o
+            for o in offers
+            if getattr(baggage.get(offer_key(o)), "status", None) != "not_available"
+        ] or list(offers)
+        cheapest = min(possible, key=lambda o: (o.price, o.stops, offer_key(o)))
     winners["cheapest"] = offer_key(cheapest)
 
     timed = [o for o in offers if o.total_duration_min is not None]

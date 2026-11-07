@@ -185,6 +185,159 @@
         }
       }
     },
+    "/flights/matrix": {
+      "get": {
+        "tags": [
+          "flights"
+        ],
+        "summary": "Price Matrix",
+        "description": "Матриця туди-назад: виліт × повернення, у клітинці — загальна ціна (кешована,\nорієнтовна, за одного дорослого). До 14 днів по кожній осі; живих запитів не робить.",
+        "operationId": "price_matrix_flights_matrix_get",
+        "parameters": [
+          {
+            "name": "origin",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "examples": [
+                "WAW"
+              ],
+              "title": "Origin"
+            }
+          },
+          {
+            "name": "destination",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "examples": [
+                "WAW"
+              ],
+              "title": "Destination"
+            }
+          },
+          {
+            "name": "depart_from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Depart From"
+            }
+          },
+          {
+            "name": "depart_to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Depart To"
+            }
+          },
+          {
+            "name": "return_from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Return From"
+            }
+          },
+          {
+            "name": "return_to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Return To"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "default": "EUR",
+              "title": "Currency"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceMatrix"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/flights/sellers": {
+      "post": {
+        "tags": [
+          "flights"
+        ],
+        "summary": "Flight Sellers",
+        "description": "Продавці рейсу й свіжа ціна в кожного — на вимогу (1 запит квоти SerpApi, кеш 30 хв).\n\nЦе й перевірка перед переходом: якщо ціна змінилась, UI показує нову.",
+        "operationId": "flight_sellers_flights_sellers_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellersResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/places": {
       "get": {
         "tags": [
@@ -1072,6 +1225,66 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ProfileBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/flight-filters": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Save Flight Filters",
+        "description": "«Зберегти налаштування» фільтрів: веб додає їх до кожного нового пошуку.",
+        "operationId": "save_flight_filters_account_flight_filters_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlightFiltersBody"
               }
             }
           }
@@ -2163,6 +2376,17 @@
             "type": "boolean",
             "title": "Telegram Linked"
           },
+          "flight_filters": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flight Filters"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -2763,6 +2987,173 @@
         "type": "object",
         "title": "Availability"
       },
+      "BagAllowance": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "included",
+              "fee",
+              "not_available"
+            ],
+            "title": "Status"
+          },
+          "fee": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fee"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "BagAllowance"
+      },
+      "Baggage": {
+        "properties": {
+          "personal_item": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BagAllowance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "carry_on": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BagAllowance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checked": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BagAllowance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checked_extra": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BagAllowance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Baggage",
+        "description": "Умови багажу тарифу від джерела. None в полі — невідомо (а не «немає»), ADR 0004."
+      },
+      "BaggageCost": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "included",
+              "extra",
+              "unknown",
+              "not_available"
+            ],
+            "title": "Status"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "unknown": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "personal_item",
+                "carry_on",
+                "checked",
+                "checked_extra"
+              ]
+            },
+            "type": "array",
+            "title": "Unknown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "extra",
+          "total",
+          "unknown"
+        ],
+        "title": "BaggageCost"
+      },
+      "BookingLink": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST"
+            ],
+            "title": "Method",
+            "default": "GET"
+          },
+          "post_data": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8192
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Post Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url"
+        ],
+        "title": "BookingLink"
+      },
       "CalendarDay": {
         "properties": {
           "date": {
@@ -3157,6 +3548,122 @@
         ],
         "title": "Clicks"
       },
+      "DateOption": {
+        "properties": {
+          "departure": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "found_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found At"
+          },
+          "found_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found On"
+          },
+          "offers": {
+            "type": "integer",
+            "title": "Offers"
+          },
+          "nights": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nights"
+          },
+          "nights_approximate": {
+            "type": "boolean",
+            "title": "Nights Approximate",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "departure",
+          "return_date",
+          "price",
+          "currency",
+          "verified",
+          "found_at",
+          "found_on",
+          "offers"
+        ],
+        "title": "DateOption"
+      },
+      "DatePair": {
+        "properties": {
+          "departure": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "departure"
+        ],
+        "title": "DatePair"
+      },
       "DeleteAccountBody": {
         "properties": {
           "confirm": {
@@ -3275,6 +3782,25 @@
         ],
         "title": "Explanation"
       },
+      "FlightFiltersBody": {
+        "properties": {
+          "flight_filters": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flight Filters"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "FlightFiltersBody"
+      },
       "FlightQuery": {
         "properties": {
           "origin": {
@@ -3311,13 +3837,90 @@
             "title": "Flex Days",
             "default": 0
           },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
+          },
+          "check_dates": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DatePair"
+                },
+                "type": "array",
+                "maxItems": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check Dates"
+          },
           "passengers": {
             "$ref": "#/components/schemas/Passengers",
             "default": {
               "adults": 1,
               "children": 0,
-              "infants": 0
+              "infants": 0,
+              "infants_in_seat": 0
             }
+          },
+          "cabin": {
+            "type": "string",
+            "enum": [
+              "economy",
+              "premium_economy",
+              "business",
+              "first"
+            ],
+            "title": "Cabin",
+            "default": "economy"
+          },
+          "baggage": {
+            "type": "string",
+            "enum": [
+              "none",
+              "personal_item",
+              "carry_on",
+              "checked",
+              "checked_extra"
+            ],
+            "title": "Baggage",
+            "default": "none"
           },
           "direct_only": {
             "type": "boolean",
@@ -3358,7 +3961,11 @@
             "$ref": "#/components/schemas/OfferFilters",
             "default": {
               "airlines": [],
-              "departure_periods": []
+              "excluded_airlines": [],
+              "departure_periods": [],
+              "arrival_periods": [],
+              "return_departure_periods": [],
+              "return_arrival_periods": []
             }
           }
         },
@@ -3392,6 +3999,30 @@
           },
           "facets": {
             "$ref": "#/components/schemas/SearchFacets"
+          },
+          "baggage": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/BaggageCost"
+            },
+            "type": "object",
+            "title": "Baggage",
+            "default": {}
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/OfferGroup"
+            },
+            "type": "array",
+            "title": "Groups",
+            "default": []
+          },
+          "date_options": {
+            "items": {
+              "$ref": "#/components/schemas/DateOption"
+            },
+            "type": "array",
+            "title": "Date Options",
+            "default": []
           }
         },
         "type": "object",
@@ -3512,6 +4143,30 @@
           "version"
         ],
         "title": "HealthResponse"
+      },
+      "HourRange": {
+        "properties": {
+          "start": {
+            "type": "integer",
+            "maximum": 23.0,
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "integer",
+            "maximum": 24.0,
+            "minimum": 0.0,
+            "title": "End"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "HourRange",
+        "description": "Власний діапазон годин [start, end) за місцевим часом; end < start — через північ."
       },
       "KindFacet": {
         "properties": {
@@ -3721,6 +4376,72 @@
         ],
         "title": "LoginBody"
       },
+      "MatrixCell": {
+        "properties": {
+          "departure": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure"
+          },
+          "return_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Return Date"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "stops": {
+            "type": "integer",
+            "title": "Stops"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "found_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found At"
+          },
+          "found_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found On"
+          }
+        },
+        "type": "object",
+        "required": [
+          "departure",
+          "return_date",
+          "price",
+          "currency",
+          "stops",
+          "source",
+          "found_at",
+          "found_on"
+        ],
+        "title": "MatrixCell"
+      },
       "Offer": {
         "properties": {
           "id": {
@@ -3787,6 +4508,16 @@
             ],
             "title": "Baggage Included"
           },
+          "baggage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Baggage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "collected_at": {
             "type": "string",
             "format": "date-time",
@@ -3849,6 +4580,66 @@
               }
             ],
             "title": "Seller"
+          },
+          "price_status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "cached"
+            ],
+            "title": "Price Status",
+            "default": "cached"
+          },
+          "cabin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "economy",
+                  "premium_economy",
+                  "business",
+                  "first"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cabin"
+          },
+          "fare_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fare Name"
+          },
+          "taxes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxes"
+          },
+          "booking_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Ref"
           },
           "reported_total_duration_min": {
             "anyOf": [
@@ -3919,6 +4710,15 @@
             "maxItems": 20,
             "title": "Airlines"
           },
+          "excluded_airlines": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9]{2}$"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Excluded Airlines"
+          },
           "departure_periods": {
             "items": {
               "type": "string",
@@ -3931,6 +4731,85 @@
             },
             "type": "array",
             "title": "Departure Periods"
+          },
+          "departure_hours": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HourRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "arrival_periods": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "night",
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            },
+            "type": "array",
+            "title": "Arrival Periods"
+          },
+          "arrival_hours": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HourRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "return_departure_periods": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "night",
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            },
+            "type": "array",
+            "title": "Return Departure Periods"
+          },
+          "return_departure_hours": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HourRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "return_arrival_periods": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "night",
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            },
+            "type": "array",
+            "title": "Return Arrival Periods"
+          },
+          "return_arrival_hours": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HourRange"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "max_duration_hours": {
             "anyOf": [
@@ -3945,6 +4824,45 @@
             ],
             "title": "Max Duration Hours"
           },
+          "max_layover_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 48.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Layover Hours"
+          },
+          "min_layover_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 720.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Layover Min"
+          },
+          "min_self_transfer_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1440.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Self Transfer Min"
+          },
           "max_price": {
             "anyOf": [
               {
@@ -3957,12 +4875,46 @@
               }
             ],
             "title": "Max Price"
+          },
+          "max_total_price": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Total Price"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "OfferFilters",
         "description": "Фільтри видачі. Застосовуються ПІСЛЯ провайдерів: до запиту й кешу не входять.\n\nНевідоме значення (тривалість, авіакомпанія) не відсікає пропозицію — як і в\nскорингу, «невідомо» не означає «погано» (ADR 0004)."
+      },
+      "OfferGroup": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "offer_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Offer Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "offer_keys"
+        ],
+        "title": "OfferGroup"
       },
       "OfferScore": {
         "properties": {
@@ -4142,7 +5094,6 @@
                 "budget_not_applied",
                 "overnight_layover_scored",
                 "self_transfer_scored",
-                "children_not_priced",
                 "stays_later"
               ]
             },
@@ -4187,11 +5138,19 @@
             "minimum": 0.0,
             "title": "Infants",
             "default": 0
+          },
+          "infants_in_seat": {
+            "type": "integer",
+            "maximum": 8.0,
+            "minimum": 0.0,
+            "title": "Infants In Seat",
+            "default": 0
           }
         },
         "additionalProperties": false,
         "type": "object",
-        "title": "Passengers"
+        "title": "Passengers",
+        "description": "Склад пасажирів. Ціну за весь склад рахує джерело (ADR 0013), ми тариф не множимо."
       },
       "PasswordChangeBody": {
         "properties": {
@@ -4326,6 +5285,49 @@
         "title": "Place",
         "description": "Варіант автодоповнення: аеропорт або місто, де жоден аеропорт не має коду міста."
       },
+      "PriceMatrix": {
+        "properties": {
+          "departures": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Departures"
+          },
+          "returns": {
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "array",
+            "title": "Returns"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/MatrixCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            },
+            "type": "array",
+            "title": "Providers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "departures",
+          "returns",
+          "cells",
+          "providers"
+        ],
+        "title": "PriceMatrix",
+        "description": "Матриця туди-назад (модуль 2c): виліт × повернення, лише кешовані джерела календаря."
+      },
       "ProfileBody": {
         "properties": {
           "first_name": {
@@ -4369,7 +5371,8 @@
               "ok",
               "error",
               "timeout",
-              "rate_limited"
+              "rate_limited",
+              "unsupported"
             ],
             "title": "Status"
           },
@@ -4659,6 +5662,15 @@
             "type": "array",
             "title": "Unscored Offer Keys",
             "default": []
+          },
+          "cheapest_basis": {
+            "type": "string",
+            "enum": [
+              "ticket",
+              "with_baggage"
+            ],
+            "title": "Cheapest Basis",
+            "default": "ticket"
           }
         },
         "type": "object",
@@ -4840,6 +5852,134 @@
           "duration_min"
         ],
         "title": "Segment"
+      },
+      "SellerOffer": {
+        "properties": {
+          "seller": {
+            "type": "string",
+            "title": "Seller"
+          },
+          "is_airline": {
+            "type": "boolean",
+            "title": "Is Airline"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "included": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Included"
+          },
+          "fare_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fare Name"
+          },
+          "link": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BookingLink"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seller",
+          "is_airline",
+          "price",
+          "currency",
+          "checked_at"
+        ],
+        "title": "SellerOffer"
+      },
+      "SellersRequest": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/FlightQuery"
+          },
+          "source": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,32}$",
+            "title": "Source"
+          },
+          "booking_ref": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Booking Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "source",
+          "booking_ref"
+        ],
+        "title": "SellersRequest"
+      },
+      "SellersResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unsupported",
+              "error",
+              "rate_limited"
+            ],
+            "title": "Status"
+          },
+          "sellers": {
+            "items": {
+              "$ref": "#/components/schemas/SellerOffer"
+            },
+            "type": "array",
+            "title": "Sellers",
+            "default": []
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "SellersResult"
       },
       "SerpApiQuota": {
         "properties": {
@@ -5824,7 +6964,6 @@
               "type": "string",
               "enum": [
                 "early_arrival",
-                "children_not_priced",
                 "value_unknown"
               ]
             },

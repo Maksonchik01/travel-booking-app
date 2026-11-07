@@ -6,15 +6,32 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { PassengerPicker } from "@/components/passenger-picker";
+import { readLocalFilters } from "@/lib/saved-filters";
+import { useHydrated } from "@/lib/use-hydrated";
 import { PlaceInput, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MAX_FLEX_DAYS, NEARBY_RADIUS_KM, PROFILES, type SearchState } from "@/lib/search-params";
+import {
+  FLEX_OPTIONS,
+  MAX_NIGHTS,
+  NEARBY_RADIUS_KM,
+  PROFILES,
+  type SearchState,
+  toSearchParams,
+} from "@/lib/search-params";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
-export function SearchForm({ initial }: { initial: SearchState | null }) {
+export function SearchForm({
+  initial,
+  savedFilters = null,
+}: {
+  initial: SearchState | null;
+  /** Збережені в профілі фільтри (рядок URL); гостю — з браузера після гідратації. */
+  savedFilters?: string | null;
+}) {
   const t = useTranslations("search");
   const q = initial?.query;
   const [depart, setDepart] = useState(q?.departure_date ?? "");
@@ -24,6 +41,9 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
   const [toNear, setToNear] = useState(!!q?.destination_radius_km);
   // Новий пошук — туди й назад (найчастіше); відкритий з URL — як у ньому.
   const [roundTrip, setRoundTrip] = useState(q ? !!q.return_date : true);
+  const [flex, setFlex] = useState(initialFlex(q));
+  // Пошук за кількістю ночей (2b): місяць чи період туди й назад — без дати повернення.
+  const nightsMode = roundTrip && (flex === "month" || flex === "range");
 
   function swap() {
     setFrom(to);
@@ -110,37 +130,56 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             name="return"
             type="date"
             min={depart || undefined}
-            required={roundTrip}
-            disabled={!roundTrip}
-            className={cn(FIELD_CLASS, !roundTrip && "opacity-50")}
+            required={roundTrip && !nightsMode}
+            disabled={!roundTrip || nightsMode}
+            className={cn(FIELD_CLASS, (!roundTrip || nightsMode) && "opacity-50")}
             defaultValue={q?.return_date ?? ""}
           />
         </Field>
         <Field label={t("flex")} htmlFor="flex">
-          <select id="flex" name="flex" defaultValue={q?.flex_days ?? 0} className={SELECT_CLASS}>
-            <option value={0}>{t("flexExact")}</option>
-            {Array.from({ length: MAX_FLEX_DAYS }, (_, i) => i + 1).map((days) => (
-              <option key={days} value={days}>
-                {t("flexDays", { days })}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={t("adults")} htmlFor="adults">
           <select
-            id="adults"
-            name="adults"
-            defaultValue={q?.passengers?.adults ?? 1}
+            id="flex"
+            name="flex"
+            value={flex}
+            onChange={(e) => setFlex(e.target.value)}
             className={SELECT_CLASS}
           >
-            {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
+            <option value="0">{t("flexExact")}</option>
+            {[...new Set([...FLEX_OPTIONS.slice(1), q?.flex_days ?? 0])]
+              .filter((days) => days > 0)
+              .sort((a, b) => a - b)
+              .map((days) => (
+                <option key={days} value={days}>
+                  {t("flexDays", { days })}
+                </option>
+              ))}
+            <option value="month">{t("flexMonth")}</option>
+            <option value="range">{t("flexRange")}</option>
           </select>
+          {flex === "range" && (
+            <Input
+              type="date"
+              name="until"
+              aria-label={t("flexUntil")}
+              min={depart || undefined}
+              required
+              className={cn(FIELD_CLASS, "mt-1.5")}
+              defaultValue={q?.departure_until ?? ""}
+            />
+          )}
         </Field>
+        <div className="grid gap-1.5">
+          <span className="text-muted-foreground text-xs font-medium">{t("passengers")}</span>
+          <PassengerPicker
+            passengers={q?.passengers}
+            cabin={q?.cabin}
+            baggage={q?.baggage}
+            currency={q?.currency}
+          />
+        </div>
       </div>
+
+      {nightsMode && <NightsFields q={q} />}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -177,7 +216,10 @@ export function SearchForm({ initial }: { initial: SearchState | null }) {
             {t("directOnly")}
           </label>
         </div>
-        <SubmitButton idle={t("submit")} pending={t("searching")} />
+        <div className="flex flex-wrap items-center gap-3">
+          <SavedFilters fromAccount={savedFilters} />
+          <SubmitButton idle={t("submit")} pending={t("searching")} />
+        </div>
       </div>
     </Form>
   );
@@ -246,5 +288,82 @@ function Field({
       </Label>
       {children}
     </div>
+  );
+}
+
+/**
+ * Збережені фільтри: додаються до нового пошуку прихованими полями, поки позначку не знято.
+ * З акаунта — одразу (і без JS); гостю — з localStorage після гідратації.
+ */
+function SavedFilters({ fromAccount }: { fromAccount: string | null }) {
+  const t = useTranslations("search");
+  const hydrated = useHydrated();
+  const [use, setUse] = useState(true);
+  const saved = fromAccount ?? (hydrated ? readLocalFilters() : "");
+  const entries = [...new URLSearchParams(saved)];
+  if (entries.length === 0) return null;
+  return (
+    <label className="text-muted-foreground flex cursor-pointer items-center gap-2 text-xs">
+      <input
+        type="checkbox"
+        checked={use}
+        onChange={(e) => setUse(e.target.checked)}
+        className="accent-primary size-4"
+      />
+      {t("useSavedFilters", { count: entries.length })}
+      {use &&
+        entries.map(([key, value]) => (
+          <input key={`${key}=${value}`} type="hidden" name={key} value={value} />
+        ))}
+    </label>
+  );
+}
+
+/** Режим гнучкості для поля форми — так само, як його пише URL (`flex=`). */
+function initialFlex(q: SearchState["query"] | undefined): string {
+  if (!q) return "0";
+  return q.departure_until
+    ? (toSearchParams({ query: q, sort: "price" }).get("flex") ?? "range")
+    : String(q.flex_days ?? 0);
+}
+
+/** Скільки ночей на місці й бюджет — для «3–5 ночей у грудні» (модуль 2b). */
+function NightsFields({ q }: { q: SearchState["query"] | undefined }) {
+  const t = useTranslations("search");
+  const options = Array.from({ length: MAX_NIGHTS }, (_, i) => i + 1);
+  return (
+    <fieldset className="grid gap-3 sm:grid-cols-3" data-testid="nights-fields">
+      <legend className="sr-only">{t("nights")}</legend>
+      <Field label={t("nightsFrom")} htmlFor="nmin">
+        <select id="nmin" name="nmin" defaultValue={q?.min_nights ?? 3} className={SELECT_CLASS}>
+          {options.map((n) => (
+            <option key={n} value={n}>
+              {t("nightsCount", { count: n })}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t("nightsTo")} htmlFor="nmax">
+        <select id="nmax" name="nmax" defaultValue={q?.max_nights ?? 5} className={SELECT_CLASS}>
+          {options.map((n) => (
+            <option key={n} value={n}>
+              {t("nightsCount", { count: n })}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label={t("tripBudget", { currency: q?.currency ?? "EUR" })} htmlFor="maxt">
+        <Input
+          id="maxt"
+          name="maxt"
+          type="number"
+          min={1}
+          inputMode="numeric"
+          placeholder={t("anyBudget")}
+          defaultValue={q?.filters?.max_total_price ?? ""}
+          className={FIELD_CLASS}
+        />
+      </Field>
+    </fieldset>
   );
 }

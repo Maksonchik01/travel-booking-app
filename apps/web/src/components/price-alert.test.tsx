@@ -12,7 +12,9 @@ const QUERY: FlightQuery = {
   departure_date: "2026-12-05",
   return_date: "2026-12-12",
   flex_days: 0,
-  passengers: { adults: 2, children: 0, infants: 0 },
+  passengers: { adults: 2, children: 0, infants: 0, infants_in_seat: 0 },
+  cabin: "economy",
+  baggage: "none",
   direct_only: false,
   currency: "EUR",
   profile: "balanced",
@@ -45,7 +47,7 @@ describe("PriceAlert", () => {
     const view = renderAlert(create);
 
     fireEvent.click(screen.getByRole("button", { name: "Стежити за ціною" }));
-    expect(screen.getByLabelText("Поріг ціни, €")).toHaveValue(79); // −10% від 88,5, вниз
+    expect(screen.getByLabelText("Поріг ціни, EUR")).toHaveValue(79); // −10% від 88,5, вниз
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Підписатися" }));
     });

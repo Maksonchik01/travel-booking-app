@@ -10,6 +10,9 @@ import type {
   FlightQuery,
   FlightSearchResult,
   Place,
+  PriceMatrix,
+  SellersRequest,
+  SellersResult,
   ReadinessResponse,
   StayAnalysisResult,
   StayQuery,
@@ -90,6 +93,35 @@ export function fetchCalendar(
 ): Promise<ApiResult<CalendarResult>> {
   const params = new URLSearchParams({ origin, destination, month, currency });
   return request(`/flights/calendar?${params}`);
+}
+
+/** Продавці рейсу й свіжа ціна (1 запит квоти SerpApi, кеш 30 хв) — на вимогу з картки. */
+export function fetchSellers(body: SellersRequest): Promise<ApiResult<SellersResult>> {
+  return request(
+    "/flights/sellers",
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
+    SEARCH_TIMEOUT_MS,
+  );
+}
+
+/** Матриця туди-назад (виліт × повернення) з кешованих цін — без живих запитів. */
+export function fetchMatrix(
+  origin: string,
+  destination: string,
+  departures: [string, string],
+  returns: [string, string],
+  currency: string,
+): Promise<ApiResult<PriceMatrix>> {
+  const params = new URLSearchParams({
+    origin,
+    destination,
+    depart_from: departures[0],
+    depart_to: departures[1],
+    return_from: returns[0],
+    return_to: returns[1],
+    currency,
+  });
+  return request(`/flights/matrix?${params}`);
 }
 
 /** `kind=city` — лише міста (житло), інакше міста й аеропорти (перельоти). */

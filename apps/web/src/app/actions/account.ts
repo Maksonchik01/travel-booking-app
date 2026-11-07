@@ -183,3 +183,17 @@ export async function saveSearch(_: FormState, form: FormData): Promise<FormStat
   });
   return { status, code };
 }
+
+/**
+ * Зберегти фільтри перельотів у профілі. Гість — `saved: false` (UI збереже лише в браузері).
+ * API лишає тільки відомі ключі фільтрів і повертає те, що зберіг.
+ */
+export async function saveFlightFilters(
+  filters: string | null,
+): Promise<{ saved: boolean; filters: string | null }> {
+  if (!(await sessionToken())) return { saved: false, filters };
+  const result = await call<Account>("PUT", "/account/flight-filters", { flight_filters: filters });
+  return result.ok
+    ? { saved: true, filters: result.data.flight_filters ?? null }
+    : { saved: false, filters };
+}

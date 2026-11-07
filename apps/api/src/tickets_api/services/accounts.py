@@ -39,6 +39,7 @@ from tickets_api.domain.accounts import (
     SearchEntryBody,
     SearchEntryOut,
     SessionOut,
+    clean_flight_filters,
 )
 from tickets_api.notifications.mail import Mailer, MailError
 
@@ -318,8 +319,18 @@ class AccountService:
             has_password=user.password_hash is not None,
             google_linked=user.google_sub is not None,
             telegram_linked=user.telegram_chat_id is not None,
+            flight_filters=user.flight_filters,
             created_at=user.created_at,
         )
+
+    async def save_flight_filters(self, user: User, raw: str | None) -> str | None:
+        """Зберігає лише відомі ключі фільтрів; None — забути збережене."""
+        cleaned = clean_flight_filters(raw)
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                update(User).where(User.id == user.id).values(flight_filters=cleaned)
+            )
+        return cleaned
 
     async def update_profile(self, user: User, first: str | None, last: str | None) -> None:
         async with self._sessionmaker() as session, session.begin():

@@ -278,3 +278,18 @@ async def test_telegram_link_is_one_time_code_and_unlink(env: Env) -> None:
     assert (await service.account(await env.user(session.token))).telegram_linked
     await service.unlink_telegram(user)
     assert not (await service.account(await env.user(session.token))).telegram_linked
+
+
+async def test_saved_flight_filters_keep_only_known_keys(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+
+    saved = await env.service.save_flight_filters(
+        user, "stops=1&dep=morning,afternoon&from=WAW&evil=<script>&maxp=200&maxt="
+    )
+
+    # Маршрут, дати й чужі ключі не зберігаємо — лише фільтри видачі.
+    assert saved == "stops=1&dep=morning%2Cafternoon&maxp=200"
+    account = await env.service.account(await env.user(session.token))
+    assert account.flight_filters == saved
+    assert await env.service.save_flight_filters(user, None) is None

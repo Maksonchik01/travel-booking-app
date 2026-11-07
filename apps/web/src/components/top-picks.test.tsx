@@ -32,6 +32,7 @@ function offer(id: string, price: number, duration: number | null, stops: number
     found_at: null,
     expires_at: null,
     deep_link: null,
+    price_status: "cached",
     found_on: null,
     seller: null,
     reported_total_duration_min: null,
@@ -79,6 +80,7 @@ const scoring: ScoringResult = {
     { label: "balanced", offer_key: "mock:B", also: ["fastest"] },
   ],
   unscored_offer_keys: [],
+  cheapest_basis: "ticket",
 };
 
 function renderPicks(s: ScoringResult = scoring) {

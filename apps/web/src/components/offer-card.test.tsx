@@ -1,4 +1,4 @@
-import type { Offer } from "@tickets/shared";
+import type { BaggageCost, Offer } from "@tickets/shared";
 import { render, screen, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it } from "vitest";
@@ -36,6 +36,7 @@ const base: Offer = {
   found_at: "2026-10-26T07:00:00Z",
   expires_at: null,
   deep_link: null,
+  price_status: "cached",
   found_on: null,
   seller: null,
   reported_total_duration_min: null,
@@ -43,12 +44,21 @@ const base: Offer = {
   total_duration_min: 976,
 };
 
-function renderCard(offer: Offer) {
-  return render(
+function card(offer: Offer, baggageCost?: BaggageCost) {
+  return (
     <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
-      <OfferCard offer={offer} now={NOW} />
-    </NextIntlClientProvider>,
+      <OfferCard
+        offer={offer}
+        now={NOW}
+        baggageCost={baggageCost}
+        baggageNeed={baggageCost ? "carry_on" : "none"}
+      />
+    </NextIntlClientProvider>
   );
+}
+
+function renderCard(offer: Offer, baggageCost?: BaggageCost) {
+  return render(card(offer, baggageCost));
 }
 
 describe("OfferCard", () => {
@@ -113,5 +123,31 @@ describe("OfferCard", () => {
       `/out?url=${encodeURIComponent("https://www.aviasales.com/search/x")}&kind=flight&source=${base.source}`,
     );
     expect(screen.getByText(/на сайті партнера/)).toBeInTheDocument();
+  });
+
+  it("умови багажу й ціна з обраним багажем; невідоме — не «безкоштовно»", () => {
+    const fee = (amount: number) => ({ status: "fee" as const, fee: amount });
+    const { rerender } = renderCard(
+      {
+        ...base,
+        baggage: {
+          personal_item: { status: "included", fee: null },
+          carry_on: fee(25),
+          checked: { status: "fee", fee: null },
+          checked_extra: null,
+        },
+      },
+      { status: "extra", extra: 25, total: 217, unknown: [] },
+    );
+
+    const bags = screen.getByTestId("baggage");
+    // Лише ті місця, що обрав користувач (ручна поклажа = особиста річ + ручна).
+    expect(bags).toHaveTextContent("Особиста річ: у тарифі");
+    expect(bags).toHaveTextContent("Ручна поклажа: за плату · 25 €");
+    expect(bags).not.toHaveTextContent("Зареєстрований");
+    expect(screen.getByTestId("baggage-total")).toHaveTextContent("З багажем: 217 €");
+
+    rerender(card(base, { status: "unknown", extra: null, total: null, unknown: ["checked"] }));
+    expect(screen.getByTestId("baggage-total")).toHaveTextContent("уточніть у продавця");
   });
 });

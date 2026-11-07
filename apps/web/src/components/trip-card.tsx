@@ -99,9 +99,7 @@ export function TripCard({
       >
         <dt className="text-muted-foreground flex items-center gap-1.5">
           <Plane className="size-3.5" aria-hidden />
-          {adults > 1
-            ? t("flightTimes", { adults, price: money(combo.flight_price) })
-            : t("flight")}
+          {t("flight")}
         </dt>
         <dd className="text-right tabular-nums">{money(combo.flight_total)}</dd>
         <dt className="text-muted-foreground flex items-center gap-1.5">

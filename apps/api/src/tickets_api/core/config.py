@@ -105,6 +105,8 @@ class Settings(BaseSettings):
     serpapi_base_url: str = "https://serpapi.com"
     # Кожен запит до SerpApi — платний (безкоштовно 250/міс), тож пошук має бюджет.
     serpapi_max_requests_per_search: int = Field(default=4, ge=1, le=20)
+    flex_live_date_pairs: int = Field(default=2, ge=0, le=4)
+    """Гнучкі дати: скільки найдешевших кешованих пар дат перевіряти наживо (ADR 0016)."""
     serpapi_returns_per_date: int = Field(default=2, ge=1, le=10)
     serpapi_timeout_s: float = Field(default=30.0, gt=0)
     """Загальний час на пошук: Google Flights відповідає 1–15 с на запит, і запитів кілька."""

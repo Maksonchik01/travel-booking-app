@@ -7,6 +7,7 @@ from tickets_api.domain.accounts import (
     AccountAlert,
     DeleteAccountBody,
     EmailBody,
+    FlightFiltersBody,
     PasswordChangeBody,
     ProfileBody,
     SearchEntryBody,
@@ -28,6 +29,15 @@ async def update_profile(body: ProfileBody, user: CurrentUser, service: Service)
     await service.update_profile(user, body.first_name, body.last_name)
     refreshed = await service.user_by_id(user.id)
     return await service.account(refreshed)
+
+
+@router.put("/flight-filters", response_model=Account)
+async def save_flight_filters(
+    body: FlightFiltersBody, user: CurrentUser, service: Service
+) -> Account:
+    """«Зберегти налаштування» фільтрів: веб додає їх до кожного нового пошуку."""
+    await service.save_flight_filters(user, body.flight_filters)
+    return await service.account(await service.user_by_id(user.id))
 
 
 @router.post("/email", status_code=202)

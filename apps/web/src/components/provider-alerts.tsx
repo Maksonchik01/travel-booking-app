@@ -19,10 +19,14 @@ export function ProviderAlerts({ providers }: { providers: ProviderStatus[] }) {
           <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" aria-hidden />
           {p.status === "rate_limited"
             ? t("providerQuota", { provider: providerName(p.provider) })
-            : t("providerFailed", {
-                provider: providerName(p.provider),
-                reason: p.status === "timeout" ? t("reasonTimeout") : (p.error ?? p.status),
-              })}
+            : p.status === "unsupported"
+              ? t(p.error === "cabin" ? "providerNoCabin" : "providerNoParty", {
+                  provider: providerName(p.provider),
+                })
+              : t("providerFailed", {
+                  provider: providerName(p.provider),
+                  reason: p.status === "timeout" ? t("reasonTimeout") : (p.error ?? p.status),
+                })}
         </li>
       ))}
     </ul>
