@@ -170,7 +170,12 @@ class Settings(BaseSettings):
     )
     @classmethod
     def _empty_is_none(cls, value: object) -> object:
-        # Порожній рядок у .env означає "не задано".
+        # Порожній рядок у .env означає "не задано". Значення, скопійоване з .env у панель
+        # хостингу разом із лапками (SENTRY_DSN="https://…"), приймаємо без них.
+        if isinstance(value, str):
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1].strip()
         return None if value == "" else value
 
     @model_validator(mode="after")

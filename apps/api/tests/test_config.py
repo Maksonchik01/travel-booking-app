@@ -125,3 +125,21 @@ def test_providers_require_credentials(
 
     with pytest.raises(ValueError, match=message):
         Settings(_env_file=None)
+
+
+@pytest.mark.parametrize(
+    "raw", ['"https://k@o1.ingest.de.sentry.io/2"', "  'https://k@o1.ingest.de.sentry.io/2' "]
+)
+def test_secret_pasted_with_quotes_is_unquoted(raw: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SENTRY_DSN", raw)
+    monkeypatch.setenv("INTERNAL_API_KEY", f'"{"k" * 32}"')
+    settings = Settings(_env_file=None)
+    assert settings.sentry_dsn is not None
+    assert settings.sentry_dsn.get_secret_value() == "https://k@o1.ingest.de.sentry.io/2"
+    assert settings.internal_api_key is not None
+    assert settings.internal_api_key.get_secret_value() == "k" * 32
+
+
+def test_bad_sentry_dsn_does_not_crash_startup(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SENTRY_DSN", "not a dsn")
+    assert init_sentry(Settings(_env_file=None)) is False

@@ -2,6 +2,8 @@ import re
 from typing import Any
 
 import sentry_sdk
+import structlog
+from sentry_sdk.utils import BadDsn
 
 from tickets_api.core.config import Settings
 
@@ -10,13 +12,18 @@ def init_sentry(settings: Settings) -> bool:
     """Вмикає Sentry лише якщо задано SENTRY_DSN. Повертає, чи увімкнено."""
     if settings.sentry_dsn is None:
         return False
-    sentry_sdk.init(
-        dsn=settings.sentry_dsn.get_secret_value(),
-        environment=settings.app_env,
-        traces_sample_rate=0.1,
-        send_default_pii=False,  # GDPR: без IP, cookies, заголовків
-        before_breadcrumb=scrub_breadcrumb,
-    )
+    try:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn.get_secret_value(),
+            environment=settings.app_env,
+            traces_sample_rate=0.1,
+            send_default_pii=False,  # GDPR: без IP, cookies, заголовків
+            before_breadcrumb=scrub_breadcrumb,
+        )
+    except BadDsn:
+        # Битий DSN не має класти сервіс: працюємо без Sentry і кажемо про це в лозі.
+        structlog.get_logger(__name__).error("sentry.bad_dsn")
+        return False
     return True
 
 
