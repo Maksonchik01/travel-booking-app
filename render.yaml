@@ -12,8 +12,7 @@ services:
     plan: free # засинає без запитів; перший запит після сну — до хвилини
     region: frankfurt
     healthCheckPath: /health
-    # preDeployCommand на free-плані недоступний, тож міграції — перед стартом сервера.
-    dockerCommand: sh -c "alembic upgrade head && exec uvicorn tickets_api.asgi:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"
+    # preDeployCommand на free-плані недоступний: міграції — у CMD образу перед uvicorn.
     envVars:
       - key: APP_ENV
         value: production

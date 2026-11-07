@@ -18,7 +18,7 @@ Next звертається до API лише із сервера (`API_URL`), �
 3. Після деплою адреса API — `https://tickets-api.onrender.com` (або з суфіксом, якщо назва
    зайнята; див. сторінку сервісу). Перевірка: `curl https://…/health/ready`.
 
-Міграції запускаються на старті API (`dockerCommand`): `preDeployCommand` на free-плані недоступний.
+Міграції запускаються на старті API (CMD у `apps/api/Dockerfile`): `preDeployCommand` на free-плані недоступний.
 
 ## 2. Фронтенд — Vercel
 

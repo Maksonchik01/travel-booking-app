@@ -28,4 +28,6 @@ WORKDIR /app/apps/api
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --retries=5 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"
-CMD ["uvicorn", "tickets_api.asgi:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+# Міграції перед стартом (на хостингах без окремого кроку; на head — миттєво).
+# PORT задає хостинг (Render), локально — 8000.
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn tickets_api.asgi:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"]
