@@ -153,6 +153,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/alerts/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Channels
+         * @description Які канали працюють наживо, а які — mock (лише лог, без ключів).
+         */
+        get: operations["channels_alerts_channels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Alert
+         * @description Нова підписка (pending): підтвердження — /start у боті або посилання з листа.
+         */
+        post: operations["create_alert_alerts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts/manage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manage Alert */
+        get: operations["manage_alert_alerts_manage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Alert
+         * @description Підтвердження email-підписки (подвійна згода).
+         */
+        post: operations["confirm_alert_alerts_confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/alerts/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stop Alert */
+        post: operations["stop_alert_alerts_stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/status": {
         parameters: {
             query?: never;
@@ -298,6 +392,115 @@ export interface components {
             /** Offers */
             offers: number;
         };
+        /** AlertCreate */
+        AlertCreate: {
+            /** Origin */
+            origin: string;
+            /** Destination */
+            destination: string;
+            /**
+             * Departure Date
+             * Format: date
+             */
+            departure_date: string;
+            /** Return Date */
+            return_date?: string | null;
+            /**
+             * Adults
+             * @default 1
+             */
+            adults: number;
+            /**
+             * Condition
+             * @default below_price
+             * @enum {string}
+             */
+            condition: "below_price" | "below_typical";
+            /** Threshold */
+            threshold?: number | null;
+            /**
+             * Currency
+             * @default EUR
+             */
+            currency: string;
+            /**
+             * Channel
+             * @default telegram
+             * @enum {string}
+             */
+            channel: "telegram" | "email";
+            /** Email */
+            email?: string | null;
+        };
+        /** AlertCreated */
+        AlertCreated: {
+            /** Id */
+            id: string;
+            /** Status */
+            status: string;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "telegram" | "email";
+            /** Manage Token */
+            manage_token: string;
+            /** Telegram Link */
+            telegram_link?: string | null;
+        };
+        /**
+         * AlertView
+         * @description Що бачить власник підписки на сторінці керування (без контактних даних).
+         */
+        AlertView: {
+            /** Id */
+            id: string;
+            /** Origin */
+            origin: string;
+            /** Destination */
+            destination: string;
+            /**
+             * Departure Date
+             * Format: date
+             */
+            departure_date: string;
+            /** Return Date */
+            return_date: string | null;
+            /** Adults */
+            adults: number;
+            /**
+             * Condition
+             * @enum {string}
+             */
+            condition: "below_price" | "below_typical";
+            /** Threshold */
+            threshold: number | null;
+            /** Currency */
+            currency: string;
+            /**
+             * Channel
+             * @enum {string}
+             */
+            channel: "telegram" | "email";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "active" | "stopped" | "expired";
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Checked At */
+            last_checked_at: string | null;
+            /** Last Price */
+            last_price: number | null;
+            /** Last Notified Price */
+            last_notified_price: number | null;
+            /** Last Notified At */
+            last_notified_at: string | null;
+        };
         /** Availability */
         Availability: {
             /**
@@ -347,6 +550,21 @@ export interface components {
             days: components["schemas"]["CalendarDay"][];
             /** Providers */
             providers: components["schemas"]["ProviderStatus"][];
+        };
+        /** ChannelStatus */
+        ChannelStatus: {
+            /**
+             * Telegram
+             * @enum {string}
+             */
+            telegram: "live" | "mock";
+            /**
+             * Email
+             * @enum {string}
+             */
+            email: "live" | "mock";
+            /** Bot Username */
+            bot_username: string | null;
         };
         /** ChatBody */
         ChatBody: {
@@ -1202,6 +1420,11 @@ export interface components {
             /** Nights */
             nights: number;
         };
+        /** TokenBody */
+        TokenBody: {
+            /** Token */
+            token: string;
+        };
         /** TripBudget */
         TripBudget: {
             /** Budget */
@@ -1563,6 +1786,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TripSearchResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    channels_alerts_channels_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelStatus"];
+                };
+            };
+        };
+    };
+    create_alert_alerts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlertCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    manage_alert_alerts_manage_get: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_alert_alerts_confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_alert_alerts_stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TokenBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertView"];
                 };
             };
             /** @description Validation Error */

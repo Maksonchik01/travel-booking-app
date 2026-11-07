@@ -66,6 +66,25 @@ class Settings(BaseSettings):
     stay_scoring_config_path: Path | None = None
     """None — вбудований tickets_api/scoring/stays.toml."""
 
+    # Алерти (етап 7, ADR 0010). Ціни для перевірок — з кешованого джерела, не з SerpApi:
+    # кожна підписка перевіряється регулярно, і живі запити вичерпали б квоту за дні.
+    alert_providers: Annotated[list[FlightProviderName], NoDecode] = Field(
+        default_factory=lambda: list[FlightProviderName](["mock"])
+    )
+    alert_check_interval_hours: int = Field(default=6, ge=1, le=24)
+    alert_min_hours_between_notifications: int = Field(default=24, ge=1, le=168)
+    public_web_url: str = "http://localhost:3000"
+    """Адреса сайту для посилань у сповіщеннях (керування підпискою, результати пошуку)."""
+    telegram_bot_token: SecretStr | None = None
+    telegram_bot_username: str | None = None
+    """Без @; для посилання t.me/<бот>?start=<код>."""
+    telegram_base_url: str = "https://api.telegram.org"
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: SecretStr | None = None
+    email_from: str | None = None
+
     serpapi_key: SecretStr | None = None
     serpapi_base_url: str = "https://serpapi.com"
     # Кожен запит до SerpApi — платний (безкоштовно 250/міс), тож пошук має бюджет.
@@ -83,7 +102,12 @@ class Settings(BaseSettings):
     provider_cache_ttl_s: int = 1800
 
     @field_validator(
-        "cors_origins", "flight_providers", "calendar_providers", "stay_providers", mode="before"
+        "cors_origins",
+        "flight_providers",
+        "calendar_providers",
+        "stay_providers",
+        "alert_providers",
+        mode="before",
     )
     @classmethod
     def _split_csv(cls, value: object) -> object:
@@ -101,6 +125,12 @@ class Settings(BaseSettings):
         "travelpayouts_marker",
         "scoring_config_path",
         "stay_scoring_config_path",
+        "telegram_bot_token",
+        "telegram_bot_username",
+        "smtp_host",
+        "smtp_user",
+        "smtp_password",
+        "email_from",
         "serpapi_key",
         "serpapi_market",
         mode="before",
@@ -112,9 +142,17 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _providers_have_credentials(self) -> Self:
-        uses_tp = "travelpayouts" in [*self.flight_providers, *self.calendar_providers]
+        uses_tp = "travelpayouts" in [
+            *self.flight_providers,
+            *self.calendar_providers,
+            *self.alert_providers,
+        ]
         if uses_tp and self.travelpayouts_token is None:
             raise ValueError("travelpayouts увімкнено без TRAVELPAYOUTS_TOKEN")
+        if "serpapi" in self.alert_providers:
+            raise ValueError("ALERT_PROVIDERS не може містити serpapi: перевірки вичерпають квоту")
+        if self.telegram_bot_token is not None and not self.telegram_bot_username:
+            raise ValueError("TELEGRAM_BOT_TOKEN без TELEGRAM_BOT_USERNAME (для посилання на бота)")
         if "serpapi" in self.flight_providers and self.serpapi_key is None:
             raise ValueError("FLIGHT_PROVIDERS містить serpapi без SERPAPI_KEY")
         if self.llm_provider == "deepseek" and self.deepseek_api_key is None:

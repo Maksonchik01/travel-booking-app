@@ -64,6 +64,11 @@
   `money_total` = переліт × дорослі + житло; `value_total` = оцінки скорингів. Суми рахує
   код; чат «Уся поїздка» має інструмент `plan_trip`.
 - **Кожна отримана ціна пишеться в історію цін** (маршрут, дата, ціна, валюта, джерело, час збору).
+- **Алерти** ([ADR 0010](docs/adr/0010-price-alerts.md)): `services/alerts.py` + воркер
+  (`check_alerts` раз на `ALERT_CHECK_INTERVAL_HOURS`, `poll_telegram` щохвилини). Ціни для
+  перевірок — `ALERT_PROVIDERS` (travelpayouts/mock), **ніколи serpapi** (квота). Без акаунтів:
+  підтвердження `/start <код>` у боті чи листом, керування — `/alerts?token=`. Без ключів
+  Telegram/SMTP — mock (лише лог). Сповіщення — лише нижча ціна й не частіше за 24 год.
 - **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
 - Назви LLM-моделей лише в конфігу (`LLM_MODEL_PARSER`, `LLM_MODEL_EXPLAINER`).
@@ -98,10 +103,11 @@ apps/api         FastAPI, Python 3.12, uv workspace (пакет tickets_api)
     scoring/       скоринг перельотів (engine.py, config.toml, ADR 0005) і житла (stays.py,
                    stays.toml, ADR 0008)
     services/      FlightSearchService, StaySearchService — graceful degradation + скоринг;
-                   TripPlanner — переліт + житло за загальною вартістю
+                   TripPlanner — переліт + житло; AlertService — підписки на ціну
+    notifications/ Telegram Bot API і SMTP (+ mock без ключів)
     repositories/  запис історії цін (перельоти й житло)
   migrations/                     Alembic (async)
-apps/worker      ARQ-воркер (пакет tickets_worker, залежить від tickets_api)
+apps/worker      ARQ-воркер (пакет tickets_worker): перевірка алертів і опитування Telegram-бота
 apps/web         Next.js 16 (App Router, cacheComponents), Tailwind 4, shadcn/ui, next-intl
 packages/shared  TS-типи, ЗГЕНЕРОВАНІ з OpenAPI (не редагувати api.gen.ts вручну)
 docs/            архітектура та ADR

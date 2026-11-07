@@ -183,3 +183,27 @@ test("поїздка: загальна сума, три варіанти, бюд
   await expect(page).toHaveURL(/\/stays\?city=LIS/);
   await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
 });
+
+test("підписка на ціну: створення → сторінка керування → вимкнення", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05");
+  await page.getByTestId("offer-card").first().waitFor();
+
+  await page.getByRole("button", { name: "Стежити за ціною" }).click();
+  await page.locator("label", { hasText: "Email" }).click();
+  await page.getByPlaceholder("you@example.com").fill("e2e@example.com");
+  await page.getByRole("button", { name: "Підписатися" }).click();
+  await expect(page.getByText(/надіслали лист/)).toBeVisible();
+
+  // Лист (mock) містить посилання на ту саму сторінку керування: підтверджуємо й вимикаємо.
+  await page.getByRole("link", { name: "Керувати підпискою" }).click();
+  await expect(page.getByText("Чекає підтвердження")).toBeVisible();
+  await page.getByRole("button", { name: "Підтвердити підписку" }).click();
+  await expect(page.getByText("Підписку підтверджено")).toBeVisible();
+  await expect(page.getByText("Активна")).toBeVisible();
+  await page.getByRole("button", { name: "Вимкнути підписку" }).click();
+  await expect(page.getByText("Вимкнена")).toBeVisible();
+
+  // Повернення до результатів — позначка «стежите» (цей браузер памʼятає підписку).
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05");
+  await expect(page.getByRole("link", { name: /Ви стежите за цим маршрутом/ })).toBeVisible();
+});

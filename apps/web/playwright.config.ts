@@ -23,6 +23,12 @@ export default defineConfig({
         FLIGHT_PROVIDERS: "mock",
         CALENDAR_PROVIDERS: "mock",
         LLM_PROVIDER: "mock",
+        STAY_PROVIDERS: "mock",
+        ALERT_PROVIDERS: "mock",
+        // Справжній бот і пошта з .env у e2e не потрібні: сповіщення — лише в лог.
+        TELEGRAM_BOT_TOKEN: "",
+        TELEGRAM_BOT_USERNAME: "",
+        SMTP_HOST: "",
         SENTRY_DSN: "",
         LOG_LEVEL: "WARNING",
       },

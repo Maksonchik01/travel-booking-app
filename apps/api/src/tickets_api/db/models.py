@@ -107,3 +107,51 @@ class StayPriceObservation(Base):
             unique=True,
         ),
     )
+
+
+class Alert(Base):
+    """Підписка на ціну маршруту. Контакт — лише Telegram chat id або email (GDPR-мінімум).
+
+    `token` — секрет у посиланні керування (і в /start бота); дає доступ лише до цієї підписки.
+    """
+
+    __tablename__ = "alerts"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True)
+    origin: Mapped[str] = mapped_column(String(3))
+    destination: Mapped[str] = mapped_column(String(3))
+    departure_date: Mapped[date] = mapped_column(Date)
+    return_date: Mapped[date | None] = mapped_column(Date)
+    adults: Mapped[int] = mapped_column(Integer, default=1)
+    condition: Mapped[str] = mapped_column(String(16))
+    threshold: Mapped[int | None] = mapped_column(Integer)
+    currency: Mapped[str] = mapped_column(String(3))
+    channel: Mapped[str] = mapped_column(String(16))
+    email: Mapped[str | None] = mapped_column(String(254))
+    telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger)
+    status: Mapped[str] = mapped_column(String(16), default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    last_notified_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    last_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        Index("ix_alerts_status", "status"),
+        Index("ix_alerts_telegram_chat", "telegram_chat_id"),
+    )
+
+
+class AlertEvent(Base):
+    """Журнал підписки: підтвердження, перевірки, сповіщення, відписка (без текстів листів)."""
+
+    __tablename__ = "alert_events"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    alert_id: Mapped[str] = mapped_column(String(32), index=True)
+    kind: Mapped[str] = mapped_column(String(16))
+    price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    detail: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

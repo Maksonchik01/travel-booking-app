@@ -65,6 +65,25 @@ jobs:
   web:
     name: Web (eslint, tsc, vitest, build, playwright)
     runs-on: ubuntu-latest
+    # e2e підписок на ціну пише в БД — API для Playwright потрібні Postgres і Redis.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tickets
+          POSTGRES_PASSWORD: tickets
+          POSTGRES_DB: tickets
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U tickets" --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://tickets:tickets@localhost:5432/tickets
+      REDIS_URL: redis://localhost:6379/0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -87,6 +106,7 @@ jobs:
           version: ${{ env.UV_VERSION }}
           python-version: "3.12"
       - run: uv sync --frozen
+      - run: uv run alembic -c apps/api/alembic.ini upgrade head
       - run: npm run test:e2e -w @tickets/web
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

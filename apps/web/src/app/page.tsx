@@ -11,6 +11,7 @@ import { CollapsibleSearch } from "@/components/collapsible-search";
 import { OfferCard } from "@/components/offer-card";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
+import { PriceAlert } from "@/components/price-alert";
 import { PriceCalendar } from "@/components/price-calendar";
 import { ProviderAlerts } from "@/components/provider-alerts";
 import { ResultFilters } from "@/components/result-filters";
@@ -20,7 +21,13 @@ import { ShowMore } from "@/components/show-more";
 import { SiteHeader } from "@/components/site-header";
 import { offerAnchor, TopPicks } from "@/components/top-picks";
 import { Card, CardContent } from "@/components/ui/card";
-import { explainSearch, fetchAIStatus, fetchCalendar, searchFlights } from "@/lib/api";
+import {
+  explainSearch,
+  fetchAIStatus,
+  fetchAlertChannels,
+  fetchCalendar,
+  searchFlights,
+} from "@/lib/api";
 import {
   hasFilters,
   parseSearchParams,
@@ -162,9 +169,10 @@ async function Results({ searchParams }: { searchParams: Params }) {
 
   const { query } = state;
   const month = query.departure_date.slice(0, 7);
-  const [result, calendar] = await Promise.all([
+  const [result, calendar, alertChannels] = await Promise.all([
     searchFlights(query),
     fetchCalendar(query.origin, query.destination, month, query.currency ?? "EUR"),
+    fetchAlertChannels(),
   ]);
   const now = new Date();
 
@@ -203,6 +211,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
         </div>
         <SortToggle state={state} />
       </div>
+
+      {/* Підписка на ціну маршруту (етап 7): поріг пропонуємо від найкращої ціни. */}
+      {alertChannels && (
+        <PriceAlert
+          query={query}
+          bestPrice={result.data.offers[0]?.price ?? null}
+          channels={alertChannels}
+        />
+      )}
 
       {/* 2. Проблеми з джерелами — до результатів, щоб було ясно, чому їх мало. */}
       <ProviderAlerts providers={result.data.providers} />

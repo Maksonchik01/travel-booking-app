@@ -8,7 +8,7 @@ from redis.asyncio import Redis
 
 from tickets_api import __version__
 from tickets_api.ai.factory import build_ai_service
-from tickets_api.api import ai, flights, health, places, stays, trips
+from tickets_api.api import ai, alerts, flights, health, places, stays, trips
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
@@ -21,6 +21,7 @@ from tickets_api.repositories.price_history import PriceHistoryRecorder
 from tickets_api.repositories.stay_price_history import StayPriceHistoryRecorder
 from tickets_api.scoring.config import default_scoring_config, load_scoring_config
 from tickets_api.scoring.stays import default_stay_scoring_config, load_stay_scoring_config
+from tickets_api.services.alerts_factory import build_alert_service
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.stay_search import StaySearchService
 from tickets_api.services.trip_planner import TripPlanner
@@ -72,6 +73,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             record_history=StayPriceHistoryRecorder(app.state.sessionmaker).record,
         )
         app.state.trip_planner = TripPlanner(app.state.flight_search, app.state.stay_search)
+        app.state.alerts = build_alert_service(
+            settings,
+            http=app.state.http,
+            redis=app.state.redis,
+            sessionmaker=app.state.sessionmaker,
+        )
         app.state.ai = build_ai_service(
             settings,
             http=app.state.http,
@@ -102,5 +109,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(places.router)
     app.include_router(stays.router)
     app.include_router(trips.router)
+    app.include_router(alerts.router)
     app.include_router(ai.router)
     return app

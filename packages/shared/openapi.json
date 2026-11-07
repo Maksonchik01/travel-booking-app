@@ -361,6 +361,197 @@
         }
       }
     },
+    "/alerts/channels": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Channels",
+        "description": "Які канали працюють наживо, а які — mock (лише лог, без ключів).",
+        "operationId": "channels_alerts_channels_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Create Alert",
+        "description": "Нова підписка (pending): підтвердження — /start у боті або посилання з листа.",
+        "operationId": "create_alert_alerts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertCreated"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/manage": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Manage Alert",
+        "operationId": "manage_alert_alerts_manage_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 64,
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/confirm": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Confirm Alert",
+        "description": "Підтвердження email-підписки (подвійна згода).",
+        "operationId": "confirm_alert_alerts_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/stop": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Stop Alert",
+        "operationId": "stop_alert_alerts_stop_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ai/status": {
       "get": {
         "tags": [
@@ -648,6 +839,295 @@
         ],
         "title": "AirlineFacet"
       },
+      "AlertCreate": {
+        "properties": {
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Destination"
+          },
+          "departure_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure Date"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          },
+          "adults": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Adults",
+            "default": 1
+          },
+          "condition": {
+            "type": "string",
+            "enum": [
+              "below_price",
+              "below_typical"
+            ],
+            "title": "Condition",
+            "default": "below_price"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency",
+            "default": "EUR"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "email"
+            ],
+            "title": "Channel",
+            "default": "telegram"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 254,
+                "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "departure_date"
+        ],
+        "title": "AlertCreate"
+      },
+      "AlertCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "email"
+            ],
+            "title": "Channel"
+          },
+          "manage_token": {
+            "type": "string",
+            "title": "Manage Token"
+          },
+          "telegram_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telegram Link"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "channel",
+          "manage_token"
+        ],
+        "title": "AlertCreated"
+      },
+      "AlertView": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "origin": {
+            "type": "string",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "title": "Destination"
+          },
+          "departure_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure Date"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          },
+          "adults": {
+            "type": "integer",
+            "title": "Adults"
+          },
+          "condition": {
+            "type": "string",
+            "enum": [
+              "below_price",
+              "below_typical"
+            ],
+            "title": "Condition"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "telegram",
+              "email"
+            ],
+            "title": "Channel"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "stopped",
+              "expired"
+            ],
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "last_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Price"
+          },
+          "last_notified_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Notified Price"
+          },
+          "last_notified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Notified At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "origin",
+          "destination",
+          "departure_date",
+          "return_date",
+          "adults",
+          "condition",
+          "threshold",
+          "currency",
+          "channel",
+          "status",
+          "created_at",
+          "last_checked_at",
+          "last_price",
+          "last_notified_price",
+          "last_notified_at"
+        ],
+        "title": "AlertView",
+        "description": "Що бачить власник підписки на сторінці керування (без контактних даних)."
+      },
       "Availability": {
         "properties": {
           "available": {
@@ -771,6 +1251,44 @@
           "providers"
         ],
         "title": "CalendarResult"
+      },
+      "ChannelStatus": {
+        "properties": {
+          "telegram": {
+            "type": "string",
+            "enum": [
+              "live",
+              "mock"
+            ],
+            "title": "Telegram"
+          },
+          "email": {
+            "type": "string",
+            "enum": [
+              "live",
+              "mock"
+            ],
+            "title": "Email"
+          },
+          "bot_username": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bot Username"
+          }
+        },
+        "type": "object",
+        "required": [
+          "telegram",
+          "email",
+          "bot_username"
+        ],
+        "title": "ChannelStatus"
       },
       "ChatBody": {
         "properties": {
@@ -3027,6 +3545,22 @@
           "nights"
         ],
         "title": "StayWindow"
+      },
+      "TokenBody": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 16,
+            "title": "Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "TokenBody"
       },
       "TripBudget": {
         "properties": {
