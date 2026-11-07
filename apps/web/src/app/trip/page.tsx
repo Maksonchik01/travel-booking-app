@@ -16,7 +16,7 @@ import { SiteHeader } from "@/components/site-header";
 import { TripCard } from "@/components/trip-card";
 import { TripSearchForm } from "@/components/trip-search-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchAIStatus, searchTrip } from "@/lib/api";
+import { ERROR_KEY, fetchAIStatus, searchTrip } from "@/lib/api";
 import { type RawSearchParams, toSearchParams } from "@/lib/search-params";
 import { toStayParams } from "@/lib/stay-params";
 import { parseTripParams, toTripParams } from "@/lib/trip-params";
@@ -114,9 +114,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
 
   const result = await searchTrip(query);
   if (!result.ok) {
-    return (
-      <Notice tone="error">{t(result.reason === "unreachable" ? "unreachable" : "error")}</Notice>
-    );
+    return <Notice tone="error">{t(ERROR_KEY[result.reason])}</Notice>;
   }
   const data = result.data;
   const historyParams = toTripParams(query).toString();

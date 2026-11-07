@@ -29,7 +29,9 @@ export type Pick = Schemas["Pick"];
 export type PickLabel = Pick["label"];
 export type Place = Schemas["Place"];
 export type OfferFilters = Schemas["OfferFilters"];
-export type DeparturePeriod = NonNullable<OfferFilters["departure_periods"]>[number];
+export type DeparturePeriod = NonNullable<
+  OfferFilters["departure_periods"]
+>[number];
 export type SearchFacets = Schemas["SearchFacets"];
 export type AirlineFacet = Schemas["AirlineFacet"];
 export type AIStatus = Schemas["AIStatus"];
@@ -75,3 +77,4 @@ export type AuthStatus = Schemas["AuthStatus"];
 export type SessionOut = Schemas["SessionOut"];
 export type SearchEntry = Schemas["SearchEntryOut"];
 export type SearchKind = SearchEntry["kind"];
+export type ClickIn = Schemas["ClickIn"];

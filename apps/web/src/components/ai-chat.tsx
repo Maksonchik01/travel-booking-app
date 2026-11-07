@@ -62,15 +62,17 @@ type Props = {
   /** Код із поля «Звідки» — якщо в розмові місто вильоту не назване. */
   homeAirport?: string;
   /** Підміна мережі в тестах. */
-  send?: (body: ChatBodyInput) => Promise<ChatReply | null>;
+  /** null — помилка; "rate_limited" — вичерпано ліміт запитів за годину. */
+  send?: (body: ChatBodyInput) => Promise<ChatReply | "rate_limited" | null>;
 };
 
-async function sendViaApi(body: ChatBodyInput): Promise<ChatReply | null> {
+async function sendViaApi(body: ChatBodyInput): Promise<ChatReply | "rate_limited" | null> {
   const response = await fetch("/api/ai/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (response.status === 429) return "rate_limited";
   return response.ok ? ((await response.json()) as ChatReply) : null;
 }
 
@@ -99,7 +101,7 @@ function ChatBox({
   const latest = useRef(store);
   const [showHistory, setShowHistory] = useState(false);
   const [draft, setDraft] = useState("");
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<"error" | "rateLimited" | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const active = store.conversations.find((c) => c.id === store.activeId) ?? null;
@@ -121,19 +123,19 @@ function ChatBox({
     const conversation = newConversation(mode, Date.now(), crypto.randomUUID());
     commit({ ...upsert(latest.current, conversation), activeId: conversation.id });
     setShowHistory(false);
-    setFailed(false);
+    setFailed(null);
   }
 
   function open(id: string) {
     commit({ ...latest.current, activeId: id });
     setShowHistory(false);
-    setFailed(false);
+    setFailed(null);
   }
 
   function newChat() {
     commit({ ...latest.current, activeId: null });
     setShowHistory(false);
-    setFailed(false);
+    setFailed(null);
     setDraft("");
   }
 
@@ -146,10 +148,10 @@ function ChatBox({
     const asked: StoredTurn[] = [...before, { role: "user", text }];
     setTurns(id, asked);
     setDraft("");
-    setFailed(false);
+    setFailed(null);
     setPendingId(id);
     startTransition(async () => {
-      let reply: ChatReply | null;
+      let reply: ChatReply | "rate_limited" | null;
       try {
         reply = await send({
           // На сервер — лише текст реплік, без локальних посилань.
@@ -163,11 +165,11 @@ function ChatBox({
         reply = null;
       }
       setPendingId(null);
-      if (!reply || reply.status === "unavailable") {
+      if (!reply || reply === "rate_limited" || reply.status === "unavailable") {
         // Повідомлення повертаємо в поле — можна надіслати ще раз.
         setTurns(id, before);
         setDraft(text);
-        setFailed(true);
+        setFailed(reply === "rate_limited" ? "rateLimited" : "error");
         return;
       }
       const found = Boolean(reply.search || reply.stay_search || reply.trip_search);
@@ -256,7 +258,7 @@ function ChatBox({
       )}
       {failed && (
         <p role="alert" className="text-sm text-amber-700 dark:text-amber-400">
-          {t("error")}
+          {t(failed)}
         </p>
       )}
       <p className="text-muted-foreground text-[11px]">{t("privacy")}</p>

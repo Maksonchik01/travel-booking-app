@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response
 
 from tickets_api.api.deps import CurrentUser, OptionalUser, Service, Token
+from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.accounts import (
     AuthStatus,
     EmailBody,
@@ -43,7 +44,12 @@ async def auth_status(service: Service) -> AuthStatus:
     return AuthStatus(google=service.google_enabled, email=service.mail_mode)
 
 
-@router.post("/register", response_model=SessionOut, status_code=201)
+@router.post(
+    "/register",
+    response_model=SessionOut,
+    status_code=201,
+    dependencies=[Depends(rate_limit("auth"))],
+)
 async def register(body: RegisterBody, service: Service) -> SessionOut:
     try:
         return await service.register(body)
@@ -51,7 +57,7 @@ async def register(body: RegisterBody, service: Service) -> SessionOut:
         raise account_error(exc) from exc
 
 
-@router.post("/login", response_model=SessionOut)
+@router.post("/login", response_model=SessionOut, dependencies=[Depends(rate_limit("auth"))])
 async def login(body: LoginBody, service: Service) -> SessionOut:
     try:
         return await service.login(body.login, body.password)
@@ -96,13 +102,15 @@ async def verify_email(body: TokenBody, service: Service) -> Response:
     return Response(status_code=204)
 
 
-@router.post("/password/forgot", status_code=204)
+@router.post("/password/forgot", status_code=204, dependencies=[Depends(rate_limit("auth"))])
 async def forgot_password(body: EmailBody, service: Service) -> Response:
     await service.forgot_password(body.email)
     return Response(status_code=204)
 
 
-@router.post("/password/reset", response_model=SessionOut)
+@router.post(
+    "/password/reset", response_model=SessionOut, dependencies=[Depends(rate_limit("auth"))]
+)
 async def reset_password(body: PasswordResetBody, service: Service) -> SessionOut:
     try:
         return await service.reset_password(body.token, body.new_password)

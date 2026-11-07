@@ -1,8 +1,9 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 
+from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.flights import DEFAULT_CURRENCY, FlightQuery
 from tickets_api.services.flight_search import (
     CalendarResult,
@@ -22,7 +23,9 @@ def _service(request: Request) -> FlightSearchService:
     return service
 
 
-@router.post("/search", response_model=FlightSearchResult)
+@router.post(
+    "/search", response_model=FlightSearchResult, dependencies=[Depends(rate_limit("search"))]
+)
 async def search_flights(query: FlightQuery, request: Request) -> FlightSearchResult:
     """Пошук у всіх увімкнених провайдерах. Ціни кешовані: дивись collected_at / found_at.
 

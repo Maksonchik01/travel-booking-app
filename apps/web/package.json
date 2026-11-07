@@ -13,6 +13,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@sentry/nextjs": "11.8.0",
     "@tickets/shared": "*",
     "class-variance-authority": "0.7.1",
     "cn": "0.4.0",

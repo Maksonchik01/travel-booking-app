@@ -78,7 +78,23 @@
   ([deploy.md](docs/deploy.md), [ADR 0012](docs/adr/0012-supabase-postgres.md)). Кожна таблиця —
   з RLS (Supabase Data API): нова таблиця вмикає його у своїй міграції, інакше падає
   `test_row_level_security`.
-- **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером.
+- **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером. «Забронювати» веде
+  на веб-маршрут `/out` (`src/app/out/route.ts`): редирект лише на префікси з
+  `src/lib/outbound.ts` (новий провайдер з посиланнями — новий префікс), клік пишеться після
+  відповіді (`after`) у `outbound_clicks` через `POST /outbound/clicks` — без користувача й IP.
+  Marker Travelpayouts (`TRAVELPAYOUTS_MARKER`) додає адаптер.
+- **Юридичні сторінки** `/terms`, `/privacy`, `/how-it-works` (`components/legal-page.tsx`,
+  тексти — `legal.*` в uk.json, посилання — у футері). Вони описують ФАКТИЧНУ роботу: змінив
+  збір даних, cookies, сховище браузера, провайдерів чи формулу скорингу — онови текст і
+  `LEGAL_UPDATED`. Контакт — `CONTACT_EMAIL` (env вебу).
+- **Ліміти запитів** (`core/rate_limit.py`, Redis, вікно — година): `search`, `ai`, `auth`, `clicks`
+  через `dependencies=[Depends(rate_limit(...))]`. IP відвідувача веб передає в `X-Client-IP`
+  (`src/lib/client-ip.ts`), API вірить йому лише з `X-Internal-Key` = `INTERNAL_API_KEY`.
+  Redis недоступний — пропускаємо. 429 → `reason: "rate_limited"` / `authErrors.rate_limited`.
+- **Моніторинг:** Sentry в API (`core/sentry.py`) і вебі (`src/instrumentation*.ts`,
+  `src/lib/sentry-options.ts`, `app/global-error.tsx`) — лише помилки, без PII (cookies, заголовки,
+  тіла, query вимкнені). `GET /ops/summary` (`services/ops.py`) — агрегати для власника за
+  `X-Internal-Key`; лише лічильники, без email/токенів; кожна секція падає окремо.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
 - Назви LLM-моделей лише в конфігу (`LLM_MODEL_PARSER`, `LLM_MODEL_EXPLAINER`).
 - **ШІ-шар** ([ADR 0007](docs/adr/0007-llm-deepseek.md)): DeepSeek через `LLMClient`

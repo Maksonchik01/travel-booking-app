@@ -2,6 +2,8 @@
 import type { SessionOut } from "@tickets/shared";
 import { cookies } from "next/headers";
 
+import { clientIpHeaders } from "@/lib/client-ip";
+
 const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TIMEOUT_MS = 15_000;
 /** Токен сесії — лише в httpOnly-cookie: JavaScript сторінки його не бачить. */
@@ -24,6 +26,7 @@ export async function call<T = null>(
       cache: "no-store",
       signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
+        ...(await clientIpHeaders()),
         ...(body !== undefined ? { "content-type": "application/json" } : {}),
         ...(auth ? { authorization: `Bearer ${auth}` } : {}),
       },

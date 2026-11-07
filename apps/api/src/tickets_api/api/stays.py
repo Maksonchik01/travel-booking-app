@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 
+from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.stays import StayQuery
 from tickets_api.services.stay_search import StaySearchResult, StaySearchService
 
@@ -11,7 +12,9 @@ def _service(request: Request) -> StaySearchService:
     return service
 
 
-@router.post("/search", response_model=StaySearchResult)
+@router.post(
+    "/search", response_model=StaySearchResult, dependencies=[Depends(rate_limit("search"))]
+)
 async def search_stays(query: StayQuery, request: Request) -> StaySearchResult:
     """Житло в місті на дати, з value-score і трьома рекомендованими варіантами.
 

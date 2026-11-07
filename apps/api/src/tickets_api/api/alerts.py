@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from tickets_api.api.deps import OptionalUser
+from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.alerts import AlertCreate, AlertView
 from tickets_api.services.alerts import AlertCreated, AlertError, AlertService, ChannelStatus
 
@@ -25,7 +26,9 @@ async def channels(request: Request) -> ChannelStatus:
     return _service(request).channels()
 
 
-@router.post("", response_model=AlertCreated, status_code=201)
+@router.post(
+    "", response_model=AlertCreated, status_code=201, dependencies=[Depends(rate_limit("auth"))]
+)
 async def create_alert(body: AlertCreate, request: Request, user: OptionalUser) -> AlertCreated:
     """Нова підписка (pending): підтвердження — /start у боті або посилання з листа.
 

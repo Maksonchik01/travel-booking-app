@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { dayShift, daysAgo, hoursAgo, localDate, localTime, splitDuration } from "@/lib/format";
+import { outboundHref } from "@/lib/outbound";
 import { layoverRisks, type LayoverRisk } from "@/lib/risks";
 import { cn } from "@/lib/utils";
 
@@ -140,11 +141,20 @@ export function OfferCard({
           </p>
           {offer.deep_link && (
             <Button asChild className="w-full transition-transform active:scale-[0.98] sm:mt-1">
-              <a href={offer.deep_link} target="_blank" rel="noopener noreferrer nofollow">
+              <a
+                href={outboundHref(offer.deep_link, "flight", offer.source)}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
                 {isGoogleFlights(offer.deep_link) ? t("openGoogleFlights") : t("book")}
                 <ArrowUpRight className="size-4" aria-hidden />
               </a>
             </Button>
+          )}
+          {offer.deep_link && (
+            <p className="text-muted-foreground max-w-56 text-[11px] leading-snug">
+              {t("partnerNote")}
+            </p>
           )}
         </div>
       </aside>

@@ -3,6 +3,7 @@ import type {
   AlertView,
   ChannelStatus,
   CalendarResult,
+  ClickIn,
   ChatBody,
   ChatReply,
   ExplainResult,
@@ -17,6 +18,8 @@ import type {
   TripSearchResult,
 } from "@tickets/shared";
 
+import { clientIpHeaders } from "@/lib/client-ip";
+
 const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TIMEOUT_MS = 15_000;
 /** Живий пошук: провайдер має до 30 с (SERPAPI_TIMEOUT_S). */
@@ -30,7 +33,8 @@ export type ApiStatus =
   { kind: "ok" | "degraded"; data: ReadinessResponse } | { kind: "unreachable" };
 
 /** Результат виклику API: або дані, або причина, чому їх немає (без винятків назовні). */
-export type ApiResult<T> = { ok: true; data: T } | { ok: false; reason: "unreachable" | "error" };
+export type ApiResult<T> =
+  { ok: true; data: T } | { ok: false; reason: "unreachable" | "error" | "rate_limited" };
 
 export async function fetchReadiness(signal?: AbortSignal): Promise<ApiStatus> {
   try {
@@ -54,9 +58,11 @@ async function request<T>(
   try {
     const response = await fetch(`${API_URL}${path}`, {
       ...init,
+      headers: { ...init?.headers, ...(await clientIpHeaders()) },
       cache: "no-store",
       signal: AbortSignal.timeout(timeoutMs),
     });
+    if (response.status === 429) return { ok: false, reason: "rate_limited" };
     if (!response.ok) return { ok: false, reason: "error" };
     return { ok: true, data: (await response.json()) as T };
   } catch {
@@ -186,3 +192,25 @@ export function changeAlert(
     body: JSON.stringify({ token }),
   });
 }
+
+/** Облік переходу на партнера. Без відповіді й винятків: редирект від нього не залежить. */
+export async function logOutboundClick(click: ClickIn): Promise<void> {
+  try {
+    await fetch(`${API_URL}/outbound/clicks`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await clientIpHeaders()) },
+      body: JSON.stringify(click),
+      cache: "no-store",
+      signal: AbortSignal.timeout(5_000),
+    });
+  } catch {
+    // Клік не порахується — це не причина не пустити людину до партнера.
+  }
+}
+
+/** Ключ повідомлення про помилку пошуку (`unreachable` / `error` / `rateLimited` у розділі сторінки). */
+export const ERROR_KEY = {
+  unreachable: "unreachable",
+  error: "error",
+  rate_limited: "rateLimited",
+} as const;

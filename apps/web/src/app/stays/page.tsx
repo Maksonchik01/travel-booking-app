@@ -21,7 +21,7 @@ import { StayFilters } from "@/components/stay-filters";
 import { stayAnchor, StayPicks } from "@/components/stay-picks";
 import { StaySearchForm } from "@/components/stay-search-form";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchAIStatus, searchStays } from "@/lib/api";
+import { ERROR_KEY, fetchAIStatus, searchStays } from "@/lib/api";
 import type { RawSearchParams } from "@/lib/search-params";
 import {
   hasStayFilters,
@@ -130,9 +130,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
 
   const [result, ai] = await Promise.all([searchStays(state.query), fetchAIStatus()]);
   if (!result.ok) {
-    return (
-      <Notice tone="error">{t(result.reason === "unreachable" ? "unreachable" : "error")}</Notice>
-    );
+    return <Notice tone="error">{t(ERROR_KEY[result.reason])}</Notice>;
   }
 
   const { query } = state;

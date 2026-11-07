@@ -1985,6 +1985,91 @@
           }
         }
       }
+    },
+    "/outbound/clicks": {
+      "post": {
+        "tags": [
+          "outbound"
+        ],
+        "summary": "Log Click",
+        "description": "Облік переходу на партнера (для `/ops/summary`). Редирект від цього не залежить.\n\nЗбій БД — 503 без винятку назовні: веб викликає це вже після редиректу.",
+        "operationId": "log_click_outbound_clicks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClickIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ops/summary": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Ops Summary",
+        "description": "Зведення для власника. Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.\n\nБез INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.",
+        "operationId": "ops_summary_ops_summary_get",
+        "parameters": [
+          {
+            "name": "x-internal-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpsSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2252,6 +2337,32 @@
           "manage_token"
         ],
         "title": "AccountAlert"
+      },
+      "Activity": {
+        "properties": {
+          "price_observations_24h": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Price Observations 24H"
+          },
+          "users": {
+            "type": "integer",
+            "title": "Users"
+          },
+          "active_alerts": {
+            "type": "integer",
+            "title": "Active Alerts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "price_observations_24h",
+          "users",
+          "active_alerts"
+        ],
+        "title": "Activity"
       },
       "AdvisorOption": {
         "properties": {
@@ -2983,6 +3094,69 @@
         ],
         "title": "CheckResult"
       },
+      "ClickIn": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "flight",
+              "stay"
+            ],
+            "title": "Kind"
+          },
+          "source": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,32}$",
+            "title": "Source",
+            "examples": [
+              "travelpayouts"
+            ]
+          },
+          "host": {
+            "type": "string",
+            "maxLength": 255,
+            "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+            "title": "Host",
+            "examples": [
+              "www.aviasales.com"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "source",
+          "host"
+        ],
+        "title": "ClickIn",
+        "description": "Клік «Забронювати». Посилання перевіряє й редиректить веб; сюди — лише облік."
+      },
+      "Clicks": {
+        "properties": {
+          "total_24h": {
+            "type": "integer",
+            "title": "Total 24H"
+          },
+          "total_7d": {
+            "type": "integer",
+            "title": "Total 7D"
+          },
+          "by_source_7d": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Source 7D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_24h",
+          "total_7d",
+          "by_source_7d"
+        ],
+        "title": "Clicks"
+      },
       "DeleteAccountBody": {
         "properties": {
           "confirm": {
@@ -3362,6 +3536,34 @@
           "stays"
         ],
         "title": "KindFacet"
+      },
+      "LLMSpend": {
+        "properties": {
+          "calls_24h": {
+            "type": "integer",
+            "title": "Calls 24H"
+          },
+          "errors_24h": {
+            "type": "integer",
+            "title": "Errors 24H"
+          },
+          "cost_usd_24h": {
+            "type": "string",
+            "title": "Cost Usd 24H"
+          },
+          "cost_usd_30d": {
+            "type": "string",
+            "title": "Cost Usd 30D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "calls_24h",
+          "errors_24h",
+          "cost_usd_24h",
+          "cost_usd_30d"
+        ],
+        "title": "LLMSpend"
       },
       "Layover": {
         "properties": {
@@ -3791,6 +3993,72 @@
           "pareto_optimal"
         ],
         "title": "OfferScore"
+      },
+      "OpsSummary": {
+        "properties": {
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "serpapi": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SerpApiQuota"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "llm": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LLMSpend"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "clicks": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Clicks"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "activity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Activity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "problems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Problems"
+          }
+        },
+        "type": "object",
+        "required": [
+          "generated_at",
+          "serpapi",
+          "llm",
+          "clicks",
+          "activity",
+          "problems"
+        ],
+        "title": "OpsSummary"
       },
       "ParseRequest": {
         "properties": {
@@ -4572,6 +4840,67 @@
           "duration_min"
         ],
         "title": "Segment"
+      },
+      "SerpApiQuota": {
+        "properties": {
+          "searches_per_month": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Searches Per Month"
+          },
+          "this_month_usage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "This Month Usage"
+          },
+          "plan_searches_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Searches Left"
+          },
+          "total_searches_left": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Searches Left"
+          },
+          "this_hour_searches": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "This Hour Searches"
+          }
+        },
+        "type": "object",
+        "title": "SerpApiQuota"
       },
       "SessionOut": {
         "properties": {

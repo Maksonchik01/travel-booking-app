@@ -106,9 +106,12 @@ describe("OfferCard", () => {
     expect(screen.getByText("Деталі пересадок невідомі")).toBeInTheDocument();
     expect(screen.getByTestId("price-age")).toHaveTextContent("час знаходження невідомий");
     expect(screen.getByText("Умови багажу невідомі")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /До продавця/ })).toHaveAttribute(
-      "rel",
-      "noopener noreferrer nofollow",
+    const link = screen.getByRole("link", { name: /До продавця/ });
+    expect(link).toHaveAttribute("rel", "noopener noreferrer nofollow");
+    expect(link).toHaveAttribute(
+      "href",
+      `/out?url=${encodeURIComponent("https://www.aviasales.com/search/x")}&kind=flight&source=${base.source}`,
     );
+    expect(screen.getByText(/на сайті партнера/)).toBeInTheDocument();
   });
 });

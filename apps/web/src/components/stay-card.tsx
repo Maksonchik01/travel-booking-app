@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { hoursAgo } from "@/lib/format";
+import { outboundHref } from "@/lib/outbound";
 import { cn } from "@/lib/utils";
 
 const KIND_ICON = {
@@ -208,11 +209,20 @@ export function StayCard({
           </p>
           {stay.deep_link && (
             <Button asChild className="w-full transition-transform active:scale-[0.98]">
-              <a href={stay.deep_link} target="_blank" rel="noopener noreferrer nofollow">
+              <a
+                href={outboundHref(stay.deep_link, "stay", stay.source)}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
                 {t("book")}
                 <ArrowUpRight className="size-4" aria-hidden />
               </a>
             </Button>
+          )}
+          {stay.deep_link && (
+            <p className="text-muted-foreground max-w-56 text-[11px] leading-snug">
+              {t("partnerNote")}
+            </p>
           )}
         </div>
       </aside>

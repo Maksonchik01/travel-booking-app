@@ -30,6 +30,15 @@ class Settings(BaseSettings):
 
     sentry_dsn: SecretStr | None = None
 
+    # Ліміти запитів на клієнта за годину (core/rate_limit.py). Пошук захищає квоту SerpApi,
+    # ai — бюджет DeepSeek, auth — реєстрацію й скидання пароля від спаму.
+    internal_api_key: SecretStr | None = None
+    """Спільний секрет веб ↔ API: лише з ним API вірить X-Client-IP (IP відвідувача)."""
+    rate_limit_search_per_hour: int = Field(default=40, ge=1)
+    rate_limit_ai_per_hour: int = Field(default=30, ge=1)
+    rate_limit_auth_per_hour: int = Field(default=20, ge=1)
+    rate_limit_clicks_per_hour: int = Field(default=200, ge=1)
+
     # LLM (ADR 0007): off — ШІ-функції вимкнені; mock — детерміновані відповіді (e2e, dev).
     llm_provider: LLMProviderName = "off"
     deepseek_api_key: SecretStr | None = None
@@ -139,6 +148,7 @@ class Settings(BaseSettings):
 
     @field_validator(
         "sentry_dsn",
+        "internal_api_key",
         "deepseek_api_key",
         "llm_pricing_path",
         "llm_prompts_dir",

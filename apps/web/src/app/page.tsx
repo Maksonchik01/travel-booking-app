@@ -24,6 +24,7 @@ import { SiteHeader } from "@/components/site-header";
 import { offerAnchor, TopPicks } from "@/components/top-picks";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  ERROR_KEY,
   explainSearch,
   fetchAIStatus,
   fetchAlertChannels,
@@ -180,9 +181,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const now = new Date();
 
   if (!result.ok) {
-    return (
-      <Notice tone="error">{t(result.reason === "unreachable" ? "unreachable" : "error")}</Notice>
-    );
+    return <Notice tone="error">{t(ERROR_KEY[result.reason])}</Notice>;
   }
 
   // Історія кабінету (лише для тих, хто увійшов) — після відповіді, без затримки сторінки.

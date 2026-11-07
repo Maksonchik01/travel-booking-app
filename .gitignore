@@ -16,7 +16,8 @@ htmlcov/
 # node
 node_modules/
 .next/
-out/
+# next export; не src/app/out — це маршрут
+/apps/web/out/
 coverage/
 playwright-report/
 test-results/

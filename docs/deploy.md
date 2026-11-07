@@ -33,7 +33,8 @@ Next звертається до API лише із сервера (`API_URL`), �
 1. **Add New → Project** → той самий репозиторій → **Root Directory: `apps/web`**.
    Install Command і регіон — з [`apps/web/vercel.json`](../apps/web/vercel.json)
    (npm 11: npm 10 падає на peer-залежностях workspaces).
-2. Environment Variables: `API_URL` = адреса API з кроку 1.3.
+2. Environment Variables: `API_URL` = адреса API з кроку 1.3; `INTERNAL_API_KEY` — той самий
+   секрет, що в Render (без нього ліміти запитів рахуються на весь Vercel, а не на відвідувача).
 3. Deploy. Адресу `https://<проєкт>.vercel.app` впишіть у Render як `PUBLIC_WEB_URL`
    (API і воркер) і `CORS_ORIGINS` (API).
 
@@ -45,6 +46,17 @@ Next звертається до API лише із сервера (`API_URL`), �
 - **Telegram:** одночасно `getUpdates` може читати лише один процес. Зупиніть локальний
   воркер (`docker compose stop worker`) або дайте локальній розробці окремого бота.
 - Free-сервіс API засинає без запитів: перший запит після паузи — до хвилини.
+
+## 4. Моніторинг
+
+- **Sentry** (sentry.io, регіон EU; проєкти `tickets-api` — FastAPI, `tickets-web` — Next.js, лише
+  Error Monitoring): `SENTRY_DSN` у Render (API і воркер), `NEXT_PUBLIC_SENTRY_DSN` у Vercel.
+  Персональних даних не шлемо: в API `send_default_pii=False`, у вебі `dataCollection` вимикає
+  cookies, заголовки, тіла й query-параметри (`apps/web/src/lib/sentry-options.ts`).
+- **Зведення:** `curl -H "X-Internal-Key: <INTERNAL_API_KEY>" https://<api>/ops/summary` —
+  квота SerpApi (Account API, квоту не витрачає), виклики й вартість LLM, кліки на партнерів,
+  записані ціни за добу, користувачі, активні підписки.
+- **Аптайм:** `GET /health/ready` — для зовнішнього монітора (UptimeRobot, Better Stack тощо).
 
 ## Обмеження
 

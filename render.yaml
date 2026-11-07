@@ -28,6 +28,8 @@ services:
           property: connectionString
       - key: PUBLIC_WEB_URL # https://<проєкт>.vercel.app
         sync: false
+      - key: INTERNAL_API_KEY # той самий, що у Vercel: IP відвідувача для лімітів
+        sync: false
       - key: CORS_ORIGINS # та сама адреса Vercel
         sync: false
       - key: FLIGHT_PROVIDERS

@@ -757,6 +757,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/outbound/clicks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log Click
+         * @description Облік переходу на партнера (для `/ops/summary`). Редирект від цього не залежить.
+         *
+         *     Збій БД — 503 без винятку назовні: веб викликає це вже після редиректу.
+         */
+        post: operations["log_click_outbound_clicks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ops/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ops Summary
+         * @description Зведення для власника. Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.
+         *
+         *     Без INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.
+         */
+        get: operations["ops_summary_ops_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -848,6 +892,17 @@ export interface components {
             last_notified_at: string | null;
             /** Manage Token */
             manage_token: string;
+        };
+        /** Activity */
+        Activity: {
+            /** Price Observations 24H */
+            price_observations_24h: {
+                [key: string]: number;
+            };
+            /** Users */
+            users: number;
+            /** Active Alerts */
+            active_alerts: number;
         };
         /** AdvisorOption */
         AdvisorOption: {
@@ -1120,6 +1175,38 @@ export interface components {
             /** Error */
             error?: string | null;
         };
+        /**
+         * ClickIn
+         * @description Клік «Забронювати». Посилання перевіряє й редиректить веб; сюди — лише облік.
+         */
+        ClickIn: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "flight" | "stay";
+            /**
+             * Source
+             * @example travelpayouts
+             */
+            source: string;
+            /**
+             * Host
+             * @example www.aviasales.com
+             */
+            host: string;
+        };
+        /** Clicks */
+        Clicks: {
+            /** Total 24H */
+            total_24h: number;
+            /** Total 7D */
+            total_7d: number;
+            /** By Source 7D */
+            by_source_7d: {
+                [key: string]: number;
+            };
+        };
         /** DeleteAccountBody */
         DeleteAccountBody: {
             /** Confirm */
@@ -1310,6 +1397,17 @@ export interface components {
             /** Stays */
             stays: number;
         };
+        /** LLMSpend */
+        LLMSpend: {
+            /** Calls 24H */
+            calls_24h: number;
+            /** Errors 24H */
+            errors_24h: number;
+            /** Cost Usd 24H */
+            cost_usd_24h: string;
+            /** Cost Usd 30D */
+            cost_usd_30d: string;
+        };
         /** Layover */
         Layover: {
             /** Airport */
@@ -1433,6 +1531,20 @@ export interface components {
             warnings: components["schemas"]["ScoreWarning"][];
             /** Pareto Optimal */
             pareto_optimal: boolean;
+        };
+        /** OpsSummary */
+        OpsSummary: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            serpapi: components["schemas"]["SerpApiQuota"] | null;
+            llm: components["schemas"]["LLMSpend"] | null;
+            clicks: components["schemas"]["Clicks"] | null;
+            activity: components["schemas"]["Activity"] | null;
+            /** Problems */
+            problems: string[];
         };
         /** ParseRequest */
         ParseRequest: {
@@ -1722,6 +1834,19 @@ export interface components {
             flight_number: string;
             /** Duration Min */
             duration_min: number;
+        };
+        /** SerpApiQuota */
+        SerpApiQuota: {
+            /** Searches Per Month */
+            searches_per_month?: number | null;
+            /** This Month Usage */
+            this_month_usage?: number | null;
+            /** Plan Searches Left */
+            plan_searches_left?: number | null;
+            /** Total Searches Left */
+            total_searches_left?: number | null;
+            /** This Hour Searches */
+            this_hour_searches?: number | null;
         };
         /**
          * SessionOut
@@ -3523,6 +3648,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExplainResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_click_outbound_clicks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClickIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ops_summary_ops_summary_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-internal-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpsSummary"];
                 };
             };
             /** @description Validation Error */

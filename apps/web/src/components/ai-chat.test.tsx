@@ -34,7 +34,7 @@ const STAY: StayQuery = {
   filters: { free_cancellation: false },
 };
 
-type Send = (body: ChatBodyInput) => Promise<ChatReply | null>;
+type Send = (body: ChatBodyInput) => Promise<ChatReply | "rate_limited" | null>;
 
 function renderChat(send: Send, current?: { flights?: FlightQuery; stays?: StayQuery }) {
   return render(
@@ -196,5 +196,15 @@ describe("AIChat", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("скористайтеся формою");
     expect(screen.getByLabelText("Запитайте ШІ-помічника")).toHaveValue("Лісабон у грудні");
     expect(bubbles()).toEqual([]);
+  });
+
+  it("ліміт за годину — окреме повідомлення, текст лишається в полі", async () => {
+    renderChat(async () => "rate_limited");
+    choose("Квитки");
+
+    await say("Лісабон у грудні");
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Забагато повідомлень за годину");
+    expect(screen.getByLabelText("Запитайте ШІ-помічника")).toHaveValue("Лісабон у грудні");
   });
 });

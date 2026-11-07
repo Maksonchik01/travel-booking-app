@@ -1,5 +1,6 @@
-import { Suspense } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Suspense } from "react";
 
 import { ServiceStatus } from "@/components/service-status";
 import { fetchReadiness } from "@/lib/api";
@@ -27,12 +28,31 @@ export function HeroBackdrop() {
   );
 }
 
+const FOOTER_LINKS = [
+  ["/how-it-works", "howItWorks"],
+  ["/terms", "terms"],
+  ["/privacy", "privacy"],
+] as const;
+
 export function SiteFooter() {
   const t = useTranslations("footer");
   return (
     <footer className="bg-card/60 border-t">
       <div className="text-muted-foreground mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-xs">
-        <p>{t("disclaimer")}</p>
+        <div className="grid gap-2">
+          <p>{t("disclaimer")}</p>
+          <nav className="flex flex-wrap gap-x-4 gap-y-1">
+            {FOOTER_LINKS.map(([href, key]) => (
+              <Link
+                key={href}
+                href={href}
+                className="hover:text-foreground underline-offset-4 hover:underline"
+              >
+                {t(`links.${key}`)}
+              </Link>
+            ))}
+          </nav>
+        </div>
         <Suspense fallback={null}>
           <FooterStatus />
         </Suspense>

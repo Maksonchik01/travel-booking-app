@@ -50,6 +50,9 @@ export async function POST(request: NextRequest) {
     home_airport: home,
   });
   if (!result.ok) {
+    if (result.reason === "rate_limited") {
+      return Response.json({ status: "rate_limited" }, { status: 429 });
+    }
     return Response.json({ status: "unavailable" }, { status: 502 });
   }
   return Response.json(result.data);

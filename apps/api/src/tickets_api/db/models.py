@@ -225,3 +225,19 @@ class SearchEntry(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (Index("ix_search_entries_user", "user_id", "saved", "updated_at"),)
+
+
+class OutboundClick(Base):
+    """Перехід на сайт партнера («Забронювати»). Лише що й куди — без користувача й IP (GDPR)."""
+
+    __tablename__ = "outbound_clicks"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(String(8))
+    """flight / stay."""
+    source: Mapped[str] = mapped_column(String(32))
+    """Провайдер пропозиції (serpapi, travelpayouts…)."""
+    host: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_outbound_clicks_created_at", "created_at"),)

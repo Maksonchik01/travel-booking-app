@@ -8,7 +8,19 @@ from redis.asyncio import Redis
 
 from tickets_api import __version__
 from tickets_api.ai.factory import build_ai_service
-from tickets_api.api import account, ai, alerts, auth, flights, health, places, stays, trips
+from tickets_api.api import (
+    account,
+    ai,
+    alerts,
+    auth,
+    flights,
+    health,
+    ops,
+    outbound,
+    places,
+    stays,
+    trips,
+)
 from tickets_api.auth.google import GoogleOAuth
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
@@ -136,4 +148,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.router)
     app.include_router(account.router)
     app.include_router(ai.router)
+    app.include_router(outbound.router)
+    app.include_router(ops.router)
     return app

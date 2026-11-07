@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Literal, Self
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from tickets_api.ai.assistant import (
@@ -22,6 +22,7 @@ from tickets_api.ai.parser import (
 )
 from tickets_api.ai.service import AIService
 from tickets_api.ai.stay_analyst import StayAnalysisResult
+from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.flights import FlightQuery, Iata
 from tickets_api.domain.stays import StayQuery
 
@@ -59,7 +60,7 @@ async def ai_status(request: Request) -> AIStatus:
     return AIStatus(enabled=True, provider=provider)
 
 
-@router.post("/parse", response_model=ParseResult)
+@router.post("/parse", response_model=ParseResult, dependencies=[Depends(rate_limit("ai"))])
 async def parse_request(body: ParseRequest, request: Request) -> ParseResult:
     """Текст природною мовою → структурований пошук (або одне уточнююче питання)."""
     service = _service(request)
@@ -90,7 +91,7 @@ class ChatBody(BaseModel):
         return self
 
 
-@router.post("/chat", response_model=ChatReply)
+@router.post("/chat", response_model=ChatReply, dependencies=[Depends(rate_limit("ai"))])
 async def chat(body: ChatBody, request: Request) -> ChatReply:
     """Репліка розмови з агентом. Сервер розмову не зберігає — її надсилає клієнт."""
     service = _service(request)
@@ -111,13 +112,15 @@ class StayAnalysisBody(BaseModel):
     """`source:id` об'єктів з результатів пошуку — не більше трьох за раз."""
 
 
-@router.post("/stays/analysis", response_model=StayAnalysisResult)
+@router.post(
+    "/stays/analysis", response_model=StayAnalysisResult, dependencies=[Depends(rate_limit("ai"))]
+)
 async def analyze_stays(body: StayAnalysisBody, request: Request) -> StayAnalysisResult:
     """Резюме відгуків і порівняння вибраних об'єктів. Value-score — з коду, не з моделі."""
     return await _service(request).analyze_stays(body.query, body.stay_keys)
 
 
-@router.post("/explain", response_model=ExplainResult)
+@router.post("/explain", response_model=ExplainResult, dependencies=[Depends(rate_limit("ai"))])
 async def explain_results(query: FlightQuery, request: Request) -> ExplainResult:
     """Пояснення найкращих варіантів пошуку. Числа — лише з результатів скорингу."""
     return await _service(request).explain(query)
