@@ -3,6 +3,7 @@ import { BedDouble, CalendarDays, Info, MapPin, ShieldCheck, Sparkles, Star } fr
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { after } from "next/server";
 import { Suspense } from "react";
 
 import { AIChat } from "@/components/ai-chat";
@@ -10,6 +11,7 @@ import { CollapsibleSearch } from "@/components/collapsible-search";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
 import { ProviderAlerts } from "@/components/provider-alerts";
+import { SaveSearch } from "@/components/save-search";
 import { SearchTabs } from "@/components/search-tabs";
 import { ShowMore } from "@/components/show-more";
 import { SiteHeader } from "@/components/site-header";
@@ -30,6 +32,7 @@ import {
   toStayParams,
 } from "@/lib/stay-params";
 import { dateRange, peopleCount } from "@/lib/summary";
+import { recordHistory, sessionToken } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -134,6 +137,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
 
   const { query } = state;
   const { scoring, facets, place } = result.data;
+  const historyParams = toStayParams(state).toString();
+  const historyTitle = `${place?.name ?? query.city} · ${await dateRange(query.check_in, query.check_out)}`;
+  after(
+    recordHistory(await sessionToken(), {
+      kind: "stays",
+      params: historyParams,
+      title: historyTitle,
+    }),
+  );
   const now = new Date();
   const scores = new Map<string, StayScore>(scoring.scores.map((s) => [s.stay_key, s]));
   const stays = sortStays(result.data.stays, state.sort, scores);
@@ -164,7 +176,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
             filtered={filtered}
           />
         </div>
-        <SortToggle state={state} />
+        <div className="flex flex-wrap items-center gap-2">
+          <SaveSearch
+            kind="stays"
+            params={historyParams}
+            title={historyTitle}
+            back={`/stays?${historyParams}`}
+          />
+          <SortToggle state={state} />
+        </div>
       </div>
 
       <ProviderAlerts providers={result.data.providers} />

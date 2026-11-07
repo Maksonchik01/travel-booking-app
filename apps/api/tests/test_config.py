@@ -16,6 +16,17 @@ def test_cors_origins_are_parsed_from_comma_separated_env(
     assert settings.cors_origins == ["http://a.test", "http://b.test"]
 
 
+@pytest.mark.parametrize("scheme", ["postgres", "postgresql", "postgresql+asyncpg"])
+def test_hosting_database_url_gets_async_driver(
+    monkeypatch: pytest.MonkeyPatch, scheme: str
+) -> None:
+    monkeypatch.setenv("DATABASE_URL", f"{scheme}://u:p@db-host/tickets")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.database_url == "postgresql+asyncpg://u:p@db-host/tickets"
+
+
 def test_empty_secrets_are_treated_as_unset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SENTRY_DSN", "")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "")

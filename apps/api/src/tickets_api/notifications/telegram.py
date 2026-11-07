@@ -1,15 +1,20 @@
 """Telegram Bot API: лише потрібні методи (https://core.telegram.org/bots/api).
 
 - запит: POST https://api.telegram.org/bot<token>/<method>, відповідь {"ok", "result"};
-- sendMessage: chat_id, text (1–4096 символів), link_preview_options, reply_markup з
-  inline_keyboard (кнопки-посилання: text + url);
+- sendMessage / editMessageText: chat_id, text (1–4096 символів), parse_mode "HTML"
+  (екрануємо <, >, &), link_preview_options, reply_markup з inline_keyboard;
+- кнопки: text + url (лише публічні https) або callback_data (1–64 байти);
+- answerCallbackQuery: callback_query_id, text (0–200); setMyCommands: commands
+  (command — 1–32 символи [a-z0-9_], description — 1–256);
 - getUpdates: offset (оновлення підтверджене, коли offset > update_id), timeout,
   allowed_updates. Опитування замість webhook — публічна адреса не потрібна.
 
 Токен — частина URL, тож у помилки й логи URL не потрапляє.
 """
 
+import html
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Any, Protocol
 
 import httpx
@@ -18,18 +23,64 @@ import structlog
 log = structlog.get_logger(__name__)
 
 MAX_TEXT = 4096
+MAX_CALLBACK_DATA = 64
 
 
 class TelegramError(Exception):
     pass
 
 
+@dataclass(frozen=True)
+class Button:
+    text: str
+    url: str | None = None
+    data: str | None = None
+    """callback_data — бот отримає її в callback_query (1–64 байти)."""
+
+
+Keyboard = Sequence[Sequence[Button]]
+
+
+def esc(text: object) -> str:
+    """Екранування для parse_mode=HTML (<, >, & — обов'язково)."""
+    return html.escape(str(text), quote=False)
+
+
+def keyboard_markup(keyboard: Keyboard) -> dict[str, Any] | None:
+    """Кнопки-посилання Telegram приймає лише з публічними https-адресами (не localhost)."""
+    rows = []
+    for row in keyboard:
+        buttons = []
+        for b in row:
+            if b.data is not None and 0 < len(b.data.encode()) <= MAX_CALLBACK_DATA:
+                buttons.append({"text": b.text, "callback_data": b.data})
+            elif b.url is not None and b.url.startswith("https://"):
+                buttons.append({"text": b.text, "url": b.url})
+        if buttons:
+            rows.append(buttons)
+    return {"inline_keyboard": rows} if rows else None
+
+
 class TelegramClient(Protocol):
     name: str
 
     async def send_message(
-        self, chat_id: int, text: str, buttons: Sequence[tuple[str, str]] = ()
+        self, chat_id: int, text: str, keyboard: Keyboard = (), *, html: bool = False
     ) -> None: ...
+
+    async def edit_message(
+        self,
+        chat_id: int,
+        message_id: int,
+        text: str,
+        keyboard: Keyboard = (),
+        *,
+        html: bool = False,
+    ) -> None: ...
+
+    async def answer_callback(self, callback_id: str, text: str | None = None) -> None: ...
+
+    async def set_commands(self, commands: Sequence[tuple[str, str]]) -> None: ...
 
     async def get_updates(self, offset: int | None) -> list[dict[str, Any]]: ...
 
@@ -44,23 +95,37 @@ class TelegramBot:
         self._url = f"{base_url.rstrip('/')}/bot{token}"
 
     async def send_message(
-        self, chat_id: int, text: str, buttons: Sequence[tuple[str, str]] = ()
+        self, chat_id: int, text: str, keyboard: Keyboard = (), *, html: bool = False
     ) -> None:
-        payload: dict[str, Any] = {
-            "chat_id": chat_id,
-            "text": text[:MAX_TEXT],
-            "link_preview_options": {"is_disabled": True},
-        }
-        # Кнопки-посилання Telegram приймає лише з публічними адресами (не localhost).
-        public = [(label, url) for label, url in buttons if url.startswith("https://")]
-        if public:
-            payload["reply_markup"] = {
-                "inline_keyboard": [[{"text": label, "url": url}] for label, url in public]
-            }
-        await self._call("sendMessage", payload)
+        await self._call("sendMessage", _message(chat_id, text, keyboard, html))
+
+    async def edit_message(
+        self,
+        chat_id: int,
+        message_id: int,
+        text: str,
+        keyboard: Keyboard = (),
+        *,
+        html: bool = False,
+    ) -> None:
+        payload = _message(chat_id, text, keyboard, html)
+        payload["message_id"] = message_id
+        await self._call("editMessageText", payload)
+
+    async def answer_callback(self, callback_id: str, text: str | None = None) -> None:
+        payload: dict[str, Any] = {"callback_query_id": callback_id}
+        if text:
+            payload["text"] = text[:200]
+        await self._call("answerCallbackQuery", payload)
+
+    async def set_commands(self, commands: Sequence[tuple[str, str]]) -> None:
+        await self._call(
+            "setMyCommands",
+            {"commands": [{"command": c, "description": d[:256]} for c, d in commands]},
+        )
 
     async def get_updates(self, offset: int | None) -> list[dict[str, Any]]:
-        payload: dict[str, Any] = {"timeout": 0, "allowed_updates": ["message"]}
+        payload: dict[str, Any] = {"timeout": 0, "allowed_updates": ["message", "callback_query"]}
         if offset is not None:
             payload["offset"] = offset
         result = await self._call("getUpdates", payload)
@@ -79,21 +144,63 @@ class TelegramBot:
         return body.get("result")
 
 
+def _message(chat_id: int, text: str, keyboard: Keyboard, html: bool) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "chat_id": chat_id,
+        "text": text[:MAX_TEXT],
+        "link_preview_options": {"is_disabled": True},
+    }
+    if html:
+        payload["parse_mode"] = "HTML"
+    markup = keyboard_markup(keyboard)
+    if markup:
+        payload["reply_markup"] = markup
+    return payload
+
+
+@dataclass
+class SentMessage:
+    chat_id: int
+    text: str
+    keyboard: list[list[Button]]
+    html: bool
+    message_id: int | None = None
+    """Не None — це редагування наявного повідомлення."""
+
+
 class MockTelegram:
     """Без токена: повідомлення лише в лог (і в `sent` — для тестів)."""
 
     name = "mock"
 
     def __init__(self) -> None:
-        self.sent: list[tuple[int, str, list[tuple[str, str]]]] = []
+        self.sent: list[SentMessage] = []
         self.updates: list[dict[str, Any]] = []
+        self.answered: list[tuple[str, str | None]] = []
+        self.commands: list[tuple[str, str]] = []
 
     async def send_message(
-        self, chat_id: int, text: str, buttons: Sequence[tuple[str, str]] = ()
+        self, chat_id: int, text: str, keyboard: Keyboard = (), *, html: bool = False
     ) -> None:
-        self.sent.append((chat_id, text, list(buttons)))
+        self.sent.append(SentMessage(chat_id, text, [list(r) for r in keyboard], html))
         log.info("telegram.mock_message", chat_id=chat_id, length=len(text))
 
+    async def edit_message(
+        self,
+        chat_id: int,
+        message_id: int,
+        text: str,
+        keyboard: Keyboard = (),
+        *,
+        html: bool = False,
+    ) -> None:
+        self.sent.append(SentMessage(chat_id, text, [list(r) for r in keyboard], html, message_id))
+
+    async def answer_callback(self, callback_id: str, text: str | None = None) -> None:
+        self.answered.append((callback_id, text))
+
+    async def set_commands(self, commands: Sequence[tuple[str, str]]) -> None:
+        self.commands = list(commands)
+
     async def get_updates(self, offset: int | None) -> list[dict[str, Any]]:
-        pending = [u for u in self.updates if offset is None or u["update_id"] >= offset]
-        return pending
+        return [u for u in self.updates if offset is None or u["update_id"] >= offset]

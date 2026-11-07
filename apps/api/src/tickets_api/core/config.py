@@ -79,6 +79,12 @@ class Settings(BaseSettings):
     telegram_bot_username: str | None = None
     """Без @; для посилання t.me/<бот>?start=<код>."""
     telegram_base_url: str = "https://api.telegram.org"
+    # Акаунти (ADR 0011). Google — OAuth 2.0 з PKCE; без ключів кнопка Google вимкнена.
+    google_client_id: str | None = None
+    google_client_secret: SecretStr | None = None
+    session_ttl_days: int = Field(default=30, ge=1, le=365)
+    login_max_failures: int = Field(default=5, ge=3, le=20)
+    """Стільки невдалих спроб входу за 15 хв — і пауза (захист від підбору пароля)."""
     smtp_host: str | None = None
     smtp_port: int = 587
     smtp_user: str | None = None
@@ -116,6 +122,15 @@ class Settings(BaseSettings):
             return [o.strip() for o in value.split(",") if o.strip()]
         return value
 
+    @field_validator("database_url")
+    @classmethod
+    def _async_driver(cls, value: str) -> str:
+        # Хостинги (Render, Heroku) дають postgres:// чи postgresql:// — нам потрібен asyncpg.
+        for scheme in ("postgres://", "postgresql://"):
+            if value.startswith(scheme):
+                return "postgresql+asyncpg://" + value.removeprefix(scheme)
+        return value
+
     @field_validator(
         "sentry_dsn",
         "deepseek_api_key",
@@ -126,6 +141,8 @@ class Settings(BaseSettings):
         "scoring_config_path",
         "stay_scoring_config_path",
         "telegram_bot_token",
+        "google_client_id",
+        "google_client_secret",
         "telegram_bot_username",
         "smtp_host",
         "smtp_user",
@@ -151,6 +168,8 @@ class Settings(BaseSettings):
             raise ValueError("travelpayouts увімкнено без TRAVELPAYOUTS_TOKEN")
         if "serpapi" in self.alert_providers:
             raise ValueError("ALERT_PROVIDERS не може містити serpapi: перевірки вичерпають квоту")
+        if (self.google_client_id is None) != (self.google_client_secret is None):
+            raise ValueError("GOOGLE_CLIENT_ID і GOOGLE_CLIENT_SECRET задаються лише разом")
         if self.telegram_bot_token is not None and not self.telegram_bot_username:
             raise ValueError("TELEGRAM_BOT_TOKEN без TELEGRAM_BOT_USERNAME (для посилання на бота)")
         if "serpapi" in self.flight_providers and self.serpapi_key is None:

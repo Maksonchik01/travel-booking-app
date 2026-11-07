@@ -1,13 +1,15 @@
 import { PlaneTakeoff } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { Suspense } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
 
 const SECTIONS = { flights: "/", stays: "/stays", trip: "/trip" } as const;
 
-export function SiteHeader({ active }: { active: keyof typeof SECTIONS }) {
+export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null }) {
   const t = useTranslations("nav");
   return (
     <header className="bg-background/75 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 border-b backdrop-blur-md">
@@ -39,7 +41,13 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS }) {
             </Link>
           ))}
         </nav>
-        <ThemeToggle className="ml-auto" />
+        <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
+          {/* Сесія читається під час запиту — окремо від статичної шапки. */}
+          <Suspense fallback={<span className="bg-muted h-9 w-20 animate-pulse rounded-lg" />}>
+            <UserMenu />
+          </Suspense>
+        </div>
       </div>
     </header>
   );

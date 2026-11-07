@@ -3,6 +3,7 @@ import { Info, Plane, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { after } from "next/server";
 import { Suspense } from "react";
 
 import { AIChat } from "@/components/ai-chat";
@@ -15,6 +16,7 @@ import { PriceAlert } from "@/components/price-alert";
 import { PriceCalendar } from "@/components/price-calendar";
 import { ProviderAlerts } from "@/components/provider-alerts";
 import { ResultFilters } from "@/components/result-filters";
+import { SaveSearch } from "@/components/save-search";
 import { SearchForm } from "@/components/search-form";
 import { SearchTabs } from "@/components/search-tabs";
 import { ShowMore } from "@/components/show-more";
@@ -38,6 +40,7 @@ import {
   toSearchParams,
 } from "@/lib/search-params";
 import { dateRange, peopleCount } from "@/lib/summary";
+import { recordHistory, sessionToken } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -182,6 +185,17 @@ async function Results({ searchParams }: { searchParams: Params }) {
     );
   }
 
+  // Історія кабінету (лише для тих, хто увійшов) — після відповіді, без затримки сторінки.
+  const historyParams = toSearchParams(state).toString();
+  const historyTitle = `${query.origin} → ${query.destination} · ${await dateRange(query.departure_date, query.return_date)}`;
+  after(
+    recordHistory(await sessionToken(), {
+      kind: "flights",
+      params: historyParams,
+      title: historyTitle,
+    }),
+  );
+
   const { scoring, facets } = result.data;
   const scores = new Map<string, OfferScore>(scoring.scores.map((s) => [s.offer_key, s]));
   const offers = sortOffers(result.data.offers, state.sort, scores);
@@ -209,7 +223,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
             {query.origin_radius_km || query.destination_radius_km ? ` · ${t("withNearby")}` : null}
           </p>
         </div>
-        <SortToggle state={state} />
+        <div className="flex flex-wrap items-center gap-2">
+          <SaveSearch
+            kind="flights"
+            params={historyParams}
+            title={historyTitle}
+            back={`/?${historyParams}`}
+          />
+          <SortToggle state={state} />
+        </div>
       </div>
 
       {/* Підписка на ціну маршруту (етап 7): поріг пропонуємо від найкращої ціни. */}

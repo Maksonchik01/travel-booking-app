@@ -1,7 +1,7 @@
-import type { AlertCreate } from "@tickets/shared";
+import type { AlertCreate, AlertCreated } from "@tickets/shared";
 import type { NextRequest } from "next/server";
 
-import { createAlert } from "@/lib/api";
+import { call } from "@/lib/session";
 
 /** Створення підписки: браузер ходить сюди, а не напряму в API. Перевіряє API. */
 export async function POST(request: NextRequest) {
@@ -14,12 +14,10 @@ export async function POST(request: NextRequest) {
   if (typeof body !== "object" || body === null) {
     return Response.json({ error: "invalid body" }, { status: 400 });
   }
-  const result = await createAlert(body as AlertCreate);
+  // З сесією (якщо увійшли) — підписка з'явиться в кабінеті.
+  const result = await call<AlertCreated>("POST", "/alerts", body as AlertCreate);
   if (!result.ok) {
-    return Response.json(
-      { error: result.reason },
-      { status: result.reason === "error" ? 422 : 502 },
-    );
+    return Response.json({ error: result.code }, { status: result.status === 0 ? 502 : 422 });
   }
   return Response.json(result.data, { status: 201 });
 }

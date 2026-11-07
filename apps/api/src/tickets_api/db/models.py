@@ -130,6 +130,8 @@ class Alert(Base):
     channel: Mapped[str] = mapped_column(String(16))
     email: Mapped[str | None] = mapped_column(String(254))
     telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger)
+    user_id: Mapped[str | None] = mapped_column(String(32), index=True)
+    """Власник, якщо підписку створено під час входу (тоді видно в кабінеті)."""
     status: Mapped[str] = mapped_column(String(16), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -137,6 +139,8 @@ class Alert(Base):
     last_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     last_notified_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     last_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    snoozed_until: Mapped[date | None] = mapped_column(Date)
+    """«Тиша» з бота: до цієї дати перевіряємо, але не сповіщаємо."""
 
     __table_args__ = (
         Index("ix_alerts_status", "status"),
@@ -155,3 +159,69 @@ class AlertEvent(Base):
     price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     detail: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class User(Base):
+    """Акаунт. Мінімум даних (GDPR): логін, ім'я, email (необов'язковий), способи входу.
+
+    Пароль — лише хеш scrypt; Google — лише незмінний `sub`; Telegram — chat id.
+    """
+
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    username: Mapped[str] = mapped_column(String(30), unique=True)
+    password_hash: Mapped[str | None] = mapped_column(String(200))
+    first_name: Mapped[str | None] = mapped_column(String(60))
+    last_name: Mapped[str | None] = mapped_column(String(60))
+    email: Mapped[str | None] = mapped_column(String(254), unique=True)
+    """Лише підтверджена адреса; нова чекає підтвердження в auth_tokens."""
+    google_sub: Mapped[str | None] = mapped_column(String(64), unique=True)
+    telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserSession(Base):
+    """Сесія входу. У БД — лише SHA-256 токена; сам токен — у httpOnly-cookie браузера."""
+
+    __tablename__ = "user_sessions"
+
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(32), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class AuthToken(Base):
+    """Одноразові токени з листів: підтвердження email і скидання пароля (лише хеш)."""
+
+    __tablename__ = "auth_tokens"
+
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(32), index=True)
+    purpose: Mapped[str] = mapped_column(String(16))
+    """verify_email — нова адреса в `email`; reset_password."""
+    email: Mapped[str | None] = mapped_column(String(254))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class SearchEntry(Base):
+    """Історія пошуків і збережені пошуки користувача (`saved` — у «Збереженому»).
+
+    `params` — рядок URL сторінки результатів (from=WAW&to=LIS&…): відкрити знову = перейти.
+    """
+
+    __tablename__ = "search_entries"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(32))
+    kind: Mapped[str] = mapped_column(String(16))
+    """flights / stays / trip."""
+    params: Mapped[str] = mapped_column(String(500))
+    title: Mapped[str] = mapped_column(String(120))
+    saved: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_search_entries_user", "user_id", "saved", "updated_at"),)

@@ -3,12 +3,14 @@ import { CalendarDays, Info, Luggage, Plane, Scale, Sparkles, Wallet } from "luc
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { after } from "next/server";
 import { Suspense } from "react";
 
 import { AIChat } from "@/components/ai-chat";
 import { CollapsibleSearch } from "@/components/collapsible-search";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { ProviderAlerts } from "@/components/provider-alerts";
+import { SaveSearch } from "@/components/save-search";
 import { SearchTabs } from "@/components/search-tabs";
 import { SiteHeader } from "@/components/site-header";
 import { TripCard } from "@/components/trip-card";
@@ -19,6 +21,7 @@ import { type RawSearchParams, toSearchParams } from "@/lib/search-params";
 import { toStayParams } from "@/lib/stay-params";
 import { parseTripParams, toTripParams } from "@/lib/trip-params";
 import { dateRange, peopleCount } from "@/lib/summary";
+import { recordHistory, sessionToken } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -116,6 +119,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
     );
   }
   const data = result.data;
+  const historyParams = toTripParams(query).toString();
+  const historyTitle = `${query.origin} → ${query.destination} · ${await dateRange(query.departure_date, query.return_date)}`;
+  after(
+    recordHistory(await sessionToken(), {
+      kind: "trip",
+      params: historyParams,
+      title: historyTitle,
+    }),
+  );
   const offers = new Map(data.offers.map((o) => [`${o.source}:${o.id}`, o]));
   const stays = new Map(data.stays.map((s) => [`${s.source}:${s.id}`, s]));
   const combos = new Map(data.combos.map((c) => [c.key, c]));
@@ -146,16 +158,24 @@ async function Results({ searchParams }: { searchParams: Params }) {
 
   return (
     <div className="animate-in fade-in-0 grid gap-6 duration-300">
-      <div className="grid gap-0.5">
-        <h2
-          aria-label={t("title", { from: query.origin, to: query.destination })}
-          className="flex items-center gap-2 text-2xl font-bold tracking-tight"
-        >
-          {query.origin}
-          <Plane className="text-primary size-5" aria-hidden />
-          {query.destination}
-        </h2>
-        <TripSummary query={query} combos={data.combos.length} flights={data.flights_found} />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="grid gap-0.5">
+          <h2
+            aria-label={t("title", { from: query.origin, to: query.destination })}
+            className="flex items-center gap-2 text-2xl font-bold tracking-tight"
+          >
+            {query.origin}
+            <Plane className="text-primary size-5" aria-hidden />
+            {query.destination}
+          </h2>
+          <TripSummary query={query} combos={data.combos.length} flights={data.flights_found} />
+        </div>
+        <SaveSearch
+          kind="trip"
+          params={historyParams}
+          title={historyTitle}
+          back={`/trip?${historyParams}`}
+        />
       </div>
 
       <ProviderAlerts providers={data.providers} />

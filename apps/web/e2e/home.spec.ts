@@ -207,3 +207,56 @@ test("підписка на ціну: створення → сторінка к
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05");
   await expect(page.getByRole("link", { name: /Ви стежите за цим маршрутом/ })).toBeVisible();
 });
+
+test("кабінет: реєстрація → профіль → історія й збережене → вихід і вхід → видалення", async ({
+  page,
+}) => {
+  const username = `e2e_${Date.now()}`;
+  await page.goto("/login?mode=register");
+  await page.getByLabel("Логін", { exact: true }).fill(username);
+  await page.getByLabel("Ім'я").fill("Олена");
+  await page.getByLabel("Пароль", { exact: true }).fill("password123");
+  await page.getByLabel("Пароль ще раз").fill("password123");
+  await page.getByRole("button", { name: "Зареєструватися" }).click();
+
+  await expect(page).toHaveURL(/\/account/);
+  await expect(page.getByRole("heading", { name: "Профіль" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Особистий кабінет" })).toContainText("Олена");
+
+  await page.getByLabel("Прізвище").fill("Тестова");
+  await page.getByRole("button", { name: "Зберегти", exact: true }).click();
+  await expect(page.getByText("Збережено.")).toBeVisible();
+
+  // Пошук житла (mock) потрапляє в історію; «Зберегти пошук» — у збережене.
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  await page.getByTestId("stay-card").first().waitFor();
+  await page.getByRole("button", { name: "Зберегти пошук" }).click();
+  await expect(page.getByRole("link", { name: "У збереженому" })).toBeVisible();
+
+  await page.goto("/account");
+  const saved = page.locator("#saved");
+  const history = page.locator("#history");
+  await expect(saved).toContainText("Лісабон");
+  await expect(history).toContainText("Лісабон");
+  await saved.getByRole("link", { name: /Лісабон/ }).click();
+  await expect(page).toHaveURL(/\/stays\?city=LIS/);
+
+  // Вихід і вхід тим самим логіном.
+  await page.goto("/account");
+  await page.getByRole("button", { name: "Вийти", exact: true }).click();
+  await expect(page.getByRole("link", { name: "Увійти" })).toBeVisible();
+  await page.goto("/login");
+  await page.getByLabel("Логін або email").fill(username);
+  await page.getByLabel("Пароль", { exact: true }).fill("password123");
+  await page.getByRole("button", { name: "Увійти", exact: true }).click();
+  await expect(page).toHaveURL(/\/account/);
+
+  await page.getByLabel("Пароль для підтвердження").fill("password123");
+  await page.getByRole("button", { name: "Видалити акаунт" }).click();
+  await expect(page).toHaveURL(/\/\?done=deleted|\/$/);
+  await page.goto("/login");
+  await page.getByLabel("Логін або email").fill(username);
+  await page.getByLabel("Пароль", { exact: true }).fill("password123");
+  await page.getByRole("button", { name: "Увійти", exact: true }).click();
+  await expect(page.getByText("Невірний логін або пароль.")).toBeVisible();
+});

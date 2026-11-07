@@ -51,6 +51,7 @@ npm run dev -w @tickets/web                                            # web
 - Житло: поки лише mock-дані (`STAY_PROVIDERS=mock`, [ADR 0008](docs/adr/0008-stays-value-score.md)).
 - Поїздка (`/trip`): переліт + житло на дати рейсу із загальною сумою ([ADR 0009](docs/adr/0009-trip-planner.md)).
 - Алерти: кнопка «Стежити за ціною» на результатах; сповіщення в Telegram (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` — бот з @BotFather) і email (`SMTP_*`), без ключів — лише в лог. Воркер: `docker compose up worker` ([ADR 0010](docs/adr/0010-price-alerts.md)).
+- Акаунти: логін/пароль і Google (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`; redirect URI `http://localhost:3000/api/auth/google/callback`), кабінет `/account` з історією й збереженими пошуками; бот — `/new`, `/list`, прив'язка з кабінету ([ADR 0011](docs/adr/0011-accounts-and-bot.md)).
 - ШІ (чат-помічник у трьох режимах — квитки, житло, уся поїздка — історія розмов у браузері; пояснення результатів; резюме відгуків): `LLM_PROVIDER=deepseek` +
   `DEEPSEEK_API_KEY` ([ADR 0007](docs/adr/0007-llm-deepseek.md)). `LLM_PROVIDER=mock` —
   без ключа, `off` — без ШІ-блоків.

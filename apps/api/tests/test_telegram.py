@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 import httpx
 import pytest
 import respx
-from tickets_api.notifications.telegram import TelegramBot, TelegramError
+from tickets_api.notifications.telegram import Button, TelegramBot, TelegramError, esc
 
 TOKEN = "123456:secret-token-value"  # noqa: S105 — фіктивний токен для тесту
 BASE = f"https://api.telegram.org/bot{TOKEN}"
@@ -17,7 +17,7 @@ async def client() -> AsyncIterator[httpx.AsyncClient]:
 
 
 @respx.mock
-async def test_send_message_with_public_url_buttons_only(client: httpx.AsyncClient) -> None:
+async def test_send_message_html_and_buttons(client: httpx.AsyncClient) -> None:
     route = respx.post(f"{BASE}/sendMessage").mock(
         return_value=httpx.Response(200, json={"ok": True, "result": {"message_id": 1}})
     )
@@ -26,17 +26,54 @@ async def test_send_message_with_public_url_buttons_only(client: httpx.AsyncClie
     await bot.send_message(
         42,
         "x" * 5000,
-        [("Квитки", "https://tickets.example/?from=WAW"), ("Локально", "http://localhost:3000")],
+        [
+            [Button("Квитки", url="https://tickets.example/?from=WAW")],
+            [Button("Локально", url="http://localhost:3000"), Button("Вимкнути", data="stop:a1")],
+            [Button("Задовго", data="x" * 65)],
+        ],
+        html=True,
     )
 
     body = json.loads(route.calls.last.request.content)
     assert body["chat_id"] == 42
     assert len(body["text"]) == 4096  # ліміт Bot API
+    assert body["parse_mode"] == "HTML"
     assert body["link_preview_options"] == {"is_disabled": True}
-    # Telegram не приймає кнопки з localhost — лишаємо лише публічні https.
+    # localhost-посилання Telegram не приймає; callback_data — до 64 байтів.
     assert body["reply_markup"] == {
-        "inline_keyboard": [[{"text": "Квитки", "url": "https://tickets.example/?from=WAW"}]]
+        "inline_keyboard": [
+            [{"text": "Квитки", "url": "https://tickets.example/?from=WAW"}],
+            [{"text": "Вимкнути", "callback_data": "stop:a1"}],
+        ]
     }
+
+
+@respx.mock
+async def test_callback_answer_commands_and_edit(client: httpx.AsyncClient) -> None:
+    answer = respx.post(f"{BASE}/answerCallbackQuery").mock(
+        return_value=httpx.Response(200, json={"ok": True, "result": True})
+    )
+    commands = respx.post(f"{BASE}/setMyCommands").mock(
+        return_value=httpx.Response(200, json={"ok": True, "result": True})
+    )
+    edit = respx.post(f"{BASE}/editMessageText").mock(
+        return_value=httpx.Response(200, json={"ok": True, "result": {"message_id": 7}})
+    )
+    bot = TelegramBot(client, TOKEN)
+
+    await bot.answer_callback("cb1", "Готово")
+    await bot.set_commands([("new", "Нова підписка")])
+    await bot.edit_message(42, 7, "Оновлено")
+
+    assert json.loads(answer.calls.last.request.content) == {
+        "callback_query_id": "cb1",
+        "text": "Готово",
+    }
+    assert json.loads(commands.calls.last.request.content) == {
+        "commands": [{"command": "new", "description": "Нова підписка"}]
+    }
+    assert json.loads(edit.calls.last.request.content)["message_id"] == 7
+    assert esc("<b>&") == "&lt;b&gt;&amp;"
 
 
 @respx.mock
@@ -51,7 +88,7 @@ async def test_get_updates_passes_offset(client: httpx.AsyncClient) -> None:
 
     assert updates[0]["update_id"] == 5
     body = json.loads(route.calls.last.request.content)
-    assert body == {"timeout": 0, "allowed_updates": ["message"], "offset": 5}
+    assert body == {"timeout": 0, "allowed_updates": ["message", "callback_query"], "offset": 5}
 
 
 @respx.mock

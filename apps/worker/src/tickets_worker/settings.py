@@ -8,7 +8,7 @@ from tickets_api.core.config import get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
-from tickets_api.services.alerts_factory import build_alert_service
+from tickets_api.services.alerts_factory import build_alert_service, build_bot_service
 
 from tickets_worker.tasks import check_alerts, ping, poll_telegram
 
@@ -25,12 +25,14 @@ async def startup(ctx: dict[str, Any]) -> None:
     ctx["redis_client"] = Redis.from_url(
         _settings.redis_url, socket_timeout=2.0, socket_connect_timeout=2.0
     )
+    sessionmaker = create_sessionmaker(ctx["engine"])
     ctx["alerts"] = build_alert_service(
-        _settings,
-        http=ctx["http"],
-        redis=ctx["redis_client"],
-        sessionmaker=create_sessionmaker(ctx["engine"]),
+        _settings, http=ctx["http"], redis=ctx["redis_client"], sessionmaker=sessionmaker
     )
+    ctx["bot"] = build_bot_service(
+        _settings, ctx["alerts"], redis=ctx["redis_client"], sessionmaker=sessionmaker
+    )
+    await ctx["bot"].setup()  # меню команд у Telegram
 
 
 async def shutdown(ctx: dict[str, Any]) -> None:

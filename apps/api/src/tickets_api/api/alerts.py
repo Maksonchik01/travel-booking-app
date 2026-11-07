@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
+from tickets_api.api.deps import OptionalUser
 from tickets_api.domain.alerts import AlertCreate, AlertView
 from tickets_api.services.alerts import AlertCreated, AlertError, AlertService, ChannelStatus
 
@@ -25,10 +26,13 @@ async def channels(request: Request) -> ChannelStatus:
 
 
 @router.post("", response_model=AlertCreated, status_code=201)
-async def create_alert(body: AlertCreate, request: Request) -> AlertCreated:
-    """Нова підписка (pending): підтвердження — /start у боті або посилання з листа."""
+async def create_alert(body: AlertCreate, request: Request, user: OptionalUser) -> AlertCreated:
+    """Нова підписка (pending): підтвердження — /start у боті або посилання з листа.
+
+    Якщо запит від користувача з сесією — підписка з'явиться в його кабінеті.
+    """
     try:
-        return await _service(request).create(body)
+        return await _service(request).create(body, user.id if user else None)
     except AlertError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

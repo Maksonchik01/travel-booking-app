@@ -8,9 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from tickets_api.core.config import Settings
 from tickets_api.domain.flights import FlightQuery
-from tickets_api.notifications.mail import Mailer, MockMailer, SmtpMailer
+from tickets_api.notifications.factory import build_mailer
 from tickets_api.notifications.telegram import MockTelegram, TelegramBot, TelegramClient
 from tickets_api.providers.registry import build_providers
+from tickets_api.reference.airports import default_airport_directory
 from tickets_api.repositories.price_history import (
     PriceHistoryRecorder,
     PriceStats,
@@ -19,6 +20,7 @@ from tickets_api.repositories.price_history import (
 from tickets_api.scoring.config import default_scoring_config
 from tickets_api.services.alerts import AlertService, AlertSettings
 from tickets_api.services.flight_search import FlightSearchService
+from tickets_api.services.telegram_bot import TelegramBotService
 
 
 def build_alert_service(
@@ -45,17 +47,7 @@ def build_alert_service(
         if settings.telegram_bot_token is not None
         else MockTelegram()
     )
-    mailer: Mailer = (
-        SmtpMailer(
-            settings.smtp_host,
-            settings.smtp_port,
-            user=settings.smtp_user,
-            password=settings.smtp_password.get_secret_value() if settings.smtp_password else None,
-            sender=settings.email_from,
-        )
-        if settings.smtp_host and settings.email_from
-        else MockMailer()
-    )
+    mailer = build_mailer(settings)
 
     async def price_stats(query: FlightQuery, best_price: Decimal) -> PriceStats | None:
         async with sessionmaker() as session:
@@ -79,6 +71,17 @@ def build_alert_service(
             bot_username=settings.telegram_bot_username,
             min_hours_between_notifications=settings.alert_min_hours_between_notifications,
         ),
-        redis=redis,
         price_stats=price_stats,
+    )
+
+
+def build_bot_service(
+    settings: Settings,
+    alerts: AlertService,
+    *,
+    redis: Redis,
+    sessionmaker: async_sessionmaker[AsyncSession],
+) -> TelegramBotService:
+    return TelegramBotService(
+        alerts, sessionmaker, redis=redis, airports=default_airport_directory()
     )

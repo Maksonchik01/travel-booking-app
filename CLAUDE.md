@@ -69,6 +69,11 @@
   перевірок — `ALERT_PROVIDERS` (travelpayouts/mock), **ніколи serpapi** (квота). Без акаунтів:
   підтвердження `/start <код>` у боті чи листом, керування — `/alerts?token=`. Без ключів
   Telegram/SMTP — mock (лише лог). Сповіщення — лише нижча ціна й не частіше за 24 год.
+- **Акаунти й бот** ([ADR 0011](docs/adr/0011-accounts-and-bot.md)): `services/accounts.py`,
+  роутери `api/auth.py`, `api/account.py`; сесія — httpOnly-cookie `tickets_session`, у БД лише
+  SHA-256 токена; паролі — scrypt; Google — OAuth + PKCE. Web: server actions
+  `src/app/actions/account.ts`, кабінет `/account`. Бот — `services/telegram_bot.py`
+  (команди, кнопки, діалог `/new` у Redis), прив'язка чату — `/start link_<код>`.
 - **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
 - Назви LLM-моделей лише в конфігу (`LLM_MODEL_PARSER`, `LLM_MODEL_EXPLAINER`).

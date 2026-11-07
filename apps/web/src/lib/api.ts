@@ -1,7 +1,5 @@
 import type {
   AIStatus,
-  AlertCreate,
-  AlertCreated,
   AlertView,
   ChannelStatus,
   CalendarResult,
@@ -171,14 +169,6 @@ export function searchTrip(query: TripQuery): Promise<ApiResult<TripSearchResult
 export async function fetchAlertChannels(): Promise<ChannelStatus | null> {
   const result = await request<ChannelStatus>("/alerts/channels");
   return result.ok ? result.data : null;
-}
-
-export function createAlert(body: AlertCreate): Promise<ApiResult<AlertCreated>> {
-  return request("/alerts", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
 }
 
 export function fetchAlert(token: string): Promise<ApiResult<AlertView>> {

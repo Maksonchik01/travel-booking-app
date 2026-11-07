@@ -1,0 +1,108 @@
+# Бекенд на Render (Blueprint): Dashboard → New → Blueprint → цей репозиторій.
+# Фронтенд — на Vercel (apps/web, див. apps/web/vercel.json і docs/deploy.md).
+# Секрети (sync: false) Render попросить ввести під час створення; у репозиторії їх немає.
+# Довідка полів: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: tickets-api
+    runtime: docker
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    plan: free # засинає без запитів; перший запит після сну — до хвилини
+    region: frankfurt
+    healthCheckPath: /health
+    # preDeployCommand на free-плані недоступний, тож міграції — перед стартом сервера.
+    dockerCommand: sh -c "alembic upgrade head && exec uvicorn tickets_api.asgi:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_JSON
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tickets-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: tickets-redis
+          type: keyvalue
+          property: connectionString
+      - key: PUBLIC_WEB_URL # https://<проєкт>.vercel.app
+        sync: false
+      - key: CORS_ORIGINS # та сама адреса Vercel
+        sync: false
+      - key: FLIGHT_PROVIDERS
+        value: serpapi
+      - key: CALENDAR_PROVIDERS
+        value: travelpayouts
+      - key: STAY_PROVIDERS
+        value: mock
+      - key: ALERT_PROVIDERS
+        value: travelpayouts
+      - key: LLM_PROVIDER
+        value: deepseek
+      - key: TELEGRAM_BOT_USERNAME
+        value: flyandbookbot
+      - key: SERPAPI_KEY
+        sync: false
+      - key: TRAVELPAYOUTS_TOKEN
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+
+  # Перевірка алертів і опитування Telegram-бота. Фонові воркери на Render безкоштовними
+  # не бувають; без воркера сайт працює, але бот мовчить і підписки не перевіряються.
+  - type: worker
+    name: tickets-worker
+    runtime: docker
+    dockerfilePath: ./apps/worker/Dockerfile
+    dockerContext: .
+    plan: 0.5c-512mb
+    region: frankfurt
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_JSON
+        value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tickets-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: tickets-redis
+          type: keyvalue
+          property: connectionString
+      - key: PUBLIC_WEB_URL
+        sync: false
+      - key: ALERT_PROVIDERS
+        value: travelpayouts
+      - key: TELEGRAM_BOT_USERNAME
+        value: flyandbookbot
+      - key: TRAVELPAYOUTS_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+
+  - type: keyvalue
+    name: tickets-redis
+    plan: free
+    region: frankfurt
+    maxmemoryPolicy: noeviction # черга ARQ не повинна витіснятися кешем
+    ipAllowList: [] # лише внутрішня мережа Render
+
+databases:
+  - name: tickets-db
+    plan: free # безкоштовна база видаляється через 30 днів — потім платний план
+    region: frankfurt
+    postgresMajorVersion: "16"
+    databaseName: tickets
+    user: tickets
+    ipAllowList: []

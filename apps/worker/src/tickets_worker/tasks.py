@@ -2,6 +2,7 @@ from typing import Any
 
 import structlog
 from tickets_api.services.alerts import AlertService
+from tickets_api.services.telegram_bot import TelegramBotService
 
 log = structlog.get_logger(__name__)
 
@@ -21,6 +22,6 @@ async def check_alerts(ctx: dict[str, Any]) -> int:
 
 
 async def poll_telegram(ctx: dict[str, Any]) -> int:
-    """Забрати нові повідомлення бота (/start <код>, /list, /stop) і відповісти."""
-    alerts: AlertService = ctx["alerts"]
-    return await alerts.poll_telegram()
+    """Забрати нові повідомлення й натискання кнопок бота і відповісти."""
+    bot: TelegramBotService = ctx["bot"]
+    return await bot.poll()

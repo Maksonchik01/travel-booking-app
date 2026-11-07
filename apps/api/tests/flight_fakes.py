@@ -19,12 +19,26 @@ class FakeRedis:
             raise RedisConnectionError("down")
         return self.store.get(key)
 
-    async def set(self, key: str, value: bytes | int, ex: int | None = None) -> None:
+    async def set(self, key: str, value: bytes | str | int, ex: int | None = None) -> None:
         if self.broken:
             raise RedisConnectionError("down")
         self.store[key] = value if isinstance(value, bytes) else str(value).encode()
         if ex is not None:
             self.ttl[key] = ex
+
+    async def getdel(self, key: str) -> bytes | None:
+        return self.store.pop(key, None)
+
+    async def delete(self, key: str) -> None:
+        self.store.pop(key, None)
+
+    async def incr(self, key: str) -> int:
+        value = int(self.store.get(key, b"0")) + 1
+        self.store[key] = str(value).encode()
+        return value
+
+    async def expire(self, key: str, seconds: int) -> None:
+        self.ttl[key] = seconds
 
 
 class StubProvider:

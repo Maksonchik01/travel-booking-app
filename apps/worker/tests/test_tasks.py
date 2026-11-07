@@ -8,7 +8,9 @@ class FakeAlerts:
     async def check_all(self) -> int:
         return 2
 
-    async def poll_telegram(self) -> int:
+
+class FakeBot:
+    async def poll(self) -> int:
         return 3
 
 
@@ -17,7 +19,7 @@ async def test_ping_returns_pong() -> None:
 
 
 async def test_alert_tasks_use_service_from_context() -> None:
-    ctx: dict[str, Any] = {"alerts": FakeAlerts()}
+    ctx: dict[str, Any] = {"alerts": FakeAlerts(), "bot": FakeBot()}
     assert await check_alerts(ctx) == 2
     assert await poll_telegram(ctx) == 3
 

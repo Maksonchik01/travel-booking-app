@@ -1,11 +1,15 @@
 """Підписки на ціну (алерти): створення, підтвердження, перевірка за розкладом, сповіщення.
 
-- Без акаунтів: підписка підтверджується в Telegram (/start <код> з посилання) або листом
-  (подвійна згода). Керування — за посиланням із секретним токеном.
+- Підписка з сайту підтверджується в Telegram (/start <код> з посилання) або листом
+  (подвійна згода); з бота — одразу активна (людина вже в чаті). Керування — посилання з
+  секретним токеном, кнопки в боті або кабінет (якщо підписку створено під час входу).
 - Ціни для перевірок — окремий FlightSearchService з кешованим джерелом (ALERT_PROVIDERS),
   а не SerpApi: регулярні перевірки вичерпали б квоту.
 - Без спаму: сповіщення лише коли ціна нижча за попередню надіслану і не частіше за
-  ALERT_MIN_HOURS_BETWEEN_NOTIFICATIONS; минулі дати — підписка вимикається сама.
+  ALERT_MIN_HOURS_BETWEEN_NOTIFICATIONS; «відкласти» — тиша до вказаної дати; минулі
+  дати — підписка вимикається сама.
+
+Діалоги бота (команди, кнопки, нова підписка в чаті) — services/telegram_bot.py.
 """
 
 import secrets
@@ -14,12 +18,10 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from typing import Any, Literal
+from typing import Literal
 
 import structlog
 from pydantic import BaseModel
-from redis.asyncio import Redis
-from redis.exceptions import RedisError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -33,15 +35,15 @@ from tickets_api.domain.alerts import (
 )
 from tickets_api.domain.flights import FlightQuery
 from tickets_api.notifications.mail import Mailer, MailError
-from tickets_api.notifications.telegram import TelegramClient, TelegramError
+from tickets_api.notifications.telegram import Button, Keyboard, TelegramClient, TelegramError, esc
 from tickets_api.repositories.price_history import PriceStats
 from tickets_api.services.flight_search import FlightSearchService
 
 log = structlog.get_logger(__name__)
 
-TELEGRAM_OFFSET_KEY = "alerts:telegram:offset"
 MIN_TYPICAL_SAMPLE = 20
 """«Нижче типової» має сенс лише з достатньою історією (як і оцінка ціни в поясненні)."""
+SNOOZE_DAYS = 7
 
 PriceStatsLookup = Callable[[FlightQuery, Decimal], Awaitable[PriceStats | None]]
 Clock = Callable[[], datetime]
@@ -83,7 +85,6 @@ class AlertService:
         telegram: TelegramClient,
         mailer: Mailer,
         settings: AlertSettings,
-        redis: Redis | None = None,
         price_stats: PriceStatsLookup | None = None,
         clock: Clock | None = None,
     ) -> None:
@@ -92,9 +93,19 @@ class AlertService:
         self._telegram = telegram
         self._mailer = mailer
         self._settings = settings
-        self._redis = redis
         self._price_stats = price_stats
         self._clock = clock or (lambda: datetime.now(UTC))
+
+    @property
+    def telegram(self) -> TelegramClient:
+        return self._telegram
+
+    @property
+    def settings(self) -> AlertSettings:
+        return self._settings
+
+    def now(self) -> datetime:
+        return self._clock()
 
     def channels(self) -> ChannelStatus:
         return ChannelStatus(
@@ -105,10 +116,19 @@ class AlertService:
 
     # --- підписка ---------------------------------------------------------------------
 
-    async def create(self, body: AlertCreate) -> AlertCreated:
+    async def create(
+        self,
+        body: AlertCreate,
+        user_id: str | None = None,
+        *,
+        chat_id: int | None = None,
+    ) -> AlertCreated:
+        """`user_id` — створено під час входу (видно в кабінеті); `chat_id` — створено в боті:
+        людина вже в чаті, тож підписка активна одразу й перша перевірка — зараз."""
         if body.departure_date < self._clock().date():
             raise AlertError("дата вильоту вже минула")
         token = secrets.token_urlsafe(24)  # 32 символи [A-Za-z0-9_-]: годиться для /start
+        active = chat_id is not None
         alert = Alert(
             id=uuid.uuid4().hex,
             token=token,
@@ -122,24 +142,29 @@ class AlertService:
             currency=body.currency,
             channel=body.channel,
             email=body.email,
-            status="pending",
+            telegram_chat_id=chat_id,
+            status="active" if active else "pending",
+            confirmed_at=self._clock() if active else None,
+            user_id=user_id,
         )
         async with self._sessionmaker() as session, session.begin():
             session.add(alert)
             session.add(AlertEvent(alert_id=alert.id, kind="created"))
         link = None
-        if body.channel == "telegram":
+        if active:
+            await self._first_check(alert.id)
+        elif body.channel == "telegram":
             bot = self._settings.bot_username or "your_bot"
             link = f"https://t.me/{bot}?start={token}"
         elif body.email is not None:
             await self._send_mail(
                 body.email,
                 "Підтвердіть підписку на ціну",
-                confirm_email_text(alert, self._manage_url(token)),
+                confirm_email_text(alert, self.manage_url(token)),
             )
         return AlertCreated(
             id=alert.id,
-            status="pending",
+            status=alert.status,
             channel=body.channel,
             manage_token=token,
             telegram_link=link,
@@ -165,100 +190,80 @@ class AlertService:
             await self._first_check(alert_id)
         return await self.view(token)
 
+    async def bind_telegram(self, token: str, chat_id: int) -> Alert | None:
+        """/start <код> з посилання сайту: прив'язати чат і активувати. None — код не діє."""
+        async with self._sessionmaker() as session, session.begin():
+            alert = await _by_token(session, token)
+            if alert is None or alert.channel != "telegram" or alert.status != "pending":
+                return None
+            alert.telegram_chat_id = chat_id
+            alert.status = "active"
+            alert.confirmed_at = self._clock()
+            session.add(AlertEvent(alert_id=alert.id, kind="confirmed"))
+        return alert
+
     async def stop(self, token: str) -> AlertView | None:
         async with self._sessionmaker() as session, session.begin():
             alert = await _by_token(session, token)
             if alert is None:
                 return None
-            if alert.status in ("pending", "active"):
-                alert.status = "stopped"
-                session.add(AlertEvent(alert_id=alert.id, kind="stopped"))
+            _stop(session, alert)
             return _view(alert)
 
-    # --- бот --------------------------------------------------------------------------
+    # --- керування з бота (лише власний чат) ------------------------------------------
 
-    async def poll_telegram(self) -> int:
-        """Одне опитування getUpdates; зсув зберігається в Redis. Повертає к-сть оновлень."""
-        offset = await self._read_offset()
-        try:
-            updates = await self._telegram.get_updates(offset)
-        except TelegramError as exc:
-            log.warning("alerts.telegram_poll_failed", error=str(exc))
-            return 0
-        for update in updates:
-            try:
-                await self.handle_telegram_update(update)
-            except Exception:  # одне биті оновлення не зупиняє решту
-                log.exception("alerts.telegram_update_failed")
-            update_id = update.get("update_id")
-            if isinstance(update_id, int):
-                offset = max(offset or 0, update_id + 1)
-        if updates:
-            await self._write_offset(offset)
-        return len(updates)
-
-    async def handle_telegram_update(self, update: dict[str, Any]) -> None:
-        message = update.get("message")
-        if not isinstance(message, dict):
-            return
-        chat = message.get("chat") or {}
-        chat_id = chat.get("id") if isinstance(chat, dict) else None
-        text = str(message.get("text") or "").strip()
-        if not isinstance(chat_id, int) or not text.startswith("/"):
-            if isinstance(chat_id, int):
-                await self._reply(chat_id, HELP_TEXT)
-            return
-        command, _, argument = text.partition(" ")
-        command = command.split("@", 1)[0]  # /start@bot у групах
-        if command == "/start" and argument:
-            await self._bind_telegram(chat_id, argument.strip())
-        elif command == "/list":
-            await self._list_for_chat(chat_id)
-        elif command == "/stop":
-            await self._stop_chat(chat_id)
-        else:
-            await self._reply(chat_id, HELP_TEXT)
-
-    async def _bind_telegram(self, chat_id: int, token: str) -> None:
-        async with self._sessionmaker() as session, session.begin():
-            alert = await _by_token(session, token)
-            bound = alert is not None and alert.channel == "telegram" and alert.status == "pending"
-            if alert is not None and bound:
-                alert.telegram_chat_id = chat_id
-                alert.status = "active"
-                alert.confirmed_at = self._clock()
-                session.add(AlertEvent(alert_id=alert.id, kind="confirmed"))
-                text, manage = confirmed_text(alert), self._manage_url(alert.token)
-        if bound and alert is not None:
-            await self._reply(chat_id, text, [("Керувати підпискою", manage)])
-            await self._first_check(alert.id)
-        else:
-            await self._reply(chat_id, UNKNOWN_LINK_TEXT)
-
-    async def _list_for_chat(self, chat_id: int) -> None:
+    async def chat_alerts(self, chat_id: int) -> list[Alert]:
         async with self._sessionmaker() as session:
-            alerts = (
-                await session.scalars(
-                    select(Alert).where(Alert.telegram_chat_id == chat_id, Alert.status == "active")
-                )
-            ).all()
-        if not alerts:
-            await self._reply(chat_id, "Активних підписок немає.")
-            return
-        lines = [f"• {route_text(a)} — {condition_text(a)}" for a in alerts]
-        await self._reply(chat_id, "Ваші підписки:\n" + "\n".join(lines))
+            return list(
+                (
+                    await session.scalars(
+                        select(Alert)
+                        .where(Alert.telegram_chat_id == chat_id, Alert.status == "active")
+                        .order_by(Alert.departure_date)
+                    )
+                ).all()
+            )
 
-    async def _stop_chat(self, chat_id: int) -> None:
+    async def chat_alert(self, chat_id: int, alert_id: str) -> Alert | None:
+        async with self._sessionmaker() as session:
+            alert = await session.get(Alert, alert_id)
+        return alert if alert is not None and alert.telegram_chat_id == chat_id else None
+
+    async def stop_for_chat(self, chat_id: int, alert_id: str | None = None) -> int:
+        """Вимкнути одну (alert_id) чи всі активні підписки чату. Повертає к-сть."""
         async with self._sessionmaker() as session, session.begin():
-            alerts = (
-                await session.scalars(
-                    select(Alert).where(Alert.telegram_chat_id == chat_id, Alert.status == "active")
-                )
-            ).all()
+            query = select(Alert).where(Alert.telegram_chat_id == chat_id, Alert.status == "active")
+            if alert_id is not None:
+                query = query.where(Alert.id == alert_id)
+            alerts = (await session.scalars(query)).all()
             for alert in alerts:
-                alert.status = "stopped"
-                session.add(AlertEvent(alert_id=alert.id, kind="stopped"))
-        await self._reply(chat_id, f"Готово: вимкнено підписок — {len(alerts)}.")
+                _stop(session, alert)
+        return len(alerts)
+
+    async def snooze_for_chat(self, chat_id: int, alert_id: str) -> date | None:
+        """Тиша на SNOOZE_DAYS днів (сповіщень не буде, перевірки — так). Повертає «до»."""
+        until = (self._clock() + timedelta(days=SNOOZE_DAYS)).date()
+        async with self._sessionmaker() as session, session.begin():
+            alert = await session.get(Alert, alert_id)
+            if alert is None or alert.telegram_chat_id != chat_id or alert.status != "active":
+                return None
+            alert.snoozed_until = until
+            session.add(AlertEvent(alert_id=alert.id, kind="snoozed", detail=until.isoformat()))
+        return until
+
+    async def set_threshold_for_chat(self, chat_id: int, alert_id: str, threshold: int) -> bool:
+        async with self._sessionmaker() as session, session.begin():
+            alert = await session.get(Alert, alert_id)
+            if alert is None or alert.telegram_chat_id != chat_id or alert.status != "active":
+                return False
+            alert.condition = "below_price"
+            alert.threshold = threshold
+            # Новий поріг — нова точка відліку: попередня надіслана ціна вже не бар'єр.
+            alert.last_notified_price = None
+            alert.last_notified_at = None
+            session.add(AlertEvent(alert_id=alert.id, kind="threshold", detail=str(threshold)))
+        await self._first_check(alert_id)
+        return True
 
     # --- перевірка цін ----------------------------------------------------------------
 
@@ -285,14 +290,7 @@ class AlertService:
                 session.add(AlertEvent(alert_id=alert.id, kind="expired"))
                 await session.commit()
                 return 0
-            query = FlightQuery(
-                origin=alert.origin,
-                destination=alert.destination,
-                departure_date=alert.departure_date,
-                return_date=alert.return_date,
-                passengers={"adults": alert.adults},
-                currency=alert.currency,
-            )
+            query = flight_query(alert)
             result = await self._search.search(query)
             prices = [o.price for o in result.offers if o.currency == alert.currency]
             best = min(prices) if prices else None
@@ -300,11 +298,18 @@ class AlertService:
             alert.last_price = best
             session.add(AlertEvent(alert_id=alert.id, kind="checked", price=best))
             reason = await self._reason(alert, query, best)
-            notify = reason is not None and best is not None and self._may_notify(alert, best, now)
+            snoozed = alert.snoozed_until is not None and now.date() < alert.snoozed_until
+            notify = (
+                reason is not None
+                and best is not None
+                and not snoozed
+                and self._may_notify(alert, best, now)
+            )
+            previous = alert.last_notified_price
             await session.commit()
             if not notify or best is None or reason is None:
                 return 0
-            delivered = await self._notify(alert, best, reason, query)
+            delivered = await self._notify(alert, best, reason, previous)
             if delivered:
                 alert.last_notified_price = best
                 alert.last_notified_at = now
@@ -337,18 +342,22 @@ class AlertService:
         pause = timedelta(hours=self._settings.min_hours_between_notifications)
         return now - _aware(alert.last_notified_at) >= pause
 
-    async def _notify(self, alert: Alert, best: Decimal, reason: str, query: FlightQuery) -> bool:
-        search_url = f"{self._settings.public_web_url}/?{_search_params(query)}"
-        manage_url = self._manage_url(alert.token)
-        text = price_drop_text(alert, best, reason, search_url, manage_url)
+    async def _notify(
+        self, alert: Alert, best: Decimal, reason: str, previous: Decimal | None
+    ) -> bool:
+        search_url = self.search_url(alert)
+        manage_url = self.manage_url(alert.token)
         if alert.channel == "telegram" and alert.telegram_chat_id is not None:
-            buttons = [("Переглянути квитки", search_url), ("Керувати підпискою", manage_url)]
-            return await self._reply(alert.telegram_chat_id, text, buttons)
+            return await self.reply(
+                alert.telegram_chat_id,
+                price_drop_html(alert, best, reason, previous, search_url, manage_url),
+                alert_keyboard(alert, search_url, manage_url, snooze=True),
+                html=True,
+            )
         if alert.channel == "email" and alert.email:
+            text = price_drop_text(alert, best, reason, search_url, manage_url)
             return await self._send_mail(alert.email, f"Ціна знизилась: {route_text(alert)}", text)
         return False
-
-    # --- внутрішнє --------------------------------------------------------------------
 
     async def _first_check(self, alert_id: str) -> None:
         """Одразу після підтвердження — перша перевірка: якщо ціна вже нижча за поріг,
@@ -358,14 +367,24 @@ class AlertService:
         except Exception:  # підтвердження вже відбулося — перевірка повториться за розкладом
             log.exception("alerts.first_check_failed", alert_id=alert_id)
 
-    def _manage_url(self, token: str) -> str:
+    # --- спільне з ботом --------------------------------------------------------------
+
+    def manage_url(self, token: str) -> str:
         return f"{self._settings.public_web_url}/alerts?token={token}"
 
-    async def _reply(
-        self, chat_id: int, text: str, buttons: list[tuple[str, str]] | None = None
+    def search_url(self, alert: Alert) -> str:
+        params = f"from={alert.origin}&to={alert.destination}&depart={alert.departure_date}"
+        if alert.return_date:
+            params += f"&return={alert.return_date}"
+        if alert.adults > 1:
+            params += f"&adults={alert.adults}"
+        return f"{self._settings.public_web_url}/?{params}"
+
+    async def reply(
+        self, chat_id: int, text: str, keyboard: Keyboard = (), *, html: bool = False
     ) -> bool:
         try:
-            await self._telegram.send_message(chat_id, text, buttons or [])
+            await self._telegram.send_message(chat_id, text, keyboard, html=html)
         except TelegramError as exc:
             log.warning("alerts.telegram_send_failed", error=str(exc))
             return False
@@ -379,22 +398,22 @@ class AlertService:
             return False
         return True
 
-    async def _read_offset(self) -> int | None:
-        if self._redis is None:
-            return None
-        try:
-            raw = await self._redis.get(TELEGRAM_OFFSET_KEY)
-        except RedisError:
-            return None
-        return int(raw) if raw else None
 
-    async def _write_offset(self, offset: int | None) -> None:
-        if self._redis is None or offset is None:
-            return
-        try:
-            await self._redis.set(TELEGRAM_OFFSET_KEY, offset)
-        except RedisError as exc:
-            log.warning("alerts.offset_write_failed", error=type(exc).__name__)
+def flight_query(alert: Alert) -> FlightQuery:
+    return FlightQuery(
+        origin=alert.origin,
+        destination=alert.destination,
+        departure_date=alert.departure_date,
+        return_date=alert.return_date,
+        passengers={"adults": alert.adults},
+        currency=alert.currency,
+    )
+
+
+def _stop(session: AsyncSession, alert: Alert) -> None:
+    if alert.status in ("pending", "active"):
+        alert.status = "stopped"
+        session.add(AlertEvent(alert_id=alert.id, kind="stopped"))
 
 
 async def _by_token(session: AsyncSession, token: str) -> Alert | None:
@@ -411,23 +430,7 @@ def _aware(value: datetime) -> datetime:
     return value if value.tzinfo else value.replace(tzinfo=UTC)
 
 
-def _search_params(query: FlightQuery) -> str:
-    params = f"from={query.origin}&to={query.destination}&depart={query.departure_date}"
-    if query.return_date:
-        params += f"&return={query.return_date}"
-    if query.passengers.adults > 1:
-        params += f"&adults={query.passengers.adults}"
-    return params
-
-
 # --- тексти повідомлень (українською) -----------------------------------------------
-
-HELP_TEXT = (
-    "Я надсилаю сповіщення, коли ціна на квитки знижується.\n"
-    "Підписатися можна на сайті: кнопка «Стежити за ціною» на сторінці результатів.\n\n"
-    "/list — ваші підписки\n/stop — вимкнути всі підписки"
-)
-UNKNOWN_LINK_TEXT = "Посилання застаріле або вже використане. Створіть підписку ще раз на сайті."
 
 
 def _date(value: date) -> str:
@@ -447,11 +450,49 @@ def condition_text(alert: Alert) -> str:
     return f"ціна на {TYPICAL_DISCOUNT_PERCENT}% нижча за типову"
 
 
-def confirmed_text(alert: Alert) -> str:
-    return (
-        f"Підписку підтверджено ✅\n{route_text(alert)}\nУмова: {condition_text(alert)}.\n\n"
-        "Напишу, щойно ціна опуститься. /stop — вимкнути."
-    )
+def alert_keyboard(
+    alert: Alert, search_url: str, manage_url: str, *, snooze: bool = False
+) -> list[list[Button]]:
+    """Кнопки під повідомленням про підписку. Посилання — лише якщо сайт на https."""
+    actions = [Button("⏸ Вимкнути", data=f"stop:{alert.id}")]
+    if snooze:
+        actions.append(Button(f"😴 Тиша {SNOOZE_DAYS} днів", data=f"snooze:{alert.id}"))
+    else:
+        actions.append(Button("✏️ Змінити поріг", data=f"thr:{alert.id}"))
+    return [
+        [Button("✈️ Квитки", url=search_url), Button("⚙️ Керувати", url=manage_url)],
+        actions,
+    ]
+
+
+def links_html(search_url: str, manage_url: str) -> str:
+    """Поки сайт не на https, кнопки-посилання Telegram не приймає — даємо посилання текстом."""
+    if search_url.startswith("https://"):
+        return ""
+    return f"\n\nКвитки: {esc(search_url)}\nКерувати: {esc(manage_url)}"
+
+
+def price_drop_html(
+    alert: Alert,
+    best: Decimal,
+    reason: str,
+    previous: Decimal | None,
+    search_url: str,
+    manage_url: str,
+) -> str:
+    lines = [
+        "✈️ <b>Ціна знизилась</b>",
+        f"<b>{esc(route_text(alert))}</b>",
+        "",
+        f"Зараз від <b>{esc(money_text(best, alert.currency))}</b> за дорослого — {esc(reason)}.",
+    ]
+    if previous is not None and previous > best:
+        lines.append(
+            f"Минулого разу писали про {esc(money_text(previous, alert.currency))}: "
+            f"ще на {esc(money_text(previous - best, alert.currency))} дешевше."
+        )
+    lines.append("<i>Ціна з історії пошуків: остаточну підтверджує продавець.</i>")
+    return "\n".join(lines) + links_html(search_url, manage_url)
 
 
 def confirm_email_text(alert: Alert, manage_url: str) -> str:

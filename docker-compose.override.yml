@@ -4,6 +4,12 @@
 # Prod-подібний повний стек: `make up-full`.
 
 services:
+  # Міграції з примонтованого коду: нова міграція підхоплюється без перебудови образу.
+  migrate:
+    volumes:
+      - ./apps/api/src:/app/apps/api/src
+      - ./apps/api/migrations:/app/apps/api/migrations
+
   api:
     command: ["uvicorn", "tickets_api.asgi:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/apps/api/src"]
     volumes:
