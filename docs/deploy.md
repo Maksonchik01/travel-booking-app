@@ -1,17 +1,25 @@
 # Деплой: фронтенд на Vercel, бекенд на Render
 
 ```
-браузер → Vercel (Next.js, apps/web) → Render: tickets-api (FastAPI) → Postgres, Key Value (Redis)
+браузер → Vercel (Next.js, apps/web) → Render: tickets-api (FastAPI) → Supabase Postgres, Render Key Value (Redis)
                                         Render: tickets-worker (ARQ: алерти, Telegram-бот)
 ```
 
 Next звертається до API лише із сервера (`API_URL`), тож CORS для браузера не потрібен.
 
+## 0. База — Supabase ([ADR 0012](adr/0012-supabase-postgres.md))
+
+1. supabase.com → New project, регіон **Central EU (Frankfurt)**, згенерований пароль бази
+   збережіть.
+2. Project Settings → Data API → вимкніть Data API (таблиці й так закриті RLS, міграція 0009).
+3. **Connect → Connection String → Session pooler** — рядок
+   `postgresql://postgres.<ref>:<пароль>@aws-…pooler.supabase.com:5432/postgres`. Це
+   `DATABASE_URL` для API й воркера на Render (не Direct — він лише IPv6; не Transaction pooler).
+
 ## 1. Бекенд — Render (Blueprint)
 
 1. Dashboard → **New → Blueprint** → репозиторій → гілка `main`. Render прочитає
-   [`render.yaml`](../render.yaml): API (free), воркер (платний, ~0.5 CPU), Key Value (free),
-   Postgres 16 (free, видаляється через 30 днів).
+   [`render.yaml`](../render.yaml): API (free), воркер (платний, ~0.5 CPU), Key Value (free).
 2. Введіть секрети, які попросить Render (`sync: false`): значення — з вашого `.env`.
    `PUBLIC_WEB_URL` і `CORS_ORIGINS` — адреса Vercel з кроку 2 (можна спершу
    `https://example.com` і змінити пізніше: Environment → Save → redeploy).

@@ -74,6 +74,10 @@
   SHA-256 токена; паролі — scrypt; Google — OAuth + PKCE. Web: server actions
   `src/app/actions/account.ts`, кабінет `/account`. Бот — `services/telegram_bot.py`
   (команди, кнопки, діалог `/new` у Redis), прив'язка чату — `/start link_<код>`.
+- **Продакшн:** Vercel (web) + Render (API, воркер, Redis) + Supabase Postgres
+  ([deploy.md](docs/deploy.md), [ADR 0012](docs/adr/0012-supabase-postgres.md)). Кожна таблиця —
+  з RLS (Supabase Data API): нова таблиця вмикає його у своїй міграції, інакше падає
+  `test_row_level_security`.
 - **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
 - Назви LLM-моделей лише в конфігу (`LLM_MODEL_PARSER`, `LLM_MODEL_EXPLAINER`).

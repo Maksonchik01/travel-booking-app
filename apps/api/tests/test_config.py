@@ -27,6 +27,18 @@ def test_hosting_database_url_gets_async_driver(
     assert settings.database_url == "postgresql+asyncpg://u:p@db-host/tickets"
 
 
+def test_libpq_sslmode_becomes_asyncpg_ssl(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(
+        "DATABASE_URL", "postgresql://u:p@pooler.example:5432/postgres?sslmode=require"
+    )
+
+    settings = Settings(_env_file=None)
+
+    assert (
+        settings.database_url == "postgresql+asyncpg://u:p@pooler.example:5432/postgres?ssl=require"
+    )
+
+
 def test_empty_secrets_are_treated_as_unset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SENTRY_DSN", "")
     monkeypatch.setenv("DEEPSEEK_API_KEY", "")

@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal, Self
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -125,10 +126,15 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def _async_driver(cls, value: str) -> str:
-        # Хостинги (Render, Heroku) дають postgres:// чи postgresql:// — нам потрібен asyncpg.
+        # Хостинги (Render, Supabase) дають postgres:// чи postgresql:// — нам потрібен asyncpg.
         for scheme in ("postgres://", "postgresql://"):
             if value.startswith(scheme):
-                return "postgresql+asyncpg://" + value.removeprefix(scheme)
+                value = "postgresql+asyncpg://" + value.removeprefix(scheme)
+        # libpq-параметр sslmode asyncpg не знає: його відповідник — ssl (require, verify-full…).
+        url = urlsplit(value)
+        if "sslmode" in url.query:
+            query = [("ssl" if k == "sslmode" else k, v) for k, v in parse_qsl(url.query)]
+            value = urlunsplit(url._replace(query=urlencode(query)))
         return value
 
     @field_validator(
