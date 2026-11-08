@@ -88,7 +88,7 @@ export function TripCompareToggle({ item }: { item: TripCompareItem }) {
       variant={selected ? "secondary" : "outline"}
       size="sm"
       aria-pressed={selected}
-      disabled={full}
+      disabled={!hydrated || full}
       title={full ? t("full", { max: MAX_TRIP_COMPARE }) : undefined}
       onClick={() => toggle(item)}
       data-testid="trip-compare-toggle"

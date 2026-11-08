@@ -9,6 +9,7 @@ import { useState } from "react";
 import { FavoriteToggle } from "@/components/favorites";
 import { type RatesCheck, StayRates, requestStayRates } from "@/components/stay-rates";
 import { Button } from "@/components/ui/button";
+import { useHydrated } from "@/lib/use-hydrated";
 
 type Panel = "details" | "rates" | null;
 
@@ -38,6 +39,8 @@ export function StayCardActions({
   const [panel, setPanel] = useState<Panel>(null);
   const [check, setCheck] = useState<RatesCheck>({ state: "idle" });
   const comparable = stay.sellers != null;
+  // Клієнтські панелі: до гідратації кнопки неактивні (клік би загубився).
+  const hydrated = useHydrated();
 
   async function openRates() {
     if (panel === "rates") return setPanel(null);
@@ -55,6 +58,7 @@ export function StayCardActions({
           variant="ghost"
           size="sm"
           aria-expanded={panel === "details"}
+          disabled={!hydrated}
           onClick={() => setPanel(panel === "details" ? null : "details")}
           data-testid="stay-details-toggle"
         >
@@ -70,6 +74,7 @@ export function StayCardActions({
             variant={panel === "rates" ? "secondary" : "outline"}
             size="sm"
             aria-expanded={panel === "rates"}
+            disabled={!hydrated}
             onClick={openRates}
             data-testid="stay-rates-toggle"
           >

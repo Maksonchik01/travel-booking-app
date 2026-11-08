@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { localDate, localTime } from "@/lib/format";
 import { toTripParams } from "@/lib/trip-params";
+import { useHydrated } from "@/lib/use-hydrated";
 
 type State =
   | { state: "idle" }
@@ -24,6 +25,8 @@ export function TripCheaper({ query }: { query: TripQuery }) {
   const t = useTranslations("tripBuilder");
   const format = useFormatter();
   const [check, setCheck] = useState<State>({ state: "idle" });
+  // До гідратації клік загубився б — кнопка неактивна, як і на сервері.
+  const hydrated = useHydrated();
 
   async function run() {
     setCheck({ state: "loading" });
@@ -48,7 +51,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
       type="button"
       size="sm"
       onClick={run}
-      disabled={check.state === "loading"}
+      disabled={!hydrated || check.state === "loading"}
       data-testid="trip-cheaper"
     >
       {check.state === "loading" ? (

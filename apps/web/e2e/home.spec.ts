@@ -321,8 +321,11 @@ test("3–5 ночей у грудні: форма без дати поверн�
 }) => {
   // Туди й назад (є повернення) — тоді для місяця з'являються поля ночей.
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
-  await page.getByLabel("Гнучкість дат").selectOption("month");
-  await expect(page.getByLabel("Повернення")).toBeDisabled();
+  // Вибір до гідратації React не обробить (повільний CI) — повторюємо, доки не подіє.
+  await expect(async () => {
+    await page.getByLabel("Гнучкість дат").selectOption("month");
+    await expect(page.getByLabel("Повернення")).toBeDisabled({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
   await page.getByLabel("Ночей від").selectOption("3");
   await page.getByLabel("Ночей до").selectOption("5");
   await page.getByRole("button", { name: "Шукати" }).click();
@@ -431,7 +434,10 @@ test("поїздка 8a: гнучкий період і тривалість, п
   page,
 }) => {
   await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05");
-  await page.getByText("Гнучкі дати, побажання й власні витрати").click();
+  // Поки сторінка стрімиться, поруч є ще й запасна форма (Suspense) — чекаємо справжню.
+  const more = page.getByText("Гнучкі дати, побажання й власні витрати");
+  await expect(more).toHaveCount(1, { timeout: 15_000 });
+  await more.click();
   await page.getByLabel("Ночей від").selectOption("3");
   await page.getByLabel("до", { exact: true }).selectOption("4");
   await page.getByLabel("Багаж").selectOption("carry_on");
