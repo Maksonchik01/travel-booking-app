@@ -1,5 +1,15 @@
-import type { Stay, StayPickLabel, StayScore } from "@tickets/shared";
-import { BedDouble, CalendarDays, Info, MapPin, ShieldCheck, Sparkles, Star } from "lucide-react";
+import type { Stay, StayPickLabel, StayQuery, StayScore } from "@tickets/shared";
+import {
+  BedDouble,
+  CalendarDays,
+  Info,
+  List,
+  Map as MapIcon,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  Star,
+} from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
@@ -8,6 +18,7 @@ import { Suspense } from "react";
 
 import { AIChat } from "@/components/ai-chat";
 import { CollapsibleSearch } from "@/components/collapsible-search";
+import { FavoritesProvider } from "@/components/favorites";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
 import { ProviderAlerts } from "@/components/provider-alerts";
@@ -18,6 +29,8 @@ import { SiteHeader } from "@/components/site-header";
 import { StayAnalysis } from "@/components/stay-analysis";
 import { StayCard } from "@/components/stay-card";
 import { StayFilters } from "@/components/stay-filters";
+import { type MapStay, StayMap } from "@/components/stay-map";
+import { StayMapList } from "@/components/stay-map-list";
 import { stayAnchor, StayPicks } from "@/components/stay-picks";
 import { StaySearchForm } from "@/components/stay-search-form";
 import { Card, CardContent } from "@/components/ui/card";
@@ -66,9 +79,11 @@ export default function StaysPage({ searchParams }: PageProps<"/stays">) {
         </section>
 
         <div className="mx-auto w-full max-w-6xl px-4 py-8">
-          <Suspense fallback={<ResultsSkeleton />}>
-            <Results searchParams={searchParams} />
-          </Suspense>
+          <FavoritesProvider>
+            <Suspense fallback={<ResultsSkeleton />}>
+              <Results searchParams={searchParams} />
+            </Suspense>
+          </FavoritesProvider>
         </div>
       </main>
       <SiteFooter />
@@ -167,6 +182,67 @@ async function Results({ searchParams }: { searchParams: Params }) {
     },
   });
 
+  // Карта (модуль 6): маркери лише для об'єктів з координатами — вигаданих не ставимо.
+  const view = state.view ?? "list";
+  const mapAvailable = (facets.available ?? []).includes("coordinates");
+  const mapStays: MapStay[] = stays.flatMap((s) =>
+    s.latitude != null && s.longitude != null
+      ? [
+          {
+            key: `${s.source}:${s.id}`,
+            anchor: stayAnchor(`${s.source}:${s.id}`),
+            name: s.name,
+            lat: s.latitude,
+            lon: s.longitude,
+            price: s.price_per_night,
+            currency: s.currency,
+            rating: s.rating ?? null,
+          },
+        ]
+      : [],
+  );
+  const listHref = `/stays?${toStayParams({ ...state, view: "list" })}`;
+  const mapBase = toStayParams({
+    ...state,
+    view: "map",
+    query: { ...query, filters: { ...query.filters, bbox: null } as StayQuery["filters"] },
+  }).toString();
+  const listNode = (
+    <>
+      {stays.length === 0 ? (
+        filtered && facets.total_stays > 0 ? (
+          <Notice>
+            {t("filteredEmpty", { total: facets.total_stays })}{" "}
+            <Link href={`/stays?${withoutFilters}`} className="text-primary font-medium underline">
+              {t("resetFilters")}
+            </Link>
+          </Notice>
+        ) : (
+          <Notice>{t("empty")}</Notice>
+        )
+      ) : (
+        <ShowMore
+          items={stays.map((stay) => {
+            const key = `${stay.source}:${stay.id}`;
+            return {
+              key: stayAnchor(key),
+              node: (
+                <StayCard
+                  stay={stay}
+                  now={now}
+                  pickLabel={pickLabels.get(key)}
+                  score={scores.get(key)}
+                  query={query}
+                  searchParams={historyParams}
+                />
+              ),
+            };
+          })}
+        />
+      )}
+    </>
+  );
+
   return (
     <div className="animate-in fade-in-0 grid gap-6 duration-300">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -189,9 +265,18 @@ async function Results({ searchParams }: { searchParams: Params }) {
             title={historyTitle}
             back={`/stays?${historyParams}`}
           />
+          {mapAvailable && <ViewToggle state={state} />}
           <SortToggle state={state} />
         </div>
       </div>
+      {query.filters?.bbox && (
+        <p className="bg-accent/60 text-accent-foreground flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-xs">
+          {t("areaFilter")}
+          <Link href={`/stays?${mapBase}`} className="text-primary font-medium underline">
+            {t("clearArea")}
+          </Link>
+        </p>
+      )}
 
       <ProviderAlerts providers={result.data.providers} />
 
@@ -219,37 +304,24 @@ async function Results({ searchParams }: { searchParams: Params }) {
             {t("note")}
           </p>
 
-          {stays.length === 0 ? (
-            filtered && facets.total_stays > 0 ? (
-              <Notice>
-                {t("filteredEmpty", { total: facets.total_stays })}{" "}
-                <Link
-                  href={`/stays?${withoutFilters}`}
-                  className="text-primary font-medium underline"
-                >
-                  {t("resetFilters")}
-                </Link>
-              </Notice>
-            ) : (
-              <Notice>{t("empty")}</Notice>
-            )
+          {view === "map" && mapStays.length > 0 ? (
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start">
+              {/* Широкий екран — компактний список і карта поруч; вужчий — лише карта (повні картки — режим «Список»). */}
+              <div className="hidden lg:block">
+                <StayMapList stays={stays} listHref={listHref} />
+              </div>
+              <div className="lg:sticky lg:top-20">
+                <StayMap
+                  key={toStayParams(state).toString()}
+                  stays={mapStays}
+                  withoutCoordinates={stays.length - mapStays.length}
+                  baseParams={mapBase}
+                  listHref={listHref}
+                />
+              </div>
+            </div>
           ) : (
-            <ShowMore
-              items={stays.map((stay) => {
-                const key = `${stay.source}:${stay.id}`;
-                return {
-                  key: stayAnchor(key),
-                  node: (
-                    <StayCard
-                      stay={stay}
-                      now={now}
-                      pickLabel={pickLabels.get(key)}
-                      score={scores.get(key)}
-                    />
-                  ),
-                };
-              })}
-            />
+            listNode
           )}
         </div>
       </div>
@@ -425,6 +497,41 @@ function ResultsSkeleton() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Режими «Список» / «Карта» (модуль 6); на широкому екрані «Карта» — список і карта поруч. */
+function ViewToggle({ state }: { state: StayState }) {
+  const t = useTranslations("stayMap");
+  const views: ["list" | "map", typeof List][] = [
+    ["list", List],
+    ["map", MapIcon],
+  ];
+  return (
+    <div
+      className="bg-muted inline-flex rounded-lg p-1 text-sm"
+      role="group"
+      aria-label={t("title")}
+    >
+      {views.map(([view, Icon]) => {
+        const active = (state.view ?? "list") === view;
+        return (
+          <Link
+            key={view}
+            href={`/stays?${toStayParams({ ...state, view })}`}
+            aria-current={active ? "page" : undefined}
+            scroll={false}
+            className={cn(
+              "text-muted-foreground hover:text-foreground flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors",
+              active && "bg-card text-primary font-medium shadow-sm",
+            )}
+          >
+            <Icon className="size-3.5" aria-hidden />
+            {t(view)}
+          </Link>
+        );
+      })}
     </div>
   );
 }

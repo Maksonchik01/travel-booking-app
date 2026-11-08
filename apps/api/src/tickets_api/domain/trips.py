@@ -1,17 +1,39 @@
-"""Поїздка «переліт туди-назад + житло на ці дати». Без I/O — лише моделі запиту."""
+"""Поїздка «переліт туди-назад + житло на ці дати». Без I/O — лише моделі запиту.
 
-from datetime import date
-from typing import Literal, Self
+Дати — точні (виліт і повернення) або гнучкі: ±дні чи період вильоту, а тривалість —
+кількість ночей на місці від дати ПРИЛЬОТУ (як у пошуку перельотів, ADR 0016).
+Побажання до перельоту (прямий, багаж, клас) і житла (фільтри видачі) — обов'язкові умови.
+"""
 
-from pydantic import Field, model_validator
+from datetime import date, timedelta
+from decimal import Decimal
+from typing import Annotated, Literal, Self
 
-from tickets_api.domain.flights import DEFAULT_CURRENCY, Currency, Iata, _StrictInput
-from tickets_api.domain.stays import MAX_NIGHTS, StayProfile
+from pydantic import Field, StringConstraints, model_validator
+
+from tickets_api.domain.flights import (
+    DEFAULT_CURRENCY,
+    MAX_PERIOD_DAYS,
+    BaggageNeed,
+    Cabin,
+    Currency,
+    Iata,
+    Money,
+    _StrictInput,
+)
+from tickets_api.domain.stays import MAX_NIGHTS, StayFilters, StayProfile
 from tickets_api.scoring.config import Profile
 
 TripProfile = Literal["budget", "balanced", "comfort"]
 """Що важливіше в поїздці. Мапиться на профілі скорингу перельотів і житла."""
 MAX_TRIP_FLEX_DAYS = 3
+MAX_EXTRAS = 5
+StayKey = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]{1,32}:[\w.-]{1,128}$")]
+"""`source:id` об'єкта житла."""
+OfferKey = Annotated[str, StringConstraints(pattern=r"^[a-z0-9_]{1,32}:[\w.-]{1,64}$")]
+"""`source:id` пропозиції перельоту."""
+TRIP_NEARBY_KM = 150
+"""«Сусідні аеропорти»: як у формі пошуку перельотів."""
 
 FLIGHT_PROFILE: dict[TripProfile, Profile] = {
     "budget": "budget",
@@ -25,28 +47,81 @@ STAY_PROFILE: dict[TripProfile, StayProfile] = {
 }
 
 
+class TripExtra(_StrictInput):
+    """Витрата, яку людина додала сама (екскурсії, страховка…) — орієнтовна, її оцінка."""
+
+    label: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
+    amount: Money = Field(ge=0, le=Decimal(100_000))
+
+
 class TripQuery(_StrictInput):
     origin: Iata
     destination: Iata
     departure_date: date
-    return_date: date
-    """Повернення обов'язкове: без нього не визначити ночі житла."""
+    return_date: date | None = None
+    """Точна дата повернення. Без неї — потрібна тривалість (`min_nights`/`max_nights`)."""
     flex_days: int = Field(default=0, ge=0, le=MAX_TRIP_FLEX_DAYS)
+    departure_until: date | None = None
+    """Гнучкий період: виліт у будь-який день [departure_date, departure_until]."""
+    min_nights: int | None = Field(default=None, ge=1, le=MAX_NIGHTS)
+    max_nights: int | None = Field(default=None, ge=1, le=MAX_NIGHTS)
+    """Тривалість: ночей на місці — від дати прильоту до дати вильоту назад."""
     adults: int = Field(default=2, ge=1, le=9)
     children: int = Field(default=0, ge=0, le=8)
     """І для житла, і для перельоту: ціну дітей рахує джерело (ADR 0013)."""
     direct_only: bool = False
+    nearby: bool = False
+    """Ще й сусідні аеропорти (до TRIP_NEARBY_KM) з обох боків."""
+    cabin: Cabin = "economy"
+    baggage: BaggageNeed = "none"
+    """Багаж на кожного: доплата входить у бюджет, тариф без такого багажу — не підходить."""
+    stay_filters: StayFilters = StayFilters()
+    """Побажання до житла (рейтинг, скасування, сніданок, тип, відстань) — обов'язкові."""
     profile: TripProfile = "balanced"
     budget_total: int | None = Field(default=None, ge=1, le=1_000_000)
-    """Бюджет на всю поїздку (переліт для дорослих + житло), у валюті пошуку."""
+    """Бюджет на всю поїздку (переліт, багаж, житло, власні витрати), у валюті пошуку."""
+    extras: list[TripExtra] = Field(default_factory=list, max_length=MAX_EXTRAS)
     currency: Currency = DEFAULT_CURRENCY
+    stay: StayKey | None = None
+    """Обране житло («Додати до поїздки», модуль 7; заміна житла, 8b) — ключ `source:id`:
+    планувальник бере його в кожне вікно дат, де воно доступне, а де ні — звичайний вибір."""
+    flight: OfferKey | None = None
+    """Обраний рейс (заміна перельоту, модуль 8b): якщо пошук його знову дав — це «Ваша
+    поїздка», житло перевіряється на його дати; немає — чесно кажемо й підбираємо самі."""
 
     @model_validator(mode="after")
     def _route_and_dates(self) -> Self:
         if self.origin == self.destination:
             raise ValueError("місто вильоту й призначення мають відрізнятися")
-        if self.return_date <= self.departure_date:
-            raise ValueError("повернення має бути пізніше за виліт")
-        if (self.return_date - self.departure_date).days > MAX_NIGHTS:
-            raise ValueError(f"поїздка не довша за {MAX_NIGHTS} ночей")
+        if self.departure_until is not None:
+            if self.flex_days:
+                raise ValueError("період і ±дні разом не задаються")
+            span = (self.departure_until - self.departure_date).days
+            if not 0 <= span <= MAX_PERIOD_DAYS:
+                raise ValueError(f"період — від дати вильоту, до {MAX_PERIOD_DAYS} днів")
+        if (self.min_nights is None) != (self.max_nights is None):
+            raise ValueError("тривалість — від і до разом")
+        if self.min_nights is not None and self.max_nights is not None:
+            if self.min_nights > self.max_nights:
+                raise ValueError("мінімум ночей більший за максимум")
+        elif self.return_date is None:
+            raise ValueError("потрібна дата повернення або тривалість поїздки")
+        if self.return_date is not None:
+            if self.return_date <= self.departure_date:
+                raise ValueError("повернення має бути пізніше за виліт")
+            if (self.return_date - self.departure_date).days > MAX_NIGHTS:
+                raise ValueError(f"поїздка не довша за {MAX_NIGHTS} ночей")
         return self
+
+    @property
+    def nights_range(self) -> tuple[int, int] | None:
+        if self.min_nights is None or self.max_nights is None:
+            return None
+        return self.min_nights, self.max_nights
+
+    @property
+    def flight_return_date(self) -> date:
+        """Повернення для запиту перельотів: точне або виліт + мінімум ночей (ADR 0016)."""
+        if self.return_date is not None:
+            return self.return_date
+        return self.departure_date + timedelta(days=self.min_nights or 1)

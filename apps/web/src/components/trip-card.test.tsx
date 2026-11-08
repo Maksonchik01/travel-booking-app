@@ -79,14 +79,29 @@ const COMBO: TripCombo = {
   key: "mock:f1|mock:s1",
   offer_key: "mock:f1",
   stay_key: "mock:s1",
-  window: { check_in: "2026-12-05", check_out: "2026-12-08", nights: 3 },
+  stay_index: 0,
+  window: { check_in: "2026-12-06", check_out: "2026-12-08", nights: 2 },
+  arrival_at: "2026-12-06T02:10:00+00:00",
+  return_departure_at: "2026-12-08T10:00:00+00:00",
   flight_price: 176,
   flight_total: 176,
   stay_total: 231,
-  money_total: 407,
+  costs: {
+    items: [
+      { kind: "tickets", amount: 176, status: "approximate", included: false },
+      { kind: "baggage", amount: null, status: "unknown", included: false },
+      { kind: "stay", amount: 231, status: "confirmed", included: false },
+      { kind: "extra", label: "Музей", amount: 30, status: "approximate", included: false },
+    ],
+    confirmed: 231,
+    approximate: 206,
+    unknown: 1,
+  },
+  money_total: 437,
   value_total: 480.5,
+  stops: 0,
   currency: "EUR",
-  warnings: ["early_arrival"],
+  warnings: ["night_arrival", "costs_unknown"],
 };
 
 describe("TripCard", () => {
@@ -97,9 +112,10 @@ describe("TripCard", () => {
           combo={COMBO}
           offer={OFFER}
           stay={STAY}
-          adults={2}
+          travelers="2 дорослі"
           label="best_value"
           also={["cheapest"]}
+          overBudget
           airlineNames={{ LO: "LOT Polish" }}
           flightsHref="/?from=WAW&to=LIS"
           staysHref="/stays?city=LIS"
@@ -107,13 +123,23 @@ describe("TripCard", () => {
       </NextIntlClientProvider>,
     );
 
-    expect(screen.getByText("Найвигідніша поїздка")).toBeInTheDocument();
-    expect(screen.getByText("також найдешевша")).toBeInTheDocument();
-    expect(screen.getByTestId("trip-total")).toHaveTextContent("407 €");
+    expect(screen.getByText("Оптимальний")).toBeInTheDocument();
+    expect(screen.getByText("також Економ")).toBeInTheDocument();
+    expect(screen.getByTestId("trip-over-budget")).toBeInTheDocument();
+    expect(screen.getByTestId("trip-total")).toHaveTextContent("437 €");
+    expect(screen.getByText(/1 складова з невідомою сумою/)).toBeInTheDocument();
     const breakdown = screen.getByTestId("trip-breakdown");
-    // Ціна перельоту вже за обох — без «2 × …» (ADR 0013).
-    expect(breakdown).toHaveTextContent("Переліт176 €");
-    expect(breakdown).toHaveTextContent("Житло, 3 ночі231 €");
+    // Ціна перельоту вже за обох — без «2 × …» (ADR 0013); статус кожної складової.
+    expect(breakdown).toHaveTextContent("КвиткиОрієнтовно176 €");
+    expect(breakdown).toHaveTextContent("БагажНевідомоневідомо");
+    expect(breakdown).toHaveTextContent("Житло, 2 ночіПідтверджено231 €");
+    expect(breakdown).toHaveTextContent("МузейОрієнтовно30 €");
+    expect(breakdown).toHaveTextContent("Підтверджено231 €Орієнтовно206 €Разом (відоме)437 €");
+    // Нічний приліт 6-го — заїзд 6-го, а не в день вильоту.
+    const dates = screen.getByTestId("trip-dates");
+    expect(dates).toHaveTextContent("Приліт нд, 6 груд., 02:10 → заїзд нд, 6 груд.");
+    expect(dates).toHaveTextContent("Виліт назад вт, 8 груд., 10:00 → виїзд вт, 8 груд.");
+    expect(screen.getByText(/Приліт уночі/)).toBeInTheDocument();
     expect(screen.getByText("Pension Rosa")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Рейс/ })).toHaveAttribute(
       "href",

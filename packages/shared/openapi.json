@@ -472,6 +472,48 @@
         }
       }
     },
+    "/stays/rates": {
+      "post": {
+        "tags": [
+          "stays"
+        ],
+        "summary": "Stay Rates",
+        "description": "«Порівняти ціни»: тарифи продавців на ті самі дати й гостей, згруповані за однаковими\nумовами (номер, ліжко, харчування, скасування). Джерело не вміє — `unsupported`.",
+        "operationId": "stay_rates_stays_rates_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StayRatesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StayRatesResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/trips/search": {
       "post": {
         "tags": [
@@ -484,7 +526,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TripQuery"
+                "$ref": "#/components/schemas/TripQuery-Input"
               }
             }
           },
@@ -497,6 +539,90 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TripSearchResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/cheaper": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Cheaper Trip",
+        "description": "«Знайти дешевший варіант» для «Вашої поїздки» (`flight`/`stay` у запиті): інші дати\n(±3 дні), сусідні аеропорти, інші рейси й житло за тих самих обов'язкових умов.\n\nЛише на вимогу: це ще один пошук перельотів (живі ціни витрачають квоту).",
+        "operationId": "cheaper_trip_trips_cheaper_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripQuery-Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheaperResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trips/refresh": {
+      "post": {
+        "tags": [
+          "trips"
+        ],
+        "summary": "Refresh Trip",
+        "description": "«Оновити ціни» збереженої поїздки: та сама конфігурація (рейс і житло) заново —\nактуальна сума, різниця зі збереженою і чи є ще обрані рейс та житло.",
+        "operationId": "refresh_trip_trips_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripRefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripRefresh"
                 }
               }
             }
@@ -1957,6 +2083,594 @@
         }
       }
     },
+    "/account/favorites": {
+      "get": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Favorites",
+        "operationId": "favorites_account_favorites_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FavoriteOut"
+                  },
+                  "title": "Response Favorites Account Favorites Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Add Favorite",
+        "description": "«В обране»: знімок об'єкта з ціною на момент збереження. Повтор — без дубля.",
+        "operationId": "add_favorite_account_favorites_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FavoriteOut"
+                  },
+                  "title": "Response Add Favorite Account Favorites Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Delete Favorite",
+        "operationId": "delete_favorite_account_favorites_delete",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "title": "Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/favorites/import": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Import Favorites",
+        "description": "Обране гостя з браузера — до акаунта після входу.",
+        "operationId": "import_favorites_account_favorites_import_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoritesImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FavoriteOut"
+                  },
+                  "title": "Response Import Favorites Account Favorites Import Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/trips": {
+      "get": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Saved Trips",
+        "operationId": "saved_trips_account_trips_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SavedTripOut"
+                  },
+                  "title": "Response Saved Trips Account Trips Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Save Trip",
+        "description": "«Зберегти поїздку» і «Створити копію»: запит з вибором + знімок цін (історичних).",
+        "operationId": "save_trip_account_trips_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedTripBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedTripOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/trips/import": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Import Trips",
+        "description": "Поїздки гостя з браузера — до акаунта після входу.",
+        "operationId": "import_trips_account_trips_import_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedTripsImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SavedTripOut"
+                  },
+                  "title": "Response Import Trips Account Trips Import Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/trips/{trip_id}": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Update Trip",
+        "operationId": "update_trip_account_trips__trip_id__put",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedTripBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedTripOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Rename Trip",
+        "operationId": "rename_trip_account_trips__trip_id__patch",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchEntryRename"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedTripOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Delete Trip",
+        "operationId": "delete_trip_account_trips__trip_id__delete",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/account/alerts": {
       "get": {
         "tags": [
@@ -3154,6 +3868,44 @@
         ],
         "title": "BookingLink"
       },
+      "BoundingBox": {
+        "properties": {
+          "south": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "South"
+          },
+          "west": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "West"
+          },
+          "north": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "North"
+          },
+          "east": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "East"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "south",
+          "west",
+          "north",
+          "east"
+        ],
+        "title": "BoundingBox",
+        "description": "Видима область карти («Шукати в цій області», модуль 6)."
+      },
       "CalendarDay": {
         "properties": {
           "date": {
@@ -3406,7 +4158,7 @@
           "trip_search": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/TripQuery"
+                "$ref": "#/components/schemas/TripQuery-Output"
               },
               {
                 "type": "null"
@@ -3445,6 +4197,107 @@
         ],
         "title": "ChatTurn",
         "description": "Репліка розмови. Приходить від клієнта — для моделі це лише дані."
+      },
+      "CheaperResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "found",
+              "not_found",
+              "no_trip"
+            ],
+            "title": "Status"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripCombo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripCombo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "saving": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Saving"
+          },
+          "changes": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "dates",
+                "origin_airport",
+                "destination_airport",
+                "flight",
+                "stay"
+              ]
+            },
+            "type": "array",
+            "title": "Changes",
+            "default": []
+          },
+          "apply": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripQuery-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/Offer"
+            },
+            "type": "array",
+            "title": "Offers",
+            "default": []
+          },
+          "stays": {
+            "items": {
+              "$ref": "#/components/schemas/Stay"
+            },
+            "type": "array",
+            "title": "Stays",
+            "default": []
+          },
+          "flights_checked": {
+            "type": "integer",
+            "title": "Flights Checked",
+            "default": 0
+          },
+          "combos_checked": {
+            "type": "integer",
+            "title": "Combos Checked",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "CheaperResult",
+        "description": "«Знайти дешевший варіант» (8.4): було → стало, різниця й що змінилося."
       },
       "CheckResult": {
         "properties": {
@@ -3547,6 +4400,63 @@
           "by_source_7d"
         ],
         "title": "Clicks"
+      },
+      "CostItem": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "tickets",
+              "baggage",
+              "stay",
+              "extra"
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "approximate",
+              "unknown"
+            ],
+            "title": "Status"
+          },
+          "included": {
+            "type": "boolean",
+            "title": "Included",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "amount",
+          "status"
+        ],
+        "title": "CostItem"
       },
       "CountFacet": {
         "properties": {
@@ -3800,6 +4710,334 @@
         ],
         "title": "Explanation"
       },
+      "FavoriteBody": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "stay",
+            "title": "Kind",
+            "default": "stay"
+          },
+          "stay": {
+            "$ref": "#/components/schemas/FavoriteStay-Input"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "stay"
+        ],
+        "title": "FavoriteBody"
+      },
+      "FavoriteOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "stay",
+            "title": "Kind"
+          },
+          "item_key": {
+            "type": "string",
+            "title": "Item Key"
+          },
+          "stay": {
+            "$ref": "#/components/schemas/FavoriteStay-Output"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "item_key",
+          "stay",
+          "created_at"
+        ],
+        "title": "FavoriteOut"
+      },
+      "FavoriteStay-Input": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,32}$",
+            "title": "Source"
+          },
+          "stay_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Stay Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "apartment",
+              "hostel",
+              "guesthouse",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "city": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "City"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Review Count",
+            "default": 0
+          },
+          "price_per_night": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Price Per Night"
+          },
+          "total_price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Total Price"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "price_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Price At"
+          },
+          "params": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[\\w%=&.,+:-]+$",
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "stay_id",
+          "name",
+          "kind",
+          "city",
+          "price_per_night",
+          "total_price",
+          "currency",
+          "check_in",
+          "check_out",
+          "price_at",
+          "params"
+        ],
+        "title": "FavoriteStay"
+      },
+      "FavoriteStay-Output": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,32}$",
+            "title": "Source"
+          },
+          "stay_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Stay Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "apartment",
+              "hostel",
+              "guesthouse",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "city": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "City"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Review Count",
+            "default": 0
+          },
+          "price_per_night": {
+            "type": "number",
+            "title": "Price Per Night"
+          },
+          "total_price": {
+            "type": "number",
+            "title": "Total Price"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "price_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Price At"
+          },
+          "params": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[\\w%=&.,+:-]+$",
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "stay_id",
+          "name",
+          "kind",
+          "city",
+          "price_per_night",
+          "total_price",
+          "currency",
+          "check_in",
+          "check_out",
+          "price_at",
+          "params"
+        ],
+        "title": "FavoriteStay"
+      },
+      "FavoritesImport": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FavoriteBody"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "FavoritesImport",
+        "description": "Обране гостя з браузера — до акаунта після входу (повтори пропускаються)."
+      },
       "FlightFiltersBody": {
         "properties": {
           "flight_filters": {
@@ -3818,6 +5056,41 @@
         "additionalProperties": false,
         "type": "object",
         "title": "FlightFiltersBody"
+      },
+      "FlightOption": {
+        "properties": {
+          "offer_key": {
+            "type": "string",
+            "title": "Offer Key"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayWindow"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "flight_total": {
+            "type": "number",
+            "title": "Flight Total"
+          },
+          "baggage_unknown": {
+            "type": "boolean",
+            "title": "Baggage Unknown",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "offer_key",
+          "window",
+          "flight_total"
+        ],
+        "title": "FlightOption",
+        "description": "Рейс, на який можна замінити переліт (модуль 8b)."
       },
       "FlightQuery": {
         "properties": {
@@ -5457,6 +6730,36 @@
         ],
         "title": "ProviderStatus"
       },
+      "RateOffer": {
+        "properties": {
+          "rate": {
+            "$ref": "#/components/schemas/StayRate"
+          },
+          "final_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Total"
+          },
+          "cheapest": {
+            "type": "boolean",
+            "title": "Cheapest",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "rate",
+          "final_total"
+        ],
+        "title": "RateOffer",
+        "description": "Рядок порівняння: тариф і його кінцева сума."
+      },
       "ReadinessResponse": {
         "properties": {
           "status": {
@@ -5570,6 +6873,169 @@
           "amount"
         ],
         "title": "RiskPenalty"
+      },
+      "RoomOffers": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "room_name": {
+            "type": "string",
+            "title": "Room Name"
+          },
+          "bed_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "double",
+                  "twin",
+                  "single",
+                  "bunk",
+                  "sofa_bed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bed Type"
+          },
+          "meal": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "room_only",
+                  "breakfast",
+                  "half_board",
+                  "full_board",
+                  "all_inclusive"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meal"
+          },
+          "cancellation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "partial",
+                  "non_refundable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/RateOffer"
+            },
+            "type": "array",
+            "title": "Offers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "room_name",
+          "bed_type",
+          "meal",
+          "cancellation",
+          "offers"
+        ],
+        "title": "RoomOffers",
+        "description": "Група однакових умов: той самий номер, ліжко, харчування й скасування."
+      },
+      "SavedTripBody": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Input"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/TripSnapshot-Input"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "query",
+          "snapshot"
+        ],
+        "title": "SavedTripBody"
+      },
+      "SavedTripOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Output"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/TripSnapshot-Output"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "query",
+          "snapshot",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SavedTripOut"
+      },
+      "SavedTripsImport": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SavedTripBody"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "SavedTripsImport",
+        "description": "Поїздки гостя з браузера — до акаунта після входу."
       },
       "ScoreBreakdown": {
         "properties": {
@@ -6354,6 +7820,17 @@
             ],
             "title": "District"
           },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
           "image_url": {
             "anyOf": [
               {
@@ -6386,6 +7863,18 @@
               }
             ],
             "title": "Seller"
+          },
+          "sellers": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sellers"
           },
           "collected_at": {
             "type": "string",
@@ -6802,6 +8291,16 @@
               }
             ],
             "title": "Radius Km"
+          },
+          "bbox": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BoundingBox"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -6997,6 +8496,259 @@
           "check_out"
         ],
         "title": "StayQuery"
+      },
+      "StayRate": {
+        "properties": {
+          "seller": {
+            "type": "string",
+            "title": "Seller"
+          },
+          "is_property": {
+            "type": "boolean",
+            "title": "Is Property",
+            "default": false
+          },
+          "room_name": {
+            "type": "string",
+            "title": "Room Name"
+          },
+          "room_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Room Code"
+          },
+          "bed_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "double",
+                  "twin",
+                  "single",
+                  "bunk",
+                  "sofa_bed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bed Type"
+          },
+          "meal": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "room_only",
+                  "breakfast",
+                  "half_board",
+                  "full_board",
+                  "all_inclusive"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meal"
+          },
+          "cancellation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "partial",
+                  "non_refundable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation"
+          },
+          "free_cancellation_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Cancellation Until"
+          },
+          "prepayment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "required"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prepayment"
+          },
+          "price_total": {
+            "type": "number",
+            "title": "Price Total"
+          },
+          "taxes_included": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxes Included"
+          },
+          "taxes": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxes"
+          },
+          "fees_at_property": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fees At Property"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "deep_link": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deep Link"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seller",
+          "room_name",
+          "price_total",
+          "currency",
+          "checked_at"
+        ],
+        "title": "StayRate",
+        "description": "Тариф одного продавця на один номер за весь період і всіх гостей запиту."
+      },
+      "StayRatesRequest": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/StayQuery"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "stay_id": {
+            "type": "string",
+            "title": "Stay Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "source",
+          "stay_id"
+        ],
+        "title": "StayRatesRequest"
+      },
+      "StayRatesResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unsupported",
+              "rate_limited",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "rooms": {
+            "items": {
+              "$ref": "#/components/schemas/RoomOffers"
+            },
+            "type": "array",
+            "title": "Rooms",
+            "default": []
+          },
+          "sellers": {
+            "type": "integer",
+            "title": "Sellers",
+            "default": 0
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checked At"
+          },
+          "nights": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nights"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StayRatesResult"
       },
       "StayScore": {
         "properties": {
@@ -7257,8 +9009,29 @@
             "type": "string",
             "title": "Stay Key"
           },
+          "stay_index": {
+            "type": "integer",
+            "title": "Stay Index"
+          },
           "window": {
             "$ref": "#/components/schemas/StayWindow"
+          },
+          "arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival At"
+          },
+          "return_departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Return Departure At"
           },
           "flight_price": {
             "type": "number",
@@ -7271,6 +9044,9 @@
           "stay_total": {
             "type": "number",
             "title": "Stay Total"
+          },
+          "costs": {
+            "$ref": "#/components/schemas/TripCosts"
           },
           "money_total": {
             "type": "number",
@@ -7287,6 +9063,10 @@
             ],
             "title": "Value Total"
           },
+          "stops": {
+            "type": "integer",
+            "title": "Stops"
+          },
           "currency": {
             "type": "string",
             "title": "Currency"
@@ -7295,8 +9075,12 @@
             "items": {
               "type": "string",
               "enum": [
-                "early_arrival",
-                "value_unknown"
+                "night_arrival",
+                "late_arrival",
+                "early_return",
+                "late_return",
+                "value_unknown",
+                "costs_unknown"
               ]
             },
             "type": "array",
@@ -7309,15 +9093,315 @@
           "key",
           "offer_key",
           "stay_key",
+          "stay_index",
           "window",
+          "arrival_at",
+          "return_departure_at",
           "flight_price",
           "flight_total",
           "stay_total",
+          "costs",
           "money_total",
           "value_total",
+          "stops",
           "currency"
         ],
         "title": "TripCombo"
+      },
+      "TripCosts": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CostItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "confirmed": {
+            "type": "number",
+            "title": "Confirmed"
+          },
+          "approximate": {
+            "type": "number",
+            "title": "Approximate"
+          },
+          "unknown": {
+            "type": "integer",
+            "title": "Unknown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "confirmed",
+          "approximate",
+          "unknown"
+        ],
+        "title": "TripCosts",
+        "description": "Розбивка бюджету: підтверджене й орієнтовне не змішуються, невідоме — окремо."
+      },
+      "TripExtra-Input": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "amount"
+        ],
+        "title": "TripExtra",
+        "description": "Витрата, яку людина додала сама (екскурсії, страховка…) — орієнтовна, її оцінка."
+      },
+      "TripExtra-Output": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "amount": {
+            "type": "number",
+            "title": "Amount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "amount"
+        ],
+        "title": "TripExtra",
+        "description": "Витрата, яку людина додала сама (екскурсії, страховка…) — орієнтовна, її оцінка."
+      },
+      "TripFlightSnapshot-Input": {
+        "properties": {
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Destination"
+          },
+          "departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departure At"
+          },
+          "arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival At"
+          },
+          "return_departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Return Departure At"
+          },
+          "return_arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Arrival At"
+          },
+          "stops": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Stops"
+          },
+          "duration_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Min"
+          },
+          "airlines": {
+            "items": {
+              "type": "string",
+              "maxLength": 3
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Airlines"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Price"
+          },
+          "price_status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "cached"
+            ],
+            "title": "Price Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "departure_at",
+          "return_departure_at",
+          "stops",
+          "airlines",
+          "price",
+          "price_status"
+        ],
+        "title": "TripFlightSnapshot"
+      },
+      "TripFlightSnapshot-Output": {
+        "properties": {
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Destination"
+          },
+          "departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departure At"
+          },
+          "arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival At"
+          },
+          "return_departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Return Departure At"
+          },
+          "return_arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Arrival At"
+          },
+          "stops": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Stops"
+          },
+          "duration_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Min"
+          },
+          "airlines": {
+            "items": {
+              "type": "string",
+              "maxLength": 3
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Airlines"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "price_status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "cached"
+            ],
+            "title": "Price Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "departure_at",
+          "return_departure_at",
+          "stops",
+          "airlines",
+          "price",
+          "price_status"
+        ],
+        "title": "TripFlightSnapshot"
       },
       "TripPick": {
         "properties": {
@@ -7346,6 +9430,11 @@
             "type": "array",
             "title": "Also",
             "default": []
+          },
+          "over_budget": {
+            "type": "boolean",
+            "title": "Over Budget",
+            "default": false
           }
         },
         "type": "object",
@@ -7355,7 +9444,7 @@
         ],
         "title": "TripPick"
       },
-      "TripQuery": {
+      "TripQuery-Input": {
         "properties": {
           "origin": {
             "type": "string",
@@ -7373,8 +9462,15 @@
             "title": "Departure Date"
           },
           "return_date": {
-            "type": "string",
-            "format": "date",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Return Date"
           },
           "flex_days": {
@@ -7383,6 +9479,44 @@
             "minimum": 0.0,
             "title": "Flex Days",
             "default": 0
+          },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
           },
           "adults": {
             "type": "integer",
@@ -7402,6 +9536,46 @@
             "type": "boolean",
             "title": "Direct Only",
             "default": false
+          },
+          "nearby": {
+            "type": "boolean",
+            "title": "Nearby",
+            "default": false
+          },
+          "cabin": {
+            "type": "string",
+            "enum": [
+              "economy",
+              "premium_economy",
+              "business",
+              "first"
+            ],
+            "title": "Cabin",
+            "default": "economy"
+          },
+          "baggage": {
+            "type": "string",
+            "enum": [
+              "none",
+              "personal_item",
+              "carry_on",
+              "checked",
+              "checked_extra"
+            ],
+            "title": "Baggage",
+            "default": "none"
+          },
+          "stay_filters": {
+            "$ref": "#/components/schemas/StayFilters",
+            "default": {
+              "free_cancellation": false,
+              "breakfast_included": false,
+              "no_prepayment": false,
+              "pay_at_property": false,
+              "kinds": [],
+              "amenities": [],
+              "districts": []
+            }
           },
           "profile": {
             "type": "string",
@@ -7426,11 +9600,43 @@
             ],
             "title": "Budget Total"
           },
+          "extras": {
+            "items": {
+              "$ref": "#/components/schemas/TripExtra-Input"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Extras"
+          },
           "currency": {
             "type": "string",
             "pattern": "^[A-Za-z]{3}$",
             "title": "Currency",
             "default": "EUR"
+          },
+          "stay": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9_]{1,32}:[\\w.-]{1,128}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay"
+          },
+          "flight": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9_]{1,32}:[\\w.-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flight"
           }
         },
         "additionalProperties": false,
@@ -7438,15 +9644,312 @@
         "required": [
           "origin",
           "destination",
-          "departure_date",
-          "return_date"
+          "departure_date"
         ],
         "title": "TripQuery"
+      },
+      "TripQuery-Output": {
+        "properties": {
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Destination"
+          },
+          "departure_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure Date"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          },
+          "flex_days": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Flex Days",
+            "default": 0
+          },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
+          },
+          "adults": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Adults",
+            "default": 2
+          },
+          "children": {
+            "type": "integer",
+            "maximum": 8.0,
+            "minimum": 0.0,
+            "title": "Children",
+            "default": 0
+          },
+          "direct_only": {
+            "type": "boolean",
+            "title": "Direct Only",
+            "default": false
+          },
+          "nearby": {
+            "type": "boolean",
+            "title": "Nearby",
+            "default": false
+          },
+          "cabin": {
+            "type": "string",
+            "enum": [
+              "economy",
+              "premium_economy",
+              "business",
+              "first"
+            ],
+            "title": "Cabin",
+            "default": "economy"
+          },
+          "baggage": {
+            "type": "string",
+            "enum": [
+              "none",
+              "personal_item",
+              "carry_on",
+              "checked",
+              "checked_extra"
+            ],
+            "title": "Baggage",
+            "default": "none"
+          },
+          "stay_filters": {
+            "$ref": "#/components/schemas/StayFilters",
+            "default": {
+              "free_cancellation": false,
+              "breakfast_included": false,
+              "no_prepayment": false,
+              "pay_at_property": false,
+              "kinds": [],
+              "amenities": [],
+              "districts": []
+            }
+          },
+          "profile": {
+            "type": "string",
+            "enum": [
+              "budget",
+              "balanced",
+              "comfort"
+            ],
+            "title": "Profile",
+            "default": "balanced"
+          },
+          "budget_total": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Total"
+          },
+          "extras": {
+            "items": {
+              "$ref": "#/components/schemas/TripExtra-Output"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Extras"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency",
+            "default": "EUR"
+          },
+          "stay": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9_]{1,32}:[\\w.-]{1,128}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay"
+          },
+          "flight": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9_]{1,32}:[\\w.-]{1,64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flight"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "departure_date"
+        ],
+        "title": "TripQuery"
+      },
+      "TripRefresh": {
+        "properties": {
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripCombo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "flight_available": {
+            "type": "boolean",
+            "title": "Flight Available"
+          },
+          "stay_available": {
+            "type": "boolean",
+            "title": "Stay Available"
+          },
+          "difference": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Difference"
+          },
+          "offer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Offer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stay": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Stay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "flight_available",
+          "stay_available",
+          "checked_at"
+        ],
+        "title": "TripRefresh",
+        "description": "Актуальний стан збереженої поїздки (8.7): чи є ще рейс і житло, нова сума й різниця."
+      },
+      "TripRefreshRequest": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Input"
+          },
+          "saved_total": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Saved Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "saved_total"
+        ],
+        "title": "TripRefreshRequest",
+        "description": "«Оновити ціни»: та сама поїздка заново + сума зі знімка для порівняння."
       },
       "TripSearchResult": {
         "properties": {
           "query": {
-            "$ref": "#/components/schemas/TripQuery"
+            "$ref": "#/components/schemas/TripQuery-Output"
           },
           "flight_query": {
             "$ref": "#/components/schemas/FlightQuery"
@@ -7513,6 +10016,63 @@
             },
             "type": "array",
             "title": "Airlines"
+          },
+          "pinned_stay": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "used",
+                  "partly",
+                  "unavailable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pinned Stay"
+          },
+          "pinned_flight": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "used",
+                  "unavailable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pinned Flight"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripCombo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "flight_options": {
+            "items": {
+              "$ref": "#/components/schemas/FlightOption"
+            },
+            "type": "array",
+            "title": "Flight Options",
+            "default": []
+          },
+          "stay_options": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Stay Options",
+            "default": []
           }
         },
         "type": "object",
@@ -7529,6 +10089,366 @@
           "airlines"
         ],
         "title": "TripSearchResult"
+      },
+      "TripSnapshot-Input": {
+        "properties": {
+          "money_total": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Money Total"
+          },
+          "confirmed": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Confirmed"
+          },
+          "approximate": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Approximate"
+          },
+          "unknown": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Unknown"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "nights": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Nights"
+          },
+          "flight": {
+            "$ref": "#/components/schemas/TripFlightSnapshot-Input"
+          },
+          "stay": {
+            "$ref": "#/components/schemas/TripStaySnapshot-Input"
+          },
+          "priced_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Priced At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "money_total",
+          "confirmed",
+          "approximate",
+          "unknown",
+          "currency",
+          "check_in",
+          "check_out",
+          "nights",
+          "flight",
+          "stay",
+          "priced_at"
+        ],
+        "title": "TripSnapshot",
+        "description": "Що людина бачила, коли зберегла поїздку."
+      },
+      "TripSnapshot-Output": {
+        "properties": {
+          "money_total": {
+            "type": "number",
+            "title": "Money Total"
+          },
+          "confirmed": {
+            "type": "number",
+            "title": "Confirmed"
+          },
+          "approximate": {
+            "type": "number",
+            "title": "Approximate"
+          },
+          "unknown": {
+            "type": "integer",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Unknown"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "nights": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Nights"
+          },
+          "flight": {
+            "$ref": "#/components/schemas/TripFlightSnapshot-Output"
+          },
+          "stay": {
+            "$ref": "#/components/schemas/TripStaySnapshot-Output"
+          },
+          "priced_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Priced At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "money_total",
+          "confirmed",
+          "approximate",
+          "unknown",
+          "currency",
+          "check_in",
+          "check_out",
+          "nights",
+          "flight",
+          "stay",
+          "priced_at"
+        ],
+        "title": "TripSnapshot",
+        "description": "Що людина бачила, коли зберегла поїздку."
+      },
+      "TripStaySnapshot-Input": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "apartment",
+              "hostel",
+              "guesthouse",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Review Count",
+            "default": 0
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "distance_to_center_km": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance To Center Km"
+          },
+          "cancellation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "partial",
+                  "non_refundable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation"
+          },
+          "total_price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Total Price"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "total_price"
+        ],
+        "title": "TripStaySnapshot"
+      },
+      "TripStaySnapshot-Output": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "apartment",
+              "hostel",
+              "guesthouse",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Review Count",
+            "default": 0
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "distance_to_center_km": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance To Center Km"
+          },
+          "cancellation": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "partial",
+                  "non_refundable"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation"
+          },
+          "total_price": {
+            "type": "number",
+            "title": "Total Price"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "total_price"
+        ],
+        "title": "TripStaySnapshot"
       },
       "Turn": {
         "properties": {

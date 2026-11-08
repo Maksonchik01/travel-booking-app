@@ -75,10 +75,26 @@
   `search` і `reviews`; ціни з податками за весь номер, рейтинг 0–10, невідоме — `None`.
   Value-score — `scoring/stays.py` + `stays.toml` (скоригований рейтинг — байєсівський),
   історія — `stay_price_history`. Резюме відгуків — лише на вимогу, для «Нашого вибору».
-- **Поїздка** ([ADR 0009](docs/adr/0009-trip-planner.md)): `TripPlanner` — перельоти туди-назад
-  («Наш вибір», до 3) × житло з дати прильоту до дати вильоту назад (≤ 3 вікна).
-  `money_total` = переліт × дорослі + житло; `value_total` = оцінки скорингів. Суми рахує
-  код; чат «Уся поїздка» має інструмент `plan_trip`.
+- **Тарифи продавців житла й обране** ([ADR 0020](docs/adr/0020-stay-rates-and-favorites.md)):
+  `StayRate` + `StayRateSource.rates`, `POST /stays/rates` — групи лише однакових умов (номер, ліжко,
+  харчування, скасування), «найдешевший» — серед відомих кінцевих сум; `Stay.sellers` (None —
+  порівняння немає). Обране: гість — localStorage, акаунт — таблиця `favorites` (`/account/favorites`),
+  знімок з історичною ціною; сторінка `/favorites`. «Додати до поїздки» — `TripQuery.stay` (`stay=`).
+- **Поїздка** ([ADR 0009](docs/adr/0009-trip-planner.md), [ADR 0021](docs/adr/0021-trip-builder-scenarios.md)):
+  `TripPlanner` — кандидати перельотів (до 6, без тарифів без потрібного багажу) × житло з місцевої
+  дати ПРИЛЬОТУ до дати вильоту назад (≤ 3 вікна, `stay_filters` — обов'язкові). Дати: `return_date`
+  або `min_nights`/`max_nights` + `flex_days`/`departure_until`. `TripCosts`: підтверджене / орієнтовне /
+  невідоме (`money_total` — лише відоме); сценарії Економ / Оптимальний / Комфорт (`cheapest` /
+  `best_value` / `comfort`, `over_budget`), час прильоту — `scoring/trip.toml`. Житло комбінації —
+  `stays[stay_index]`. URL: `until=&nmin=&nmax=&near=&bag=&cabin=&rating=&cancel=&bfast=&dist=&xl=&xa=`.
+  «Ваша поїздка» (8b): вибір у URL (`flight=`, `stay=` → `selected`, `flight_options`, `stay_options`),
+  заміна одного компонента зберігає інший, якщо сумісний; «Повернути» — стек у sessionStorage;
+  «Знайти дешевший варіант» — `POST /trips/cheaper` (±3 дні, ті самі ночі, сусідні аеропорти, той
+  самий тип житла; лише на вимогу — це ще пошук перельотів).
+  8c: порівняння до 3 (`trip-compare.tsx`, sessionStorage) за знімком `TripSnapshot`; збережені поїздки —
+  запит + знімок з історичними цінами: гість — localStorage, акаунт — таблиця `saved_trips`
+  (`/account/trips`), сторінка `/trips`; редагування — `saved=` в URL; «Оновити ціни» — `POST /trips/refresh`.
+  Суми рахує код; чат «Уся поїздка» має інструмент `plan_trip`.
 - **Кожна отримана ціна пишеться в історію цін** (маршрут, дата, ціна, валюта, джерело, час збору).
 - **Алерти** ([ADR 0010](docs/adr/0010-price-alerts.md)): `services/alerts.py` + воркер
   (`check_alerts` раз на `ALERT_CHECK_INTERVAL_HOURS`, `poll_telegram` щохвилини). Ціни для
@@ -188,6 +204,8 @@ make migrate        alembic upgrade head
 - **Web-житло:** `/stays?city=&in=&out=&adults=&children=&ages=&rooms=&prio=&sort=`, фільтри
   `minp=&maxp=&mint=&maxt=&rating=&cancel=&bfast=&noprepay=&payprop=&kind=&am=&beds=&dist=&district=&near=&nearap=&radius=`
   — `src/lib/stay-params.ts`; фільтр видно лише за `facets.available` ([ADR 0018](docs/adr/0018-stay-filters.md)).
+  Карта (`view=map`, `bbox=`) — MapLibre + OpenFreeMap ([ADR 0019](docs/adr/0019-stay-map.md)); воркер копіює
+  `apps/web/scripts/copy-maplibre-worker.mjs` (predev/prebuild).
 - **Web-пошук:** стан пошуку живе в URL (`?from=&to=&depart=&return=&flex=&adults=&children=&lap=&seat=&cabin=&bag=&cur=&direct=&sort=`,
   сусідні `fromNear=1`/`toNear=1`, фільтри `stops=&al=&xal=&dep=&deph=&arr=&arrh=&rdep=&rdeph=&rarr=&rarrh=&maxh=&maxlay=&minlay=&minself=&maxp=&maxt=`;
   частини доби — ранок 05–12, день 12–17, вечір 17–22, ніч 22–05 за місцевим часом аеропорту),

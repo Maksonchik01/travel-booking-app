@@ -13,14 +13,33 @@ import { ProviderAlerts } from "@/components/provider-alerts";
 import { SaveSearch } from "@/components/save-search";
 import { SearchTabs } from "@/components/search-tabs";
 import { SiteHeader } from "@/components/site-header";
+import { SavedTripsProvider } from "@/components/saved-trips";
+import { TripBuilder } from "@/components/trip-builder";
+import { TripCompareBar, TripCompareProvider, TripCompareToggle } from "@/components/trip-compare";
 import { TripCard } from "@/components/trip-card";
+import { TripUndo } from "@/components/trip-history";
 import { TripSearchForm } from "@/components/trip-search-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { ERROR_KEY, fetchAIStatus, searchTrip } from "@/lib/api";
 import { type RawSearchParams, toSearchParams } from "@/lib/search-params";
 import { toStayParams } from "@/lib/stay-params";
-import { parseTripParams, toTripParams } from "@/lib/trip-params";
+import { tripSnapshot } from "@/lib/saved-trips";
+import {
+  parseTripDraft,
+  parseTripParams,
+  savedId,
+  toTripParams,
+  withChoice,
+} from "@/lib/trip-params";
 import { dateRange, peopleCount } from "@/lib/summary";
+
+/** Дати для заголовка й історії: точні, або період вильоту з тривалістю. */
+async function tripDates(query: TripQuery): Promise<string> {
+  if (query.return_date) return dateRange(query.departure_date, query.return_date);
+  const t = await getTranslations("tripResults");
+  const nights = t("nights", { min: query.min_nights ?? 0, max: query.max_nights ?? 0 });
+  return `${await dateRange(query.departure_date, query.departure_until)}, ${nights}`;
+}
 import { recordHistory, sessionToken } from "@/lib/session";
 import { cn } from "@/lib/utils";
 
@@ -53,9 +72,14 @@ export default function TripPage({ searchParams }: PageProps<"/trip">) {
         </section>
 
         <div className="mx-auto w-full max-w-6xl px-4 py-8">
-          <Suspense fallback={<ResultsSkeleton />}>
-            <Results searchParams={searchParams} />
-          </Suspense>
+          <SavedTripsProvider>
+            <TripCompareProvider>
+              <Suspense fallback={<ResultsSkeleton />}>
+                <Results searchParams={searchParams} />
+              </Suspense>
+              <TripCompareBar />
+            </TripCompareProvider>
+          </SavedTripsProvider>
         </div>
       </main>
       <SiteFooter />
@@ -88,12 +112,16 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
   const [status, raw] = await Promise.all([fetchAIStatus(), searchParams]);
   const query = parseTripParams(raw);
   const form = (
-    <TripSearchForm key={query ? toTripParams(query).toString() : "empty"} initial={query} />
+    <TripSearchForm
+      key={query ? toTripParams(query).toString() : "empty"}
+      initial={query ?? parseTripDraft(raw)}
+      saved={savedId(raw)}
+    />
   );
   const searchForm = query ? (
     <CollapsibleSearch
       title={`${query.origin} → ${query.destination}`}
-      details={`${await dateRange(query.departure_date, query.return_date)} · ${await peopleCount(query.adults ?? 2, query.children ?? 0)}`}
+      details={`${await tripDates(query)} · ${await peopleCount(query.adults ?? 2, query.children ?? 0)}`}
     >
       {form}
     </CollapsibleSearch>
@@ -109,6 +137,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const query = parseTripParams(raw);
   const t = await getTranslations("tripResults");
   if (!query) {
+    if (parseTripDraft(raw)?.stay) return <Notice>{t("pickOrigin")}</Notice>;
     return Object.keys(raw).length > 0 ? <Notice>{t("invalid")}</Notice> : <EmptyState />;
   }
 
@@ -118,7 +147,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
   }
   const data = result.data;
   const historyParams = toTripParams(query).toString();
-  const historyTitle = `${query.origin} → ${query.destination} · ${await dateRange(query.departure_date, query.return_date)}`;
+  const historyTitle = `${query.origin} → ${query.destination} · ${await tripDates(query)}`;
   after(
     recordHistory(await sessionToken(), {
       kind: "trip",
@@ -127,7 +156,6 @@ async function Results({ searchParams }: { searchParams: Params }) {
     }),
   );
   const offers = new Map(data.offers.map((o) => [`${o.source}:${o.id}`, o]));
-  const stays = new Map(data.stays.map((s) => [`${s.source}:${s.id}`, s]));
   const combos = new Map(data.combos.map((c) => [c.key, c]));
   const flightsHref = `/?${toSearchParams({ query: data.flight_query, sort: "score" })}`;
   const staysHref = (combo: TripCombo) => {
@@ -137,18 +165,41 @@ async function Results({ searchParams }: { searchParams: Params }) {
     return `/stays?${toStayParams({ query: stayQuery, sort: "score" })}`;
   };
   const airlineNames = Object.fromEntries(data.airlines.map((a) => [a.code, a.name]));
-  const adults = query.adults ?? 2;
+  const travelers = t("travelers", { adults: query.adults ?? 2, children: query.children ?? 0 });
+  const saved = savedId(raw);
+  const pricedAt = new Date().toISOString();
+  const tPicks = await getTranslations("tripPicks");
   const card = (combo: TripCombo, label?: TripSearchResult["picks"][number]) => (
     <TripCard
       combo={combo}
       offer={offers.get(combo.offer_key)!}
-      stay={stays.get(combo.stay_key)!}
-      adults={adults}
+      stay={data.stays[combo.stay_index]}
+      travelers={travelers}
       label={label?.label}
       also={label?.also ?? []}
+      overBudget={label?.over_budget ?? false}
       airlineNames={airlineNames}
       flightsHref={flightsHref}
       staysHref={staysHref(combo)}
+      chooseHref={
+        combo.key === data.selected?.key
+          ? undefined
+          : withChoice(query, { flight: combo.offer_key, stay: combo.stay_key }, saved)
+      }
+      compare={
+        <TripCompareToggle
+          item={{
+            key: combo.key,
+            title: label ? tPicks(`label.${label.label}`) : historyTitle,
+            snapshot: tripSnapshot(
+              combo,
+              offers.get(combo.offer_key)!,
+              data.stays[combo.stay_index],
+              pricedAt,
+            ),
+          }}
+        />
+      }
     />
   );
   const pickKeys = new Set(data.picks.map((p) => p.combo_key));
@@ -177,7 +228,38 @@ async function Results({ searchParams }: { searchParams: Params }) {
       </div>
 
       <ProviderAlerts providers={data.providers} />
+      {data.pinned_stay && !query.flight && (
+        <p
+          className={cn(
+            "rounded-lg px-3 py-2 text-xs",
+            data.pinned_stay === "used"
+              ? "bg-accent/60 text-accent-foreground"
+              : "border border-amber-500/40 bg-amber-500/10",
+          )}
+          role="status"
+          data-testid="trip-pinned"
+        >
+          {t(`pinned.${data.pinned_stay}`)}
+        </p>
+      )}
       <BudgetNote result={data} />
+
+      {data.selected ? (
+        <TripBuilder
+          data={data}
+          query={query}
+          selected={data.selected}
+          travelers={travelers}
+          airlineNames={airlineNames}
+          flightsHref={flightsHref}
+          staysHref={staysHref(data.selected)}
+          saved={saved}
+          title={historyTitle}
+          pricedAt={pricedAt}
+        />
+      ) : (
+        <TripUndo params={historyParams} showButton={false} />
+      )}
 
       {data.picks.length === 0 ? (
         <Notice>{data.flights_found > 0 ? t("noStays") : t("empty")}</Notice>
@@ -192,6 +274,11 @@ async function Results({ searchParams }: { searchParams: Params }) {
               {t("formula")}
             </p>
           </div>
+          {data.picks.length < 3 && (
+            <p className="text-muted-foreground text-xs" data-testid="trip-few-picks">
+              {t("fewPicks", { count: data.picks.length })}
+            </p>
+          )}
           <ol className="grid gap-3 md:grid-cols-[repeat(auto-fill,minmax(18rem,1fr))]">
             {data.picks.map((pick) => (
               <li key={pick.combo_key}>{card(combos.get(pick.combo_key)!, pick)}</li>
@@ -241,8 +328,10 @@ function TripSummary({
   return (
     <p className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-sm">
       <CalendarDays className="size-3.5" aria-hidden />
-      {date(query.departure_date)} – {date(query.return_date)} ·{" "}
-      {t("travelers", { adults: query.adults ?? 2, children: query.children ?? 0 })} ·{" "}
+      {query.return_date
+        ? `${date(query.departure_date)} – ${date(query.return_date)}`
+        : `${date(query.departure_date)}${query.departure_until ? ` – ${date(query.departure_until)}` : ""}, ${t("nights", { min: query.min_nights ?? 0, max: query.max_nights ?? 0 })}`}{" "}
+      · {t("travelers", { adults: query.adults ?? 2, children: query.children ?? 0 })} ·{" "}
       {t("checked", { combos, flights })}
     </p>
   );

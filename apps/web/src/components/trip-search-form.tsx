@@ -11,13 +11,29 @@ import { PlaceInput, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addDays } from "@/lib/search-params";
+import { addDays, BAGGAGE_NEEDS, CABINS, MAX_PERIOD_DAYS } from "@/lib/search-params";
 import { MAX_NIGHTS, nightsBetween } from "@/lib/stay-params";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
-import { TRIP_PROFILES } from "@/lib/trip-params";
+import {
+  MAX_EXTRAS,
+  TRIP_DISTANCES,
+  TRIP_PROFILES,
+  TRIP_RATINGS,
+  type TripExtra,
+} from "@/lib/trip-params";
 
-/** Поїздка: звідки, куди, дати туди й назад, люди, бюджет. GET-форма — працює й без JS. */
-export function TripSearchForm({ initial }: { initial: TripQuery | null }) {
+/**
+ * Поїздка: звідки, куди, дати туди й назад, люди, бюджет. GET-форма — працює й без JS.
+ * `initial` може бути неповним: «Додати до поїздки» з житла знає місто, дати й житло.
+ */
+export function TripSearchForm({
+  initial,
+  saved,
+}: {
+  initial: Partial<TripQuery> | null;
+  /** Редагування збереженої поїздки (`saved=`) — переживає новий пошук із форми. */
+  saved?: string | null;
+}) {
   const t = useTranslations("tripForm");
   const tSearch = useTranslations("search");
   const [from, setFrom] = useState(() => placeValue(initial?.origin));
@@ -25,9 +41,27 @@ export function TripSearchForm({ initial }: { initial: TripQuery | null }) {
   const [depart, setDepart] = useState(initial?.departure_date ?? "");
   const [back, setBack] = useState(initial?.return_date ?? "");
   const nights = depart && back ? nightsBetween(depart, back) : 0;
+  const stayFilters = initial?.stay_filters;
+  const extras: (TripExtra | null)[] = [...(initial?.extras ?? [])];
+  while (extras.length < Math.min(MAX_EXTRAS, (initial?.extras?.length ?? 0) + 2)) {
+    extras.push(null);
+  }
+  // Розкрито, якщо щось із прихованого вже задано — інакше людина не побачить своїх умов.
+  const advanced = Boolean(
+    initial?.departure_until ||
+    initial?.min_nights ||
+    (initial?.baggage && initial.baggage !== "none") ||
+    (initial?.cabin && initial.cabin !== "economy") ||
+    stayFilters?.min_rating ||
+    stayFilters?.free_cancellation ||
+    stayFilters?.breakfast_included ||
+    stayFilters?.max_distance_center_km ||
+    initial?.extras?.length,
+  );
 
   return (
     <Form action="/trip" className="grid gap-4">
+      {saved && <input type="hidden" name="saved" value={saved} />}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={tSearch("from")} htmlFor="trip-from">
           <PlaceInput
@@ -70,14 +104,13 @@ export function TripSearchForm({ initial }: { initial: TripQuery | null }) {
         </Field>
         <Field
           label={tSearch("return")}
-          hint={nights > 0 ? t("nights", { count: nights }) : undefined}
+          hint={nights > 0 ? t("nights", { count: nights }) : t("returnHint")}
           htmlFor="trip-return"
         >
           <Input
             id="trip-return"
             name="return"
             type="date"
-            required
             className={FIELD_CLASS}
             min={depart ? addDays(depart, 1) : undefined}
             max={depart ? addDays(depart, MAX_NIGHTS) : undefined}
@@ -128,6 +161,160 @@ export function TripSearchForm({ initial }: { initial: TripQuery | null }) {
         </Field>
       </div>
 
+      <details className="group grid gap-3 rounded-lg border px-3 py-2" open={advanced}>
+        <summary className="text-muted-foreground hover:text-primary cursor-pointer text-sm font-medium select-none">
+          {t("more")}
+        </summary>
+        <div className="grid gap-4 pt-3 pb-1">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Field label={t("until")} htmlFor="trip-until">
+              <Input
+                id="trip-until"
+                name="until"
+                type="date"
+                className={FIELD_CLASS}
+                min={depart || undefined}
+                max={depart ? addDays(depart, MAX_PERIOD_DAYS) : undefined}
+                defaultValue={initial?.departure_until ?? ""}
+              />
+            </Field>
+            <Field label={t("nightsFrom")} htmlFor="trip-nmin">
+              <NightsSelect id="trip-nmin" name="nmin" value={initial?.min_nights} any={t("any")} />
+            </Field>
+            <Field label={t("nightsTo")} htmlFor="trip-nmax">
+              <NightsSelect id="trip-nmax" name="nmax" value={initial?.max_nights} any={t("any")} />
+            </Field>
+            <p className="text-muted-foreground col-span-2 self-end text-xs sm:col-span-1">
+              {t("nightsHint")}
+            </p>
+          </div>
+
+          <fieldset className="grid gap-2">
+            <legend className="mb-1 text-xs font-semibold tracking-wide uppercase">
+              {t("flightWishes")}
+            </legend>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Field label={t("baggage")} htmlFor="trip-bag">
+                <select
+                  id="trip-bag"
+                  name="bag"
+                  defaultValue={initial?.baggage ?? "none"}
+                  className={SELECT_CLASS}
+                >
+                  {BAGGAGE_NEEDS.map((b) => (
+                    <option key={b} value={b}>
+                      {tSearch(`bags.${b}`)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label={t("cabin")} htmlFor="trip-cabin">
+                <select
+                  id="trip-cabin"
+                  name="cabin"
+                  defaultValue={initial?.cabin ?? "economy"}
+                  className={SELECT_CLASS}
+                >
+                  {CABINS.map((c) => (
+                    <option key={c} value={c}>
+                      {tSearch(`cabins.${c}`)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+          </fieldset>
+
+          <fieldset className="grid gap-2">
+            <legend className="mb-1 text-xs font-semibold tracking-wide uppercase">
+              {t("stayWishes")}
+            </legend>
+            <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-4">
+              <Field label={t("rating")} htmlFor="trip-rating">
+                <select
+                  id="trip-rating"
+                  name="rating"
+                  defaultValue={stayFilters?.min_rating ?? ""}
+                  className={SELECT_CLASS}
+                >
+                  <option value="">{t("any")}</option>
+                  {TRIP_RATINGS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}+
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label={t("distance")} htmlFor="trip-dist">
+                <select
+                  id="trip-dist"
+                  name="dist"
+                  defaultValue={stayFilters?.max_distance_center_km ?? ""}
+                  className={SELECT_CLASS}
+                >
+                  <option value="">{t("any")}</option>
+                  {TRIP_DISTANCES.map((km) => (
+                    <option key={km} value={km}>
+                      {t("km", { km })}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="cancel"
+                  value="1"
+                  defaultChecked={stayFilters?.free_cancellation ?? false}
+                  className="size-4"
+                />
+                {t("freeCancellation")}
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="bfast"
+                  value="1"
+                  defaultChecked={stayFilters?.breakfast_included ?? false}
+                  className="size-4"
+                />
+                {t("breakfast")}
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset className="grid gap-2">
+            <legend className="mb-1 text-xs font-semibold tracking-wide uppercase">
+              {t("extras")}
+            </legend>
+            {extras.map((extra, i) => (
+              <div key={i} className="grid grid-cols-[1fr_8rem] gap-2">
+                <Input
+                  name="xl"
+                  aria-label={t("extraLabel")}
+                  placeholder={t("extraLabel")}
+                  maxLength={40}
+                  className={FIELD_CLASS}
+                  defaultValue={extra?.label ?? ""}
+                />
+                <Input
+                  name="xa"
+                  type="number"
+                  min={0}
+                  step={1}
+                  inputMode="numeric"
+                  aria-label={t("extraAmount")}
+                  placeholder={t("extraAmount")}
+                  className={FIELD_CLASS}
+                  defaultValue={extra?.amount ?? ""}
+                />
+              </div>
+            ))}
+            <p className="text-muted-foreground text-xs">{t("extrasHint")}</p>
+          </fieldset>
+        </div>
+      </details>
+
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <fieldset className="flex items-center gap-2 text-sm">
@@ -162,10 +349,71 @@ export function TripSearchForm({ initial }: { initial: TripQuery | null }) {
             />
             {tSearch("directOnly")}
           </label>
+          {initial?.flight && (
+            <label
+              className="flex items-start gap-2 text-sm"
+              title={t("pinnedFlightHint")}
+              data-testid="trip-pinned-flight"
+            >
+              <input
+                type="checkbox"
+                name="flight"
+                value={initial.flight}
+                defaultChecked
+                className="mt-0.5 size-4"
+              />
+              <span className="grid">
+                {t("pinnedFlight")}
+                <span className="text-muted-foreground text-xs">{t("pinnedFlightHint")}</span>
+              </span>
+            </label>
+          )}
+          {initial?.stay && (
+            <label
+              className="flex items-start gap-2 text-sm"
+              title={t("pinnedHint")}
+              data-testid="trip-pinned-stay"
+            >
+              <input
+                type="checkbox"
+                name="stay"
+                value={initial.stay}
+                defaultChecked
+                className="mt-0.5 size-4"
+              />
+              <span className="grid">
+                {t("pinnedStay")}
+                <span className="text-muted-foreground text-xs">{t("pinnedHint")}</span>
+              </span>
+            </label>
+          )}
         </div>
         <SubmitButton idle={t("submit")} pending={t("searching")} />
       </div>
     </Form>
+  );
+}
+
+function NightsSelect({
+  id,
+  name,
+  value,
+  any,
+}: {
+  id: string;
+  name: string;
+  value: number | null | undefined;
+  any: string;
+}) {
+  return (
+    <select id={id} name={name} defaultValue={value ?? ""} className={SELECT_CLASS}>
+      <option value="">{any}</option>
+      {Array.from({ length: MAX_NIGHTS }, (_, i) => i + 1).map((n) => (
+        <option key={n} value={n}>
+          {n}
+        </option>
+      ))}
+    </select>
   );
 }
 

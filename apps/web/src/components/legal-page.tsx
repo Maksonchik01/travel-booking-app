@@ -4,7 +4,7 @@ import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { SiteHeader } from "@/components/site-header";
 
 /** Дата останньої правки текстів у `legal.*` (uk.json) — оновлюйте разом із текстом. */
-export const LEGAL_UPDATED = "2026-11-07";
+export const LEGAL_UPDATED = "2026-11-08";
 
 type Section = { h: string; p: string[] };
 

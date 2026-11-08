@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseTripParams, toTripParams } from "./trip-params";
+import { parseTripDraft, parseTripParams, toTripParams, withChoice } from "./trip-params";
 
 describe("trip params", () => {
   it("URL → запит і назад", () => {
@@ -47,5 +47,100 @@ describe("trip params", () => {
       prio: "luxury",
     });
     expect(query).toMatchObject({ budget_total: null, profile: "balanced", adults: 2 });
+  });
+
+  it("обране житло (stay) — лише валідний ключ; без міста вильоту — чернетка для форми", () => {
+    const base = { from: "WAW", to: "LIS", depart: "2026-12-05", return: "2026-12-08" };
+    const query = parseTripParams({ ...base, stay: "mock:mock-lis-3" });
+    expect(query?.stay).toBe("mock:mock-lis-3");
+    expect(toTripParams(query!).get("stay")).toBe("mock:mock-lis-3");
+    expect(parseTripParams({ ...base, stay: "javascript:alert(1)" })?.stay).toBeNull();
+
+    const draft = parseTripDraft({ to: "lis", depart: "2026-12-05", stay: "mock:mock-lis-3" });
+    expect(draft).toMatchObject({
+      destination: "LIS",
+      departure_date: "2026-12-05",
+      return_date: undefined,
+      stay: "mock:mock-lis-3",
+    });
+    expect(parseTripDraft({ adults: "2" })).toBeNull();
+  });
+
+  it("гнучкий період, тривалість, побажання й власні витрати — туди й назад", () => {
+    const query = parseTripParams({
+      from: "WAW",
+      to: "LIS",
+      depart: "2026-12-01",
+      return: "2026-12-05",
+      until: "2026-12-20",
+      nmin: "3",
+      nmax: "5",
+      bag: "checked",
+      cabin: "business",
+      rating: "8",
+      cancel: "1",
+      bfast: "1",
+      dist: "3",
+      xl: ["Музей", "", "Страховка"],
+      xa: ["30", "10", "abc"],
+    });
+
+    expect(query).toMatchObject({
+      return_date: null, // тривалість замінює повернення
+      departure_until: "2026-12-20",
+      min_nights: 3,
+      max_nights: 5,
+      baggage: "checked",
+      cabin: "business",
+      stay_filters: {
+        min_rating: 8,
+        free_cancellation: true,
+        breakfast_included: true,
+        max_distance_center_km: 3,
+      },
+      extras: [{ label: "Музей", amount: 30 }],
+    });
+    expect(parseTripParams(Object.fromEntries(toTripParams(query!)))).toEqual(query);
+    expect(toTripParams(query!).getAll("xl")).toEqual(["Музей"]);
+
+    // Без повернення й без тривалості — пошуку немає; кривий рейтинг — ігноруємо.
+    expect(parseTripParams({ from: "WAW", to: "LIS", depart: "2026-12-01" })).toBeNull();
+    expect(
+      parseTripParams({ from: "WAW", to: "LIS", depart: "2026-12-01", nmin: "5", nmax: "3" }),
+    ).toBeNull();
+    expect(
+      parseTripParams({
+        from: "WAW",
+        to: "LIS",
+        depart: "2026-12-01",
+        return: "2026-12-04",
+        rating: "6",
+      })?.stay_filters?.min_rating,
+    ).toBeNull();
+  });
+
+  it("вибір рейсу й житла та сусідні аеропорти — у URL; withChoice міняє лише вибір", () => {
+    const base = { from: "WAW", to: "LIS", depart: "2026-12-05", return: "2026-12-08" };
+    const query = parseTripParams({
+      ...base,
+      flight: "mock:ab12cd",
+      stay: "mock:mock-lis-1",
+      near: "1",
+    })!;
+    expect(query).toMatchObject({ flight: "mock:ab12cd", stay: "mock:mock-lis-1", nearby: true });
+    expect(parseTripParams({ ...base, flight: "<script>" })?.flight).toBeNull();
+
+    const swapped = new URLSearchParams(
+      withChoice(query, { stay: "mock:mock-lis-2" }).split("?")[1],
+    );
+    expect(Object.fromEntries(swapped)).toMatchObject({
+      flight: "mock:ab12cd",
+      stay: "mock:mock-lis-2",
+      near: "1",
+    });
+    const reset = new URLSearchParams(
+      withChoice(query, { flight: null, stay: null }).split("?")[1],
+    );
+    expect(reset.has("flight")).toBe(false);
   });
 });

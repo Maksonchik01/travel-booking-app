@@ -16,8 +16,13 @@ import type {
   ReadinessResponse,
   StayAnalysisResult,
   StayQuery,
+  StayRatesRequest,
+  StayRatesResult,
   StaySearchResult,
+  CheaperResult,
   TripQuery,
+  TripRefresh,
+  TripRefreshRequest,
   TripSearchResult,
 } from "@tickets/shared";
 
@@ -99,6 +104,37 @@ export function fetchCalendar(
 export function fetchSellers(body: SellersRequest): Promise<ApiResult<SellersResult>> {
   return request(
     "/flights/sellers",
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
+    SEARCH_TIMEOUT_MS,
+  );
+}
+
+/** «Знайти дешевший варіант» поїздки (модуль 8b): ще один пошук перельотів — лише на вимогу. */
+export function fetchCheaperTrip(query: TripQuery): Promise<ApiResult<CheaperResult>> {
+  return request(
+    "/trips/cheaper",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(query),
+    },
+    SEARCH_TIMEOUT_MS,
+  );
+}
+
+/** «Оновити ціни» збереженої поїздки (модуль 8c) — та сама конфігурація заново. */
+export function fetchTripRefresh(body: TripRefreshRequest): Promise<ApiResult<TripRefresh>> {
+  return request(
+    "/trips/refresh",
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
+    SEARCH_TIMEOUT_MS,
+  );
+}
+
+/** Тарифи продавців житла на ті самі дати й гостей (модуль 7) — на вимогу з картки. */
+export function fetchStayRates(body: StayRatesRequest): Promise<ApiResult<StayRatesResult>> {
+  return request(
+    "/stays/rates",
     { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
     SEARCH_TIMEOUT_MS,
   );

@@ -1,5 +1,18 @@
-import type { Leg, Offer, Stay, TripCombo, TripPickLabel } from "@tickets/shared";
-import { AlertTriangle, ArrowRight, BedDouble, Crown, Plane, Scale, Wallet } from "lucide-react";
+import type { CostItem, Leg, Offer, Stay, TripCombo, TripPickLabel } from "@tickets/shared";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BedDouble,
+  Briefcase,
+  Crown,
+  Plane,
+  PlaneLanding,
+  PlaneTakeoff,
+  Receipt,
+  Scale,
+  SlidersHorizontal,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
@@ -13,31 +26,49 @@ import { localDate, localTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const LABEL_ICON = { cheapest: Wallet, best_value: Scale, comfort: Crown } as const;
+const COST_ICON = { tickets: Plane, baggage: Briefcase, stay: BedDouble, extra: Receipt } as const;
+const STATUS_CLASS = {
+  confirmed: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
+  approximate: "bg-amber-500/10 text-amber-800 dark:text-amber-300",
+  unknown: "bg-muted text-muted-foreground",
+} as const;
 
 type Props = {
   combo: TripCombo;
   offer: Offer;
   stay: Stay;
-  adults: number;
+  /** Підпис складу: «2 дорослі і 1 дитина». */
+  travelers: string;
   label?: TripPickLabel;
   also?: TripPickLabel[];
+  overBudget?: boolean;
   airlineNames: Record<string, string | null>;
   /** Сторінки перельотів і житла з тими самими параметрами (для деталей). */
   flightsHref: string;
   staysHref: string;
+  /** «Обрати й змінити» — зробити цю комбінацію «Вашою поїздкою» (модуль 8b). */
+  chooseHref?: string;
+  /** «Порівняти» (модуль 8c) — клієнтська кнопка. */
+  compare?: React.ReactNode;
 };
 
-/** Одна поїздка: загальна сума з розбивкою, рейс і житло — і посилання на їхні сторінки. */
+/**
+ * Одна поїздка (модуль 8a): сценарій, сума відомих складових з розбивкою «підтверджено /
+ * орієнтовно / невідомо», дати житла від фактичного прильоту й вильоту назад, рейс і житло.
+ */
 export function TripCard({
   combo,
   offer,
   stay,
-  adults,
+  travelers,
   label,
   also = [],
+  overBudget = false,
   airlineNames,
   flightsHref,
   staysHref,
+  chooseHref,
+  compare,
 }: Props) {
   const t = useTranslations("tripCard");
   const tPicks = useTranslations("tripPicks");
@@ -84,33 +115,87 @@ export function TripCard({
         </div>
       )}
 
+      {overBudget && (
+        <Badge
+          variant="outline"
+          className="h-auto w-fit border-amber-500/50 bg-amber-500/10 text-left whitespace-normal text-amber-800 dark:text-amber-300"
+          data-testid="trip-over-budget"
+        >
+          <AlertTriangle className="size-3" /> {t("overBudget")}
+        </Badge>
+      )}
+
       <div>
         <p className="text-3xl font-bold tracking-tight tabular-nums" data-testid="trip-total">
           {money(combo.money_total)}
         </p>
         <p className="text-muted-foreground text-xs">
-          {t("forTrip", { adults, nights: combo.window.nights })}
+          {t("forTrip", { nights: combo.window.nights, travelers })}
         </p>
+        {combo.costs.unknown > 0 && (
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            {t("plusUnknown", { count: combo.costs.unknown })}
+          </p>
+        )}
       </div>
 
       <dl
-        className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-sm"
+        className="grid grid-cols-[1fr_auto_auto] items-center gap-x-2 gap-y-1 text-sm"
         data-testid="trip-breakdown"
       >
-        <dt className="text-muted-foreground flex items-center gap-1.5">
-          <Plane className="size-3.5" aria-hidden />
-          {t("flight")}
+        {combo.costs.items.map((item, i) => (
+          <CostRow
+            key={`${item.kind}-${i}`}
+            item={item}
+            nights={combo.window.nights}
+            money={money}
+          />
+        ))}
+        <dt className="border-t pt-1 text-xs text-emerald-800 dark:text-emerald-300">
+          {t("status.confirmed")}
         </dt>
-        <dd className="text-right tabular-nums">{money(combo.flight_total)}</dd>
-        <dt className="text-muted-foreground flex items-center gap-1.5">
-          <BedDouble className="size-3.5" aria-hidden />
-          {t("stay", { nights: combo.window.nights })}
-        </dt>
-        <dd className="text-right tabular-nums">{money(combo.stay_total)}</dd>
-        <dt className="border-t pt-1 font-medium">{t("total")}</dt>
-        <dd className="border-t pt-1 text-right font-medium tabular-nums">
+        <dd className="col-span-2 border-t pt-1 text-right text-xs tabular-nums">
+          {money(combo.costs.confirmed)}
+        </dd>
+        {combo.costs.approximate > 0 && (
+          <>
+            <dt className="text-xs text-amber-800 dark:text-amber-300">
+              {t("status.approximate")}
+            </dt>
+            <dd className="col-span-2 text-right text-xs tabular-nums">
+              {money(combo.costs.approximate)}
+            </dd>
+          </>
+        )}
+        <dt className="font-medium">{t("total")}</dt>
+        <dd className="col-span-2 text-right font-medium tabular-nums">
           {money(combo.money_total)}
         </dd>
+      </dl>
+
+      <dl className="grid gap-1 border-t pt-3 text-xs" data-testid="trip-dates">
+        <div className="flex items-start gap-1.5">
+          <PlaneLanding className="text-primary mt-px size-3.5 shrink-0" aria-hidden />
+          <dt className="sr-only">{t("arrivalLabel")}</dt>
+          <dd>
+            {combo.arrival_at
+              ? t("arrival", {
+                  at: `${shortDate(format, localDate(combo.arrival_at))}, ${localTime(combo.arrival_at)}`,
+                  date: shortDate(format, combo.window.check_in),
+                })
+              : t("arrivalUnknown", { date: shortDate(format, combo.window.check_in) })}
+          </dd>
+        </div>
+        <div className="flex items-start gap-1.5">
+          <PlaneTakeoff className="text-primary mt-px size-3.5 shrink-0" aria-hidden />
+          <dt className="sr-only">{t("returnLabel")}</dt>
+          <dd>
+            {t("return", {
+              at: `${shortDate(format, localDate(combo.return_departure_at))}, ${localTime(combo.return_departure_at)}`,
+              date: shortDate(format, combo.window.check_out),
+            })}
+          </dd>
+        </div>
       </dl>
 
       <div className="grid gap-2 border-t pt-3 text-xs">
@@ -139,9 +224,9 @@ export function TripCard({
             <li key={w}>
               <Badge
                 variant="outline"
-                className="border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400"
+                className="h-auto border-amber-500/40 bg-amber-500/5 text-left whitespace-normal text-amber-700 dark:text-amber-400"
               >
-                <AlertTriangle className="size-3" /> {t(`warning.${w}`)}
+                <AlertTriangle className="size-3 shrink-0" /> {t(`warning.${w}`)}
               </Badge>
             </li>
           ))}
@@ -155,6 +240,17 @@ export function TripCard({
       )}
 
       <div className="mt-auto flex flex-wrap gap-2">
+        {compare}
+        {chooseHref && (
+          <Link
+            href={chooseHref}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+            data-testid="trip-choose"
+          >
+            <SlidersHorizontal className="size-3.5" aria-hidden />
+            {t("choose")}
+          </Link>
+        )}
         <TripLink href={`${flightsHref}#${offerAnchor(combo.offer_key)}`} icon={Plane}>
           {t("openFlight")}
         </TripLink>
@@ -163,6 +259,51 @@ export function TripCard({
         </TripLink>
       </div>
     </Card>
+  );
+}
+
+function CostRow({
+  item,
+  nights,
+  money,
+}: {
+  item: CostItem;
+  nights: number;
+  money: (value: number) => string;
+}) {
+  const t = useTranslations("tripCard");
+  const Icon = COST_ICON[item.kind];
+  const name =
+    item.kind === "extra"
+      ? (item.label ?? t("cost.extra"))
+      : item.kind === "stay"
+        ? t("cost.stay", { nights })
+        : t(`cost.${item.kind}`);
+  return (
+    <>
+      <dt className="text-muted-foreground flex min-w-0 items-center gap-1.5">
+        <Icon className="size-3.5 shrink-0" aria-hidden />
+        <span className="truncate">{name}</span>
+      </dt>
+      <dd>
+        <span
+          className={cn(
+            "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+            STATUS_CLASS[item.status],
+          )}
+          data-testid="trip-cost-status"
+        >
+          {t(`status.${item.status}`)}
+        </span>
+      </dd>
+      <dd className="text-right tabular-nums">
+        {item.amount == null
+          ? t("unknownAmount")
+          : item.included
+            ? t("included")
+            : money(item.amount)}
+      </dd>
+    </>
   );
 }
 

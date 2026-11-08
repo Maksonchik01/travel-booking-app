@@ -7,12 +7,20 @@
 import asyncio
 from collections import Counter
 from collections.abc import Awaitable, Callable, Sequence
-from typing import Any, Literal
+from decimal import Decimal
+from typing import Any, Literal, cast
 
 import structlog
 from pydantic import BaseModel
 
 from tickets_api.domain.flights import Money
+from tickets_api.domain.stay_rates import (
+    RateOffer,
+    RoomOffers,
+    StayRate,
+    StayRatesRequest,
+    StayRatesResult,
+)
 from tickets_api.domain.stays import (
     GeoPoint,
     Stay,
@@ -22,9 +30,15 @@ from tickets_api.domain.stays import (
     StayQuery,
     StayReview,
 )
-from tickets_api.providers.base import ProviderError, ProviderRateLimitedError, StayProvider
+from tickets_api.providers.base import (
+    ProviderError,
+    ProviderRateLimitedError,
+    ProviderUnsupportedError,
+    StayProvider,
+    StayRateSource,
+)
 from tickets_api.reference.airports import AirportDirectory
-from tickets_api.repositories.stay_price_history import stay_rows
+from tickets_api.repositories.stay_price_history import rate_rows, stay_rows
 from tickets_api.scoring.stays import StayScoringConfig, StayScoringResult, score_stays
 from tickets_api.services.flight_search import ProviderStatus
 
@@ -156,6 +170,38 @@ class StaySearchService:
             log.warning("stay_reviews.failed", provider=source, error=type(exc).__name__)
             return []
 
+    async def rates(self, request: StayRatesRequest) -> StayRatesResult:
+        """Тарифи продавців на об'єкт (модуль 7), згруповані за однаковими умовами.
+
+        Джерело без такої здатності — `unsupported` (UI: ціну й умови підтверджує продавець).
+        """
+        provider = next((p for p in self._providers if p.name == request.source), None)
+        if provider is None or not hasattr(provider, "rates"):
+            return StayRatesResult(status="unsupported")
+        try:
+            rates = await asyncio.wait_for(
+                cast(StayRateSource, provider).rates(request.query, request.stay_id),
+                timeout=self._timeout_s,
+            )
+        except ProviderUnsupportedError:
+            return StayRatesResult(status="unsupported")
+        except ProviderRateLimitedError:
+            return StayRatesResult(status="rate_limited")
+        except (TimeoutError, ProviderError) as exc:
+            log.warning("stay_rates.failed", provider=request.source, error=type(exc).__name__)
+            return StayRatesResult(status="error")
+        if self._record_history and rates:
+            await self._record_history(
+                rate_rows(request.query, request.stay_id, provider.name, rates)
+            )
+        return StayRatesResult(
+            status="ok",
+            rooms=group_rates(rates),
+            sellers=len({r.seller for r in rates}),
+            checked_at=min((r.checked_at for r in rates), default=None),
+            nights=request.query.nights,
+        )
+
     async def _call(
         self, provider: StayProvider, query: StayQuery
     ) -> tuple[ProviderStatus, list[Stay]]:
@@ -176,6 +222,55 @@ class StaySearchService:
             log.exception("stay_provider.unexpected_error", provider=name)
             return ProviderStatus(provider=name, status="error", error="internal error"), []
         return ProviderStatus(provider=name, status="ok", results=len(items)), items
+
+
+def group_rates(rates: Sequence[StayRate]) -> list[RoomOffers]:
+    """Групи однакових умов. Різні номери (код, або назва без коду), ліжка, харчування чи
+    скасування — різні групи: дешевший тариф без сніданку не «перемагає» тариф зі сніданком.
+
+    «Найдешевший» — лише серед рядків з відомою кінцевою сумою і лише коли їх хоча б два.
+    """
+    groups: dict[tuple[str, str | None, str | None, str | None], list[StayRate]] = {}
+    for rate in rates:
+        room = rate.room_code or f"name:{rate.room_name.strip().casefold()}"
+        groups.setdefault((room, rate.bed_type, rate.meal, rate.cancellation), []).append(rate)
+
+    def order(rate: StayRate) -> tuple[bool, Decimal, str]:
+        final = rate.final_total
+        return (final is None, final if final is not None else rate.price_total, rate.seller)
+
+    rooms = []
+    for key, items in groups.items():
+        ordered = sorted(items, key=order)
+        known = [r.final_total for r in ordered if r.final_total is not None]
+        best = min(known) if len(known) > 1 else None
+        rooms.append(
+            RoomOffers(
+                key="|".join(part or "" for part in key),
+                room_name=ordered[0].room_name,
+                bed_type=ordered[0].bed_type,
+                meal=ordered[0].meal,
+                cancellation=ordered[0].cancellation,
+                offers=[
+                    RateOffer(
+                        rate=r,
+                        final_total=r.final_total,
+                        cheapest=best is not None and r.final_total == best,
+                    )
+                    for r in ordered
+                ],
+            )
+        )
+    # Спершу групи з кількома продавцями (там є що порівнювати), далі — від дешевшої.
+    return sorted(
+        rooms,
+        key=lambda g: (
+            len({o.rate.seller for o in g.offers}) < 2,
+            g.offers[0].final_total
+            if g.offers[0].final_total is not None
+            else g.offers[0].rate.price_total,
+        ),
+    )
 
 
 def _facets(stays: list[Stay]) -> StayFacets:

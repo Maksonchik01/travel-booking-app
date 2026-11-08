@@ -20,6 +20,7 @@ const NO_FILTERS = {
   near: null,
   near_airport: null,
   radius_km: null,
+  bbox: null,
 };
 
 describe("stay params", () => {

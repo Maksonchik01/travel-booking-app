@@ -182,3 +182,14 @@ async def test_near_airport_uses_directory_coordinates() -> None:
     assert all(
         distance_between(airport, s.latitude or 0, s.longitude or 0) <= 6 for s in result.stays
     )
+
+
+def test_bbox_keeps_only_stays_inside_the_map_area() -> None:
+    box = StayFilters(bbox={"south": 38.70, "west": -9.20, "north": 38.76, "east": -9.10})
+    assert box.matches(stay(latitude=38.72, longitude=-9.14))
+    assert not box.matches(stay(latitude=38.80, longitude=-9.14))
+    assert not box.matches(stay())  # без координат — місце невідоме, в область не потрапляє
+    across = StayFilters(bbox={"south": -20, "west": 170, "north": -10, "east": -170})
+    assert across.matches(stay(latitude=-15, longitude=179))  # Фіджі через 180-й меридіан
+    with pytest.raises(ValidationError, match="південна"):
+        StayFilters(bbox={"south": 40, "west": 0, "north": 39, "east": 1})

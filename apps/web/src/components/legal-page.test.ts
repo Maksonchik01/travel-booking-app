@@ -14,6 +14,8 @@ describe("тексти юридичних сторінок", () => {
   });
 
   it("у футері є посилання на кожну сторінку", () => {
-    expect(Object.keys(messages.footer.links).sort()).toEqual(["howItWorks", "privacy", "terms"]);
+    expect(Object.keys(messages.footer.links)).toEqual(
+      expect.arrayContaining(["howItWorks", "privacy", "terms"]),
+    );
   });
 });

@@ -39,9 +39,13 @@ export const MIN_BEDS_OPTIONS = [1, 2, 3, 4, 6] as const;
 export const MIN_RATING_OPTIONS = [7, 8, 9] as const;
 export const MAX_NIGHTS = 30;
 
+export type StayView = "list" | "map";
+
 export type StayState = {
   query: StayQuery;
   sort: StaySortKey;
+  /** Список чи карта (модуль 6); на широкому екрані «карта» — список і карта поруч. */
+  view?: StayView;
 };
 
 const IATA = /^[A-Za-z]{3}$/;
@@ -107,7 +111,23 @@ function parseStayFilters(params: RawSearchParams): StayFilters {
     near: point(first(params.near)),
     near_airport: airport && IATA.test(airport) ? airport : null,
     radius_km: oneOf(first(params.radius), RADIUS_OPTIONS),
+    bbox: bbox(first(params.bbox)),
   };
+}
+
+/** `bbox=півд,зах,півн,сх` — видима область карти («Шукати в цій області»). */
+function bbox(value: string | undefined) {
+  const parts = (value ?? "").split(",").map(Number);
+  if (parts.length !== 4 || !parts.every(Number.isFinite)) return null;
+  const [south, west, north, east] = parts;
+  if (south >= north || Math.abs(south) > 90 || Math.abs(north) > 90) return null;
+  if (Math.abs(west) > 180 || Math.abs(east) > 180) return null;
+  return { south, west, north, east };
+}
+
+/** Межі області для URL: 4 знаки після коми (~10 м) — коротко й досить точно. */
+export function bboxParam(b: { south: number; west: number; north: number; east: number }) {
+  return [b.south, b.west, b.north, b.east].map((n) => n.toFixed(4)).join(",");
 }
 
 /** Гості: дорослі, діти з віком (`ages=3,9`, лише якщо їх стільки, скільки дітей), кімнати. */
@@ -148,6 +168,7 @@ export function stayFilterParams(filters: StayFilters | undefined): [string, str
   if (filters.near) entries.push(["near", `${filters.near.lat},${filters.near.lon}`]);
   if (filters.near_airport) entries.push(["nearap", filters.near_airport]);
   num("radius", filters.radius_km);
+  if (filters.bbox) entries.push(["bbox", bboxParam(filters.bbox)]);
   return entries;
 }
 
@@ -173,6 +194,7 @@ export function parseStayParams(params: RawSearchParams): StayState | null {
       filters: parseStayFilters(params),
     },
     sort: STAY_SORT_KEYS.find((k) => k === first(params.sort)) ?? "price",
+    view: first(params.view) === "map" ? "map" : "list",
   };
 }
 
@@ -192,6 +214,7 @@ export function toStayParams(state: StayState): URLSearchParams {
   if (query.profile && query.profile !== "balanced") params.set("prio", query.profile);
   if (state.sort !== "price") params.set("sort", state.sort);
   for (const [key, value] of stayFilterParams(query.filters)) params.set(key, value);
+  if (state.view === "map") params.set("view", "map");
   return params;
 }
 

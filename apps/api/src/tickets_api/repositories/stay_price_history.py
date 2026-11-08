@@ -1,6 +1,7 @@
 """Запис історії цін житла (як price_history для перельотів)."""
 
 from collections.abc import Sequence
+from decimal import Decimal
 from typing import Any
 
 import structlog
@@ -8,12 +9,22 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from tickets_api.db.models import StayPriceObservation
+from tickets_api.domain.stay_rates import StayRate
 from tickets_api.domain.stays import Stay, StayQuery
 
 log = structlog.get_logger(__name__)
 
 BATCH_SIZE = 1000
-CONFLICT_COLUMNS = ["source", "stay_id", "check_in", "check_out", "guests", "collected_at"]
+CONFLICT_COLUMNS = [
+    "source",
+    "stay_id",
+    "check_in",
+    "check_out",
+    "guests",
+    "seller",
+    "room",
+    "collected_at",
+]
 
 
 def stay_rows(query: StayQuery, stays: Sequence[Stay]) -> list[dict[str, Any]]:
@@ -31,9 +42,38 @@ def stay_rows(query: StayQuery, stays: Sequence[Stay]) -> list[dict[str, Any]]:
             "total_price": s.total_price,
             "currency": s.currency,
             "source": s.source,
+            "seller": "",
+            "room": "",
             "collected_at": s.collected_at,
         }
         for s in stays
+    ]
+
+
+def rate_rows(
+    query: StayQuery, stay_id: str, source: str, rates: Sequence[StayRate]
+) -> list[dict[str, Any]]:
+    """Тарифи продавців (модуль 7): ціна — те, що просить продавець (`price_total`), бо кінцева
+    сума буває невідомою. Рядок пошуку — з порожніми `seller`/`room`."""
+    guests = query.guests.adults + query.guests.children
+    kind = "rate"
+    return [
+        {
+            "city": query.city,
+            "check_in": query.check_in,
+            "check_out": query.check_out,
+            "guests": guests,
+            "stay_id": stay_id,
+            "kind": kind,
+            "price_per_night": (r.price_total / query.nights).quantize(Decimal("0.01")),
+            "total_price": r.price_total,
+            "currency": r.currency,
+            "source": source,
+            "seller": r.seller[:64],
+            "room": (r.room_code or r.room_name)[:120],
+            "collected_at": r.checked_at,
+        }
+        for r in rates
     ]
 
 

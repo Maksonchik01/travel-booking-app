@@ -29,6 +29,8 @@ export function HeroBackdrop() {
 }
 
 const FOOTER_LINKS = [
+  ["/favorites", "favorites"],
+  ["/trips", "trips"],
   ["/how-it-works", "howItWorks"],
   ["/terms", "terms"],
   ["/privacy", "privacy"],

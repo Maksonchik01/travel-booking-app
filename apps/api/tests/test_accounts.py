@@ -10,9 +10,11 @@ from flight_fakes import FakeRedis
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from tickets_api.auth.google import GoogleProfile
-from tickets_api.db.models import AuthToken, SearchEntry, User, UserSession
+from tickets_api.db.models import AuthToken, Favorite, SavedTrip, SearchEntry, User, UserSession
 from tickets_api.db.session import create_engine, create_sessionmaker
 from tickets_api.domain.accounts import RegisterBody, SearchEntryBody
+from tickets_api.domain.favorites import FavoriteBody
+from tickets_api.domain.saved_trips import SavedTripBody
 from tickets_api.notifications.mail import MockMailer
 from tickets_api.services.accounts import (
     AccountError,
@@ -81,7 +83,7 @@ async def _cleanup(sessionmaker: async_sessionmaker[AsyncSession]) -> None:
                 )
             )
         ).all()
-        for model in (SearchEntry, AuthToken, UserSession):
+        for model in (SearchEntry, Favorite, SavedTrip, AuthToken, UserSession):
             await session.execute(delete(model).where(model.user_id.in_(ids)))
         await session.execute(delete(User).where(User.id.in_(ids)))
 
@@ -293,3 +295,130 @@ async def test_saved_flight_filters_keep_only_known_keys(env: Env) -> None:
     account = await env.service.account(await env.user(session.token))
     assert account.flight_filters == saved
     assert await env.service.save_flight_filters(user, None) is None
+
+
+def favorite(stay_id: str = "mock-lis-3", check_in: str = "2026-12-05") -> FavoriteBody:
+    return FavoriteBody.model_validate(
+        {
+            "stay": {
+                "source": "mock",
+                "stay_id": stay_id,
+                "name": "Hotel Riverside",
+                "kind": "hotel",
+                "city": "LIS",
+                "rating": 8.4,
+                "review_count": 120,
+                "price_per_night": 95.5,
+                "total_price": 286.5,
+                "currency": "EUR",
+                "check_in": check_in,
+                "check_out": "2026-12-08",
+                "price_at": "2026-11-07T10:00:00Z",
+                "params": "city=LIS&in=2026-12-05&out=2026-12-08",
+            }
+        }
+    )
+
+
+async def test_favorites_dedupe_import_and_delete_with_account(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+
+    first = await env.service.add_favorites(user, [favorite()])
+    again = await env.service.add_favorites(user, [favorite(), favorite("mock-lis-4")])
+
+    assert len(first) == 1
+    assert [f.stay.stay_id for f in again] == ["mock-lis-3", "mock-lis-4"] or len(again) == 2
+    assert again[-1].stay.total_price == first[0].stay.total_price  # знімок, не перерахунок
+    # Ті самі об'єкт і дати — один запис; інші дати — окремий.
+    other = await env.service.add_favorites(user, [favorite(check_in="2026-12-06")])
+    assert len(other) == 3
+    await env.service.delete_favorite(user, first[0].item_key)
+    assert len(await env.service.favorites(user)) == 2
+
+    await env.service.delete_account(user, "password1")
+    async with env.sessionmaker() as s:
+        left = await s.scalar(select(Favorite.id).where(Favorite.user_id == user.id))
+    assert left is None
+
+
+def saved_trip(title: str = "Лісабон на Різдво") -> SavedTripBody:
+    return SavedTripBody.model_validate(
+        {
+            "title": title,
+            "query": {
+                "origin": "WAW",
+                "destination": "LIS",
+                "departure_date": "2026-12-05",
+                "return_date": "2026-12-08",
+                "flight": "mock:abc123",
+                "stay": "mock:mock-lis-3",
+            },
+            "snapshot": {
+                "money_total": 520,
+                "confirmed": 520,
+                "approximate": 0,
+                "unknown": 0,
+                "currency": "EUR",
+                "check_in": "2026-12-05",
+                "check_out": "2026-12-08",
+                "nights": 3,
+                "flight": {
+                    "origin": "WAW",
+                    "destination": "LIS",
+                    "departure_at": "2026-12-05T06:10:00+01:00",
+                    "arrival_at": "2026-12-05T09:30:00+00:00",
+                    "return_departure_at": "2026-12-08T10:00:00+00:00",
+                    "return_arrival_at": "2026-12-08T15:20:00+01:00",
+                    "stops": 0,
+                    "duration_min": 520,
+                    "airlines": ["LO"],
+                    "price": 230,
+                    "price_status": "live",
+                },
+                "stay": {
+                    "name": "Hotel Riverside",
+                    "kind": "hotel",
+                    "rating": 8.4,
+                    "review_count": 120,
+                    "district": "Центр",
+                    "distance_to_center_km": 1.2,
+                    "cancellation": "free",
+                    "total_price": 290,
+                },
+                "priced_at": "2026-11-07T10:00:00Z",
+            },
+        }
+    )
+
+
+async def test_saved_trips_copy_edit_rename_delete(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+
+    [first] = await env.service.save_trips(user, [saved_trip()])
+    [copy] = await env.service.save_trips(user, [saved_trip("Лісабон (копія)")])
+    assert first.query.flight == "mock:abc123"
+    assert first.snapshot.money_total == 520  # знімок — як збережено, без перерахунку
+    assert copy.id != first.id
+
+    env.now = NOW + timedelta(minutes=5)
+    edited = saved_trip().model_copy(
+        update={"query": first.query.model_copy(update={"stay": "mock:mock-lis-5"})}
+    )
+    updated = await env.service.update_trip(user, first.id, edited)
+    assert updated.query.stay == "mock:mock-lis-5"
+    renamed = await env.service.rename_trip(user, copy.id, "Інший варіант")
+    assert renamed.title == "Інший варіант"
+    trips = await env.service.saved_trips(user)
+    assert [t.id for t in trips] == [copy.id, first.id]  # останні зміни — першими
+
+    await env.service.delete_trip(user, first.id)
+    with pytest.raises(AccountError, match="not_found"):
+        await env.service.update_trip(user, first.id, edited)
+    assert len(await env.service.saved_trips(user)) == 1
+
+    await env.service.delete_account(user, "password1")
+    async with env.sessionmaker() as s:
+        left = await s.scalar(select(SavedTrip.id).where(SavedTrip.user_id == user.id))
+    assert left is None

@@ -77,6 +77,29 @@ class GeoPoint(_StrictInput):
     lon: float = Field(ge=-180, le=180)
 
 
+class BoundingBox(_StrictInput):
+    """Видима область карти («Шукати в цій області», модуль 6)."""
+
+    south: float = Field(ge=-90, le=90)
+    west: float = Field(ge=-180, le=180)
+    north: float = Field(ge=-90, le=90)
+    east: float = Field(ge=-180, le=180)
+
+    @model_validator(mode="after")
+    def _order(self) -> Self:
+        if self.south >= self.north:
+            raise ValueError("південна межа має бути нижче північної")
+        return self
+
+    def contains(self, lat: float, lon: float) -> bool:
+        inside_lon = (
+            self.west <= lon <= self.east
+            if self.west <= self.east
+            else lon >= self.west or lon <= self.east  # через 180-й меридіан
+        )
+        return self.south <= lat <= self.north and inside_lon
+
+
 def distance_between(a: GeoPoint, lat: float, lon: float) -> float:
     """Відстань по великому колу, км (як у довіднику аеропортів)."""
     p1, p2 = math.radians(a.lat), math.radians(lat)
@@ -112,6 +135,8 @@ class StayFilters(_StrictInput):
     near_airport: Iata | None = None
     """Біля аеропорту: точку за кодом бере сервіс із довідника (геокодування адрес немає)."""
     radius_km: float | None = Field(default=None, gt=0, le=100)
+    bbox: BoundingBox | None = None
+    """Лише об'єкти в цій області карти; без координат — не потрапляють (місце невідоме)."""
 
     def matches(self, stay: "Stay") -> bool:
         if self.max_price_per_night is not None and stay.price_per_night > Decimal(
@@ -152,6 +177,12 @@ class StayFilters(_StrictInput):
                 return False
             if distance_between(self.near, stay.latitude, stay.longitude) > self.radius_km:
                 return False
+        if self.bbox is not None and (
+            stay.latitude is None
+            or stay.longitude is None
+            or not self.bbox.contains(stay.latitude, stay.longitude)
+        ):
+            return False
         return not self.kinds or stay.kind in self.kinds
 
 
@@ -214,9 +245,14 @@ class Stay(_Frozen):
     rooms: int = Field(default=1, ge=1, le=MAX_ROOMS)
     """Скільки номерів у ціні (як у запиті)."""
     district: str | None = None
+    address: str | None = None
+    """Адреса від джерела; None — лише район (вигаданої адреси не підставляємо)."""
     image_url: str | None = None
+    """Фото від джерела (https); None — UI фото не показує."""
     deep_link: str | None = None
     seller: str | None = None
+    sellers: int | None = Field(default=None, ge=1)
+    """Скільки продавців пропонують об'єкт, якщо джерело вміє порівняння (`rates`); None — ні."""
     collected_at: AwareDatetime
     found_at: AwareDatetime | None = None
 

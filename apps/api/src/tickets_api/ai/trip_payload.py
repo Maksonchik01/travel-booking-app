@@ -13,9 +13,9 @@ from tickets_api.services.trip_planner import (
 )
 
 TRIP_TITLES: dict[TripPickLabel, str] = {
-    "cheapest": "Найдешевша поїздка",
-    "best_value": "Найвигідніша поїздка",
-    "comfort": "Найзручніша поїздка",
+    "cheapest": "Економ",
+    "best_value": "Оптимальний",
+    "comfort": "Комфорт",
 }
 """Ті самі назви, що в UI (messages/uk.json → tripPicks.label)."""
 
@@ -24,13 +24,12 @@ def trip_input(result: TripSearchResult, airline_names: dict[str, str]) -> dict[
     q = result.query
     combos = {c.key: c for c in result.combos}
     offers = {f"{o.source}:{o.id}": o for o in result.offers}
-    stays = {f"{s.source}:{s.id}": s for s in result.stays}
     options = []
     for pick in result.picks:
         combo = combos[pick.combo_key]
         options.append(
             _option(
-                pick, combo, offers[combo.offer_key], stays[combo.stay_key], airline_names, q.adults
+                pick, combo, offers[combo.offer_key], result.stays[combo.stay_index], airline_names
             )
         )
     labels = [p.label for p in result.picks]
@@ -40,7 +39,8 @@ def trip_input(result: TripSearchResult, airline_names: dict[str, str]) -> dict[
             "origin": q.origin,
             "destination": q.destination,
             "departure_date": q.departure_date.isoformat(),
-            "return_date": q.return_date.isoformat(),
+            "return_date": q.return_date.isoformat() if q.return_date else None,
+            "nights": list(q.nights_range) if q.nights_range else None,
             "adults": q.adults,
             "children": q.children,
             "priority": q.profile,
@@ -63,7 +63,8 @@ def trip_input(result: TripSearchResult, airline_names: dict[str, str]) -> dict[
         "sources_failed": [p.provider for p in result.providers if p.status != "ok"],
         "note": (
             "flight prices are for all travellers (adults and children); "
-            "stays — whole room with taxes"
+            "stays — whole room with taxes; money_total_text = confirmed + approximate parts, "
+            "unknown parts are not included"
         ),
     }
 
@@ -74,23 +75,34 @@ def _option(
     offer: Offer,
     stay: Any,
     airline_names: dict[str, str],
-    adults: int,
 ) -> dict[str, Any]:
     currency = combo.currency
-    flight_part = (
-        f"переліт {adults} × {money_text(combo.flight_price, currency)}"
-        if adults > 1
-        else f"переліт {money_text(combo.flight_total, currency)}"
-    )
+    costs = combo.costs
+    parts = [f"квитки {money_text(combo.flight_price, currency)}"]
+    for item in costs.items:
+        if item.kind == "baggage":
+            parts.append(
+                "багаж — невідомо"
+                if item.amount is None
+                else f"багаж {money_text(item.amount, currency)}"
+            )
+        elif item.kind == "stay":
+            parts.append(
+                f"житло {money_text(combo.stay_total, currency)} за {combo.window.nights} ноч."
+            )
+        elif item.kind == "extra" and item.amount is not None:
+            parts.append(f"{item.label} {money_text(item.amount, currency)}")
     return {
         "id": pick.label,
         "title": TRIP_TITLES[pick.label],
         "also": [TRIP_TITLES[label] for label in pick.also],
+        "over_budget": pick.over_budget,
         "money_total_text": money_text(combo.money_total, currency),
-        "breakdown_text": f"{flight_part} + житло {money_text(combo.stay_total, currency)} "
-        f"за {combo.window.nights} ноч.",
+        "breakdown_text": " + ".join(parts),
+        "confirmed_text": money_text(costs.confirmed, currency),
+        "approximate_text": money_text(costs.approximate, currency),
+        "unknown_parts": costs.unknown,
         "flight": {
-            "price_per_adult_text": money_text(combo.flight_price, currency),
             "flight_total_text": money_text(combo.flight_total, currency),
             "airlines": [airline_names.get(c, c) for c in offer.airlines],
             "stops": offer.stops,

@@ -1,4 +1,4 @@
-import type { Stay, StayPickLabel, StayScore } from "@tickets/shared";
+import type { Stay, StayPickLabel, StayQuery, StayScore } from "@tickets/shared";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -32,6 +32,8 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { StayCardActions } from "@/components/stay-card-actions";
+import { favoriteSnapshot } from "@/lib/favorites";
 import { hoursAgo } from "@/lib/format";
 import { outboundHref } from "@/lib/outbound";
 import { cn } from "@/lib/utils";
@@ -60,16 +62,42 @@ const AMENITY_ICON = {
 
 const KNOWN_SOURCES = new Set(["mock"]);
 
+/** Фото лише від джерела й лише https; немає — не підставляємо стокових. */
+const photoUrl = (stay: Stay) => (stay.image_url?.startsWith("https://") ? stay.image_url : null);
+
+/** «Додати до поїздки»: планувальник з цим містом, датами, гостями й житлом (модуль 7). */
+export function tripHref(stay: Stay, query: StayQuery): string {
+  const guests = query.guests ?? {};
+  const params = new URLSearchParams({
+    to: query.city,
+    depart: query.check_in,
+    return: query.check_out,
+    stay: `${stay.source}:${stay.id}`,
+  });
+  if ((guests.adults ?? 2) !== 2) params.set("adults", String(guests.adults));
+  if (guests.children) params.set("children", String(guests.children));
+  return `/trip?${params}`;
+}
+
 export function StayCard({
   stay,
   now,
   pickLabel,
   score,
+  actions,
+  query,
+  searchParams,
 }: {
   stay: Stay;
   now: Date;
   pickLabel?: StayPickLabel;
   score?: StayScore;
+  /** Клієнтські дії картки (напр. «На карті») — у колонці ціни. */
+  actions?: React.ReactNode;
+  /** Запит, що дав об'єкт: з ним — «Порівняти ціни», «В обране», «Додати до поїздки». */
+  query?: StayQuery;
+  /** Рядок URL пошуку — «Відкрити пошук» з обраного. */
+  searchParams?: string;
 }) {
   const t = useTranslations("stayCard");
   const tPicks = useTranslations("stayPicks");
@@ -86,6 +114,7 @@ export function StayCard({
   const service = KNOWN_SOURCES.has(stay.source)
     ? tResults(`provider.${stay.source as "mock"}`)
     : stay.source;
+  const photo = photoUrl(stay);
 
   return (
     <Card
@@ -96,13 +125,26 @@ export function StayCard({
       )}
       data-testid="stay-card"
     >
-      {/* Фото від mock немає — тип житла на градієнті. */}
-      <div
-        aria-hidden
-        className="from-primary/15 text-primary/70 hidden place-items-center bg-gradient-to-br to-sky-400/10 sm:grid"
-      >
-        <KindIcon className="size-10" />
-      </div>
+      {photo ? (
+        // Адреси фото — від джерела, хостів наперед не знаємо (next/image їх не пропустить).
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={photo}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="hidden h-full min-h-32 w-full object-cover sm:block"
+          data-testid="stay-photo"
+        />
+      ) : (
+        // Фото немає (mock його не дає) — тип житла на градієнті.
+        <div
+          aria-hidden
+          className="from-primary/15 text-primary/70 hidden place-items-center bg-gradient-to-br to-sky-400/10 sm:grid"
+        >
+          <KindIcon className="size-10" />
+        </div>
+      )}
 
       <div className="grid content-start gap-3 p-4 sm:p-5">
         <div className="grid gap-1">
@@ -121,7 +163,7 @@ export function StayCard({
                 ))}
               </span>
             )}
-            {stay.district && <span>· {stay.district}</span>}
+            {(stay.address ?? stay.district) && <span>· {stay.address ?? stay.district}</span>}
           </div>
           <h3 className="text-lg leading-tight font-semibold" data-testid="stay-name">
             {stay.name}
@@ -210,8 +252,15 @@ export function StayCard({
             <span>
               {stay.seller ? `${t("seller", { seller: stay.seller })} · ` : null}
               {t("via", { service })}
+              {(stay.sellers ?? 0) > 1 && (
+                <span className="text-foreground font-medium" data-testid="stay-sellers">
+                  {" "}
+                  · {t("sellers", { count: stay.sellers ?? 0 })}
+                </span>
+              )}
             </span>
           </p>
+          {actions}
           {stay.deep_link && (
             <Button asChild className="w-full transition-transform active:scale-[0.98]">
               <a
@@ -231,7 +280,89 @@ export function StayCard({
           )}
         </div>
       </aside>
+      {query && (
+        <StayCardActions
+          stay={stay}
+          query={query}
+          favorite={favoriteSnapshot(stay, query, searchParams ?? "")}
+          tripHref={tripHref(stay, query)}
+          now={now.toISOString()}
+          details={<StayDetails stay={stay} now={now} />}
+        />
+      )}
     </Card>
+  );
+}
+
+/**
+ * «Детальніше»: усе, що джерело повідомило про об'єкт; невідоме так і називаємо.
+ * Нічого не домальовуємо (адреси, фото, умов, яких немає в даних).
+ */
+function StayDetails({ stay, now }: { stay: Stay; now: Date }) {
+  const t = useTranslations("stayCard");
+  const format = useFormatter();
+  const unknown = t("unknown");
+  const day = (iso: string) =>
+    format.dateTime(new Date(`${iso}T00:00:00Z`), {
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    });
+  const yesNo = (value: boolean | null | undefined) =>
+    value == null ? unknown : value ? t("yes") : t("no");
+  const rows: [string, React.ReactNode][] = [
+    [t("detail.address"), stay.address ?? stay.district ?? unknown],
+    [
+      t("detail.center"),
+      stay.distance_to_center_km != null
+        ? t("toCenter", { km: format.number(stay.distance_to_center_km) })
+        : unknown,
+    ],
+    [
+      t("detail.transit"),
+      stay.distance_to_transit_m != null
+        ? t("toTransit", { m: stay.distance_to_transit_m })
+        : unknown,
+    ],
+    [
+      t("detail.cancellation"),
+      stay.cancellation
+        ? `${t(`cancellation.${stay.cancellation}`)}${
+            stay.free_cancellation_until
+              ? ` · ${t("detail.until", { date: day(stay.free_cancellation_until) })}`
+              : ""
+          }`
+        : unknown,
+    ],
+    [
+      t("detail.prepayment"),
+      stay.prepayment == null
+        ? unknown
+        : stay.prepayment === "none"
+          ? t("detail.noPrepayment")
+          : t("detail.prepaymentRequired"),
+    ],
+    [t("detail.payAtProperty"), yesNo(stay.pay_at_property)],
+    [t("detail.breakfast"), yesNo(stay.breakfast_included)],
+    [t("detail.beds"), stay.beds != null ? String(stay.beds) : unknown],
+    [
+      t("detail.amenities"),
+      stay.amenities?.length ? stay.amenities.map((a) => t(`amenity.${a}`)).join(", ") : unknown,
+    ],
+    [
+      t("detail.updated"),
+      t("foundAgo", { hours: hoursAgo(stay.found_at ?? stay.collected_at, now) }),
+    ],
+  ];
+  return (
+    <dl className="grid gap-x-4 gap-y-1.5 text-xs sm:grid-cols-[10rem_1fr]">
+      {rows.map(([label, value]) => (
+        <div key={label} className="contents">
+          <dt className="text-muted-foreground">{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

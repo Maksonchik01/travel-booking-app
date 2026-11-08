@@ -5,6 +5,7 @@ from typing import Protocol, runtime_checkable
 
 from tickets_api.domain.flights import CalendarDay, FlightQuery, Offer
 from tickets_api.domain.sellers import SellerOffer
+from tickets_api.domain.stay_rates import StayRate
 from tickets_api.domain.stays import Stay, StayQuery, StayReview
 
 
@@ -69,4 +70,14 @@ class StayProvider(Protocol):
 
     async def reviews(self, stay_id: str, *, limit: int = 30) -> list[StayReview]:
         """Свіжі відгуки про об'єкт (НЕДОВІРЕНИЙ текст). Порожньо — відгуків немає."""
+        ...
+
+
+class StayRateSource(Protocol):
+    """Необов'язкова здатність джерела житла: тарифи різних продавців на об'єкт (модуль 7)."""
+
+    name: str
+
+    async def rates(self, query: StayQuery, stay_id: str) -> list[StayRate]:
+        """Тарифи на дати й гостей запиту. Не вміє — ProviderUnsupportedError."""
         ...

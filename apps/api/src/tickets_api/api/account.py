@@ -14,6 +14,8 @@ from tickets_api.domain.accounts import (
     SearchEntryOut,
     SearchEntryRename,
 )
+from tickets_api.domain.favorites import FavoriteBody, FavoriteOut, FavoritesImport
+from tickets_api.domain.saved_trips import SavedTripBody, SavedTripOut, SavedTripsImport
 from tickets_api.services.accounts import AccountError
 
 router = APIRouter(prefix="/account", tags=["account"])
@@ -135,6 +137,93 @@ async def rename_search(
 @router.delete("/searches/{entry_id}", status_code=204)
 async def delete_search(entry_id: str, user: CurrentUser, service: Service) -> Response:
     await service.delete_entry(user, entry_id)
+    return Response(status_code=204)
+
+
+@router.get("/favorites", response_model=list[FavoriteOut])
+async def favorites(user: CurrentUser, service: Service) -> list[FavoriteOut]:
+    return await service.favorites(user)
+
+
+@router.post("/favorites", response_model=list[FavoriteOut])
+async def add_favorite(
+    body: FavoriteBody, user: CurrentUser, service: Service
+) -> list[FavoriteOut]:
+    """«В обране»: знімок об'єкта з ціною на момент збереження. Повтор — без дубля."""
+    try:
+        return await service.add_favorites(user, [body])
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.post("/favorites/import", response_model=list[FavoriteOut])
+async def import_favorites(
+    body: FavoritesImport, user: CurrentUser, service: Service
+) -> list[FavoriteOut]:
+    """Обране гостя з браузера — до акаунта після входу."""
+    try:
+        return await service.add_favorites(user, body.items)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.delete("/favorites", status_code=204)
+async def delete_favorite(
+    user: CurrentUser, service: Service, key: str = Query(min_length=1, max_length=200)
+) -> Response:
+    await service.delete_favorite(user, key)
+    return Response(status_code=204)
+
+
+@router.get("/trips", response_model=list[SavedTripOut])
+async def saved_trips(user: CurrentUser, service: Service) -> list[SavedTripOut]:
+    return await service.saved_trips(user)
+
+
+@router.post("/trips", response_model=SavedTripOut, status_code=201)
+async def save_trip(body: SavedTripBody, user: CurrentUser, service: Service) -> SavedTripOut:
+    """«Зберегти поїздку» і «Створити копію»: запит з вибором + знімок цін (історичних)."""
+    try:
+        return (await service.save_trips(user, [body]))[0]
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.post("/trips/import", response_model=list[SavedTripOut])
+async def import_trips(
+    body: SavedTripsImport, user: CurrentUser, service: Service
+) -> list[SavedTripOut]:
+    """Поїздки гостя з браузера — до акаунта після входу."""
+    try:
+        await service.save_trips(user, body.items)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+    return await service.saved_trips(user)
+
+
+@router.put("/trips/{trip_id}", response_model=SavedTripOut)
+async def update_trip(
+    trip_id: str, body: SavedTripBody, user: CurrentUser, service: Service
+) -> SavedTripOut:
+    try:
+        return await service.update_trip(user, trip_id, body)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.patch("/trips/{trip_id}", response_model=SavedTripOut)
+async def rename_trip(
+    trip_id: str, body: SearchEntryRename, user: CurrentUser, service: Service
+) -> SavedTripOut:
+    try:
+        return await service.rename_trip(user, trip_id, body.title)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.delete("/trips/{trip_id}", status_code=204)
+async def delete_trip(trip_id: str, user: CurrentUser, service: Service) -> Response:
+    await service.delete_trip(user, trip_id)
     return Response(status_code=204)
 
 

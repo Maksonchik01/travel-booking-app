@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import BigInteger, Date, DateTime, Index, Integer, Numeric, String, func
+from sqlalchemy import BigInteger, Date, DateTime, Index, Integer, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from tickets_api.db.base import Base
@@ -77,7 +77,8 @@ class StayPriceObservation(Base):
     """Історія цін житла: кожна ціна, яку ми отримали від провайдера.
 
     Повтор тієї ж ціни з кешу не дублюється: (source, stay_id, check_in, check_out, guests,
-    collected_at) унікальні.
+    seller, room, collected_at) унікальні. Рядки пошуку — з порожніми `seller`/`room`;
+    тарифи продавців (модуль 7) — з продавцем і номером, `kind` = "rate".
     """
 
     __tablename__ = "stay_price_history"
@@ -94,6 +95,8 @@ class StayPriceObservation(Base):
     total_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     currency: Mapped[str] = mapped_column(String(3))
     source: Mapped[str] = mapped_column(String(32))
+    seller: Mapped[str] = mapped_column(String(64), server_default="")
+    room: Mapped[str] = mapped_column(String(120), server_default="")
     collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -106,6 +109,8 @@ class StayPriceObservation(Base):
             "check_in",
             "check_out",
             "guests",
+            "seller",
+            "room",
             "collected_at",
             unique=True,
         ),
@@ -230,6 +235,47 @@ class SearchEntry(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (Index("ix_search_entries_user", "user_id", "saved", "updated_at"),)
+
+
+class Favorite(Base):
+    """«В обране» (модуль 7): структурований знімок об'єкта й умов пошуку, а не лише посилання.
+
+    Ціна в знімку — на момент збереження; UI так її й підписує. (user_id, kind, item_key)
+    унікальні — повторне «В обране» нічого не дублює.
+    """
+
+    __tablename__ = "favorites"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(32))
+    kind: Mapped[str] = mapped_column(String(16))
+    """stay (далі — й інші типи)."""
+    item_key: Mapped[str] = mapped_column(String(200))
+    data: Mapped[str] = mapped_column(Text)
+    """JSON знімка (FavoriteStay), перевірений моделлю перед записом."""
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("uq_favorites_item", "user_id", "kind", "item_key", unique=True),
+        Index("ix_favorites_user", "user_id", "created_at"),
+    )
+
+
+class SavedTrip(Base):
+    """Збережена поїздка (модуль 8c): запит з обраним рейсом і житлом + знімок цін на момент
+    збереження (JSON, перевірений моделями `SavedTripBody`). Ціни знімка — історичні."""
+
+    __tablename__ = "saved_trips"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(32))
+    title: Mapped[str] = mapped_column(String(120))
+    query: Mapped[str] = mapped_column(Text)
+    snapshot: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_saved_trips_user", "user_id", "updated_at"),)
 
 
 class OutboundClick(Base):

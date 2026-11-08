@@ -4,3 +4,4 @@ playwright-report
 test-results
 src/components/ui
 next-env.d.ts
+public/maplibre

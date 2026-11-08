@@ -372,3 +372,177 @@ test("картка: позначки, деталі маршруту, порів�
   await table.getByRole("button", { name: "Прибрати з порівняння" }).first().click();
   await expect(page.getByTestId("compare-bar")).toContainText("2 з 3");
 });
+
+test("карта житла: режим «Карта», маркери з цінами, коротка картка, список поруч", async ({
+  page,
+}) => {
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  await page.getByRole("link", { name: "Карта" }).click();
+  await expect(page).toHaveURL(/view=map/);
+
+  const markers = page.getByTestId("stay-marker");
+  await expect(markers.first()).toBeVisible({ timeout: 15_000 });
+  expect(await markers.count()).toBe(19); // у mock координати є в усіх
+  await markers.first().click();
+  await expect(page.getByTestId("stay-map-card")).toContainText("€");
+
+  // Широкий екран — компактний список поруч; «На карті» вибирає об'єкт.
+  await page.getByTestId("stay-map-list").getByRole("button", { name: "На карті" }).nth(2).click();
+  await expect(page.getByTestId("stay-map-card")).toBeVisible();
+});
+
+test("житло: детальніше, порівняння цін продавців, обране, додати до поїздки", async ({ page }) => {
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  const card = page
+    .getByTestId("stay-card")
+    .filter({ has: page.getByTestId("stay-sellers") })
+    .first();
+  await expect(card).toBeVisible();
+
+  await card.getByTestId("stay-details-toggle").click();
+  await expect(card.getByTestId("stay-details")).toContainText("До центру");
+
+  await card.getByTestId("stay-rates-toggle").click();
+  await expect(card.getByTestId("stay-rates")).toBeVisible();
+  expect(await card.getByTestId("stay-room").count()).toBeGreaterThan(1);
+  // Перший продавець базового номера — рівно ціна з картки.
+  const total = await card.getByTestId("stay-total").innerText();
+  const firstFinal = await card.getByTestId("stay-rate-final").first().innerText();
+  expect(total).toContain(firstFinal.replace(/\s/g, " ").trim().split(" ")[0]);
+
+  const name = await card.getByTestId("stay-name").innerText();
+  await card.getByTestId("favorite-toggle").click();
+  await expect(card.getByTestId("favorite-toggle")).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("banner").getByRole("link", { name: "Обране" }).click();
+  await expect(page.getByTestId("favorite-item")).toContainText(name);
+  await expect(page.getByTestId("favorite-item")).toContainText("ціна на");
+  await page.getByTestId("favorite-remove").click();
+  await expect(page.getByTestId("favorites-empty")).toBeVisible();
+
+  await page.goBack();
+  const again = page.getByTestId("stay-card").filter({ hasText: name }).first();
+  await again.getByTestId("stay-add-to-trip").click();
+  await expect(page).toHaveURL(/\/trip\?.*stay=mock/);
+  await expect(page.getByTestId("trip-pinned-stay")).toBeVisible();
+  await expect(page.getByText("Вкажіть місто вильоту")).toBeVisible();
+});
+
+test("поїздка 8a: гнучкий період і тривалість, побажання, сценарії й бюджет за статусами", async ({
+  page,
+}) => {
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05");
+  await page.getByText("Гнучкі дати, побажання й власні витрати").click();
+  await page.getByLabel("Ночей від").selectOption("3");
+  await page.getByLabel("до", { exact: true }).selectOption("4");
+  await page.getByLabel("Багаж").selectOption("carry_on");
+  await page.getByLabel("Рейтинг від").selectOption("8");
+  await page.getByLabel("Назва").first().fill("Музей");
+  await page.getByLabel("Сума, €").first().fill("40");
+  await page.getByRole("button", { name: "Скласти поїздку" }).click();
+
+  await expect(page).toHaveURL(/nmin=3&nmax=4/);
+  const picks = page.locator(
+    'section[aria-labelledby="trip-picks-title"] [data-testid="trip-card"]',
+  );
+  await expect(picks.first()).toBeVisible({ timeout: 15_000 });
+  const labels = await picks.evaluateAll((cards) => cards.map((c) => c.getAttribute("data-label")));
+  expect(new Set(labels).size).toBe(labels.length); // сценарії не дублюються
+  const breakdown = picks.first().getByTestId("trip-breakdown");
+  await expect(breakdown).toContainText("Квитки");
+  await expect(breakdown).toContainText("Багаж");
+  await expect(breakdown).toContainText("Музей");
+  await expect(breakdown).toContainText("Орієнтовно");
+  await expect(picks.first().getByTestId("trip-dates")).toContainText("→ заїзд");
+  // Форма зберегла умови: розкрита, зі значеннями з URL.
+  await expect(page.getByLabel("Рейтинг від")).toHaveValue("8");
+});
+
+test("поїздка 8b: обрати, замінити житло й рейс, повернути, знайти дешевше", async ({ page }) => {
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+  await page.getByTestId("trip-choose").first().click();
+  const builder = page.getByTestId("trip-builder");
+  await expect(builder).toBeVisible({ timeout: 15_000 });
+  await expect(page).toHaveURL(/flight=.*stay=|stay=.*flight=/);
+  const chosen = new URL(page.url()).searchParams;
+
+  // Замінити житло: рейс лишається, сума перераховується.
+  await builder.getByTestId("trip-stay-options").locator("summary").click();
+  await builder.getByTestId("trip-stay-options").getByTestId("trip-option").first().click();
+  await expect(page).not.toHaveURL(new RegExp(`stay=${encodeURIComponent(chosen.get("stay")!)}`));
+  expect(new URL(page.url()).searchParams.get("flight")).toBe(chosen.get("flight"));
+  await expect(page.getByTestId("trip-builder")).toBeVisible();
+
+  // Повернути попередній вибір.
+  await page.getByTestId("trip-undo").click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("stay")).toBe(chosen.get("stay"));
+
+  // Замінити рейс: обране житло передаємо далі (сервер перевірить його на нові дати).
+  await page.getByTestId("trip-flight-options").locator("summary").click();
+  await page.getByTestId("trip-flight-options").getByTestId("trip-option").first().click();
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("flight"))
+    .not.toBe(chosen.get("flight"));
+  expect(new URL(page.url()).searchParams.get("stay")).toBe(chosen.get("stay"));
+
+  // Знайти дешевший варіант: було/стало або чесне «не знайшлося».
+  await page.getByTestId("trip-cheaper").click();
+  const result = page.getByTestId("trip-cheaper-result");
+  await expect(result).toBeVisible({ timeout: 20_000 });
+  await expect(result).toContainText(/Перевірено/);
+  const apply = page.getByTestId("trip-cheaper-apply");
+  if (await apply.isVisible()) {
+    await apply.click();
+    await expect(page.getByTestId("trip-builder")).toBeVisible();
+    await expect(page.getByTestId("trip-builder-notice")).toHaveCount(0);
+  }
+});
+
+test("поїздка 8c: порівняння, зберегти, мої поїздки, оновити ціни, копія, редагувати, видалити", async ({
+  page,
+}) => {
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+  const picks = page.locator(
+    'section[aria-labelledby="trip-picks-title"] [data-testid="trip-card"]',
+  );
+  await expect(picks.first()).toBeVisible({ timeout: 15_000 });
+  test.skip((await picks.count()) < 2, "mock дав один сценарій");
+  await picks.nth(0).getByTestId("trip-compare-toggle").click();
+  await picks.nth(1).getByTestId("trip-compare-toggle").click();
+  await page.getByTestId("trip-compare-open").click();
+  const table = page.getByTestId("trip-compare-table");
+  await expect(table).toContainText("Загальний бюджет");
+  await expect(table).toContainText("Тривалість подорожі");
+  await page.keyboard.press("Escape");
+  await page.getByTestId("trip-compare-bar").getByRole("button", { name: "Очистити" }).click();
+
+  await picks.first().getByTestId("trip-choose").click();
+  await expect(page.getByTestId("trip-builder")).toBeVisible();
+  await page.getByTestId("trip-save").click();
+  await expect(page.getByTestId("trip-save")).toContainText("Збережено");
+  await page.getByRole("link", { name: "Мої поїздки" }).first().click();
+
+  const trips = page.getByTestId("saved-trip");
+  await expect(trips).toHaveCount(1);
+  await expect(trips.first()).toContainText("сума на");
+  await trips.first().getByTestId("saved-trip-refresh").click();
+  await expect(page.getByTestId("saved-trip-refreshed")).toContainText("Зараз:");
+  await trips.first().getByTestId("saved-trip-copy").click();
+  await expect(trips).toHaveCount(2);
+
+  // Редагувати: зміна житла лишається в режимі редагування, «Зберегти зміни» — без нової.
+  await trips.first().getByTestId("saved-trip-open").click();
+  await expect(page).toHaveURL(/saved=/);
+  await expect(page.getByTestId("trip-save")).toContainText("Зберегти зміни");
+  await page.getByTestId("trip-stay-options").locator("summary").click();
+  await page.getByTestId("trip-stay-options").getByTestId("trip-option").first().click();
+  await expect(page).toHaveURL(/saved=/);
+  await expect(page.getByTestId("trip-save")).toContainText("Зберегти зміни");
+  await page.getByTestId("trip-save").click();
+  await expect(page.getByTestId("trip-save")).toContainText("Збережено");
+  await page.goto("/trips");
+  await expect(trips).toHaveCount(2);
+
+  await trips.first().getByTestId("saved-trip-delete").click();
+  await trips.first().getByTestId("saved-trip-delete-yes").click();
+  await expect(trips).toHaveCount(1);
+});

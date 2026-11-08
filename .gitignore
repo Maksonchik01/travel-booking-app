@@ -28,3 +28,6 @@ next-env.d.ts
 .DS_Store
 .idea/
 .vscode/
+
+# воркер MapLibre — копія з node_modules (apps/web/scripts/copy-maplibre-worker.mjs)
+/apps/web/public/maplibre/

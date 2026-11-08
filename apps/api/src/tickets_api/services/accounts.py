@@ -30,7 +30,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from tickets_api.auth.google import GoogleAuthError, GoogleOAuth, GoogleProfile, new_pkce
 from tickets_api.auth.passwords import hash_password, verify_password
-from tickets_api.db.models import Alert, AlertEvent, AuthToken, SearchEntry, User, UserSession
+from tickets_api.db.models import (
+    Alert,
+    AlertEvent,
+    AuthToken,
+    Favorite,
+    SavedTrip,
+    SearchEntry,
+    User,
+    UserSession,
+)
 from tickets_api.domain.accounts import (
     Account,
     AccountAlert,
@@ -41,6 +50,19 @@ from tickets_api.domain.accounts import (
     SessionOut,
     clean_flight_filters,
 )
+from tickets_api.domain.favorites import (
+    MAX_FAVORITES,
+    FavoriteBody,
+    FavoriteOut,
+    FavoriteStay,
+)
+from tickets_api.domain.saved_trips import (
+    MAX_SAVED_TRIPS,
+    SavedTripBody,
+    SavedTripOut,
+    TripSnapshot,
+)
+from tickets_api.domain.trips import TripQuery
 from tickets_api.notifications.mail import Mailer, MailError
 
 log = structlog.get_logger(__name__)
@@ -444,7 +466,7 @@ class AccountService:
             ).all()
             await session.execute(delete(AlertEvent).where(AlertEvent.alert_id.in_(alert_ids)))
             await session.execute(delete(Alert).where(Alert.user_id == user.id))
-            for model in (SearchEntry, AuthToken, UserSession):
+            for model in (SearchEntry, Favorite, SavedTrip, AuthToken, UserSession):
                 await session.execute(delete(model).where(model.user_id == user.id))
             await session.execute(delete(User).where(User.id == user.id))
         log.info("account.deleted")
@@ -539,6 +561,123 @@ class AccountService:
                 )
             )
 
+    # --- обране (модуль 7) ----------------------------------------------------------------
+
+    async def favorites(self, user: User) -> list[FavoriteOut]:
+        async with self._sessionmaker() as session:
+            rows = (
+                await session.scalars(
+                    select(Favorite)
+                    .where(Favorite.user_id == user.id)
+                    .order_by(Favorite.created_at.desc())
+                    .limit(MAX_FAVORITES)
+                )
+            ).all()
+        return [_favorite_out(r) for r in rows]
+
+    async def add_favorites(self, user: User, items: list[FavoriteBody]) -> list[FavoriteOut]:
+        """Додає нові (той самий об'єкт на ті самі дати — не дублюється); понад ліміт —
+        `limit_reached`, нічого не записавши."""
+        now = self._clock()
+        async with self._sessionmaker() as session, session.begin():
+            existing = {
+                (kind, key)
+                for kind, key in (
+                    await session.execute(
+                        select(Favorite.kind, Favorite.item_key).where(Favorite.user_id == user.id)
+                    )
+                ).all()
+            }
+            fresh: dict[tuple[str, str], FavoriteBody] = {}
+            for item in items:
+                pair = (item.kind, item.stay.item_key)
+                if pair not in existing:
+                    fresh.setdefault(pair, item)
+            if len(existing) + len(fresh) > MAX_FAVORITES:
+                raise AccountError("limit_reached")
+            for (kind, key), item in fresh.items():
+                session.add(
+                    Favorite(
+                        id=uuid.uuid4().hex,
+                        user_id=user.id,
+                        kind=kind,
+                        item_key=key,
+                        data=item.stay.model_dump_json(),
+                        created_at=now,
+                    )
+                )
+        return await self.favorites(user)
+
+    async def delete_favorite(self, user: User, item_key: str) -> None:
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                delete(Favorite).where(Favorite.user_id == user.id, Favorite.item_key == item_key)
+            )
+
+    # --- збережені поїздки (модуль 8c) ---------------------------------------------------
+
+    async def saved_trips(self, user: User) -> list[SavedTripOut]:
+        async with self._sessionmaker() as session:
+            rows = (
+                await session.scalars(
+                    select(SavedTrip)
+                    .where(SavedTrip.user_id == user.id)
+                    .order_by(SavedTrip.updated_at.desc())
+                    .limit(MAX_SAVED_TRIPS)
+                )
+            ).all()
+        return [_trip_out(r) for r in rows]
+
+    async def save_trips(self, user: User, items: list[SavedTripBody]) -> list[SavedTripOut]:
+        """Нові збережені поїздки (і «Створити копію», і перенесення з браузера). Понад
+        ліміт — `limit_reached`, нічого не записавши."""
+        now = self._clock()
+        async with self._sessionmaker() as session, session.begin():
+            count = await session.scalar(select(func.count()).where(SavedTrip.user_id == user.id))
+            if (count or 0) + len(items) > MAX_SAVED_TRIPS:
+                raise AccountError("limit_reached")
+            rows = [
+                SavedTrip(
+                    id=uuid.uuid4().hex,
+                    user_id=user.id,
+                    title=item.title,
+                    query=item.query.model_dump_json(),
+                    snapshot=item.snapshot.model_dump_json(),
+                    created_at=now,
+                    updated_at=now,
+                )
+                for item in items
+            ]
+            session.add_all(rows)
+        return [_trip_out(r) for r in rows]
+
+    async def update_trip(self, user: User, trip_id: str, body: SavedTripBody) -> SavedTripOut:
+        """«Редагувати»: нова назва, конфігурація й знімок тієї самої поїздки."""
+        async with self._sessionmaker() as session, session.begin():
+            row = await session.get(SavedTrip, trip_id)
+            if row is None or row.user_id != user.id:
+                raise AccountError("not_found")
+            row.title = body.title
+            row.query = body.query.model_dump_json()
+            row.snapshot = body.snapshot.model_dump_json()
+            row.updated_at = self._clock()
+            return _trip_out(row)
+
+    async def rename_trip(self, user: User, trip_id: str, title: str) -> SavedTripOut:
+        async with self._sessionmaker() as session, session.begin():
+            row = await session.get(SavedTrip, trip_id)
+            if row is None or row.user_id != user.id:
+                raise AccountError("not_found")
+            row.title = title
+            row.updated_at = self._clock()
+            return _trip_out(row)
+
+    async def delete_trip(self, user: User, trip_id: str) -> None:
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                delete(SavedTrip).where(SavedTrip.id == trip_id, SavedTrip.user_id == user.id)
+            )
+
     async def alerts(self, user: User) -> list[AccountAlert]:
         async with self._sessionmaker() as session:
             rows = (
@@ -627,6 +766,27 @@ def _entry(user: User, body: SearchEntryBody, now: datetime, *, saved: bool) -> 
 
 def _entry_out(entry: SearchEntry) -> SearchEntryOut:
     return SearchEntryOut.model_validate(entry, from_attributes=True)
+
+
+def _trip_out(row: SavedTrip) -> SavedTripOut:
+    return SavedTripOut(
+        id=row.id,
+        title=row.title,
+        query=TripQuery.model_validate_json(row.query),
+        snapshot=TripSnapshot.model_validate_json(row.snapshot),
+        created_at=_aware(row.created_at),
+        updated_at=_aware(row.updated_at),
+    )
+
+
+def _favorite_out(row: Favorite) -> FavoriteOut:
+    return FavoriteOut(
+        id=row.id,
+        kind="stay",
+        item_key=row.item_key,
+        stay=FavoriteStay.model_validate_json(row.data),
+        created_at=_aware(row.created_at),
+    )
 
 
 def _columns(alert: Alert) -> dict[str, object]:

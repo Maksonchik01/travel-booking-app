@@ -1,4 +1,4 @@
-import { PlaneTakeoff } from "lucide-react";
+import { Heart, Luggage, PlaneTakeoff } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
@@ -42,6 +42,23 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
           ))}
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          {/* На телефоні місця для розділів замало — «Обране» й «Мої поїздки» там у футері. */}
+          <Link
+            href="/trips"
+            aria-label={t("trips")}
+            title={t("trips")}
+            className="text-muted-foreground hover:text-foreground hover:bg-muted hidden size-9 place-items-center rounded-lg transition-colors sm:grid"
+          >
+            <Luggage className="size-4" aria-hidden />
+          </Link>
+          <Link
+            href="/favorites"
+            aria-label={t("favorites")}
+            title={t("favorites")}
+            className="text-muted-foreground hover:text-foreground hover:bg-muted hidden size-9 place-items-center rounded-lg transition-colors sm:grid"
+          >
+            <Heart className="size-4" aria-hidden />
+          </Link>
           <ThemeToggle />
           {/* Сесія читається під час запиту — окремо від статичної шапки. */}
           <Suspense fallback={<span className="bg-muted h-9 w-20 animate-pulse rounded-lg" />}>
