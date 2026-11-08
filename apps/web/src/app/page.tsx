@@ -13,6 +13,7 @@ import { OfferCard } from "@/components/offer-card";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
 import { PriceAlert } from "@/components/price-alert";
+import { CompareBar, CompareProvider, CompareToggle } from "@/components/compare";
 import { DateOptions } from "@/components/date-options";
 import { PriceCalendar } from "@/components/price-calendar";
 import { PriceMatrix } from "@/components/price-matrix";
@@ -232,150 +233,162 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const groupRows = (key: string): Offer[] =>
     (groupOf.get(key) ?? [key]).flatMap((k) => byKey.get(k) ?? []);
   const pickLabels = new Map<string, PickLabel>(scoring.picks.map((p) => [p.offer_key, p.label]));
+  const pickAlso = new Map<string, PickLabel[]>(
+    scoring.picks.map((p) => [p.offer_key, p.also ?? []]),
+  );
   const airlineNames = Object.fromEntries(facets.airlines.map((a) => [a.code, a.name]));
   const filtered = hasFilters(query.filters);
   const withoutFilters = toSearchParams({ ...state, query: { ...query, filters: {} } });
   return (
-    <div className="animate-in fade-in-0 grid gap-6 duration-300">
-      {/* 1. Що шукали й скільки знайшли — і як упорядкувати. */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="grid gap-0.5">
-          <h2
-            aria-label={t("title", { from: query.origin, to: query.destination })}
-            className="flex items-center gap-2 text-2xl font-bold tracking-tight"
-          >
-            {query.origin}
-            <Plane className="text-primary size-5" aria-hidden />
-            {query.destination}
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            {filtered
-              ? t("countFiltered", { count: offers.length, total: facets.total_offers })
-              : t("count", { count: offers.length })}
-            {query.origin_radius_km || query.destination_radius_km ? ` · ${t("withNearby")}` : null}
-          </p>
+    <CompareProvider>
+      <div className="animate-in fade-in-0 grid gap-6 pb-16 duration-300">
+        {/* 1. Що шукали й скільки знайшли — і як упорядкувати. */}
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="grid gap-0.5">
+            <h2
+              aria-label={t("title", { from: query.origin, to: query.destination })}
+              className="flex items-center gap-2 text-2xl font-bold tracking-tight"
+            >
+              {query.origin}
+              <Plane className="text-primary size-5" aria-hidden />
+              {query.destination}
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {filtered
+                ? t("countFiltered", { count: offers.length, total: facets.total_offers })
+                : t("count", { count: offers.length })}
+              {query.origin_radius_km || query.destination_radius_km
+                ? ` · ${t("withNearby")}`
+                : null}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <SaveSearch
+              kind="flights"
+              params={historyParams}
+              title={historyTitle}
+              back={`/?${historyParams}`}
+            />
+            <SortToggle state={state} />
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <SaveSearch
-            kind="flights"
-            params={historyParams}
-            title={historyTitle}
-            back={`/?${historyParams}`}
-          />
-          <SortToggle state={state} />
-        </div>
-      </div>
 
-      {/* Підписка на ціну маршруту (етап 7): поріг пропонуємо від найкращої ціни. Перевірки
+        {/* Підписка на ціну маршруту (етап 7): поріг пропонуємо від найкращої ціни. Перевірки
           йдуть за кешованими цінами одного дорослого в економі (ADR 0010, 0013), тож для дітей
           чи іншого класу підписку не пропонуємо, а ціну дорослих ділимо на дорослого. */}
-      {alertChannels && alertable(query) && (
-        <PriceAlert
-          query={query}
-          bestPrice={
-            result.data.offers[0]
-              ? Math.round(result.data.offers[0].price / (query.passengers?.adults ?? 1))
-              : null
-          }
-          channels={alertChannels}
-        />
-      )}
-
-      {/* 2. Проблеми з джерелами — до результатів, щоб було ясно, чому їх мало. */}
-      <ProviderAlerts providers={result.data.providers} />
-
-      {/* 3. Гнучкі дати: найкраща ціна на кожну пару дат (модуль 2a). */}
-      <DateOptions options={result.data.date_options ?? []} state={state} now={now} />
-
-      {/* 4. Сусідні дати — підказка, коли дешевше. */}
-      {matrix?.ok && <PriceMatrix matrix={matrix.data} state={state} />}
-      {calendar.ok ? (
-        <PriceCalendar
-          month={month}
-          days={calendar.data.days}
-          state={state}
-          now={now}
-          verified={verifiedDays(query, result.data)}
-        />
-      ) : (
-        !calendar.ok && (
-          <p className="text-muted-foreground text-sm">
-            {(await getTranslations("calendar"))("unavailable")}
-          </p>
-        )
-      )}
-
-      {/* 4. Фільтри збоку, справа — вибір, пояснення і весь список. */}
-      <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
-        {facets.total_offers > 0 && (
-          <ResultFilters
-            key={toSearchParams(state).toString()}
-            filters={query.filters ?? {}}
-            airlines={facets.airlines}
-            baseParams={[...withoutFilters]}
-            roundTrip={!!query.return_date}
-            currency={query.currency ?? "EUR"}
+        {alertChannels && alertable(query) && (
+          <PriceAlert
+            query={query}
+            bestPrice={
+              result.data.offers[0]
+                ? Math.round(result.data.offers[0].price / (query.passengers?.adults ?? 1))
+                : null
+            }
+            channels={alertChannels}
           />
         )}
 
-        <div className="grid gap-6 lg:col-start-2">
-          <TopPicks scoring={scoring} offers={result.data.offers} />
+        {/* 2. Проблеми з джерелами — до результатів, щоб було ясно, чому їх мало. */}
+        <ProviderAlerts providers={result.data.providers} />
 
-          {offers.length > 0 && (
-            <Suspense key={toSearchParams(state).toString()} fallback={<ExplanationSkeleton />}>
-              <ExplanationIfEnabled state={state} />
-            </Suspense>
-          )}
+        {/* 3. Гнучкі дати: найкраща ціна на кожну пару дат (модуль 2a). */}
+        <DateOptions options={result.data.date_options ?? []} state={state} now={now} />
 
-          <p className="bg-accent/60 text-accent-foreground flex items-start gap-2 rounded-lg px-3 py-2 text-xs">
-            <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-            {offers.length > 0 && offers.every(isLivePrice) ? t("liveNote") : t("cachedNote")}
-          </p>
+        {/* 4. Сусідні дати — підказка, коли дешевше. */}
+        {matrix?.ok && <PriceMatrix matrix={matrix.data} state={state} />}
+        {calendar.ok ? (
+          <PriceCalendar
+            month={month}
+            days={calendar.data.days}
+            state={state}
+            now={now}
+            verified={verifiedDays(query, result.data)}
+          />
+        ) : (
+          !calendar.ok && (
+            <p className="text-muted-foreground text-sm">
+              {(await getTranslations("calendar"))("unavailable")}
+            </p>
+          )
+        )}
 
-          {offers.length === 0 ? (
-            filtered && facets.total_offers > 0 ? (
-              <Notice>
-                {t("filteredEmpty", { total: facets.total_offers })}{" "}
-                <Link href={`/?${withoutFilters}`} className="text-primary font-medium underline">
-                  {t("resetFilters")}
-                </Link>
-              </Notice>
-            ) : (
-              <Notice>{t("empty")}</Notice>
-            )
-          ) : (
-            <ShowMore
-              items={offers.filter(isGroupLead).map((offer) => {
-                const key = `${offer.source}:${offer.id}`;
-                return {
-                  key: offerAnchor(key),
-                  node: (
-                    <OfferCard
-                      offer={offer}
-                      now={now}
-                      pickLabel={pickLabels.get(key)}
-                      score={scores.get(key)}
-                      airlineNames={airlineNames}
-                      travellers={passengerTotal(state.query.passengers)}
-                      baggageCost={result.data.baggage?.[key]}
-                      baggageNeed={state.query.baggage ?? "none"}
-                      sellers={
-                        <SellerOffers
-                          offer={offer}
-                          rows={groupRows(key)}
-                          query={state.query}
-                          now={now.toISOString()}
-                        />
-                      }
-                    />
-                  ),
-                };
-              })}
+        {/* 4. Фільтри збоку, справа — вибір, пояснення і весь список. */}
+        <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
+          {facets.total_offers > 0 && (
+            <ResultFilters
+              key={toSearchParams(state).toString()}
+              filters={query.filters ?? {}}
+              airlines={facets.airlines}
+              baseParams={[...withoutFilters]}
+              roundTrip={!!query.return_date}
+              currency={query.currency ?? "EUR"}
             />
           )}
+
+          <div className="grid gap-6 lg:col-start-2">
+            <TopPicks scoring={scoring} offers={result.data.offers} />
+
+            {offers.length > 0 && (
+              <Suspense key={toSearchParams(state).toString()} fallback={<ExplanationSkeleton />}>
+                <ExplanationIfEnabled state={state} />
+              </Suspense>
+            )}
+
+            <p className="bg-accent/60 text-accent-foreground flex items-start gap-2 rounded-lg px-3 py-2 text-xs">
+              <Info className="mt-px size-3.5 shrink-0" aria-hidden />
+              {offers.length > 0 && offers.every(isLivePrice) ? t("liveNote") : t("cachedNote")}
+            </p>
+
+            {offers.length === 0 ? (
+              filtered && facets.total_offers > 0 ? (
+                <Notice>
+                  {t("filteredEmpty", { total: facets.total_offers })}{" "}
+                  <Link href={`/?${withoutFilters}`} className="text-primary font-medium underline">
+                    {t("resetFilters")}
+                  </Link>
+                </Notice>
+              ) : (
+                <Notice>{t("empty")}</Notice>
+              )
+            ) : (
+              <ShowMore
+                items={offers.filter(isGroupLead).map((offer) => {
+                  const key = `${offer.source}:${offer.id}`;
+                  return {
+                    key: offerAnchor(key),
+                    node: (
+                      <OfferCard
+                        offer={offer}
+                        now={now}
+                        pickLabel={pickLabels.get(key)}
+                        pickAlso={pickAlso.get(key)}
+                        sellerCount={groupRows(key).length}
+                        compare={<CompareToggle offer={offer} />}
+                        score={scores.get(key)}
+                        airlineNames={airlineNames}
+                        travellers={passengerTotal(state.query.passengers)}
+                        baggageCost={result.data.baggage?.[key]}
+                        baggageNeed={state.query.baggage ?? "none"}
+                        sellers={
+                          <SellerOffers
+                            offer={offer}
+                            rows={groupRows(key)}
+                            query={state.query}
+                            now={now.toISOString()}
+                          />
+                        }
+                      />
+                    ),
+                  };
+                })}
+              />
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      {/* Порівняння до трьох варіантів (модуль 4.2): панель унизу й таблиця. */}
+      <CompareBar airlineNames={airlineNames} />
+    </CompareProvider>
   );
 }
 

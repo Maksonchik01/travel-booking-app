@@ -11,8 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDays } from "@/lib/search-params";
-import { MAX_NIGHTS, nightsBetween, STAY_PROFILES, type StayState } from "@/lib/stay-params";
+import {
+  MAX_NIGHTS,
+  MAX_ROOMS,
+  nightsBetween,
+  STAY_PROFILES,
+  type StayState,
+} from "@/lib/stay-params";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
+import { cn } from "@/lib/utils";
 
 /** Пошук житла: місто, дати, гості, що важливіше. Звичайна GET-форма — працює й без JS. */
 export function StaySearchForm({ initial }: { initial: StayState | null }) {
@@ -22,6 +29,7 @@ export function StaySearchForm({ initial }: { initial: StayState | null }) {
   const [checkIn, setCheckIn] = useState(q?.check_in ?? "");
   const [checkOut, setCheckOut] = useState(q?.check_out ?? "");
   const nights = checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 0;
+  const [children, setChildren] = useState(q?.guests?.children ?? 0);
 
   return (
     <Form action="/stays" className="grid gap-4">
@@ -92,7 +100,8 @@ export function StaySearchForm({ initial }: { initial: StayState | null }) {
           <select
             id="children"
             name="children"
-            defaultValue={q?.guests?.children ?? 0}
+            value={children}
+            onChange={(e) => setChildren(Number(e.target.value))}
             className={SELECT_CLASS}
           >
             {Array.from({ length: 9 }, (_, i) => i).map((n) => (
@@ -102,7 +111,51 @@ export function StaySearchForm({ initial }: { initial: StayState | null }) {
             ))}
           </select>
         </Field>
+        <Field label={t("rooms")} htmlFor="rooms">
+          <select
+            id="rooms"
+            name="rooms"
+            defaultValue={q?.guests?.rooms ?? 1}
+            className={SELECT_CLASS}
+          >
+            {Array.from({ length: MAX_ROOMS }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </Field>
       </div>
+
+      {children > 0 && (
+        <fieldset className="grid gap-2" data-testid="children-ages">
+          <legend className="text-muted-foreground mb-1.5 text-xs font-medium">
+            {t("childrenAges")}
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {Array.from({ length: children }, (_, i) => (
+              <select
+                key={i}
+                name="ages"
+                aria-label={t("childAge", { n: i + 1 })}
+                defaultValue={q?.guests?.children_ages?.[i] ?? ""}
+                className={cn(SELECT_CLASS, "w-28")}
+                required
+              >
+                <option value="" disabled>
+                  {t("childAge", { n: i + 1 })}
+                </option>
+                {Array.from({ length: 18 }, (_, age) => (
+                  <option key={age} value={age}>
+                    {t("age", { count: age })}
+                  </option>
+                ))}
+              </select>
+            ))}
+          </div>
+          <p className="text-muted-foreground text-xs">{t("childrenAgesHint")}</p>
+        </fieldset>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <fieldset className="flex items-center gap-2 text-sm">

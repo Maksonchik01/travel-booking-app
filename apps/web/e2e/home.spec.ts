@@ -114,18 +114,18 @@ test("розмова з ШІ-помічником: питання → відпо
 test("житло: пошук → наш вибір → фільтр → резюме відгуків", async ({ page }) => {
   await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
 
-  // Mock-провайдер житла: 18 варіантів, показуємо по 10.
+  // Mock-провайдер житла: 19 варіантів, показуємо по 10.
   // Приховані «Показати ще» картки теж у DOM — рахуємо лише видимі.
   const cards = page.locator('[data-testid="stay-card"]:visible');
   await expect(cards).toHaveCount(10);
   await expect(page.getByRole("heading", { name: "Лісабон" })).toBeVisible();
   await expect(page.getByTestId("stay-price").first()).toContainText("€");
   await expect(page.locator('[data-testid="stay-top-pick"][data-label="balanced"]')).toHaveCount(1);
-  await page.getByRole("button", { name: /Показати ще 8/ }).click();
-  await expect(cards).toHaveCount(18);
+  await page.getByRole("button", { name: /Показати ще 9/ }).click();
+  await expect(cards).toHaveCount(19);
 
   // Фільтр — лише безкоштовне скасування; маршрут і дати не губляться.
-  await page.getByRole("checkbox", { name: "Лише безкоштовне" }).check();
+  await page.getByRole("checkbox", { name: "Безкоштовне скасування" }).check();
   await expect(page).toHaveURL(/cancel=1/);
   await expect(page).toHaveURL(/city=LIS/);
   await expect(cards.first()).toContainText("Безкоштовне скасування");
@@ -351,4 +351,24 @@ test("матриця туди-назад і календар: гортання �
   await cells.first().click();
   await expect(page).not.toHaveURL(/depart=2026-12-05&return=2026-12-12/);
   await expect(page.getByTestId("offer-card").first()).toBeVisible();
+});
+
+test("картка: позначки, деталі маршруту, порівняння трьох варіантів", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05");
+  const cards = page.getByTestId("offer-card");
+  await expect(cards.first()).toBeVisible();
+  await expect(page.getByTestId("offer-badges").first()).toBeVisible();
+
+  await cards.first().getByText("Деталі маршруту").click();
+  await expect(cards.first().getByTestId("segment").first()).toBeVisible();
+  await page.screenshot({ path: "test-results/card.png", fullPage: true });
+
+  for (const i of [0, 1, 2]) await cards.nth(i).getByTestId("compare-toggle").click();
+  await expect(cards.nth(3).getByTestId("compare-toggle")).toBeDisabled();
+  await page.getByTestId("compare-bar").getByRole("button", { name: "Порівняти" }).click();
+  const table = page.getByTestId("compare-table");
+  await expect(table).toBeVisible();
+  await expect(table.getByRole("columnheader")).toHaveCount(4);
+  await table.getByRole("button", { name: "Прибрати з порівняння" }).first().click();
+  await expect(page.getByTestId("compare-bar")).toContainText("2 з 3");
 });

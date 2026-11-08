@@ -57,6 +57,7 @@ const STAY: Stay = {
   total_price: 231,
   currency: "EUR",
   nights: 3,
+  rooms: 1,
   rating: 8.7,
   review_count: 480,
   latitude: null,

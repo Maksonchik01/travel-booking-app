@@ -150,4 +150,70 @@ describe("OfferCard", () => {
     rerender(card(base, { status: "unknown", extra: null, total: null, unknown: ["checked"] }));
     expect(screen.getByTestId("baggage-total")).toHaveTextContent("уточніть у продавця");
   });
+
+  it("позначки лише з реальних параметрів і кілька виборів скорингу", () => {
+    renderCard(base); // 2 пересадки на окремих квитках
+    const badges = screen.getByTestId("offer-badges");
+    expect(badges).toHaveTextContent("Самостійна пересадка");
+    expect(badges).not.toHaveTextContent("Прямий рейс");
+
+    const direct: Offer = {
+      ...base,
+      outbound: { ...base.outbound, stops: 0, layovers: [] },
+      stops: 0,
+    };
+    render(
+      <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
+        <OfferCard
+          offer={direct}
+          now={NOW}
+          pickLabel="cheapest"
+          pickAlso={["fastest", "balanced"]}
+        />
+      </NextIntlClientProvider>,
+    );
+    const [, second] = screen.getAllByTestId("offer-badges");
+    expect(second).toHaveTextContent("НайдешевшийНайшвидшийОптимальнийПрямий рейс");
+    expect(second).not.toHaveTextContent("Самостійна");
+  });
+
+  it("деталі маршруту: сегменти, очікування, зміна аеропорту, повторна реєстрація багажу", () => {
+    const seg = (o: string, d: string, dep: string, arr: string, n: string) => ({
+      origin: o,
+      destination: d,
+      departure_at: dep,
+      arrival_at: arr,
+      carrier: "FR",
+      flight_number: n,
+      duration_min: 120,
+    });
+    renderCard({
+      ...base,
+      outbound: {
+        ...base.outbound,
+        stops: 1,
+        segments: [
+          seg("WAW", "STN", "2026-11-10T06:00:00+01:00", "2026-11-10T07:30:00+00:00", "FR1"),
+          seg("LTN", "LIS", "2026-11-10T12:00:00+00:00", "2026-11-10T14:40:00+00:00", "W62"),
+        ],
+        layovers: [{ airport: "STN", duration_min: 270, overnight: false, self_transfer: true }],
+      },
+      stops: 1,
+    });
+
+    const details = screen.getByTestId("route-details");
+    expect(within(details).getAllByTestId("segment")).toHaveLength(2);
+    expect(details).toHaveTextContent("WAW 06:00 · 10 лист. → STN 07:30 · 10 лист.");
+    const connection = within(details).getByTestId("connection");
+    expect(connection).toHaveTextContent("Пересадка в STN: очікування 4 год 30 хв");
+    expect(connection).toHaveTextContent("Зміна аеропорту: STN → LTN");
+    expect(connection).toHaveTextContent("багаж треба отримати й зареєструвати знову");
+  });
+
+  it("без посегментних даних — чесно «джерело не дає»", () => {
+    renderCard(base);
+    expect(screen.getByTestId("route-details")).toHaveTextContent(
+      "Посегментних даних джерело не дає",
+    );
+  });
 });

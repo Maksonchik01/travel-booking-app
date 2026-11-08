@@ -1,11 +1,41 @@
-import type { StayFilters, StayKind, StayProfile, StayQuery } from "@tickets/shared";
+import type {
+  Amenity,
+  Guests,
+  StayFilters,
+  StayKind,
+  StayProfile,
+  StayQuery,
+} from "@tickets/shared";
 
 import { addDays, type RawSearchParams } from "@/lib/search-params";
 
 export type StaySortKey = "price" | "rating" | "score";
 export const STAY_SORT_KEYS: readonly StaySortKey[] = ["price", "rating", "score"];
 export const STAY_PROFILES: readonly StayProfile[] = ["budget", "balanced", "center"];
-export const STAY_KINDS: readonly StayKind[] = ["hotel", "apartment", "guesthouse", "hostel"];
+export const STAY_KINDS: readonly StayKind[] = [
+  "hotel",
+  "apartment",
+  "guesthouse",
+  "hostel",
+  "other",
+];
+export const AMENITIES: readonly Amenity[] = [
+  "wifi",
+  "parking",
+  "air_conditioning",
+  "kitchen",
+  "pool",
+  "spa",
+  "gym",
+  "balcony",
+  "breakfast",
+  "pets",
+  "airport_shuttle",
+];
+export const MAX_ROOMS = 5;
+export const MAX_DISTANCE_OPTIONS = [1, 2, 3, 5, 10] as const;
+export const RADIUS_OPTIONS = [1, 3, 5, 10] as const;
+export const MIN_BEDS_OPTIONS = [1, 2, 3, 4, 6] as const;
 export const MIN_RATING_OPTIONS = [7, 8, 9] as const;
 export const MAX_NIGHTS = 30;
 
@@ -36,26 +66,88 @@ function isValidDate(value: string | undefined): value is string {
 }
 
 /** Фільтри з URL: биті значення відкидаємо, а не ламаємо пошук. */
+function money(value: string | undefined, max: number): number | null {
+  const n = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(n) && n > 0 && n <= max ? n : null;
+}
+
+function oneOf<T extends number>(value: string | undefined, options: readonly T[]): T | null {
+  const n = Number.parseFloat(value ?? "");
+  return options.find((o) => o === n) ?? null;
+}
+
+/** `near=38.72,-9.14` — координати точки (широта, довгота). */
+function point(value: string | undefined): { lat: number; lon: number } | null {
+  const [lat, lon] = (value ?? "").split(",").map(Number);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return { lat, lon };
+}
+
 function parseStayFilters(params: RawSearchParams): StayFilters {
-  const price = Number.parseInt(first(params.maxp) ?? "", 10);
   const rating = Number.parseInt(first(params.rating) ?? "", 10);
   const kinds = list(params.kind);
+  const amenities = list(params.am);
+  const airport = first(params.nearap)?.toUpperCase();
   return {
-    max_price_per_night: Number.isFinite(price) && price > 0 && price <= 100_000 ? price : null,
+    min_price_per_night: money(first(params.minp), 100_000),
+    max_price_per_night: money(first(params.maxp), 100_000),
+    min_total_price: money(first(params.mint), 1_000_000),
+    max_total_price: money(first(params.maxt), 1_000_000),
     min_rating: MIN_RATING_OPTIONS.find((r) => r === rating) ?? null,
     free_cancellation: first(params.cancel) === "1",
+    breakfast_included: first(params.bfast) === "1",
+    no_prepayment: first(params.noprepay) === "1",
+    pay_at_property: first(params.payprop) === "1",
     kinds: STAY_KINDS.filter((k) => kinds.includes(k)),
+    amenities: AMENITIES.filter((a) => amenities.includes(a)),
+    min_beds: oneOf(first(params.beds), MIN_BEDS_OPTIONS),
+    max_distance_center_km: oneOf(first(params.dist), MAX_DISTANCE_OPTIONS),
+    districts: list(params.district).slice(0, 20),
+    near: point(first(params.near)),
+    near_airport: airport && IATA.test(airport) ? airport : null,
+    radius_km: oneOf(first(params.radius), RADIUS_OPTIONS),
+  };
+}
+
+/** Гості: дорослі, діти з віком (`ages=3,9`, лише якщо їх стільки, скільки дітей), кімнати. */
+function parseGuests(params: RawSearchParams): Guests {
+  const adults = intInRange(first(params.adults), 1, 9, 2);
+  const children = intInRange(first(params.children), 0, 8, 0);
+  const ages = list(params.ages).map((a) => Number.parseInt(a, 10));
+  const validAges =
+    ages.length === children && ages.every((a) => Number.isInteger(a) && a >= 0 && a <= 17);
+  return {
+    adults,
+    children,
+    children_ages: validAges ? ages : [],
+    rooms: Math.min(intInRange(first(params.rooms), 1, MAX_ROOMS, 1), adults + children),
   };
 }
 
 export function stayFilterParams(filters: StayFilters | undefined): [string, string][] {
   const entries: [string, string][] = [];
   if (!filters) return entries;
-  if (filters.max_price_per_night != null)
-    entries.push(["maxp", String(filters.max_price_per_night)]);
-  if (filters.min_rating != null) entries.push(["rating", String(filters.min_rating)]);
+  const num = (key: string, value: number | null | undefined) => {
+    if (value != null) entries.push([key, String(value)]);
+  };
+  num("minp", filters.min_price_per_night);
+  num("maxp", filters.max_price_per_night);
+  num("mint", filters.min_total_price);
+  num("maxt", filters.max_total_price);
+  num("rating", filters.min_rating);
   if (filters.free_cancellation) entries.push(["cancel", "1"]);
+  if (filters.breakfast_included) entries.push(["bfast", "1"]);
+  if (filters.no_prepayment) entries.push(["noprepay", "1"]);
+  if (filters.pay_at_property) entries.push(["payprop", "1"]);
   if (filters.kinds?.length) entries.push(["kind", filters.kinds.join(",")]);
+  if (filters.amenities?.length) entries.push(["am", filters.amenities.join(",")]);
+  num("beds", filters.min_beds);
+  num("dist", filters.max_distance_center_km);
+  if (filters.districts?.length) entries.push(["district", filters.districts.join(",")]);
+  if (filters.near) entries.push(["near", `${filters.near.lat},${filters.near.lon}`]);
+  if (filters.near_airport) entries.push(["nearap", filters.near_airport]);
+  num("radius", filters.radius_km);
   return entries;
 }
 
@@ -75,10 +167,7 @@ export function parseStayParams(params: RawSearchParams): StayState | null {
       city,
       check_in: checkIn,
       check_out: checkOut,
-      guests: {
-        adults: intInRange(first(params.adults), 1, 9, 2),
-        children: intInRange(first(params.children), 0, 8, 0),
-      },
+      guests: parseGuests(params),
       currency: "EUR",
       profile: STAY_PROFILES.find((p) => p === first(params.prio)) ?? "balanced",
       filters: parseStayFilters(params),
@@ -98,6 +187,8 @@ export function toStayParams(state: StayState): URLSearchParams {
   const children = query.guests?.children ?? 0;
   if (adults !== 2) params.set("adults", String(adults));
   if (children) params.set("children", String(children));
+  if (query.guests?.children_ages?.length) params.set("ages", query.guests.children_ages.join(","));
+  if ((query.guests?.rooms ?? 1) > 1) params.set("rooms", String(query.guests?.rooms));
   if (query.profile && query.profile !== "balanced") params.set("prio", query.profile);
   if (state.sort !== "price") params.set("sort", state.sort);
   for (const [key, value] of stayFilterParams(query.filters)) params.set(key, value);

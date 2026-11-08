@@ -19,7 +19,7 @@ from tickets_api.reference.airports import AirportDirectory, default_airport_dir
 
 Clock = Callable[[], datetime]
 
-STAYS_PER_SEARCH = 18
+STAYS_PER_SEARCH = 19
 # (назва, тип, зірки, база ціни за ніч на двох у EUR)
 TEMPLATES: tuple[tuple[str, StayKind, int | None, int], ...] = (
     ("Grand Hotel Aurora", "hotel", 5, 260),
@@ -40,6 +40,7 @@ TEMPLATES: tuple[tuple[str, StayKind, int | None, int], ...] = (
     ("Harbour View Suites", "hotel", 4, 190),
     ("Quiet Corner B&B", "guesthouse", None, 65),
     ("Design Hotel Atrium", "hotel", 5, 310),
+    ("Garden Villa Retreat", "other", None, 240),
 )
 DISTRICTS = (
     "Старе місто",
@@ -60,10 +61,12 @@ AMENITIES_BY_KIND: dict[StayKind, tuple[Amenity, ...]] = {
         "air_conditioning",
         "spa",
         "airport_shuttle",
+        "balcony",
     ),
-    "apartment": ("wifi", "kitchen", "air_conditioning", "parking", "pets"),
+    "apartment": ("wifi", "kitchen", "air_conditioning", "parking", "pets", "balcony"),
     "guesthouse": ("wifi", "breakfast", "parking", "pets"),
     "hostel": ("wifi", "kitchen", "breakfast"),
+    "other": ("wifi", "kitchen", "parking", "pool", "balcony", "air_conditioning"),
 }
 # Повторювані теми відгуків: (позитив, негатив). Мінуси повторюються в кількох відгуках —
 # так аналітик має знайти «червоний прапорець» (тема в ≥ 3 відгуках).
@@ -107,14 +110,22 @@ class MockStayProvider:
         # Рівень цін міста й сезону — сталий для міста, трохи різний для дат.
         city_factor = Decimal(str(round(_rng(city.code).uniform(0.75, 1.4), 2)))
         guests = query.guests.adults + query.guests.children
-        guest_factor = Decimal(1) + Decimal("0.2") * max(0, guests - 2)
+        # Діти до 2 років (якщо вік вказано) місця не займають — ціну не збільшують.
+        infants = sum(1 for age in query.guests.children_ages if age < 2)
+        paying = guests - infants
+        rooms = query.guests.rooms
+        guest_factor = Decimal(1) + Decimal("0.2") * max(0, paying - 2 * rooms)
         stays = []
         for index, (name, kind, stars, base) in enumerate(TEMPLATES[:STAYS_PER_SEARCH]):
             # Об'єкт сталий для міста (де стоїть, рейтинг, відгуки), ціна — залежить від дат.
             place = _rng(city.code, name)
             price = _rng(city.code, name, query.check_in, query.check_out, guests)
             per_night_eur = (
-                Decimal(base) * city_factor * guest_factor * Decimal(str(price.uniform(0.85, 1.2)))
+                Decimal(base)
+                * city_factor
+                * guest_factor
+                * _rooms_factor(kind, rooms)
+                * Decimal(str(price.uniform(0.85, 1.2)))
             )
             per_night = _money(per_night_eur * rate)
             near_airport = name.startswith("Airport")
@@ -128,6 +139,13 @@ class MockStayProvider:
             )
             distance = Decimal(str(round(distance_km((city.lat, city.lon), (lat, lon)), 1)))
             reviews = _review_count(city.code, name)
+            amenities = sorted(
+                place.sample(
+                    AMENITIES_BY_KIND[kind],
+                    k=place.randint(2, len(AMENITIES_BY_KIND[kind])),
+                )
+            )
+            prepayment = place.choice(("none", "required", "required", None))
             stays.append(
                 Stay(
                     id=f"mock-{city.code.lower()}-{index}",
@@ -148,12 +166,15 @@ class MockStayProvider:
                     if place.random() < 0.15
                     else place.choice((60, 150, 300, 550, 900, 1400)),
                     cancellation=_cancellation(place),
-                    amenities=sorted(
-                        place.sample(
-                            AMENITIES_BY_KIND[kind],
-                            k=place.randint(2, len(AMENITIES_BY_KIND[kind])),
-                        )
-                    ),
+                    amenities=amenities,
+                    # Сніданок можливий, лише якщо він серед зручностей; ~10 % — невідомо.
+                    breakfast_included=None
+                    if place.random() < 0.1
+                    else ("breakfast" in amenities and place.random() < 0.7),
+                    prepayment=prepayment,
+                    pay_at_property=None if prepayment is None else prepayment == "none",
+                    beds=None if place.random() < 0.1 else _beds(kind, paying, rooms),
+                    rooms=rooms,
                     district=DISTRICTS[6]
                     if near_airport
                     else (DISTRICTS[5] if far else place.choice(DISTRICTS[:5])),
@@ -215,3 +236,17 @@ def _parse_id(stay_id: str) -> tuple[str | None, int | None]:
         return None, None
     index = int(parts[2])
     return (parts[1].upper(), index) if index < len(TEMPLATES) else (None, None)
+
+
+def _rooms_factor(kind: StayKind, rooms: int) -> Decimal:
+    """Кілька номерів — кілька цін; апартаменти більші, тож дорожчають повільніше."""
+    if kind == "apartment":
+        return Decimal(1) + Decimal("0.5") * (rooms - 1)
+    return Decimal(rooms)
+
+
+def _beds(kind: StayKind, guests: int, rooms: int) -> int:
+    """Хостел — ліжко на гостя; решта — не менше двох на номер чи на двох гостей."""
+    if kind == "hostel":
+        return max(1, guests)
+    return max(2 * rooms, (guests + 1) // 2 * 2 if kind in ("apartment", "other") else guests)

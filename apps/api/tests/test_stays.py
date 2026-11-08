@@ -54,7 +54,7 @@ async def test_mock_is_deterministic_and_consistent() -> None:
     first, second = await mock().search(QUERY), await mock().search(QUERY)
 
     assert first == second
-    assert len(first) == 18
+    assert len(first) == 19
     for stay in first:
         assert stay.total_price == stay.price_per_night * 3
         reviews = await mock().reviews(stay.id)
@@ -99,8 +99,8 @@ async def test_search_scores_filters_and_records_history() -> None:
     assert result.place.name == "Лісабон"
     assert result.stays
     assert all(s.price_per_night <= Decimal(150) and s.cancellation == "free" for s in result.stays)
-    assert len(rows) == 18  # в історію — усе отримане, не лише відфільтроване
-    assert result.facets.total_stays == 18
+    assert len(rows) == 19  # в історію — усе отримане, не лише відфільтроване
+    assert result.facets.total_stays == 19
     assert {p.label for p in result.scoring.picks} <= {"cheapest", "balanced", "top_rated"}
     assert len(result.scoring.scores) == len(result.stays)
 
@@ -110,7 +110,7 @@ async def test_broken_provider_does_not_break_search() -> None:
 
     statuses = {p.provider: p.status for p in result.providers}
     assert statuses == {"broken": "error", "mock": "ok"}
-    assert len(result.stays) == 18
+    assert len(result.stays) == 19
     assert await service(Broken()).reviews("broken", "x") == []
 
 

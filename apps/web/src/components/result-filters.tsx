@@ -320,7 +320,7 @@ export function ResultFilters({
   );
 }
 
-function NumberField({
+export function NumberField({
   label,
   name,
   value,
@@ -467,7 +467,7 @@ function TimeGroup({
   );
 }
 
-function OptionSelect({
+export function OptionSelect({
   label,
   hint,
   name,

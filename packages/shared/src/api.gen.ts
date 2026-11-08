@@ -1319,6 +1319,13 @@ export interface components {
         [key: string]: number;
       };
     };
+    /** CountFacet */
+    CountFacet: {
+      /** Value */
+      value: string;
+      /** Stays */
+      stays: number;
+    };
     /** DateOption */
     DateOption: {
       /**
@@ -1535,6 +1542,13 @@ export interface components {
        */
       date_options: components["schemas"]["DateOption"][];
     };
+    /** GeoPoint */
+    GeoPoint: {
+      /** Lat */
+      lat: number;
+      /** Lon */
+      lon: number;
+    };
     /** GoogleCallbackBody */
     GoogleCallbackBody: {
       /** Code */
@@ -1570,6 +1584,13 @@ export interface components {
        * @default 0
        */
       children: number;
+      /** Children Ages */
+      children_ages?: number[];
+      /**
+       * Rooms
+       * @default 1
+       */
+      rooms: number;
     };
     /** HTTPValidationError */
     HTTPValidationError: {
@@ -1602,7 +1623,7 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: "hotel" | "apartment" | "hostel" | "guesthouse";
+      kind: "hotel" | "apartment" | "hostel" | "guesthouse" | "other";
       /** Stays */
       stays: number;
     };
@@ -2244,7 +2265,7 @@ export interface components {
        * Kind
        * @enum {string}
        */
-      kind: "hotel" | "apartment" | "hostel" | "guesthouse";
+      kind: "hotel" | "apartment" | "hostel" | "guesthouse" | "other";
       /** Stars */
       stars?: number | null;
       /** Price Per Night */
@@ -2286,7 +2307,21 @@ export interface components {
         | "spa"
         | "pets"
         | "airport_shuttle"
+        | "balcony"
       )[];
+      /** Breakfast Included */
+      breakfast_included?: boolean | null;
+      /** Prepayment */
+      prepayment?: ("none" | "required") | null;
+      /** Pay At Property */
+      pay_at_property?: boolean | null;
+      /** Beds */
+      beds?: number | null;
+      /**
+       * Rooms
+       * @default 1
+       */
+      rooms: number;
       /** District */
       district?: string | null;
       /** Image Url */
@@ -2345,7 +2380,7 @@ export interface components {
     };
     /**
      * StayFacets
-     * @description Що є у видачі ДО фільтрів — для варіантів фільтрів у UI.
+     * @description Що є у видачі ДО фільтрів — UI показує лише фільтри, для яких є дані (модуль 5).
      */
     StayFacets: {
       /** Total Stays */
@@ -2356,14 +2391,49 @@ export interface components {
       min_price_per_night: number | null;
       /** Max Price Per Night */
       max_price_per_night: number | null;
+      /** Min Total Price */
+      min_total_price?: number | null;
+      /** Max Total Price */
+      max_total_price?: number | null;
+      /**
+       * Amenities
+       * @default []
+       */
+      amenities: components["schemas"]["CountFacet"][];
+      /**
+       * Districts
+       * @default []
+       */
+      districts: components["schemas"]["CountFacet"][];
+      /**
+       * Available
+       * @default []
+       */
+      available: (
+        | "rating"
+        | "cancellation"
+        | "breakfast"
+        | "prepayment"
+        | "pay_at_property"
+        | "beds"
+        | "distance"
+        | "coordinates"
+        | "district"
+      )[];
     };
     /**
      * StayFilters
      * @description Фільтри видачі: як і для перельотів, застосовуються після провайдерів.
      */
     StayFilters: {
+      /** Min Price Per Night */
+      min_price_per_night?: number | null;
       /** Max Price Per Night */
       max_price_per_night?: number | null;
+      /** Min Total Price */
+      min_total_price?: number | null;
+      /** Max Total Price */
+      max_total_price?: number | null;
       /** Min Rating */
       min_rating?: number | null;
       /**
@@ -2371,8 +2441,48 @@ export interface components {
        * @default false
        */
       free_cancellation: boolean;
+      /**
+       * Breakfast Included
+       * @default false
+       */
+      breakfast_included: boolean;
+      /**
+       * No Prepayment
+       * @default false
+       */
+      no_prepayment: boolean;
+      /**
+       * Pay At Property
+       * @default false
+       */
+      pay_at_property: boolean;
       /** Kinds */
-      kinds?: ("hotel" | "apartment" | "hostel" | "guesthouse")[];
+      kinds?: ("hotel" | "apartment" | "hostel" | "guesthouse" | "other")[];
+      /** Amenities */
+      amenities?: (
+        | "wifi"
+        | "breakfast"
+        | "parking"
+        | "pool"
+        | "gym"
+        | "kitchen"
+        | "air_conditioning"
+        | "spa"
+        | "pets"
+        | "airport_shuttle"
+        | "balcony"
+      )[];
+      /** Min Beds */
+      min_beds?: number | null;
+      /** Max Distance Center Km */
+      max_distance_center_km?: number | null;
+      /** Districts */
+      districts?: string[];
+      near?: components["schemas"]["GeoPoint"] | null;
+      /** Near Airport */
+      near_airport?: string | null;
+      /** Radius Km */
+      radius_km?: number | null;
     };
     /** StayInsight */
     StayInsight: {
@@ -2436,6 +2546,11 @@ export interface components {
       name: string;
       /** Country */
       country: string;
+      /**
+       * Airports
+       * @default []
+       */
+      airports: string[];
     };
     /** StayQuery */
     StayQuery: {
@@ -2454,7 +2569,9 @@ export interface components {
       /**
        * @default {
        *       "adults": 2,
-       *       "children": 0
+       *       "children": 0,
+       *       "children_ages": [],
+       *       "rooms": 1
        *     }
        */
       guests: components["schemas"]["Guests"];
@@ -2472,7 +2589,12 @@ export interface components {
       /**
        * @default {
        *       "free_cancellation": false,
-       *       "kinds": []
+       *       "breakfast_included": false,
+       *       "no_prepayment": false,
+       *       "pay_at_property": false,
+       *       "kinds": [],
+       *       "amenities": [],
+       *       "districts": []
        *     }
        */
       filters: components["schemas"]["StayFilters"];

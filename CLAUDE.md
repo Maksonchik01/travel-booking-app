@@ -185,8 +185,9 @@ make migrate        alembic upgrade head
 - **Web-поїздка:** `/trip?from=&to=&depart=&return=&adults=&children=&prio=&budget=&direct=`
   — `src/lib/trip-params.ts`. Перельоти: перемикач «туди й назад / в один бік»
   (`trip=ow` без JS ігнорує повернення).
-- **Web-житло:** `/stays?city=&in=&out=&adults=&children=&prio=&sort=`, фільтри
-  `maxp=&rating=&cancel=&kind=` — `src/lib/stay-params.ts`.
+- **Web-житло:** `/stays?city=&in=&out=&adults=&children=&ages=&rooms=&prio=&sort=`, фільтри
+  `minp=&maxp=&mint=&maxt=&rating=&cancel=&bfast=&noprepay=&payprop=&kind=&am=&beds=&dist=&district=&near=&nearap=&radius=`
+  — `src/lib/stay-params.ts`; фільтр видно лише за `facets.available` ([ADR 0018](docs/adr/0018-stay-filters.md)).
 - **Web-пошук:** стан пошуку живе в URL (`?from=&to=&depart=&return=&flex=&adults=&children=&lap=&seat=&cabin=&bag=&cur=&direct=&sort=`,
   сусідні `fromNear=1`/`toNear=1`, фільтри `stops=&al=&xal=&dep=&deph=&arr=&arrh=&rdep=&rdeph=&rarr=&rarrh=&maxh=&maxlay=&minlay=&minself=&maxp=&maxt=`;
   частини доби — ранок 05–12, день 12–17, вечір 17–22, ніч 22–05 за місцевим часом аеропорту),
@@ -201,6 +202,10 @@ make migrate        alembic upgrade head
   ходить до Google. Немає логотипа — кружечок з кодом (`airline-logo.tsx`).
 - **Дизайн:** синя тема й ефекти — у `globals.css` (`.lift`, `.shimmer`, фокус для всіх
   інтерактивних елементів, `prefers-reduced-motion`); вигляд полів — `src/lib/styles.ts`.
+- **Картка рейсу** (`offer-card.tsx`): позначки лише з реальних параметрів (вибір скорингу, «Прямий
+  рейс», «Самостійна пересадка» — `self_transfer === true`), «Деталі маршруту» (сегменти, зміна
+  аеропорту з сегментів, повторна реєстрація багажу — лише коли `self_transfer` відомий);
+  порівняння до 3 — `compare.tsx` (sessionStorage вкладки).
 - **Час рейсів** показуємо в поясі аеропорту з ISO-рядка провайдера, без перерахунку
   (`src/lib/format.ts`). Підписи ризиків пересадок — `src/lib/risks.ts` (факти, не скоринг).
 - **i18n:** весь UI-текст у `apps/web/messages/uk.json`, жодних рядків у JSX.

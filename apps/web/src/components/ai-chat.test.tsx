@@ -30,10 +30,15 @@ const STAY: StayQuery = {
   city: "LIS",
   check_in: "2026-12-10",
   check_out: "2026-12-13",
-  guests: { adults: 2, children: 0 },
+  guests: { adults: 2, children: 0, rooms: 1 },
   currency: "EUR",
   profile: "balanced",
-  filters: { free_cancellation: false },
+  filters: {
+    free_cancellation: false,
+    breakfast_included: false,
+    no_prepayment: false,
+    pay_at_property: false,
+  },
 };
 
 type Send = (body: ChatBodyInput) => Promise<ChatReply | "rate_limited" | null>;

@@ -10,6 +10,7 @@ import {
   Coffee,
   Dog,
   Dumbbell,
+  Fence,
   Hotel,
   House,
   MapPin,
@@ -21,6 +22,7 @@ import {
   Sparkles,
   Star,
   Store,
+  Tent,
   UtensilsCrossed,
   Waves,
   Wifi,
@@ -39,6 +41,7 @@ const KIND_ICON = {
   apartment: Building,
   guesthouse: House,
   hostel: BedDouble,
+  other: Tent,
 } as const;
 
 const AMENITY_ICON = {
@@ -52,6 +55,7 @@ const AMENITY_ICON = {
   spa: Sparkles,
   pets: Dog,
   airport_shuttle: Plane,
+  balcony: Fence,
 } as const;
 
 const KNOWN_SOURCES = new Set(["mock"]);
@@ -142,6 +146,7 @@ export function StayCard({
 
         <div className="flex flex-wrap items-center gap-2">
           <CancellationBadge value={stay.cancellation ?? null} />
+          <ConditionBadges stay={stay} />
           {(stay.amenities ?? []).slice(0, 6).map((amenity) => {
             const Icon = AMENITY_ICON[amenity];
             return (
@@ -344,5 +349,33 @@ export function StayScoreDetails({
         </ul>
       )}
     </div>
+  );
+}
+
+/**
+ * Умови, які джерело ПІДТВЕРДИЛО (модуль 5): сніданок, без передоплати, оплата на місці, ліжка.
+ * Невідоме не показуємо як «так» — лише те, що відомо.
+ */
+function ConditionBadges({ stay }: { stay: Stay }) {
+  const t = useTranslations("stayCard");
+  const items = [
+    stay.breakfast_included === true ? t("condition.breakfast") : null,
+    stay.prepayment === "none" ? t("condition.noPrepayment") : null,
+    stay.pay_at_property === true ? t("condition.payAtProperty") : null,
+    stay.beds != null ? t("condition.beds", { count: stay.beds }) : null,
+    (stay.rooms ?? 1) > 1 ? t("condition.rooms", { count: stay.rooms ?? 1 }) : null,
+  ].filter((x): x is string => x !== null);
+  return (
+    <>
+      {items.map((text) => (
+        <span
+          key={text}
+          className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-800 dark:text-emerald-300"
+          data-testid="stay-condition"
+        >
+          {text}
+        </span>
+      ))}
+    </>
   );
 }

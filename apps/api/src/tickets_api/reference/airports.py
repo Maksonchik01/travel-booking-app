@@ -251,6 +251,10 @@ class AirportDirectory:
                 break
         return places
 
+    def coordinates(self, code: str) -> tuple[float, float] | None:
+        """Координати аеропорту (чи центру міста) за кодом; None — код невідомий."""
+        return self._center(code.upper())
+
     # --- внутрішнє -----------------------------------------------------------------
 
     def _center(self, code: str) -> tuple[float, float] | None:

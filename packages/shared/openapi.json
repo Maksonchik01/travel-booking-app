@@ -3548,6 +3548,24 @@
         ],
         "title": "Clicks"
       },
+      "CountFacet": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "stays": {
+            "type": "integer",
+            "title": "Stays"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "stays"
+        ],
+        "title": "CountFacet"
+      },
       "DateOption": {
         "properties": {
           "departure": {
@@ -4034,6 +4052,29 @@
         ],
         "title": "FlightSearchResult"
       },
+      "GeoPoint": {
+        "properties": {
+          "lat": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Lon"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lat",
+          "lon"
+        ],
+        "title": "GeoPoint"
+      },
       "GoogleCallbackBody": {
         "properties": {
           "code": {
@@ -4106,6 +4147,21 @@
             "minimum": 0.0,
             "title": "Children",
             "default": 0
+          },
+          "children_ages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Children Ages"
+          },
+          "rooms": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rooms",
+            "default": 1
           }
         },
         "additionalProperties": false,
@@ -4176,7 +4232,8 @@
               "hotel",
               "apartment",
               "hostel",
-              "guesthouse"
+              "guesthouse",
+              "other"
             ],
             "title": "Kind"
           },
@@ -6082,7 +6139,8 @@
               "hotel",
               "apartment",
               "hostel",
-              "guesthouse"
+              "guesthouse",
+              "other"
             ],
             "title": "Kind"
           },
@@ -6221,11 +6279,69 @@
                 "air_conditioning",
                 "spa",
                 "pets",
-                "airport_shuttle"
+                "airport_shuttle",
+                "balcony"
               ]
             },
             "type": "array",
             "title": "Amenities"
+          },
+          "breakfast_included": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Breakfast Included"
+          },
+          "prepayment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "required"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prepayment"
+          },
+          "pay_at_property": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pay At Property"
+          },
+          "beds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beds"
+          },
+          "rooms": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rooms",
+            "default": 1
           },
           "district": {
             "anyOf": [
@@ -6428,6 +6544,63 @@
               }
             ],
             "title": "Max Price Per Night"
+          },
+          "min_total_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Total Price"
+          },
+          "max_total_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Total Price"
+          },
+          "amenities": {
+            "items": {
+              "$ref": "#/components/schemas/CountFacet"
+            },
+            "type": "array",
+            "title": "Amenities",
+            "default": []
+          },
+          "districts": {
+            "items": {
+              "$ref": "#/components/schemas/CountFacet"
+            },
+            "type": "array",
+            "title": "Districts",
+            "default": []
+          },
+          "available": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "rating",
+                "cancellation",
+                "breakfast",
+                "prepayment",
+                "pay_at_property",
+                "beds",
+                "distance",
+                "coordinates",
+                "district"
+              ]
+            },
+            "type": "array",
+            "title": "Available",
+            "default": []
           }
         },
         "type": "object",
@@ -6438,10 +6611,23 @@
           "max_price_per_night"
         ],
         "title": "StayFacets",
-        "description": "Що є у видачі ДО фільтрів — для варіантів фільтрів у UI."
+        "description": "Що є у видачі ДО фільтрів — UI показує лише фільтри, для яких є дані (модуль 5)."
       },
       "StayFilters": {
         "properties": {
+          "min_price_per_night": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Price Per Night"
+          },
           "max_price_per_night": {
             "anyOf": [
               {
@@ -6454,6 +6640,32 @@
               }
             ],
             "title": "Max Price Per Night"
+          },
+          "min_total_price": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Total Price"
+          },
+          "max_total_price": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Total Price"
           },
           "min_rating": {
             "anyOf": [
@@ -6473,6 +6685,21 @@
             "title": "Free Cancellation",
             "default": false
           },
+          "breakfast_included": {
+            "type": "boolean",
+            "title": "Breakfast Included",
+            "default": false
+          },
+          "no_prepayment": {
+            "type": "boolean",
+            "title": "No Prepayment",
+            "default": false
+          },
+          "pay_at_property": {
+            "type": "boolean",
+            "title": "Pay At Property",
+            "default": false
+          },
           "kinds": {
             "items": {
               "type": "string",
@@ -6480,11 +6707,101 @@
                 "hotel",
                 "apartment",
                 "hostel",
-                "guesthouse"
+                "guesthouse",
+                "other"
               ]
             },
             "type": "array",
             "title": "Kinds"
+          },
+          "amenities": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "wifi",
+                "breakfast",
+                "parking",
+                "pool",
+                "gym",
+                "kitchen",
+                "air_conditioning",
+                "spa",
+                "pets",
+                "airport_shuttle",
+                "balcony"
+              ]
+            },
+            "type": "array",
+            "title": "Amenities"
+          },
+          "min_beds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 20.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Beds"
+          },
+          "max_distance_center_km": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Distance Center Km"
+          },
+          "districts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Districts"
+          },
+          "near": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GeoPoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "near_airport": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Near Airport"
+          },
+          "radius_km": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Radius Km"
           }
         },
         "additionalProperties": false,
@@ -6598,6 +6915,14 @@
           "country": {
             "type": "string",
             "title": "Country"
+          },
+          "airports": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Airports",
+            "default": []
           }
         },
         "type": "object",
@@ -6630,7 +6955,9 @@
             "$ref": "#/components/schemas/Guests",
             "default": {
               "adults": 2,
-              "children": 0
+              "children": 0,
+              "children_ages": [],
+              "rooms": 1
             }
           },
           "currency": {
@@ -6653,7 +6980,12 @@
             "$ref": "#/components/schemas/StayFilters",
             "default": {
               "free_cancellation": false,
-              "kinds": []
+              "breakfast_included": false,
+              "no_prepayment": false,
+              "pay_at_property": false,
+              "kinds": [],
+              "amenities": [],
+              "districts": []
             }
           }
         },

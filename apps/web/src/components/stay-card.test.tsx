@@ -19,6 +19,7 @@ const STAY: Stay = {
   total_price: 361.5,
   currency: "EUR",
   nights: 3,
+  rooms: 1,
   rating: 8.6,
   review_count: 1350,
   latitude: null,
@@ -55,10 +56,15 @@ const QUERY: StayQuery = {
   city: "LIS",
   check_in: "2026-12-05",
   check_out: "2026-12-08",
-  guests: { adults: 2, children: 0 },
+  guests: { adults: 2, children: 0, rooms: 1 },
   currency: "EUR",
   profile: "balanced",
-  filters: { free_cancellation: false },
+  filters: {
+    free_cancellation: false,
+    breakfast_included: false,
+    no_prepayment: false,
+    pay_at_property: false,
+  },
 };
 
 function wrap(ui: React.ReactNode) {

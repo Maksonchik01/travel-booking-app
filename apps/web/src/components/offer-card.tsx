@@ -50,6 +50,9 @@ export function OfferCard({
   baggageCost,
   baggageNeed = "none",
   sellers,
+  pickAlso = [],
+  sellerCount = 1,
+  compare,
 }: {
   offer: Offer;
   now: Date;
@@ -59,6 +62,12 @@ export function OfferCard({
   baggageNeed?: BaggageNeed;
   /** Блок «Пропозиції продавців» (клієнтський компонент) — під основним вмістом. */
   sellers?: React.ReactNode;
+  /** Інші позначки «Нашого вибору» тієї ж пропозиції (напр. ще й найшвидша). */
+  pickAlso?: PickLabel[];
+  /** Скільки продавців (джерел) у цього рейсу — з групування (модуль 3). */
+  sellerCount?: number;
+  /** Перемикач «Порівняти» (клієнтський) — у колонці ціни. */
+  compare?: React.ReactNode;
   /** Скільки пасажирів у ціні (вона за весь склад запиту, ADR 0013). */
   travellers?: number;
   pickLabel?: PickLabel;
@@ -105,6 +114,7 @@ export function OfferCard({
             <LegRow label={t("inbound")} leg={offer.inbound} offer={offer} names={airlineNames} />
           </>
         )}
+        <RouteDetails offer={offer} names={airlineNames} />
         {score && (
           <details className="group text-xs" data-testid="score-details">
             <summary className="text-muted-foreground hover:text-primary flex w-fit cursor-pointer list-none items-center gap-1 rounded transition-colors select-none">
@@ -129,11 +139,7 @@ export function OfferCard({
       {/* На мобільному ціна й кнопка — нагорі картки: це те, що порівнюють першим. */}
       <aside className="bg-muted/40 order-first flex flex-wrap items-end justify-between gap-x-4 gap-y-3 border-b p-4 sm:order-none sm:flex-col sm:flex-nowrap sm:items-stretch sm:justify-start sm:border-b-0 sm:border-l sm:p-5">
         <div>
-          {pickLabel && (
-            <Badge className="mb-2" data-testid="pick-label">
-              {tPicks(`label.${pickLabel}`)}
-            </Badge>
-          )}
+          <OfferBadges offer={offer} pickLabel={pickLabel} pickAlso={pickAlso} />
           <p
             className="text-2xl font-bold tracking-tight tabular-nums sm:text-3xl"
             data-testid="price"
@@ -151,6 +157,15 @@ export function OfferCard({
           <p className="text-muted-foreground mt-1 text-xs" data-testid="price-age">
             {age}
           </p>
+          {offer.total_duration_min != null && (
+            <p
+              className="text-muted-foreground mt-1 flex items-center gap-1 text-xs"
+              data-testid="total-duration"
+            >
+              <Clock className="size-3" aria-hidden />
+              {t("totalDuration", { duration: duration(t, offer.total_duration_min) })}
+            </p>
+          )}
         </div>
 
         <div className="grid w-full gap-2 text-xs sm:w-auto">
@@ -163,7 +178,11 @@ export function OfferCard({
           <p className="text-muted-foreground flex items-start gap-1.5" data-testid="seller">
             <Store className="mt-px size-3.5 shrink-0" aria-hidden />
             <span>
-              {offer.seller ? `${t("seller", { seller: offer.seller })} · ` : null}
+              {sellerCount > 1
+                ? `${t("sellerCount", { count: sellerCount })} · `
+                : offer.seller
+                  ? `${t("seller", { seller: offer.seller })} · `
+                  : null}
               {t("via", { service })}
             </span>
           </p>
@@ -184,6 +203,7 @@ export function OfferCard({
               {t("partnerNote")}
             </p>
           )}
+          {compare}
         </div>
       </aside>
       {/* Продавці (модуль 3) — на всю ширину картки. */}
@@ -457,4 +477,152 @@ function duration(t: ReturnType<typeof useTranslations<"offer">>, minutes: numbe
   const { hours, minutes: mins } = splitDuration(minutes);
   if (hours === 0) return t("durationShort", { minutes: mins });
   return t("duration", { hours, minutes: String(mins).padStart(2, "0") });
+}
+
+/**
+ * Позначки картки — лише з реальних параметрів: вибір скорингу (найдешевший/найшвидший/
+ * оптимальний), «Прямий рейс» (без пересадок в обидва боки), «Самостійна пересадка»
+ * (джерело позначило окремі квитки хоч на одній пересадці).
+ */
+function OfferBadges({
+  offer,
+  pickLabel,
+  pickAlso,
+}: {
+  offer: Offer;
+  pickLabel?: PickLabel;
+  pickAlso: PickLabel[];
+}) {
+  const t = useTranslations("offer");
+  const legs = [offer.outbound, ...(offer.inbound ? [offer.inbound] : [])];
+  const direct = legs.every((leg) => leg.stops === 0);
+  const selfTransfer = legs.some((leg) => leg.layovers?.some((l) => l.self_transfer === true));
+  const labels = [...(pickLabel ? [pickLabel] : []), ...pickAlso];
+  if (labels.length === 0 && !direct && !selfTransfer) return null;
+  return (
+    <div className="mb-2 flex flex-wrap gap-1" data-testid="offer-badges">
+      {labels.map((label, i) => (
+        <Badge
+          key={label}
+          variant={i === 0 ? "default" : "secondary"}
+          data-testid={i === 0 ? "pick-label" : undefined}
+        >
+          {t(`badge.${label}`)}
+        </Badge>
+      ))}
+      {direct && (
+        <Badge
+          variant="outline"
+          className="border-emerald-500/40 text-emerald-700 dark:text-emerald-400"
+        >
+          {t("badge.direct")}
+        </Badge>
+      )}
+      {selfTransfer && (
+        <Badge variant="outline" className="border-amber-500/40 text-amber-700 dark:text-amber-400">
+          {t("badge.selfTransfer")}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Деталі маршруту (4.1): кожен сегмент з точним місцевим часом і датою, очікування між рейсами,
+ * зміна аеропорту, повторна реєстрація багажу (якщо відомо) і ризики. Без посегментних даних —
+ * чесно «джерело не дає».
+ */
+function RouteDetails({ offer, names }: { offer: Offer; names?: Record<string, string | null> }) {
+  const t = useTranslations("offer");
+  const format = useFormatter();
+  const legs: [string, Leg][] = [
+    [t("outbound"), offer.outbound],
+    ...(offer.inbound ? [[t("inbound"), offer.inbound] as [string, Leg]] : []),
+  ];
+  const when = (iso: string) =>
+    `${localTime(iso)} · ${format.dateTime(new Date(`${localDate(iso)}T00:00:00Z`), {
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+    })}`;
+  return (
+    <details className="group text-xs" data-testid="route-details">
+      <summary className="text-muted-foreground hover:text-primary flex w-fit cursor-pointer list-none items-center gap-1 rounded transition-colors select-none">
+        <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" aria-hidden />
+        {t("routeDetails")}
+      </summary>
+      <div className="bg-muted/50 mt-2 grid gap-3 rounded-lg p-3">
+        {legs.map(([label, leg]) => (
+          <div key={label} className="grid gap-1.5">
+            <p className="text-primary font-semibold tracking-wide uppercase">{label}</p>
+            {leg.segments?.length ? (
+              <ol className="grid gap-1.5">
+                {leg.segments.map((seg, i) => {
+                  const next = leg.segments?.[i + 1];
+                  const layover = leg.layovers?.[i];
+                  const airportChange = next && next.origin !== seg.destination;
+                  return (
+                    <li key={`${seg.flight_number}-${i}`} className="grid gap-1.5">
+                      <div
+                        className="grid gap-0.5 rounded-md border bg-card px-2.5 py-2"
+                        data-testid="segment"
+                      >
+                        <p className="font-medium">
+                          {seg.flight_number} · {names?.[seg.carrier] ?? seg.carrier}
+                          <span className="text-muted-foreground font-normal">
+                            {" · "}
+                            {duration(t, seg.duration_min)}
+                          </span>
+                        </p>
+                        <p className="tabular-nums">
+                          {seg.origin} {when(seg.departure_at)} → {seg.destination}{" "}
+                          {when(seg.arrival_at)}
+                        </p>
+                      </div>
+                      {next && (
+                        <div
+                          className="text-muted-foreground grid gap-0.5 pl-2.5"
+                          data-testid="connection"
+                        >
+                          <p>
+                            {t("connectionWait", {
+                              airport: seg.destination,
+                              duration: layover
+                                ? duration(t, layover.duration_min)
+                                : t("durationUnknown"),
+                            })}
+                          </p>
+                          {airportChange && (
+                            <p className="font-medium text-amber-700 dark:text-amber-400">
+                              {t("airportChange", { from: seg.destination, to: next.origin })}
+                            </p>
+                          )}
+                          <p>
+                            {layover?.self_transfer === true
+                              ? t("recheckYes")
+                              : layover?.self_transfer === false
+                                ? t("recheckNo")
+                                : t("recheckUnknown")}
+                          </p>
+                          {layover && layoverRisks(layover).length > 0 && (
+                            <p className="text-amber-700 dark:text-amber-400">
+                              {layoverRisks(layover)
+                                .map((risk) => t(`risk.${risk}`))
+                                .join(" · ")}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            ) : (
+              <p className="text-muted-foreground">{t("noSegments")}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </details>
+  );
 }

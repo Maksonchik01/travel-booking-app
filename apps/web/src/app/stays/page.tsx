@@ -156,7 +156,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const filtered = hasStayFilters(query.filters);
   const withoutFilters = toStayParams({
     ...state,
-    query: { ...query, filters: { free_cancellation: false } },
+    query: {
+      ...query,
+      filters: {
+        free_cancellation: false,
+        breakfast_included: false,
+        no_prepayment: false,
+        pay_at_property: false,
+      },
+    },
   });
 
   return (
@@ -194,6 +202,8 @@ async function Results({ searchParams }: { searchParams: Params }) {
             filters={query.filters ?? {}}
             facets={facets}
             baseParams={[...withoutFilters]}
+            airports={result.data.place?.airports ?? []}
+            currency={query.currency ?? "EUR"}
           />
         )}
 
