@@ -123,3 +123,27 @@ async def test_network_error(client: DeepSeekClient) -> None:
     with pytest.raises(LLMError) as exc_info:
         await client.chat(ChatRequest(model="m", messages=(Message("user", "hi"),)))
     assert KEY not in str(exc_info.value)
+
+
+@respx.mock
+async def test_broken_pooled_connection_is_retried_once(client: DeepSeekClient) -> None:
+    """Прод: «network error: LocalProtocolError» після обірваного попереднього запиту."""
+    route = respx.post(URL).mock(
+        side_effect=[
+            httpx.LocalProtocolError("broken connection"),
+            httpx.Response(200, json=recorded("tool_result")),
+        ]
+    )
+
+    await client.chat(ChatRequest(model="m", messages=(Message("user", "hi"),)))
+
+    assert route.call_count == 2
+
+
+@respx.mock
+async def test_timeout_is_not_retried(client: DeepSeekClient) -> None:
+    route = respx.post(URL).mock(side_effect=httpx.ReadTimeout("slow"))
+
+    with pytest.raises(LLMError, match="timeout"):
+        await client.chat(ChatRequest(model="m", messages=(Message("user", "hi"),)))
+    assert route.call_count == 1

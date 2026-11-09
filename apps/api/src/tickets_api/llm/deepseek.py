@@ -30,6 +30,11 @@ _ERRORS = {
 }
 
 
+CONNECTION_ATTEMPTS = 2
+RECONNECT_ERRORS = (httpx.ConnectError, httpx.LocalProtocolError, httpx.RemoteProtocolError)
+"""Збій з'єднання до відповіді — повторюємо раз; тайм-аут — ні (запит міг виконатися)."""
+
+
 class DeepSeekClient:
     name = "deepseek"
 
@@ -47,19 +52,29 @@ class DeepSeekClient:
         self._timeout_s = timeout_s
 
     async def chat(self, request: ChatRequest) -> ChatResponse:
-        try:
-            response = await self._client.post(
-                f"{self._base_url}{CHAT_PATH}",
-                json=_body(request),
-                headers={"Authorization": f"Bearer {self._api_key}"},
-                timeout=self._timeout_s,
-            )
-        except httpx.TimeoutException as exc:
-            raise LLMError(self.name, "timeout", retryable=True) from exc
-        except httpx.HTTPError as exc:
-            raise LLMError(
-                self.name, f"network error: {type(exc).__name__}", retryable=True
-            ) from exc
+        for attempt in range(CONNECTION_ATTEMPTS):
+            try:
+                response = await self._client.post(
+                    f"{self._base_url}{CHAT_PATH}",
+                    json=_body(request),
+                    headers={"Authorization": f"Bearer {self._api_key}"},
+                    timeout=self._timeout_s,
+                )
+                break
+            except httpx.TimeoutException as exc:
+                raise LLMError(self.name, "timeout", retryable=True) from exc
+            except RECONNECT_ERRORS as exc:
+                # З'єднання з пулу зіпсоване (попередній запит обірвали посередині, напр. браузер
+                # не дочекався) — httpx його відкидає, повтор іде новим. Прод: «LocalProtocolError».
+                if attempt + 1 < CONNECTION_ATTEMPTS:
+                    continue
+                raise LLMError(
+                    self.name, f"network error: {type(exc).__name__}", retryable=True
+                ) from exc
+            except httpx.HTTPError as exc:
+                raise LLMError(
+                    self.name, f"network error: {type(exc).__name__}", retryable=True
+                ) from exc
 
         if response.status_code != 200:
             message, retryable = _ERRORS.get(
