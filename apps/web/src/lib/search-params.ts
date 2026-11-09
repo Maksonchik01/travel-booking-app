@@ -37,6 +37,12 @@ export const DEPARTURE_PERIODS: readonly DeparturePeriod[] = [
 ];
 /** Валюти пошуку: для них є курс ЄЦБ, тож скоринг працює (ADR 0005, providers/fx.py). */
 export const CURRENCIES = ["EUR", "USD", "GBP", "PLN"] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
+/** Валюта пошуку з URL (`cur=`) — спільна для перельотів, житла й поїздки (модуль 18.2). */
+export function parseCurrency(params: RawSearchParams): Currency {
+  return CURRENCIES.find((c) => c === first(params.cur)?.toUpperCase()) ?? "EUR";
+}
 export const CABINS: readonly Cabin[] = ["economy", "premium_economy", "business", "first"];
 export const BAGGAGE_NEEDS: readonly BaggageNeed[] = [
   "none",
@@ -213,7 +219,7 @@ export function parseSearchParams(params: RawSearchParams): SearchState | null {
       cabin: CABINS.find((c) => c === first(params.cabin)) ?? "economy",
       baggage: BAGGAGE_NEEDS.find((b) => b === first(params.bag)) ?? "none",
       direct_only: first(params.direct) === "1",
-      currency: CURRENCIES.find((c) => c === first(params.cur)?.toUpperCase()) ?? "EUR",
+      currency: parseCurrency(params),
       profile: parseProfile(first(params.profile)),
       origin_radius_km: first(params.fromNear) === "1" ? NEARBY_RADIUS_KM : 0,
       destination_radius_km: first(params.toNear) === "1" ? NEARBY_RADIUS_KM : 0,

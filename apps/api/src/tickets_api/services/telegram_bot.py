@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 import structlog
 from redis.asyncio import Redis
@@ -27,6 +27,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from tickets_api.ai.explainer import money_text
 from tickets_api.db.models import Alert, AuthToken, User
 from tickets_api.domain.alerts import AlertCreate
+from tickets_api.domain.locale import UiLocale
+from tickets_api.i18n import LOCALES, as_locale, current_locale, t, telegram_locale, use_locale
 from tickets_api.notifications.telegram import Button, TelegramError, esc
 from tickets_api.reference.airports import AirportDirectory
 from tickets_api.services.accounts import token_hash
@@ -46,14 +48,12 @@ OFFSET_KEY = "alerts:telegram:offset"
 DIALOG_TTL_S = 60 * 60
 MAX_DAYS_AHEAD = 330
 LINK_PREFIX = "link_"
-COMMANDS: tuple[tuple[str, str], ...] = (
-    ("new", "Нова підписка на ціну"),
-    ("list", "Мої підписки"),
-    ("link", "Прив'язати до акаунта на сайті"),
-    ("stop", "Вимкнути всі підписки"),
-    ("cancel", "Скасувати поточну дію"),
-    ("help", "Що вміє бот"),
-)
+COMMANDS: tuple[str, ...] = ("new", "list", "link", "stop", "cancel", "help")
+
+
+def commands() -> list[tuple[str, str]]:
+    """Меню «/» мовою контексту."""
+    return [(c, t(f"bot.commands.{c}")) for c in COMMANDS]
 
 
 @dataclass
@@ -83,9 +83,14 @@ class TelegramBotService:
         self._airports = airports
 
     async def setup(self) -> None:
-        """Меню команд (кнопка «/» у Telegram). Збій — не критичний."""
+        """Меню команд (кнопка «/» у Telegram) — для кожної мови, за замовчуванням — англійське
+        (будь-яка інша мова Telegram). Збій — не критичний."""
         try:
-            await self._telegram.set_commands(COMMANDS)
+            for locale in LOCALES:
+                with use_locale(locale):
+                    await self._telegram.set_commands(commands(), language_code=locale)
+            with use_locale("en"):
+                await self._telegram.set_commands(commands())
         except TelegramError as exc:
             log.warning("bot.set_commands_failed", error=str(exc))
 
@@ -111,6 +116,27 @@ class TelegramBotService:
         return len(updates)
 
     async def handle(self, update_: dict[str, Any]) -> None:
+        """Одне оновлення — мовою людини (модуль 18.1): прив'язаного акаунта, інакше — мовою
+        Telegram; нічого не відомо — за замовчуванням."""
+        callback = update_.get("callback_query")
+        message = callback.get("message") if isinstance(callback, dict) else update_.get("message")
+        source = callback if isinstance(callback, dict) else message
+        sender = source.get("from") if isinstance(source, dict) else None
+        chat = message.get("chat") if isinstance(message, dict) else None
+        chat_id = chat.get("id") if isinstance(chat, dict) else None
+        language = sender.get("language_code") if isinstance(sender, dict) else None
+        account = await self._account_locale(chat_id) if isinstance(chat_id, int) else None
+        with use_locale(account or telegram_locale(language)):
+            await self._handle(update_)
+
+    async def _account_locale(self, chat_id: int) -> UiLocale | None:
+        async with self._sessionmaker() as session:
+            locale = await session.scalar(
+                select(User.locale).where(User.telegram_chat_id == chat_id)
+            )
+        return as_locale(locale)
+
+    async def _handle(self, update_: dict[str, Any]) -> None:
         callback = update_.get("callback_query")
         if isinstance(callback, dict):
             await self._callback(callback)
@@ -130,7 +156,7 @@ class TelegramBotService:
         if dialog is not None:
             await self._answer(chat_id, dialog, text)
         else:
-            await self._send(chat_id, HELP_HTML, [[Button("➕ Нова підписка", data="new")]])
+            await self._send(chat_id, t("bot.help_html"), [[_new_button()]])
 
     # --- команди ----------------------------------------------------------------------
 
@@ -143,7 +169,7 @@ class TelegramBotService:
         elif command == "/start" and argument:
             await self._confirm_site_alert(chat_id, argument)
         elif command == "/start":
-            await self._send(chat_id, WELCOME_HTML, MAIN_MENU)
+            await self._send(chat_id, t("bot.welcome_html"), main_menu())
         elif command == "/new":
             await self._start_new(chat_id)
         elif command == "/list":
@@ -151,25 +177,28 @@ class TelegramBotService:
         elif command == "/stop":
             stopped = await self._alerts.stop_for_chat(chat_id)
             await self._clear_dialog(chat_id)
-            await self._send(chat_id, f"Готово: вимкнено підписок — {stopped}.")
+            await self._send(chat_id, t("bot.stopped_all", count=stopped))
         elif command == "/cancel":
             await self._clear_dialog(chat_id)
-            await self._send(chat_id, "Скасовано.", MAIN_MENU)
+            await self._send(chat_id, t("bot.cancelled"), main_menu())
         elif command == "/link":
-            await self._send(chat_id, LINK_HELP_HTML)
+            await self._send(chat_id, t("bot.link_help_html"))
         else:
-            await self._send(chat_id, HELP_HTML, MAIN_MENU)
+            await self._send(chat_id, t("bot.help_html"), main_menu())
 
     async def _confirm_site_alert(self, chat_id: int, token: str) -> None:
         alert = await self._alerts.bind_telegram(token, chat_id)
         if alert is None:
-            await self._send(chat_id, UNKNOWN_LINK_TEXT, MAIN_MENU)
+            await self._send(chat_id, t("bot.unknown_link"), main_menu())
             return
         await self._attach_owner(chat_id, alert.id)
         await self._send(
             chat_id,
-            f"✅ <b>Підписку підтверджено</b>\n{esc(route_text(alert))}\n"
-            f"Умова: {esc(condition_text(alert))}.\n\nНапишу, щойно ціна опуститься.",
+            t(
+                "bot.confirmed_html",
+                route=esc(route_text(alert)),
+                condition=esc(condition_text(alert)),
+            ),
             self._keyboard(alert),
         )
         await self._alerts.check(alert.id)  # перша перевірка — одразу
@@ -177,22 +206,24 @@ class TelegramBotService:
     async def _list(self, chat_id: int) -> None:
         alerts = await self._alerts.chat_alerts(chat_id)
         if not alerts:
-            await self._send(
-                chat_id, "Активних підписок немає.", [[Button("➕ Нова підписка", data="new")]]
-            )
+            await self._send(chat_id, t("bot.no_alerts"), [[_new_button()]])
             return
-        lines = ["<b>Ваші підписки</b>"]
+        lines = [t("bot.list_title_html")]
         rows: list[list[Button]] = []
         for i, a in enumerate(alerts[:10], start=1):
-            price = f" · зараз від {esc(_money(a.last_price, a.currency))}" if a.last_price else ""
+            price = (
+                t("bot.list_price", price=esc(_money(a.last_price, a.currency)))
+                if a.last_price
+                else ""
+            )
             lines.append(f"{i}. {esc(route_text(a))} — {esc(condition_text(a))}{price}")
             rows.append(
                 [
-                    Button(f"⏸ {i}. Вимкнути", data=f"stop:{a.id}"),
-                    Button("✏️ Поріг", data=f"thr:{a.id}"),
+                    Button(t("bot.button.stop_n", n=i), data=f"stop:{a.id}"),
+                    Button(t("bot.button.threshold"), data=f"thr:{a.id}"),
                 ]
             )
-        rows.append([Button("➕ Нова підписка", data="new")])
+        rows.append([_new_button()])
         await self._send(chat_id, "\n".join(lines), rows)
 
     async def _link_account(self, chat_id: int, token: str) -> None:
@@ -224,14 +255,9 @@ class TelegramBotService:
                         .values(user_id=user.id)
                     )
         if user is None:
-            await self._send(chat_id, UNKNOWN_LINK_TEXT, MAIN_MENU)
+            await self._send(chat_id, t("bot.unknown_link"), main_menu())
             return
-        await self._send(
-            chat_id,
-            f"🔗 Telegram прив'язано до акаунта <b>@{esc(user.username)}</b>.\n"
-            "Підписки з цього чату тепер видно в кабінеті на сайті.",
-            MAIN_MENU,
-        )
+        await self._send(chat_id, t("bot.linked_html", username=esc(user.username)), main_menu())
 
     # --- кнопки -----------------------------------------------------------------------
 
@@ -253,28 +279,33 @@ class TelegramBotService:
             await self._list(chat_id)
         elif action == "stop":
             stopped = await self._alerts.stop_for_chat(chat_id, value)
-            await self._ack(callback_id, "Підписку вимкнено" if stopped else "Уже вимкнена")
+            await self._ack(callback_id, t("bot.ack.stopped" if stopped else "bot.ack.already"))
             if stopped:
                 await self._send(
-                    chat_id, "⏸ Підписку вимкнено.", [[Button("📋 Мої підписки", data="list")]]
+                    chat_id, t("bot.stopped_one"), [[Button(t("bot.button.list"), data="list")]]
                 )
         elif action == "snooze":
             until = await self._alerts.snooze_for_chat(chat_id, value)
             await self._ack(
-                callback_id, f"Тиша до {until:%d.%m}" if until else "Підписка неактивна"
+                callback_id,
+                t("bot.ack.snoozed", date=f"{until:%d.%m}") if until else t("bot.ack.inactive"),
             )
         elif action == "thr":
             alert = await self._alerts.chat_alert(chat_id, value)
             await self._ack(callback_id)
             if alert is None or alert.status != "active":
-                await self._send(chat_id, "Ця підписка вже неактивна.")
+                await self._send(chat_id, t("bot.inactive"))
                 return
             await self._save_dialog(chat_id, Dialog(step="edit_threshold", alert_id=alert.id))
             await self._send(
                 chat_id,
-                f"Новий поріг для {esc(route_text(alert))} — ціна {party_text(alert)} в "
-                f"{esc(alert.currency)}, наприклад <code>90</code>.",
-                [[Button("📉 Нижче типової", data="typ"), Button("✖️ Скасувати", data="cancel")]],
+                t(
+                    "bot.new_threshold_html",
+                    route=esc(route_text(alert)),
+                    party=esc(party_text(alert)),
+                    currency=esc(alert.currency),
+                ),
+                threshold_buttons(),
             )
         elif action == "pick":
             field, _, code = value.partition(":")
@@ -295,7 +326,7 @@ class TelegramBotService:
             if dialog is not None and dialog.step in ("threshold", "edit_threshold"):
                 await self._finish(chat_id, dialog, None)
         elif action == "cancel":
-            await self._ack(callback_id, "Скасовано")
+            await self._ack(callback_id, t("bot.ack.cancelled"))
             await self._clear_dialog(chat_id)
         else:
             await self._ack(callback_id)
@@ -304,12 +335,7 @@ class TelegramBotService:
 
     async def _start_new(self, chat_id: int) -> None:
         await self._save_dialog(chat_id, Dialog(step="origin"))
-        await self._send(
-            chat_id,
-            "➕ <b>Нова підписка</b>\nЗвідки летимо? Напишіть місто чи код аеропорту, "
-            "наприклад <code>Варшава</code> або <code>WAW</code>.",
-            CANCEL,
-        )
+        await self._send(chat_id, t("bot.new_html"), cancel())
 
     async def _answer(self, chat_id: int, dialog: Dialog, text: str) -> None:
         if dialog.step in ("origin", "destination"):
@@ -317,21 +343,21 @@ class TelegramBotService:
         elif dialog.step == "departure":
             day = parse_date(text, self._alerts.now().date())
             if day is None or not self._in_range(day):
-                await self._send(chat_id, BAD_DATE_TEXT, CANCEL)
+                await self._send(chat_id, t("bot.bad_date"), cancel())
                 return
             dialog.departure = day.isoformat()
             dialog.step = "return"
             await self._save_dialog(chat_id, dialog)
             await self._send(
                 chat_id,
-                "Дата повернення? Або натисніть «В один бік».",
-                [[Button("➡️ В один бік", data="ow"), Button("✖️ Скасувати", data="cancel")]],
+                t("bot.ask_return"),
+                [[Button(t("bot.button.one_way"), data="ow"), _cancel_button()]],
             )
         elif dialog.step == "return":
             day = parse_date(text, self._alerts.now().date())
             departure = date.fromisoformat(dialog.departure or "")
             if day is None or day < departure or not self._in_range(day):
-                await self._send(chat_id, "Повернення має бути не раніше вильоту. " + BAD_DATE_TEXT)
+                await self._send(chat_id, t("bot.return_before") + t("bot.bad_date"))
                 return
             dialog.return_date = day.isoformat()
             dialog.step = "threshold"
@@ -340,29 +366,16 @@ class TelegramBotService:
         elif dialog.step in ("threshold", "edit_threshold"):
             amount = parse_amount(text)
             if amount is None:
-                await self._send(
-                    chat_id,
-                    "Напишіть суму числом, наприклад <code>120</code>, "
-                    "або натисніть «Нижче типової».",
-                    [
-                        [
-                            Button("📉 Нижче типової", data="typ"),
-                            Button("✖️ Скасувати", data="cancel"),
-                        ]
-                    ],
-                )
+                await self._send(chat_id, t("bot.amount_hint_html"), threshold_buttons())
                 return
             await self._finish(chat_id, dialog, amount)
 
     async def _place(self, chat_id: int, dialog: Dialog, text: str) -> None:
-        places = self._airports.search(text, limit=4, lang="uk") if len(text) >= 2 else []
+        # Назви в довіднику — українською й англійською; для російської кирилиця ближча.
+        lang: Literal["uk", "en"] = "en" if current_locale() == "en" else "uk"
+        places = self._airports.search(text, limit=4, lang=lang) if len(text) >= 2 else []
         if not places:
-            await self._send(
-                chat_id,
-                f"Не знайшов «{esc(text[:40])}». Спробуйте назву міста українською чи англійською "
-                "або код аеропорту з трьох літер.",
-                CANCEL,
-            )
+            await self._send(chat_id, t("bot.not_found", text=esc(text[:40])), cancel())
             return
         exact = next((p for p in places if p.code == text.strip().upper()), None)
         if exact is not None or len(places) == 1:
@@ -377,49 +390,37 @@ class TelegramBotService:
             ]
             for p in places
         ]
-        rows.append([Button("✖️ Скасувати", data="cancel")])
-        await self._send(chat_id, "Уточніть, будь ласка:", rows)
+        rows.append([_cancel_button()])
+        await self._send(chat_id, t("bot.clarify"), rows)
 
     async def _place_chosen(self, chat_id: int, dialog: Dialog, code: str) -> None:
         if dialog.step == "origin":
             dialog.origin = code
             dialog.step = "destination"
             await self._save_dialog(chat_id, dialog)
-            await self._send(chat_id, f"Звідки: <b>{esc(code)}</b>. Куди летимо?", CANCEL)
+            await self._send(chat_id, t("bot.from_html", code=esc(code)), cancel())
             return
         if code == dialog.origin:
-            await self._send(chat_id, "Місто призначення має відрізнятися. Куди летимо?", CANCEL)
+            await self._send(chat_id, t("bot.same_city"), cancel())
             return
         dialog.destination = code
         dialog.step = "departure"
         await self._save_dialog(chat_id, dialog)
-        await self._send(
-            chat_id,
-            f"<b>{esc(dialog.origin)} → {esc(code)}</b>. Дата вильоту? Наприклад "
-            "<code>05.12</code> або <code>2026-12-05</code>.",
-            CANCEL,
-        )
+        route = f"{esc(dialog.origin)} → {esc(code)}"
+        await self._send(chat_id, t("bot.ask_departure_html", route=route), cancel())
 
     async def _ask_threshold(self, chat_id: int) -> None:
-        await self._send(
-            chat_id,
-            "Коли повідомити? Напишіть поріг ціни за дорослого в EUR (наприклад <code>120</code>) "
-            "або оберіть «Нижче типової» — коли ціна на 10% нижча за звичну для маршруту.",
-            [[Button("📉 Нижче типової", data="typ"), Button("✖️ Скасувати", data="cancel")]],
-        )
+        await self._send(chat_id, t("bot.ask_threshold_html"), threshold_buttons())
 
     async def _finish(self, chat_id: int, dialog: Dialog, amount: int | None) -> None:
         await self._clear_dialog(chat_id)
         if dialog.step == "edit_threshold" and dialog.alert_id:
             if amount is None:
-                await self._send(
-                    chat_id, "Для зміни поведінки на «нижче типової» створіть нову підписку: /new"
-                )
+                await self._send(chat_id, t("bot.typical_edit"))
                 return
             ok = await self._alerts.set_threshold_for_chat(chat_id, dialog.alert_id, amount)
             await self._send(
-                chat_id,
-                f"✏️ Новий поріг: <b>{amount} EUR</b>." if ok else "Ця підписка вже неактивна.",
+                chat_id, t("bot.threshold_set_html", amount=amount) if ok else t("bot.inactive")
             )
             return
         try:
@@ -431,26 +432,33 @@ class TelegramBotService:
                 condition="below_price" if amount is not None else "below_typical",
                 threshold=amount,
                 channel="telegram",
+                locale=current_locale(),
             )
             created = await self._alerts.create(body, await self._owner(chat_id), chat_id=chat_id)
         except (AlertError, ValueError) as exc:
             log.info("bot.new_alert_rejected", error=type(exc).__name__)
-            await self._send(chat_id, "Не вдалося створити підписку. Спробуйте ще раз: /new")
+            await self._send(chat_id, t("bot.create_failed"))
             return
         alert = await self._alerts.chat_alert(chat_id, created.id)
         if alert is None:
             return
         price = (
-            f"\nЗараз від <b>{esc(_money(alert.last_price, alert.currency))}</b> "
-            f"{party_text(alert)}."
+            t(
+                "bot.now_from_html",
+                price=esc(_money(alert.last_price, alert.currency)),
+                party=esc(party_text(alert)),
+            )
             if alert.last_price is not None
-            else "\nЦін на ці дати в історії пошуків поки немає — "
-            "перевірятиму кілька разів на добу."
+            else t("bot.no_history")
         )
         await self._send(
             chat_id,
-            f"✅ <b>Стежу за ціною</b>\n{esc(route_text(alert))}\n"
-            f"Умова: {esc(condition_text(alert))}.{price}",
+            t(
+                "bot.watching_html",
+                route=esc(route_text(alert)),
+                condition=esc(condition_text(alert)),
+                price=price,
+            ),
             self._keyboard(alert),
         )
 
@@ -561,27 +569,26 @@ def _money(value: Decimal | None, currency: str) -> str:
     return money_text(value or Decimal(0), currency)
 
 
-MAIN_MENU = [[Button("➕ Нова підписка", data="new"), Button("📋 Мої підписки", data="list")]]
-CANCEL = [[Button("✖️ Скасувати", data="cancel")]]
-WELCOME_HTML = (
-    "👋 <b>Привіт! Я бот SkyPack.</b>\n"
-    "Стежу за цінами на авіаквитки й пишу, щойно ціна опускається нижче вашого порогу "
-    "або нижче звичної для маршруту.\n\n"
-    "• /new — нова підписка (звідки, куди, дата, поріг)\n"
-    "• /list — ваші підписки\n"
-    "• /link — прив'язати до акаунта на сайті\n\n"
-    "Підписатися можна й на сайті: кнопка «Стежити за ціною» на результатах пошуку."
-)
-HELP_HTML = (
-    "<b>Що я вмію</b>\n"
-    "/new — нова підписка на ціну\n/list — мої підписки (вимкнути, змінити поріг)\n"
-    "/stop — вимкнути всі підписки\n/link — прив'язати до акаунта на сайті\n"
-    "/cancel — скасувати поточну дію"
-)
-LINK_HELP_HTML = (
-    "🔗 Щоб прив'язати Telegram до акаунта, відкрийте на сайті <b>Кабінет → Вхід і безпека → "
-    "Telegram</b> і натисніть «Прив'язати Telegram». "
-    "Тоді підписки з цього чату з'являться в кабінеті."
-)
-BAD_DATE_TEXT = "Не зрозумів дату. Напишіть, наприклад, 05.12 або 2026-12-05 (не в минулому)."
-UNKNOWN_LINK_TEXT = "Посилання застаріле або вже використане. Створіть нове на сайті."
+def _new_button() -> Button:
+    return Button(t("bot.button.new"), data="new")
+
+
+def _cancel_button() -> Button:
+    return Button(t("bot.button.cancel"), data="cancel")
+
+
+def main_menu() -> list[list[Button]]:
+    return [[_new_button(), Button(t("bot.button.list"), data="list")]]
+
+
+def cancel() -> list[list[Button]]:
+    return [[_cancel_button()]]
+
+
+def threshold_buttons() -> list[list[Button]]:
+    return [[Button(t("bot.button.typical"), data="typ"), _cancel_button()]]
+
+
+def unknown_link_text() -> str:
+    """Для тестів і повідомлень поза ботом — мовою контексту."""
+    return t("bot.unknown_link")

@@ -4,11 +4,10 @@ import { Languages } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { saveLocale } from "@/app/actions/profile";
-import { LOCALE_COOKIE, type Locale, locales } from "@/i18n/config";
+import { LOCALE_COOKIE, LOCALE_NAMES, type Locale, locales } from "@/i18n/config";
 
 /** Коротка назва мови в перемикачі — її власною мовою, не перекладається. */
 const LABELS: Record<Locale, string> = { en: "EN", uk: "UK", ru: "RU" };
-const NAMES: Record<Locale, string> = { en: "English", uk: "Українська", ru: "Русский" };
 
 /** Зберегти вибір мови: cookie на рік (його читає `proxy.ts`). */
 export function rememberLocale(locale: Locale): void {
@@ -43,7 +42,7 @@ export function LanguageSwitcher({
         data-testid="language-switcher"
       >
         {locales.map((locale) => (
-          <option key={locale} value={locale} title={NAMES[locale]}>
+          <option key={locale} value={locale} title={LOCALE_NAMES[locale]}>
             {LABELS[locale]}
           </option>
         ))}

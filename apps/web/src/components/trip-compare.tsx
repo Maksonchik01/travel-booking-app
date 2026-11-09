@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { localDate, localTime, splitDuration } from "@/lib/format";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 export const MAX_TRIP_COMPARE = 3;
 const STORAGE_KEY = "tickets.tripCompare.v1";
@@ -146,6 +147,8 @@ export function TripCompareBar() {
               disabled={items.length < 2}
               onClick={() => dialog.current?.showModal()}
               data-testid="trip-compare-open"
+              data-track="compare_opened"
+              data-track-kind="trip"
             >
               {t("open")}
             </Button>
@@ -198,7 +201,7 @@ function CompareTable({ onEmpty }: { onEmpty: () => void }) {
       style: "currency",
       currency: s.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(num(value)),
     });
   const best = {
     total: Math.min(...snaps.map((s) => num(s.money_total))),

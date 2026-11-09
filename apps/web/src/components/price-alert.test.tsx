@@ -218,3 +218,29 @@ describe("PriceAlert — така сама підписка вже є", () => {
     expect(screen.queryByText(/Відкрити @/)).not.toBeInTheDocument();
   });
 });
+
+describe("PriceAlert — мова й причини відмови (модуль 18.1)", () => {
+  it("надсилає мову інтерфейсу й пояснює відмову API її мовою", async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      expect(JSON.parse(String(init?.body))).toMatchObject({ locale: "uk" });
+      return new Response(JSON.stringify({ error: "owner_limit" }), { status: 422 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <NextIntlClientProvider locale="uk" messages={messages}>
+        <PriceAlert target={flightTarget(QUERY)!} bestPrice={88.5} channels={CHANNELS} />
+      </NextIntlClientProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Стежити за ціною" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Підписатися" }));
+    });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(screen.getByTestId("alert-error")).toHaveTextContent(
+      "Забагато підписок — вимкніть чи видаліть зайві в кабінеті.",
+    );
+    vi.unstubAllGlobals();
+  });
+});

@@ -1205,6 +1205,30 @@ export interface paths {
         patch: operations["patch_trip_account_trips__trip_id__patch"];
         trace?: never;
     };
+    "/account/trips/{trip_id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Share Trip
+         * @description Увімкнути публічне посилання на поїздку (модуль 20.2).
+         */
+        post: operations["share_trip_account_trips__trip_id__share_post"];
+        /**
+         * Unshare Trip
+         * @description Вимкнути публічне посилання: старе більше не відкривається.
+         */
+        delete: operations["unshare_trip_account_trips__trip_id__share_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/alerts": {
         parameters: {
             query?: never;
@@ -1336,6 +1360,48 @@ export interface paths {
          *     Збій БД — 503 без винятку назовні: веб викликає це вже після редиректу.
          */
         post: operations["log_click_outbound_clicks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Log Event
+         * @description Анонімна подія використання (модуль 19). Нічого не повертає й нічого не ламає: збій
+         *     БД — 503, сторінка про це не дізнається.
+         */
+        post: operations["log_event_events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/shared/trips/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shared Trip
+         * @description Публічний перегляд поїздки за посиланням власника (модуль 20.2). Без входу; лише сама
+         *     поїздка — без власника й особистого. Посилання вимкнули чи його не було — 404.
+         */
+        get: operations["shared_trip_shared_trips__token__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1644,6 +1710,8 @@ export interface components {
             channel: "telegram" | "email";
             /** Email */
             email?: string | null;
+            /** Locale */
+            locale?: ("en" | "uk" | "ru") | null;
         };
         /** AlertCreated */
         AlertCreated: {
@@ -2181,6 +2249,25 @@ export interface components {
             title: string;
             snapshot: components["schemas"]["TripSnapshot-Output"];
         };
+        /** ConvertedPrice */
+        ConvertedPrice: {
+            /** Amount */
+            amount: string;
+            /** Currency */
+            currency: string;
+            /** Original Amount */
+            original_amount: string;
+            /** Original Currency */
+            original_currency: string;
+            /** Rate */
+            rate: string;
+            /**
+             * Approximate
+             * @default true
+             * @constant
+             */
+            approximate: true;
+        };
         /** CostItem */
         CostItem: {
             /**
@@ -2264,6 +2351,18 @@ export interface components {
         EmailBody: {
             /** Email */
             email: string;
+        };
+        /** EventIn */
+        EventIn: {
+            /**
+             * Name
+             * @enum {string}
+             */
+            name: "search_started" | "search_succeeded" | "search_empty" | "search_failed" | "filters_applied" | "offer_opened" | "compare_opened" | "outbound" | "favorite_added" | "trip_saved" | "cheaper_requested" | "ai_optimize" | "alert_created" | "ai_to_planner";
+            /** Props */
+            props?: {
+                [key: string]: string;
+            };
         };
         /**
          * Exclusion
@@ -2798,6 +2897,13 @@ export interface components {
              */
             date_options: components["schemas"]["DateOption"][];
             /**
+             * Converted
+             * @default {}
+             */
+            converted: {
+                [key: string]: components["schemas"]["ConvertedPrice"];
+            };
+            /**
              * Freshness
              * @default {}
              */
@@ -3189,6 +3295,7 @@ export interface components {
             llm: components["schemas"]["LLMSpend"] | null;
             clicks: components["schemas"]["Clicks"] | null;
             activity: components["schemas"]["Activity"] | null;
+            usage?: components["schemas"]["Usage"] | null;
             /** Problems */
             problems: string[];
         };
@@ -3414,6 +3521,8 @@ export interface components {
             first_name?: string | null;
             /** Last Name */
             last_name?: string | null;
+            /** Locale */
+            locale?: ("en" | "uk" | "ru") | null;
         };
         /** RiskPenalty */
         RiskPenalty: {
@@ -3500,6 +3609,8 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /** Share Token */
+            share_token?: string | null;
         };
         /**
          * SavedTripPatch
@@ -3764,6 +3875,15 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
+        };
+        /**
+         * SharedTrip
+         * @description Публічний перегляд поїздки (модуль 20.2): лише сама поїздка. Без власника, назви, статусу,
+         *     бюджету, уподобань і підписів власних витрат — там може бути щось особисте.
+         */
+        SharedTrip: {
+            query: components["schemas"]["TripQuery-Output"];
+            snapshot: components["schemas"]["TripSnapshot-Output"];
         };
         /** Stay */
         Stay: {
@@ -4327,6 +4447,13 @@ export interface components {
             freshness: {
                 [key: string]: "live" | "cached" | "approximate" | "needs_recheck";
             };
+            /**
+             * Converted
+             * @default {}
+             */
+            converted: {
+                [key: string]: components["schemas"]["ConvertedPrice"];
+            };
         };
         /** StayWarning */
         StayWarning: {
@@ -4466,6 +4593,11 @@ export interface components {
              * @default []
              */
             warnings: ("night_arrival" | "late_arrival" | "early_return" | "late_return" | "value_unknown" | "costs_unknown")[];
+            /**
+             * Converted From
+             * @default []
+             */
+            converted_from: string[];
             /**
              * Full Nights
              * @default 0
@@ -5012,6 +5144,22 @@ export interface components {
             role: "user" | "assistant";
             /** Text */
             text: string;
+        };
+        /**
+         * Usage
+         * @description Анонімні події за 7 днів (модуль 19): частоти й воронка пошуку за режимами.
+         */
+        Usage: {
+            /** Events 7D */
+            events_7d: {
+                [key: string]: number;
+            };
+            /** Searches 7D */
+            searches_7d: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
         };
         /** ValidationError */
         ValidationError: {
@@ -7403,6 +7551,72 @@ export interface operations {
             };
         };
     };
+    share_trip_account_trips__trip_id__share_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedTripOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unshare_trip_account_trips__trip_id__share_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedTripOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     my_alerts_account_alerts_get: {
         parameters: {
             query?: never;
@@ -7607,6 +7821,68 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_event_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    shared_trip_shared_trips__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharedTrip"];
+                };
             };
             /** @description Validation Error */
             422: {

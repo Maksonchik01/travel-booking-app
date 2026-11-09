@@ -43,8 +43,11 @@ SkyPack — веб-застосунок для пошуку подорожей �
 - **Продавці** ([ADR 0017](docs/adr/0017-sellers-and-price-check.md)): `Offer.price_status`/`cabin`/
   `booking_ref`; однаковий рейс — `groups` (одна картка); `POST /flights/sellers` — на вимогу
   (1 запит SerpApi, кеш 30 хв), це й перевірка ціни перед переходом; без неї — «підтверджує продавець».
-- **Валюта** ([ADR 0015](docs/adr/0015-currency-ecb-rates.md)): EUR/USD/GBP/PLN, ціни — від джерела;
-  ваги скорингу переводяться за курсом ЄЦБ (`providers/fx.py`, кеш у Redis), без курсу — не оцінюємо.
+- **Валюта** ([ADR 0015](docs/adr/0015-currency-ecb-rates.md), [ADR 0037](docs/adr/0037-currencies.md)): EUR/USD/GBP/PLN
+  (`cur=` для перельотів, житла й поїздки), ціни — від джерела й лишаються вихідними; ваги скорингу
+  переводяться за курсом ЄЦБ (`providers/fx.py`, кеш у Redis). Ціна в іншій валюті — копія для
+  порівняння (`offer_in_currency`) і `converted[key]` (орієнтовно); без курсу — не оцінюємо. Гроші —
+  `domain/money.py` (Decimal, до центів, половина вгору); у UI — `lib/money.ts` `fractionDigits`.
 - **Багаж** ([ADR 0014](docs/adr/0014-baggage-final-price.md)): `FlightQuery.baggage` (не в запит
   джерела), `Offer.baggage` (None — невідомо), `scoring/baggage.py` → `FlightSearchResult.baggage`;
   «найдешевший» — серед відомих кінцевих вартостей, якщо такі є.
@@ -128,6 +131,10 @@ SkyPack — веб-застосунок для пошуку подорожей �
   компонентах. Збережена поїздка → `/trip?…#price-alert`. Кабінет → нові пошуки: `tripDefaults`,
   уподобання (`*Preferences`), а чат — через `/api/ai/chat` (аеропорт, валюта, уподобання з акаунта;
   уподобання моделі не передаються).
+- **Поділитися й останні пошуки** ([ADR 0039](docs/adr/0039-share-and-recent-searches.md)): `ShareLink`
+  на результатах — канонічні параметри (без `saved=`/токенів); публічна поїздка — `saved_trips.share_token`
+  (NULL — приватна; вмикає власник, `/shared/trip/<token>`, лише `SharedTrip` через `public_query` — без
+  назви, бюджету, витрат, уподобань); останні пошуки — `lib/recent-searches.ts` (браузер, до 6).
 - **Кабінет** ([ADR 0023](docs/adr/0023-cabinet-sections.md)): розділи — окремі сторінки `/account`
   (огляд), `/account/{favorites,trips,history,alerts,settings,security}` в оболонці
   `components/account-shell.tsx`. Обране — три категорії (`favorites.kind`: stay / flight / trip,
@@ -164,6 +171,10 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `src/lib/sentry-options.ts`, `app/global-error.tsx`) — лише помилки, без PII (cookies, заголовки,
   тіла, query вимкнені). `GET /ops/summary` (`services/ops.py`) — агрегати для власника за
   `X-Internal-Key`; лише лічильники, без email/токенів; кожна секція падає окремо.
+- **Аналітика** ([ADR 0038](docs/adr/0038-product-analytics.md)): `analytics_events` — назва (`EventName`)
+  і мітки-перелічення, без людини/сесії/IP/cookies, 90 днів. Браузер — `data-track="подія"` (+
+  `data-track-mode|kind|source`) або `track()` з `lib/analytics.ts`; сервер — `searchEvents` /
+  `routeEvent` (`lib/server-analytics.ts`). GPC/DNT — нічого не пишемо. Звіт — `usage` в `/ops/summary`.
 - **GDPR:** мінімум персональних даних; `send_default_pii=False` у Sentry.
 - Назви LLM-моделей лише в конфігу (`LLM_MODEL_PARSER`, `LLM_MODEL_EXPLAINER`).
 - **ШІ-шар** ([ADR 0007](docs/adr/0007-llm-deepseek.md)): DeepSeek через `LLMClient`
@@ -231,6 +242,9 @@ make migrate        alembic upgrade head
 
 Нова міграція: `uv run alembic -c apps/api/alembic.ini revision --autogenerate -m "..."`.
 
+Матриця покриття сценаріїв ТЗ тестами — [docs/testing.md](docs/testing.md) (модуль 21): новий сценарій —
+рядок у матриці з тестом, що його перевіряє.
+
 ## Конвенції
 
 - **Python:** ruff (line-length 100), mypy strict, pytest-asyncio auto. Тести поряд із
@@ -247,6 +261,10 @@ make migrate        alembic upgrade head
   `/`, `/stays`, `/trip` — Авіаквитки / Житло / Поїздка / ШІ-пошук; спільне (куди, дати, люди) —
   `lib/search-modes.ts` з поточної форми (`form[data-search-form]`), неповне — чернетка у формі.
   Бренд у UI — SkyPack (внутрішні імена `tickets_*` / `tickets.*` не змінюємо).
+- **Чернетка й порожні результати** ([ADR 0040](docs/adr/0040-draft-state-and-empty-results.md)): поки
+  результатів немає, введене у форму — в URL з `draft=1` (`SearchModes drafting`, `draftHref`); `draft=1`
+  ніколи не запускає пошук (`isDraft(raw)` перед розбором). Порожньо — `EmptySuggestions` з
+  `lib/empty-suggestions.ts`: посилання з однією зміною, нічого не застосовуємо самі.
 - **Web-поїздка:** `/trip?from=&to=&depart=&return=&adults=&children=&prio=&budget=&direct=`
   — `src/lib/trip-params.ts`. Перельоти: перемикач «туди й назад / в один бік»
   (`trip=ow` без JS ігнорує повернення).
@@ -298,6 +316,11 @@ make migrate        alembic upgrade head
   шлях за cookie `NEXT_LOCALE` без префікса в URL; перемикач — `language-switcher.tsx`
   (з акаунтом пише й `users.locale`, після входу cookie — з профілю). Новий текст — у всі три файли.
   Компоненти UI з shadcn лежать у `src/components/ui` (prettier їх не чіпає).
+  Тексти, які формує API (сповіщення, бот, листи, дані для ШІ), — `tickets_api/i18n`
+  ([ADR 0036](docs/adr/0036-server-texts-i18n.md)): каталоги `i18n/messages/{en,uk,ru}.json`, `t(...)`,
+  мова — `use_locale(...)` у точці входу (підписка — `alerts.locale`, бот — акаунт/Telegram, листи —
+  `users.locale`); без мови — українська. Помилки для UI — кодами (`AlertError.code`).
+  Кириличних рядків у коді вебу немає (`hardcoded-text.test.ts`).
 - **Залежності:** версії закріплені точно (`save-exact`). Нова залежність має бути
   опублікована щонайменше 2 тижні тому, якщо це не безпекове виправлення.
 - **Node:** 22.13+ і npm 11 (npm 10.9 падає на резолві peer-залежностей у workspaces).

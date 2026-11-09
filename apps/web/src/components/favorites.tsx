@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import type { FavoriteBody, FavoriteKind, FavoriteOut } from "@tickets/shared";
 import {
   BedDouble,
@@ -31,6 +32,7 @@ import { localDate, localTime } from "@/lib/format";
 import { toTripParams } from "@/lib/trip-params";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 type Favorites = {
   /** null — ще завантажується (кнопки неактивні, щоб не задублювати). */
@@ -111,6 +113,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     const key = bodyKey(body);
     if (has(key)) return remove(key);
     setError(null);
+    track("favorite_added", { kind: body.kind ?? "stay" });
     if (signedIn) {
       const state = await addFavorite(body);
       if (state.signedIn) {
@@ -305,7 +308,7 @@ function FavoriteCard({ item, onRemove }: { item: FavoriteItem; onRemove: () => 
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(Number(value)),
     });
   const priceAt = (iso: string) =>
     t("priceAt", {

@@ -35,6 +35,7 @@ import { Card } from "@/components/ui/card";
 import { useDurationText, WhyList } from "@/components/why-list";
 import { localDate, localTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const LABEL_ICON = { cheapest: Wallet, best_value: Scale, comfort: Crown } as const;
 const COST_ICON = { tickets: Plane, baggage: Briefcase, stay: BedDouble, extra: Receipt } as const;
@@ -83,13 +84,14 @@ export function TripCard({
 }: Props) {
   const t = useTranslations("tripCard");
   const tPicks = useTranslations("tripPicks");
+  const tCurrency = useTranslations("currency");
   const format = useFormatter();
-  const money = (value: number, digits = 0) =>
+  const money = (value: number) =>
     format.number(value, {
       style: "currency",
       currency: combo.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: digits,
+      ...fractionDigits(value),
     });
   const Icon = label ? LABEL_ICON[label] : null;
   const recommended = label === "best_value";
@@ -143,6 +145,11 @@ export function TripCard({
         <p className="text-muted-foreground text-xs">
           {t("forTrip", { nights: combo.window.nights, travelers })}
         </p>
+        {(combo.converted_from ?? []).length > 0 && (
+          <p className="text-xs text-warning" data-testid="trip-converted">
+            {tCurrency("tripConverted", { currencies: (combo.converted_from ?? []).join(", ") })}
+          </p>
+        )}
         {combo.costs.unknown > 0 && (
           <p className="text-xs text-warning">{t("plusUnknown", { count: combo.costs.unknown })}</p>
         )}

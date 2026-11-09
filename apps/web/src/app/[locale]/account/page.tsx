@@ -7,6 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { AccountPage, Entries, Section, requireAccount } from "@/components/account-shell";
 import { toTripParams } from "@/lib/trip-params";
 import { call } from "@/lib/session";
+import { fractionDigits } from "@/lib/money";
 
 /** Кабінет → «Огляд» (модуль 10a): привітання, швидкі дії, коротко про все головне. */
 export default function OverviewPage({ searchParams }: PageProps<"/[locale]/account">) {
@@ -131,7 +132,7 @@ function Trips({ trips }: { trips: SavedTrip[] }) {
                     style: "currency",
                     currency: trip.snapshot.currency,
                     currencyDisplay: "narrowSymbol",
-                    maximumFractionDigits: 0,
+                    ...fractionDigits(trip.snapshot.money_total),
                   })}
                 </span>
               </Link>

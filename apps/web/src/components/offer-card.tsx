@@ -3,6 +3,7 @@ import type {
   Baggage,
   BaggageCost,
   BaggageNeed,
+  ConvertedPrice,
   Leg,
   Offer,
   OfferScore,
@@ -23,6 +24,7 @@ import {
 import { useFormatter, useTranslations } from "next-intl";
 
 import { AirlineLogo, legCarriers } from "@/components/airline-logo";
+import { ConvertedNote } from "@/components/converted-price";
 import { FreshnessBadge } from "@/components/price-freshness";
 import { ScoreDetails } from "@/components/top-picks";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +34,7 @@ import { dayShift, daysAgo, hoursAgo, localDate, localTime, splitDuration } from
 import { outboundHref } from "@/lib/outbound";
 import { layoverRisks, type LayoverRisk } from "@/lib/risks";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const RISK_ICON: Record<LayoverRisk, typeof Clock> = {
   short: AlertTriangle,
@@ -56,9 +59,12 @@ export function OfferCard({
   sellerCount = 1,
   compare,
   freshness,
+  converted,
 }: {
   offer: Offer;
   now: Date;
+  /** Ціна у валюті пошуку, якщо джерело дало іншу (модуль 18.2). */
+  converted?: ConvertedPrice;
   /** Свіжість ціни від API (модуль 17.3). */
   freshness?: PriceFreshness;
   /** Вартість з багажем, який обрав користувач (рахує API, ADR 0014); немає — багаж не потрібен. */
@@ -89,7 +95,7 @@ export function OfferCard({
       style: "currency",
       currency: offer.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: value % 1 === 0 ? 0 : 2,
+      ...fractionDigits(value),
     });
 
   // Точність віку ціни — така, яку дає джерело: години, лише день або невідомо.
@@ -153,12 +159,13 @@ export function OfferCard({
               style: "currency",
               currencyDisplay: "narrowSymbol",
               currency: offer.currency,
-              maximumFractionDigits: 0,
+              ...fractionDigits(offer.price),
             })}
           </p>
           <p className="text-muted-foreground text-xs">
             {travellers > 1 ? t("forPassengers", { count: travellers }) : t("perAdult")}
           </p>
+          <ConvertedNote converted={converted} />
           <div className="mt-1 grid gap-0.5">
             <FreshnessBadge value={freshness} />
             <p className="text-muted-foreground text-xs" data-testid="price-age">
@@ -539,7 +546,12 @@ function RouteDetails({ offer, names }: { offer: Offer; names?: Record<string, s
       timeZone: "UTC",
     })}`;
   return (
-    <details className="group text-xs" data-testid="route-details">
+    <details
+      className="group text-xs"
+      data-testid="route-details"
+      data-track="offer_opened"
+      data-track-kind="flight"
+    >
       <summary className="text-muted-foreground hover:text-primary flex w-fit cursor-pointer list-none items-center gap-1 rounded transition-colors select-none">
         <ChevronRight className="size-3.5 transition-transform group-open:rotate-90" aria-hidden />
         {t("routeDetails")}

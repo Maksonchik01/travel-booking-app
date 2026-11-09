@@ -1,0 +1,164 @@
+{
+  "alerts": {
+    "route": {
+      "flex": "departure {start} – {end}, {nights} nights",
+      "weekends": ", weekends only",
+      "stay": "Stay: {city}, {dates}",
+      "trip": "Trip {route}"
+    },
+    "party": {
+      "stay": "for the whole stay",
+      "adults": {
+        "one": "for {count} adult",
+        "other": "for {count} adults"
+      }
+    },
+    "condition": {
+      "below_price": "price up to {amount} {party}",
+      "drop_amount": "price drops by at least {amount} from the start",
+      "drop_percent": "price drops by at least {percent}% from the start",
+      "below_typical": "price {percent}% below the typical one"
+    },
+    "reason": {
+      "below_price": "at or below your threshold of {amount}",
+      "below_typical": "below the typical route price of {amount}",
+      "drop": "{amount} cheaper than when tracking started ({base})"
+    },
+    "found": {
+      "dates": "Dates: {dates}.",
+      "baggage_unknown": "Price without baggage: the source doesn't know its terms — check with the seller."
+    },
+    "button": {
+      "stop": "⏸ Turn off",
+      "snooze": {
+        "one": "😴 Mute for {count} day",
+        "other": "😴 Mute for {count} days"
+      },
+      "threshold": "✏️ Change threshold",
+      "tickets": "✈️ Tickets",
+      "manage": "⚙️ Manage"
+    },
+    "links": "\n\nTickets: {search}\nManage: {manage}",
+    "drop": {
+      "title_html": "✈️ <b>Price dropped</b>",
+      "now_html": "Now from <b>{price}</b> {party} — {reason}.",
+      "previous": "Last time we wrote about {previous}: now {diff} cheaper.",
+      "note_html": "<i>Price from search history: the seller confirms the final one.</i>",
+      "subject": "Price dropped: {route}",
+      "email": "✈️ Price dropped: {route}\nNow from {price} {party} — {reason}.\n{extra}This is a cached price from search history: the seller confirms the final one.\n\nTickets: {search}\nManage your alert: {manage}"
+    },
+    "confirm": {
+      "subject": "Confirm your price alert",
+      "email": "You (or someone on your behalf) subscribed to a price alert:\n{route}\nCondition: {condition}.\n\nTo confirm, open the link and press “Confirm”:\n{manage}\n\nIf it wasn't you, just ignore this email: without confirmation you won't get any alerts."
+    }
+  },
+  "bot": {
+    "commands": {
+      "new": "New price alert",
+      "list": "My alerts",
+      "link": "Link to your account on the website",
+      "stop": "Turn off all alerts",
+      "cancel": "Cancel the current action",
+      "help": "What the bot can do"
+    },
+    "button": {
+      "new": "➕ New alert",
+      "list": "📋 My alerts",
+      "cancel": "✖️ Cancel",
+      "typical": "📉 Below typical",
+      "one_way": "➡️ One way",
+      "stop_n": "⏸ {n}. Turn off",
+      "threshold": "✏️ Threshold"
+    },
+    "ack": {
+      "stopped": "Alert turned off",
+      "already": "Already off",
+      "snoozed": "Muted until {date}",
+      "inactive": "Alert is not active",
+      "cancelled": "Cancelled"
+    },
+    "stopped_all": "Done: alerts turned off — {count}.",
+    "cancelled": "Cancelled.",
+    "confirmed_html": "✅ <b>Alert confirmed</b>\n{route}\nCondition: {condition}.\n\nI'll write as soon as the price drops.",
+    "no_alerts": "No active alerts.",
+    "list_title_html": "<b>Your alerts</b>",
+    "list_price": " · now from {price}",
+    "linked_html": "🔗 Telegram is linked to the account <b>@{username}</b>.\nAlerts from this chat are now visible in your account on the website.",
+    "stopped_one": "⏸ Alert turned off.",
+    "inactive": "This alert is no longer active.",
+    "new_threshold_html": "New threshold for {route} — price {party} in {currency}, e.g. <code>90</code>.",
+    "new_html": "➕ <b>New alert</b>\nWhere are we flying from? Type a city or an airport code, e.g. <code>London</code> or <code>LON</code>.",
+    "ask_return": "Return date? Or press “One way”.",
+    "return_before": "The return can't be before the departure. ",
+    "amount_hint_html": "Type the amount as a number, e.g. <code>120</code>, or press “Below typical”.",
+    "not_found": "Couldn't find “{text}”. Try a city name in English or Ukrainian, or a three-letter airport code.",
+    "clarify": "Please clarify:",
+    "from_html": "From: <b>{code}</b>. Where to?",
+    "same_city": "The destination must be different. Where to?",
+    "ask_departure_html": "<b>{route}</b>. Departure date? For example <code>05.12</code> or <code>2026-12-05</code>.",
+    "ask_threshold_html": "When should I notify you? Type a price threshold per adult in EUR (e.g. <code>120</code>) or choose “Below typical” — when the price is 10% below the usual one for the route.",
+    "typical_edit": "To switch to “below typical”, create a new alert: /new",
+    "threshold_set_html": "✏️ New threshold: <b>{amount} EUR</b>.",
+    "create_failed": "Couldn't create the alert. Try again: /new",
+    "now_from_html": "\nNow from <b>{price}</b> {party}.",
+    "no_history": "\nThere are no prices for these dates in search history yet — I'll check several times a day.",
+    "watching_html": "✅ <b>Watching the price</b>\n{route}\nCondition: {condition}.{price}",
+    "welcome_html": "👋 <b>Hi! I'm the SkyPack bot.</b>\nI watch flight prices and write as soon as a price drops below your threshold or below the usual one for the route.\n\n• /new — new alert (from, to, date, threshold)\n• /list — your alerts\n• /link — link to your account on the website\n\nYou can also subscribe on the website: the “Watch the price” button on search results.",
+    "help_html": "<b>What I can do</b>\n/new — new price alert\n/list — my alerts (turn off, change threshold)\n/stop — turn off all alerts\n/link — link to your account on the website\n/cancel — cancel the current action",
+    "link_help_html": "🔗 To link Telegram to your account, open <b>Account → Sign-in and security → Telegram</b> on the website and press “Link Telegram”. Alerts from this chat will then appear in your account.",
+    "bad_date": "I didn't understand the date. Type, for example, 05.12 or 2026-12-05 (not in the past).",
+    "unknown_link": "The link is outdated or already used. Create a new one on the website."
+  },
+  "account": {
+    "verify": {
+      "subject": "Confirm your email address",
+      "email": "To link this address to your SkyPack account, open the link: {link}\nThe link is valid for 24 hours. If it wasn't you, ignore this email."
+    },
+    "reset": {
+      "subject": "Password reset",
+      "email": "To set a new password, open the link (valid for 1 hour): {link}\nIf you didn't ask for a reset, ignore this email — your password won't change."
+    }
+  },
+  "ai": {
+    "flight_label": {
+      "cheapest": "Cheapest",
+      "fastest": "Fastest",
+      "balanced": "Balanced"
+    },
+    "stay_label": {
+      "cheapest": "Cheapest",
+      "top_rated": "Top rated",
+      "balanced": "Balanced"
+    },
+    "trip_label": {
+      "cheapest": "Budget",
+      "best_value": "Optimal",
+      "comfort": "Comfort",
+      "current": "Current trip",
+      "previous": "Previous option",
+      "after_change": "After the change"
+    },
+    "duration": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} h",
+      "hours_minutes": "{hours} h {minutes:02d} min"
+    },
+    "age": {
+      "under_hour": "less than an hour ago",
+      "hours": "{count} h ago",
+      "days": "{count} d ago"
+    },
+    "price_stats_note": "not enough price history for this route yet",
+    "trip": {
+      "tickets": "tickets {amount}",
+      "baggage_unknown": "baggage — unknown",
+      "baggage": "baggage {amount}",
+      "stay": "stay {amount} for {nights} nights"
+    },
+    "stay": {
+      "rating": "{rating} out of 10",
+      "km": "{value} km",
+      "meters": "{value} m"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import type { FavoriteStayInput, Stay, StayQuery } from "@tickets/shared";
 import { ChevronDown, Columns3, Luggage } from "lucide-react";
 import Link from "next/link";
@@ -62,7 +63,10 @@ export function StayCardActions({
           size="sm"
           aria-expanded={panel === "details"}
           disabled={!hydrated}
-          onClick={() => setPanel(panel === "details" ? null : "details")}
+          onClick={() => {
+            if (panel !== "details") track("offer_opened", { kind: "stay" });
+            setPanel(panel === "details" ? null : "details");
+          }}
           data-testid="stay-details-toggle"
         >
           <ChevronDown

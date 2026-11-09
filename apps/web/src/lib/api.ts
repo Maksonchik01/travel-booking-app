@@ -1,4 +1,6 @@
 import type {
+  EventIn,
+  SharedTrip,
   AIStatus,
   AlertEdit,
   AlertEventOut,
@@ -314,4 +316,18 @@ export const ERROR_KEY = {
 export async function fetchCountryCodes(): Promise<string[]> {
   const result = await request<string[]>("/places/countries");
   return result.ok ? result.data : [];
+}
+
+/** Анонімна подія використання (модуль 19). Збій — тихо: аналітика нічого не ламає. */
+export async function recordEvent(event: EventIn): Promise<void> {
+  await request("/events", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(event),
+  });
+}
+
+/** Публічна поїздка за посиланням власника (модуль 20.2); 404 — вимкнено чи не існує. */
+export function fetchSharedTrip(token: string): Promise<ApiResult<SharedTrip>> {
+  return request(`/shared/trips/${encodeURIComponent(token)}`);
 }

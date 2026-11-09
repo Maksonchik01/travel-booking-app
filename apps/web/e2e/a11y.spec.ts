@@ -20,8 +20,12 @@ const PAGES = [
 
 async function audit(page: Page, name: string) {
   // content-visibility: auto (довгі списки, модуль 17.5) — браузер не малює картки за екраном,
-  // і axe не бачить їхніх кольорів. Вигляд від цього не змінюється, тож для аудиту — вимикаємо.
-  await page.addStyleTag({ content: "* { content-visibility: visible !important; }" });
+  // і axe не бачить їхніх кольорів. Вигляд від цього не змінюється, тож для аудиту — вимикаємо;
+  // разом з анімаціями: інакше щойно показані картки ще напівпрозорі (fade-in) — хибний контраст.
+  await page.addStyleTag({
+    content:
+      "*, *::before, *::after { content-visibility: visible !important; animation: none !important; transition: none !important; }",
+  });
   const result = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     // Карта (MapLibre) — полотно з власною клавіатурною навігацією; список поруч дублює її.

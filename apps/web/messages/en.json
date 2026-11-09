@@ -501,7 +501,8 @@
     "childAge": "Child {n}",
     "age": "{count, plural, =0 {under 1 year} one {# year} other {# years}}",
     "childrenAgesHint": "The rate depends on age: infants often stay free.",
-    "usePrefs": "{count, plural, one {My search preferences (# filter)} other {My search preferences (# filters)}}"
+    "usePrefs": "{count, plural, one {My search preferences (# filter)} other {My search preferences (# filters)}}",
+    "currency": "Currency"
   },
   "stayResults": {
     "invalid": "Check the city and dates: check-out must be after check-in, 30 nights at most.",
@@ -718,7 +719,7 @@
     "nights": "{count, plural, one {# night} other {# nights}}",
     "adults": "Adults",
     "children": "Children",
-    "budget": "Total budget, €",
+    "budget": "Total budget, {currency}",
     "anyBudget": "No limit",
     "priority": "What matters more",
     "priorities": {
@@ -748,10 +749,11 @@
     "breakfast": "Breakfast included",
     "extras": "Your own costs (indicative)",
     "extraLabel": "Name",
-    "extraAmount": "Amount, €",
+    "extraAmount": "Amount, {currency}",
     "extrasHint": "E.g. excursions, insurance. They count toward the budget as indicative.",
     "pinnedFlight": "Keep the selected flight",
-    "pinnedFlightHint": "If you change the dates, the flight may not exist on them — then we'll pick another."
+    "pinnedFlightHint": "If you change the dates, the flight may not exist on them — then we'll pick another.",
+    "currency": "Currency"
   },
   "tripResults": {
     "title": "Trip {from} → {to}",
@@ -902,7 +904,15 @@
       "flight": "Alerts are unavailable.",
       "flex": "Alerts are unavailable."
     },
-    "existing": "You already have this alert — we didn't create a new one."
+    "existing": "You already have this alert — we didn't create a new one.",
+    "errors": {
+      "past_date": "The departure date has passed — choose a future one.",
+      "kind_unavailable": "This type of alert isn't available yet.",
+      "too_far": "We watch dates up to one year ahead.",
+      "closed": "A turned-off or past alert can't be changed — create a new one.",
+      "owner_limit": "Too many alerts — turn off or delete some in your account.",
+      "invalid": "Check the alert conditions: some value doesn't fit."
+    }
   },
   "alertPage": {
     "title": "Price subscription",
@@ -1315,14 +1325,17 @@
           "p": [
             "Account (if you create one): username, name, optional email, password hash (scrypt — we don't know the password itself), Google or Telegram ID if you sign in with them. Search history and saved searches (up to the last 200), favorites — flights, stays and ready-made trips (up to 200: offer parameters, dates, price and when it was obtained), saved trips (up to 50: route, dates, chosen flight and stay, prices at the time of saving). Chats with the AI assistant — only if you turned on chat sync (up to 30 chats); turning it off deletes them from the account. Optional profile: interface language, currency, country of residence, home and favourite airports, search preferences, your own photo (up to 300 KB, visible only to you); if you sign in with Google — the address of your Google photo (shown through our server, your browser does not contact Google). Sign-in sessions: sign-in date, last activity and a coarse device description (browser and OS, e.g. “Chrome · macOS”) — no IP; notification settings (channels, frequency, quiet hours and your time zone).",
             "Price alerts: the route (or stay city), dates or period and trip length, number of adults, required baggage, the condition (threshold or drop) and the contact for notifications — email or a Telegram chat; a log of checks and sent notifications (prices, no email texts). The log of routine checks is kept for 30 days; you can delete a subscription with its history at any time.",
-            "Price history and visits to partner sites are stored without being tied to a person: route, price, source, partner domain — without IP or account."
+            "Price history and visits to partner sites are stored without being tied to a person: route, price, source, partner domain — without IP or account.",
+            "Anonymous usage statistics: which actions happen (a search started, found results or not, details opened, a trip saved, a click to a seller) with short labels like “flights” or “stays” — without an account, session, cookies, IP, routes, dates or query texts. Kept for 90 days. If your browser asks not to be tracked (Global Privacy Control or Do Not Track), we record nothing.",
+            "A public link to a saved trip exists only if you turn it on and stops working as soon as you turn it off. It shows the route, dates, flight, stay and prices at the time of saving — without your name, trip title, budget or own expenses."
           ]
         },
         {
           "h": "Cookies and browser storage",
           "p": [
             "Only necessary ones: the sign-in session cookie (httpOnly, up to 30 days), a temporary cookie during Google sign-in, and the interface language cookie (NEXT_LOCALE, one year — only the chosen language). There are no advertising or analytics cookies. After sign-in we set the language cookie from your profile.",
-            "Your browser (localStorage / sessionStorage) keeps: the theme, AI chat history, the list of your notifications, the last search tab, and without an account — favorites and saved trips too (after sign-in they move to your account); in the tab — the trips selected for comparison and the “Undo last choice” steps. Chat history doesn't reach the server unless you turned on “Sync chats across devices” yourself (account only); you can delete it in the chat."
+            "Your browser (localStorage / sessionStorage) keeps: the theme, AI chat history, the list of your notifications, the last search tab, and without an account — favorites and saved trips too (after sign-in they move to your account); in the tab — the trips selected for comparison and the “Undo last choice” steps. Chat history doesn't reach the server unless you turned on “Sync chats across devices” yourself (account only); you can delete it in the chat.",
+            "Recent searches (up to 6: route, dates, people and filters — as in the page address) are also kept only in this browser; you can remove them with “Clear”."
           ]
         },
         {
@@ -1357,7 +1370,8 @@
           "p": [
             "Flight search — live Google Flights prices via SerpApi at the time of the request. The price calendar and the backup search — Travelpayouts: these are prices someone found earlier, so we show when exactly.",
             "The flight price is shown for the whole party of the search (for one adult — for that adult): children and infants are at their own fare, we don't guess it. The stay price is for the whole room with taxes.",
-            "Every price shows how fresh it is: “just checked” (live source, up to 30 min), “cached” (found earlier, up to 3 days), “approximate” (unknown when found) or “worth re-checking” (older). Identical searches made at the same time go to the source only once."
+            "Every price shows how fresh it is: “just checked” (live source, up to 30 min), “cached” (found earlier, up to 3 days), “approximate” (unknown when found) or “worth re-checking” (older). Identical searches made at the same time go to the source only once.",
+            "You choose the currency (EUR, USD, GBP, PLN) for flights, stays and trips. Prices are shown as the source gives them; if it gave another currency, we convert it for comparison at the ECB reference rate and mark it “≈ … approximate”. The seller may charge in its own currency at your bank's rate — this is not a guaranteed charge. We don't hide cents: a fractional price is shown with cents."
           ]
         },
         {
@@ -1731,6 +1745,51 @@
       "cached": "Someone found this price earlier; it may change.",
       "approximate": "When this price was found is unknown: treat it as a guide.",
       "needs_recheck": "The price is old — check it with the seller before booking."
+    }
+  },
+  "currency": {
+    "converted": "≈ {amount} at the ECB rate — approximate",
+    "convertedHint": "The seller prices this in {currency} and will charge in it; the amount in your currency is only for comparison.",
+    "tripConverted": "Some amounts were converted from {currencies} at the ECB rate — approximate: sellers charge in their own currency.",
+    "sellerCurrency": "Prices are shown in {currency}. The seller may charge in its own currency at your bank's rate — you'll see the exact amount at checkout."
+  },
+  "share": {
+    "share": "Share",
+    "copied": "Link copied",
+    "publicOn": "Make a public link",
+    "publicOff": "Turn off the link",
+    "publicShare": "Share the trip",
+    "publicHint": "Anyone with the link will see the route, dates, flight, stay and prices at the time of saving — without your name, trip title, budget or own expenses.",
+    "publicActive": "Public link is on"
+  },
+  "sharedTrip": {
+    "title": "Trip {from} → {to}",
+    "pricesAt": "Prices at the time of saving ({date}) — they may differ now.",
+    "openPlanner": "Check current prices",
+    "notFound": "The link is invalid or the owner turned it off.",
+    "total": "Total (known)",
+    "flight": "Flight",
+    "stay": "Stay",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "stops": "{count, plural, =0 {direct} one {# stop} other {# stops}}",
+    "rating": "rating {rating}"
+  },
+  "recent": {
+    "title": "Recent searches",
+    "again": "Search again",
+    "clear": "Clear",
+    "hint": "Kept only in this browser."
+  },
+  "emptyHelp": {
+    "title": "What you can try",
+    "hint": "We change nothing without you: each link is the same search with one change.",
+    "item": {
+      "widerDates": "Widen dates: ±3 days",
+      "allowStops": "Allow stops",
+      "nearby": "Add nearby airports (up to 150 km)",
+      "higherBudget": "Raise the budget to {amount}",
+      "fewerFilters": "Reset filters",
+      "widerArea": "Search the whole city"
     }
   }
 }

@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { type SearchState, toSearchParams } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const MOBILE_COMBOS = 6;
 
@@ -32,7 +33,7 @@ export function PriceMatrix({ matrix, state }: { matrix: Matrix; state: SearchSt
       style: "currency",
       currency: c.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(c.price),
     });
   const href = (c: MatrixCell) =>
     `/?${toSearchParams({

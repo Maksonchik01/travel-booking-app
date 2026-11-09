@@ -9,6 +9,7 @@ import { clientMessages } from "@/lib/client-messages";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import "../globals.css";
 
+import { AnalyticsListener } from "@/components/analytics-listener";
 import { SkipLink } from "@/components/skip-link";
 
 const geistSans = Geist({
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
         <NextIntlClientProvider messages={messages}>
           {/* Перший Tab — одразу до вмісту, повз шапку (WCAG 2.4.1). */}
           <SkipLink />
+          <AnalyticsListener />
           {children}
         </NextIntlClientProvider>
       </body>

@@ -95,6 +95,8 @@ export function StayFilters({
       {({ sheet, close }) => (
         <Form
           action="/stays"
+          data-track="filters_applied"
+          data-track-mode="stays"
           id="stay-filters-panel"
           className="grid gap-5 text-sm"
           onSubmit={close}

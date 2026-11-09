@@ -22,6 +22,8 @@ export function OptimizeWithAI() {
       disabled={!hydrated}
       onClick={() => openChat({ mode: "trip", draft: t("optimizeDraft") })}
       data-testid="trip-optimize-ai"
+      data-track="ai_optimize"
+      data-track-source="planner"
     >
       <Sparkles className="size-3.5" aria-hidden />
       {t("optimize")}

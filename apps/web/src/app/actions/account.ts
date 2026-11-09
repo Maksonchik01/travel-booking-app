@@ -2,8 +2,10 @@
 
 import type { Account, SearchEntry, SessionOut } from "@tickets/shared";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { isLocale, type Locale, LOCALE_COOKIE } from "@/i18n/config";
 import { call, clearSession, sessionToken, setSession } from "@/lib/session";
 
 /** Стан форми для useActionState: код помилки з API перекладає UI (messages → authErrors). */
@@ -34,6 +36,12 @@ export async function login(_: FormState, form: FormData): Promise<FormState> {
   redirect(safeNext(form));
 }
 
+/** Мова інтерфейсу з cookie (у server action root params недоступні). */
+async function registrationLocale(): Promise<Locale | null> {
+  const locale = (await cookies()).get(LOCALE_COOKIE)?.value;
+  return isLocale(locale) ? locale : null;
+}
+
 export async function register(_: FormState, form: FormData): Promise<FormState> {
   if (raw(form, "password") !== raw(form, "password2")) return fail("passwords_differ");
   const result = await call<SessionOut>(
@@ -44,6 +52,8 @@ export async function register(_: FormState, form: FormData): Promise<FormState>
       password: raw(form, "password"),
       first_name: text(form, "first_name") || null,
       last_name: text(form, "last_name") || null,
+      // Мова інтерфейсу — нею листи акаунта (модуль 18.1).
+      locale: await registrationLocale(),
     },
     null,
   );

@@ -29,10 +29,10 @@ from tickets_api.services.alerts import AlertError, AlertService, AlertSettings,
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.telegram_bot import (
     COMMANDS,
-    UNKNOWN_LINK_TEXT,
     TelegramBotService,
     parse_amount,
     parse_date,
+    unknown_link_text,
 )
 
 pytestmark = pytest.mark.integration
@@ -92,9 +92,11 @@ class Env:
         self.created.append(created.id)
         return created
 
-    async def say(self, text: str, chat_id: int = 42) -> None:
+    async def say(self, text: str, chat_id: int = 42, language: str | None = None) -> None:
         self.update_id += 1
-        message = {"chat": {"id": chat_id}, "text": text}
+        message: dict[str, Any] = {"chat": {"id": chat_id}, "text": text}
+        if language is not None:
+            message["from"] = {"id": chat_id, "language_code": language}
         await self.bot.handle({"update_id": self.update_id, "message": message})
 
     async def press(self, data: str, chat_id: int = 42) -> None:
@@ -158,7 +160,7 @@ async def test_telegram_subscription_is_confirmed_by_start_link(env: Env) -> Non
     assert f"snooze:{created.id}" in env.callbacks(1)
     # Посилання одноразове: повторний /start не перепривʼязує підписку.
     await env.say(f"/start {created.manage_token}", chat_id=7)
-    assert env.last() == UNKNOWN_LINK_TEXT
+    assert env.last() == unknown_link_text()
 
 
 async def test_email_subscription_needs_confirmation_link(env: Env) -> None:
@@ -429,7 +431,7 @@ async def test_past_dates_expire_and_stop_works(env: Env) -> None:
 
 async def test_new_subscription_dialog_in_bot(env: Env) -> None:
     await env.bot.setup()
-    assert [c for c, _ in env.telegram.commands] == [c for c, _ in COMMANDS]
+    assert [c for c, _ in env.telegram.commands] == list(COMMANDS)
 
     await env.say("/new")
     assert "Звідки летимо" in env.last()
@@ -523,3 +525,35 @@ def test_parsers() -> None:
     assert parse_date("01.02", today) == date(2027, 2, 1)  # уже минуло цього року
     assert parse_date("завтра", today) is None
     assert (parse_amount("до 99,9 €"), parse_amount("0"), parse_amount("сто")) == (99, None, None)
+
+
+async def test_bot_and_mail_speak_the_users_language(env: Env) -> None:
+    """Модуль 18.1: мова Telegram, а прив'язаний акаунт — важливіший; листи — мовою підписки."""
+    await env.say("/help", language="en")
+    assert env.last().startswith("<b>What I can do</b>")
+    await env.say("/help", language="de")  # інша мова — англійська
+    assert env.last().startswith("<b>What I can do</b>")
+
+    async with env.sessionmaker() as session, session.begin():
+        session.add(User(id=USER_ID, username="ittest_lang", locale="ru", telegram_chat_id=42))
+    await env.say("/help", language="en")
+    assert env.last().startswith("<b>Что я умею</b>")
+
+    await env.create(channel="email", email="me@example.com", locale="en")
+    _, subject, text = env.mailer.sent[-1]
+    assert subject == "Confirm your price alert"
+    assert "Condition: price up to 100 EUR for 1 adult." in text
+
+
+async def test_bot_commands_menu_per_language(env: Env) -> None:
+    await env.bot.setup()
+    menus = env.telegram.commands_by_language
+    assert dict(menus["uk"])["new"] == "Нова підписка на ціну"
+    assert dict(menus["ru"])["new"] == "Новая подписка на цену"
+    assert dict(menus[None])["new"] == "New price alert"  # за замовчуванням — англійське
+
+
+async def test_alert_errors_have_codes(env: Env) -> None:
+    with pytest.raises(AlertError) as error:
+        await env.create(departure_date=NOW.date() - timedelta(days=1))
+    assert error.value.code == "past_date"

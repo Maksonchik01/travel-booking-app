@@ -11,7 +11,7 @@ import { PlaceInput, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { addDays, BAGGAGE_NEEDS, CABINS, MAX_PERIOD_DAYS } from "@/lib/search-params";
+import { addDays, BAGGAGE_NEEDS, CABINS, CURRENCIES, MAX_PERIOD_DAYS } from "@/lib/search-params";
 import { MAX_NIGHTS, nightsBetween } from "@/lib/stay-params";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import {
@@ -41,6 +41,7 @@ export function TripSearchForm({
   const [depart, setDepart] = useState(initial?.departure_date ?? "");
   const [back, setBack] = useState(initial?.return_date ?? "");
   const nights = depart && back ? nightsBetween(depart, back) : 0;
+  const [currency, setCurrency] = useState<string>(initial?.currency ?? "EUR");
   const stayFilters = initial?.stay_filters;
   const extras: (TripExtra | null)[] = [...(initial?.extras ?? [])];
   while (extras.length < Math.min(MAX_EXTRAS, (initial?.extras?.length ?? 0) + 2)) {
@@ -146,7 +147,22 @@ export function TripSearchForm({
             ))}
           </select>
         </Field>
-        <Field label={t("budget")} htmlFor="trip-budget">
+        <Field label={t("currency")} htmlFor="trip-cur">
+          <select
+            id="trip-cur"
+            name="cur"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className={SELECT_CLASS}
+          >
+            {CURRENCIES.map((code) => (
+              <option key={code} value={code}>
+                {code}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label={t("budget", { currency })} htmlFor="trip-budget">
           <Input
             id="trip-budget"
             name="budget"
@@ -303,8 +319,8 @@ export function TripSearchForm({
                   min={0}
                   step={1}
                   inputMode="numeric"
-                  aria-label={t("extraAmount")}
-                  placeholder={t("extraAmount")}
+                  aria-label={t("extraAmount", { currency })}
+                  placeholder={t("extraAmount", { currency })}
                   className={FIELD_CLASS}
                   defaultValue={extra?.amount ?? ""}
                 />

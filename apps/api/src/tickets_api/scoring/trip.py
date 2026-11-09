@@ -38,6 +38,23 @@ class TripScoringConfig(_Strict):
     currency: str = Field(pattern=r"^[A-Z]{3}$")
     timing: TripTiming
 
+    def in_currency(self, currency: str, rate: Decimal) -> "TripScoringConfig":
+        """Штрафи за незручний час — у валюті поїздки (модуль 18.2); години — як є."""
+        if currency == self.currency:
+            return self
+        t = self.timing
+        return self.model_copy(
+            update={
+                "currency": currency,
+                "timing": t.model_copy(
+                    update={
+                        name: getattr(t, name) * rate
+                        for name in ("night_arrival", "late_arrival", "early_return", "late_return")
+                    }
+                ),
+            }
+        )
+
 
 def load_trip_scoring_config(path: Path) -> TripScoringConfig:
     with path.open("rb") as f:

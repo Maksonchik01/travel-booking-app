@@ -39,6 +39,9 @@ export type ScoreBreakdown = Schemas["ScoreBreakdown"];
 export type RiskPenalty = Schemas["RiskPenalty"];
 export type Reason = Schemas["Reason"];
 export type Exclusion = Schemas["Exclusion"];
+export type EventIn = Schemas["EventIn"];
+export type SharedTrip = Schemas["SharedTrip"];
+export type ConvertedPrice = Schemas["ConvertedPrice"];
 /** live / cached / approximate / needs_recheck (модуль 17.3). */
 export type PriceFreshness = Schemas["FlightSearchResult"]["freshness"][string];
 export type FlightPreferences = Schemas["FlightPreferences"];

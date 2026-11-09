@@ -88,3 +88,21 @@ export function modeHref(target: SearchMode, common: CommonSearch): string {
   const query = params.toString();
   return query ? `${MODE_PATH[target]}?${query}` : MODE_PATH[target];
 }
+
+/**
+ * Чернетка форми в адресі (модуль 20.4): поки результатів немає, введене в форму (куди, дати,
+ * люди) тримаємо в URL з `draft=1` — випадкове оновлення сторінки його не губить. Адреса з
+ * `draft=1` НЕ запускає пошук, навіть повна: шукати — лише кнопкою (живі джерела мають квоту).
+ */
+export const DRAFT_PARAM = "draft";
+
+export function isDraft(source: Source): boolean {
+  return read(source, DRAFT_PARAM) === "1";
+}
+
+export function draftHref(mode: SearchMode, common: CommonSearch): string {
+  const meaningful = common.from || common.to || common.depart || common.return;
+  const href = modeHref(mode, meaningful ? common : {});
+  if (!meaningful) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}${DRAFT_PARAM}=1`;
+}

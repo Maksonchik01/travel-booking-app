@@ -9,6 +9,16 @@ export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "en";
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 
+/**
+ * Назва мови її ж мовою — так її впізнає той, хто цієї мови не читає. Не перекладається,
+ * тож живе тут, а не в messages (і це єдині не-англійські рядки в коді — дозволяє тест).
+ */
+export const LOCALE_NAMES: Record<Locale, string> = {
+  en: "English",
+  uk: "Українська",
+  ru: "Русский",
+};
+
 export function isLocale(value: string | null | undefined): value is Locale {
   return !!value && (locales as readonly string[]).includes(value);
 }

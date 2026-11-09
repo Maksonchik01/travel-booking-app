@@ -25,7 +25,11 @@ import { ProviderAlerts } from "@/components/provider-alerts";
 import { PriceAlert } from "@/components/price-alert";
 import { stayTarget } from "@/lib/alerts";
 import { SaveSearch } from "@/components/save-search";
+import { ShareLink } from "@/components/share-link";
+import { RecentSearches, RememberSearch } from "@/components/recent-searches";
 import { PageNotice } from "@/components/page-notice";
+import { EmptySuggestions } from "@/components/empty-suggestions";
+import { staySuggestions } from "@/lib/empty-suggestions";
 import { SearchModes } from "@/components/search-modes";
 import { SearchTabs } from "@/components/search-tabs";
 import { ShowMore } from "@/components/show-more";
@@ -52,7 +56,9 @@ import {
 import { dateRange, peopleCount } from "@/lib/summary";
 import { stayPreferences, stayPrefParams } from "@/lib/search-prefs";
 import { currentAccount, recordHistory, sessionToken } from "@/lib/session";
-import { commonFrom } from "@/lib/search-modes";
+import { commonFrom, isDraft } from "@/lib/search-modes";
+import { searchEvents } from "@/lib/server-analytics";
+import { sortStays } from "@/lib/sort";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -129,7 +135,7 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
     searchParams,
     currentAccount(),
   ]);
-  const state = parseStayParams(raw);
+  const state = isDraft(raw) ? null : parseStayParams(raw);
   const form = (
     <StaySearchForm
       key={state ? toStayParams(state).toString() : "empty"}
@@ -140,6 +146,7 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
           ? {
               filters: stayPrefParams(account.search_prefs),
               profile: account.search_prefs?.stays?.profile,
+              currency: account.currency,
             }
           : null
       }
@@ -156,7 +163,12 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
     form
   );
   const withModes = (inner: React.ReactNode) => (
-    <SearchModes current="stays" common={commonFrom("stays", raw)} ai={status.enabled}>
+    <SearchModes
+      current="stays"
+      common={commonFrom("stays", raw)}
+      drafting={!state}
+      ai={status.enabled}
+    >
       {inner}
     </SearchModes>
   );
@@ -168,11 +180,11 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
 
 async function Results({ searchParams }: { searchParams: Params }) {
   const raw = await searchParams;
-  const state = parseStayParams(raw);
+  const state = isDraft(raw) ? null : parseStayParams(raw);
   const t = await getTranslations("stayResults");
 
   if (!state) {
-    const hasInput = Object.keys(raw).length > 0;
+    const hasInput = Object.keys(raw).length > 0 && !isDraft(raw);
     return hasInput ? <PageNotice>{t("invalid")}</PageNotice> : <EmptyState />;
   }
 
@@ -183,6 +195,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
     fetchAIStatus(),
     fetchAlertChannels(),
   ]);
+  // Аналітика пошуку (модуль 19): анонімно — режим і результат, без маршруту чи дат.
+  after(
+    await searchEvents(
+      "stays",
+      result.ok
+        ? { ok: true, results: result.data.stays.length }
+        : { ok: false, reason: result.reason },
+    ),
+  );
   if (!result.ok) {
     return (
       <PageNotice tone="error" retryHref={`/stays?${toStayParams(state)}`}>
@@ -253,16 +274,22 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const listNode = (
     <>
       {stays.length === 0 ? (
-        filtered && facets.total_stays > 0 ? (
-          <PageNotice>
-            {t("filteredEmpty", { total: facets.total_stays })}{" "}
-            <Link href={`/stays?${withoutFilters}`} className="text-primary font-medium underline">
-              {t("resetFilters")}
-            </Link>
-          </PageNotice>
-        ) : (
-          <PageNotice>{t("empty")}</PageNotice>
-        )
+        <div className="grid gap-4">
+          {filtered && facets.total_stays > 0 ? (
+            <PageNotice>
+              {t("filteredEmpty", { total: facets.total_stays })}{" "}
+              <Link
+                href={`/stays?${withoutFilters}`}
+                className="text-primary font-medium underline"
+              >
+                {t("resetFilters")}
+              </Link>
+            </PageNotice>
+          ) : (
+            <PageNotice>{t("empty")}</PageNotice>
+          )}
+          <EmptySuggestions items={staySuggestions(state)} currency={query.currency ?? "EUR"} />
+        </div>
       ) : (
         <ShowMore
           items={stays.map((stay) => {
@@ -276,6 +303,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
                   pickLabel={pickLabels.get(key)}
                   score={scores.get(key)}
                   freshness={result.data.freshness?.[key]}
+                  converted={result.data.converted?.[key]}
                   query={query}
                   searchParams={historyParams}
                 />
@@ -309,6 +337,9 @@ async function Results({ searchParams }: { searchParams: Params }) {
             title={historyTitle}
             back={`/stays?${historyParams}`}
           />
+          {/* «Поділитися» (модуль 20.1): лише параметри пошуку з канонічного URL. */}
+          <ShareLink href={`/stays?${historyParams}`} testId="search-share" />
+          <RememberSearch kind="stays" params={historyParams} title={historyTitle} />
           {mapAvailable && <ViewToggle state={state} />}
           <SortToggle state={state} />
         </div>
@@ -415,18 +446,6 @@ function StaySummary({
   );
 }
 
-function sortStays(stays: Stay[], sort: StaySortKey, scores: Map<string, StayScore>): Stay[] {
-  if (sort === "price") return stays;
-  const score = (s: Stay) => scores.get(`${s.source}:${s.id}`);
-  if (sort === "score") {
-    const total = (s: Stay) => score(s)?.breakdown.total ?? Number.POSITIVE_INFINITY;
-    return [...stays].sort((a, b) => total(a) - total(b) || a.price_per_night - b.price_per_night);
-  }
-  // Рейтинг — скоригований на кількість відгуків, як у скорингу.
-  const rating = (s: Stay) => score(s)?.breakdown.adjusted_rating ?? -1;
-  return [...stays].sort((a, b) => rating(b) - rating(a) || a.price_per_night - b.price_per_night);
-}
-
 function SortToggle({ state }: { state: StayState }) {
   const t = useTranslations("stayResults");
   const tShared = useTranslations("results");
@@ -471,6 +490,7 @@ function EmptyState() {
   const tCity = useTranslations("staysHome.examples");
   return (
     <div className="grid gap-10 py-4">
+      <RecentSearches />
       <div className="grid justify-items-center gap-3 text-center">
         <p className="text-muted-foreground">{t("emptyHint")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2 text-sm">

@@ -13,7 +13,11 @@ import { ProviderAlerts } from "@/components/provider-alerts";
 import { PriceAlert } from "@/components/price-alert";
 import { tripTarget } from "@/lib/alerts";
 import { SaveSearch } from "@/components/save-search";
+import { ShareLink } from "@/components/share-link";
+import { RecentSearches, RememberSearch } from "@/components/recent-searches";
 import { PageNotice } from "@/components/page-notice";
+import { EmptySuggestions } from "@/components/empty-suggestions";
+import { tripSuggestions } from "@/lib/empty-suggestions";
 import { SearchModes } from "@/components/search-modes";
 import { SearchTabs } from "@/components/search-tabs";
 import { SiteHeader } from "@/components/site-header";
@@ -47,8 +51,10 @@ async function tripDates(query: TripQuery): Promise<string> {
 }
 import { tripDefaults, tripPreferences, withTripDraft } from "@/lib/search-prefs";
 import { currentAccount, recordHistory, sessionToken } from "@/lib/session";
-import { commonFrom } from "@/lib/search-modes";
+import { commonFrom, isDraft } from "@/lib/search-modes";
+import { searchEvents } from "@/lib/server-analytics";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 type Params = Promise<RawSearchParams>;
 
@@ -126,7 +132,7 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
     searchParams,
     currentAccount(),
   ]);
-  const query = parseTripParams(raw);
+  const query = isDraft(raw) ? null : parseTripParams(raw);
   // Новий пошук — з налаштувань кабінету; відкритий з URL — як є (модуль 15).
   const initial =
     query ?? withTripDraft(account ? tripDefaults(account) : null, parseTripDraft(raw));
@@ -148,7 +154,12 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
     form
   );
   const withModes = (inner: React.ReactNode) => (
-    <SearchModes current="trip" common={commonFrom("trip", raw)} ai={status.enabled}>
+    <SearchModes
+      current="trip"
+      common={commonFrom("trip", raw)}
+      drafting={!query}
+      ai={status.enabled}
+    >
       {inner}
     </SearchModes>
   );
@@ -168,11 +179,15 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
 
 async function Results({ searchParams }: { searchParams: Params }) {
   const raw = await searchParams;
-  const query = parseTripParams(raw);
+  const query = isDraft(raw) ? null : parseTripParams(raw);
   const t = await getTranslations("tripResults");
   if (!query) {
     if (parseTripDraft(raw)?.stay) return <PageNotice>{t("pickOrigin")}</PageNotice>;
-    return Object.keys(raw).length > 0 ? <PageNotice>{t("invalid")}</PageNotice> : <EmptyState />;
+    return Object.keys(raw).length > 0 && !isDraft(raw) ? (
+      <PageNotice>{t("invalid")}</PageNotice>
+    ) : (
+      <EmptyState />
+    );
   }
 
   // Уподобання з профілю — м'яко, лише в оцінку перельотів і житла (модуль 14.4).
@@ -182,6 +197,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
     fetchAIStatus(),
     fetchAlertChannels(),
   ]);
+  // Аналітика пошуку (модуль 19): анонімно — режим і результат, без маршруту чи дат.
+  after(
+    await searchEvents(
+      "trip",
+      result.ok
+        ? { ok: true, results: result.data.combos.length }
+        : { ok: false, reason: result.reason },
+    ),
+  );
   if (!result.ok) {
     return (
       <PageNotice tone="error" retryHref={`/trip?${toTripParams(query)}`}>
@@ -282,6 +306,9 @@ async function Results({ searchParams }: { searchParams: Params }) {
           title={historyTitle}
           back={`/trip?${historyParams}`}
         />
+        {/* «Поділитися» (модуль 20.1): лише параметри пошуку з канонічного URL. */}
+        <ShareLink href={`/trip?${historyParams}`} testId="search-share" />
+        <RememberSearch kind="trip" params={historyParams} title={historyTitle} />
       </div>
 
       {/* Сповіщення про всю поїздку (11a) — лише з реальним джерелом житла. */}
@@ -327,7 +354,10 @@ async function Results({ searchParams }: { searchParams: Params }) {
       )}
 
       {data.picks.length === 0 ? (
-        <PageNotice>{data.flights_found > 0 ? t("noStays") : t("empty")}</PageNotice>
+        <div className="grid gap-4">
+          <PageNotice>{data.flights_found > 0 ? t("noStays") : t("empty")}</PageNotice>
+          <EmptySuggestions items={tripSuggestions(query)} currency={query.currency ?? "EUR"} />
+        </div>
       ) : (
         <section className="grid gap-3" aria-labelledby="trip-picks-title">
           <div className="grid gap-1">
@@ -412,7 +442,7 @@ function BudgetNote({ result }: { result: TripSearchResult }) {
       style: "currency",
       currency: "EUR",
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(v),
     });
   const over = budget.within === 0 && budget.shortfall != null;
   return (
@@ -441,6 +471,7 @@ function EmptyState() {
   const t = useTranslations("tripHome");
   return (
     <div className="grid gap-10 py-4">
+      <RecentSearches />
       <div className="grid justify-items-center gap-3 text-center">
         <p className="text-muted-foreground">{t("emptyHint")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2 text-sm">

@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import type {
   AlertChannel,
   AlertCondition,
@@ -9,10 +10,11 @@ import type {
 } from "@tickets/shared";
 import { Bell, BellOff, BellRing, Loader2, Mail, Send, X } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { isLocale } from "@/i18n/config";
 import type { AlertKind, AlertTarget } from "@/lib/alerts";
 import { FIELD_CLASS } from "@/lib/styles";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -33,13 +35,32 @@ type Props = {
   create?: (body: AlertCreate) => Promise<AlertCreated | null>;
 };
 
+/** Причини відмови з API (код у `detail`) — UI пояснює їх своєю мовою (модуль 18.1). */
+const ERROR_CODES = [
+  "past_date",
+  "kind_unavailable",
+  "too_far",
+  "closed",
+  "owner_limit",
+  "invalid",
+] as const;
+type ErrorCode = (typeof ERROR_CODES)[number] | "error";
+
+class CreateFailed extends Error {
+  constructor(readonly code: ErrorCode) {
+    super(code);
+  }
+}
+
 async function createViaApi(body: AlertCreate): Promise<AlertCreated | null> {
   const response = await fetchWithTimeout("/api/alerts", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  return response.ok ? ((await response.json()) as AlertCreated) : null;
+  if (response.ok) return (await response.json()) as AlertCreated;
+  const data = (await response.json().catch(() => null)) as { error?: unknown } | null;
+  throw new CreateFailed(ERROR_CODES.find((c) => c === data?.error) ?? "error");
 }
 
 function readWatched(): Record<string, string> {
@@ -107,12 +128,13 @@ function AlertPanel({
   const [channel, setChannel] = useState<AlertChannel>("telegram");
   const [email, setEmail] = useState("");
   const [created, setCreated] = useState<AlertCreated | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<ErrorCode | null>(null);
+  const locale = useLocale();
   const [pending, startTransition] = useTransition();
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setFailed(false);
+    setFailed(null);
     startTransition(async () => {
       let result: AlertCreated | null;
       try {
@@ -129,14 +151,18 @@ function AlertPanel({
           percent: condition === "drop_percent" ? percent : null,
           channel,
           email: channel === "email" ? email.trim() : null,
+          // Листи й повідомлення підписки — мовою інтерфейсу (модуль 18.1).
+          locale: isLocale(locale) ? locale : null,
         });
-      } catch {
-        result = null;
-      }
-      if (!result) {
-        setFailed(true);
+      } catch (error) {
+        setFailed(error instanceof CreateFailed ? error.code : "error");
         return;
       }
+      if (!result) {
+        setFailed("error");
+        return;
+      }
+      if (!result.existing) track("alert_created", { kind: target.kind });
       remember(target.key, result.manage_token);
       setCreated(result);
       setWatchToken(result.manage_token);
@@ -315,8 +341,8 @@ function AlertPanel({
           </fieldset>
 
           {failed && (
-            <p role="alert" className="text-sm text-warning">
-              {t("error")}
+            <p role="alert" className="text-sm text-warning" data-testid="alert-error">
+              {failed === "error" ? t("error") : t(`errors.${failed}`)}
             </p>
           )}
           <div className="flex flex-wrap items-center justify-between gap-3">

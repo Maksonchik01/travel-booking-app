@@ -75,9 +75,12 @@ from tickets_api.domain.saved_trips import (
     SavedTripBody,
     SavedTripOut,
     SavedTripPatch,
+    SharedTrip,
     TripSnapshot,
+    public_query,
 )
 from tickets_api.domain.trips import TripQuery
+from tickets_api.i18n import as_locale, t, use_locale
 from tickets_api.notifications.mail import Mailer, MailError
 from tickets_api.reference.airports import default_airport_directory
 
@@ -201,6 +204,7 @@ class AccountService:
             password_hash=await hash_password(body.password),
             first_name=body.first_name,
             last_name=body.last_name,
+            locale=body.locale,
         )
         try:
             async with self._sessionmaker() as session, session.begin():
@@ -590,12 +594,11 @@ class AccountService:
                 )
             )
         link = f"{self._settings.public_web_url}/auth/verify-email?token={token}"
-        await self._send(
-            email,
-            "Підтвердіть адресу пошти",
-            "Щоб прив'язати цю адресу до акаунта SkyPack, відкрийте посилання:\n"
-            f"{link}\n\nПосилання діє 24 години. Якщо це були не ви — проігноруйте лист.",
-        )
+        # Лист — мовою акаунта (модуль 18.1).
+        with use_locale(as_locale(user.locale)):
+            await self._send(
+                email, t("account.verify.subject"), t("account.verify.email", link=link)
+            )
 
     async def verify_email(self, token: str) -> None:
         async with self._sessionmaker() as session, session.begin():
@@ -642,12 +645,8 @@ class AccountService:
                 )
             )
         link = f"{self._settings.public_web_url}/auth/reset?token={token}"
-        await self._send(
-            email,
-            "Відновлення пароля",
-            f"Щоб задати новий пароль, відкрийте посилання (діє 1 годину):\n{link}\n\n"
-            "Якщо ви не просили відновлення — проігноруйте лист, пароль не зміниться.",
-        )
+        with use_locale(as_locale(user.locale)):
+            await self._send(email, t("account.reset.subject"), t("account.reset.email", link=link))
 
     async def reset_password(self, token: str, new: str, device: str | None = None) -> SessionOut:
         new_hash = await hash_password(new)
@@ -956,6 +955,27 @@ class AccountService:
             row.updated_at = self._clock()
             return _trip_out(row)
 
+    async def share_trip(self, user: User, trip_id: str, *, enabled: bool) -> SavedTripOut:
+        """Публічне посилання (модуль 20.2): увімкнути — новий непередбачуваний токен (або той
+        самий, якщо вже є); вимкнути — токен зникає, старе посилання більше не працює."""
+        async with self._sessionmaker() as session, session.begin():
+            row = await session.get(SavedTrip, trip_id)
+            if row is None or row.user_id != user.id:
+                raise AccountError("not_found")
+            if enabled and row.share_token is None:
+                row.share_token = secrets.token_urlsafe(18)  # 24 символи
+            elif not enabled:
+                row.share_token = None
+            return _trip_out(row)
+
+    async def shared_trip(self, token: str) -> SharedTrip | None:
+        async with self._sessionmaker() as session:
+            row = await session.scalar(select(SavedTrip).where(SavedTrip.share_token == token))
+        if row is None:
+            return None
+        trip = _trip_out(row)
+        return SharedTrip(query=public_query(trip.query), snapshot=trip.snapshot)
+
     async def delete_trip(self, user: User, trip_id: str) -> None:
         async with self._sessionmaker() as session, session.begin():
             await session.execute(
@@ -1071,6 +1091,7 @@ def _trip_out(row: SavedTrip) -> SavedTripOut:
         snapshot=TripSnapshot.model_validate_json(row.snapshot),
         created_at=_aware(row.created_at),
         updated_at=_aware(row.updated_at),
+        share_token=row.share_token,
     )
 
 

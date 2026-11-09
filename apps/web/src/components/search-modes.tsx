@@ -15,6 +15,7 @@ import {
 import {
   type CommonSearch,
   commonFrom,
+  draftHref,
   modeHref,
   SEARCH_MODES,
   type SearchMode,
@@ -23,6 +24,7 @@ import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 
 const ICONS = { flights: Plane, stays: BedDouble, trip: Luggage } as const;
+const DRAFT_DELAY_MS = 400;
 
 /**
  * Перемикач режимів пошуку (модуль 12.2): авіаквитки, житло, поїздка й ШІ-пошук — над однією
@@ -34,9 +36,12 @@ export function SearchModes({
   current,
   common,
   ai,
+  drafting = false,
   children,
 }: {
   current: SearchMode;
+  /** Результатів ще немає: введене у форму тримаємо в адресі (`draft=1`, модуль 20.4). */
+  drafting?: boolean;
   /** Спільне з URL сторінки — для посилань без JS. */
   common: CommonSearch;
   /** Чи є ШІ-помічник (LLM увімкнено). */
@@ -55,6 +60,31 @@ export function SearchModes({
     node?.addEventListener(TAB_CHANGED_EVENT, onChange);
     return () => node?.removeEventListener(TAB_CHANGED_EVENT, onChange);
   }, []);
+
+  // Чернетка форми — в адресу (без запису в історію): оновлення сторінки її не губить.
+  useEffect(() => {
+    const node = area.current;
+    if (!node || !drafting) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onEdit = (event: Event) => {
+      const form = (event.target as Element | null)?.closest("form[data-search-form]");
+      if (!(form instanceof HTMLFormElement)) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const href = draftHref(current, commonFrom(current, new FormData(form)));
+        if (href !== `${window.location.pathname}${window.location.search}`) {
+          window.history.replaceState(null, "", href);
+        }
+      }, DRAFT_DELAY_MS);
+    };
+    node.addEventListener("input", onEdit);
+    node.addEventListener("change", onEdit);
+    return () => {
+      clearTimeout(timer);
+      node.removeEventListener("input", onEdit);
+      node.removeEventListener("change", onEdit);
+    };
+  }, [current, drafting]);
 
   function selectTab(next: SearchTab) {
     area.current?.dispatchEvent(new CustomEvent<SearchTab>(SELECT_TAB_EVENT, { detail: next }));

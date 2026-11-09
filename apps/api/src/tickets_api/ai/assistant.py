@@ -43,12 +43,13 @@ from tickets_api.ai.refine import (
     refine_trip,
 )
 from tickets_api.ai.stay_payload import stay_options_input
-from tickets_api.ai.trip_payload import TRIP_TITLES, combo_facts, trip_input
+from tickets_api.ai.trip_payload import combo_facts, trip_input
 from tickets_api.domain.flights import DEFAULT_CURRENCY, MAX_FLEX_DAYS, FlightQuery
 from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.domain.saved_trips import SavedTripBody, TripSnapshot
 from tickets_api.domain.stays import StayQuery
 from tickets_api.domain.trips import TripPreferences, TripQuery
+from tickets_api.i18n import Labels, t, use_locale
 from tickets_api.llm.prompts import RULES, find_prompts_dir
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message, Tool, ToolCall
 from tickets_api.reference.airports import AirportDirectory
@@ -560,7 +561,18 @@ class TravelAssistant:
         llm: LLMClient,
         mode: ChatMode = "flights",
     ) -> ChatReply:
-        """`turns` закінчується реплікою користувача; `llm` — з лімітом викликів на репліку."""
+        """`turns` закінчується реплікою користувача; `llm` — з лімітом викликів на репліку.
+        Тексти в результатах інструментів і картках — мовою розмови (модуль 18.1)."""
+        with use_locale(context.locale):
+            return await self._reply(turns, context, llm, mode)
+
+    async def _reply(
+        self,
+        turns: Sequence[ChatTurn],
+        context: ChatContext,
+        llm: LLMClient,
+        mode: ChatMode,
+    ) -> ChatReply:
         turns = list(turns)[-MAX_CHAT_TURNS:]
         state = _TurnState()
         if (mode == "stays" and self._stay_search is None) or (
@@ -887,7 +899,9 @@ class TravelAssistant:
         state.trip_search = pinned
         if after is None:
             return json.dumps({"found": False, "note": "no trips for these conditions"})
-        state.cards = [trip_card(pinned, final, after, self._names(final), "Після зміни")]
+        state.cards = [
+            trip_card(pinned, final, after, self._names(final), t("ai.trip_label.after_change"))
+        ]
         currency = after.currency
         diff = after.money_total - before.money_total
         return json.dumps(
@@ -1073,11 +1087,10 @@ class TravelAssistant:
         return code
 
 
-TRIP_REF_TITLES: dict[str, str] = {
-    "current": "Поточна поїздка",
-    "previous": "Попередній варіант",
-    **{str(label): title for label, title in TRIP_TITLES.items()},
-}
+TRIP_REF_TITLES = Labels(
+    "ai.trip_label", ("current", "previous", "cheapest", "best_value", "comfort")
+)
+"""Назви поїздок у порівнянні й картках — мовою розмови (модуль 18.1)."""
 
 
 def _offer_of(result: TripSearchResult, combo: TripCombo) -> Any:

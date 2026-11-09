@@ -19,11 +19,13 @@ import { Suspense } from "react";
 import { AIChat } from "@/components/ai-chat";
 import { AIExplanation } from "@/components/ai-explanation";
 import { CollapsibleSearch } from "@/components/collapsible-search";
+import { EmptySuggestions } from "@/components/empty-suggestions";
 import { OfferCard } from "@/components/offer-card";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { LinkPendingOverlay } from "@/components/pending";
 import { AlertUnavailable, PriceAlert } from "@/components/price-alert";
 import { flightTarget } from "@/lib/alerts";
+import { flightSuggestions } from "@/lib/empty-suggestions";
 import { CompareBar, CompareProvider, CompareToggle } from "@/components/compare";
 import { FavoriteToggle, FavoritesProvider } from "@/components/favorites";
 import { flightFavorite } from "@/lib/favorites";
@@ -34,6 +36,8 @@ import { SellerOffers } from "@/components/seller-offers";
 import { ProviderAlerts } from "@/components/provider-alerts";
 import { ResultFilters } from "@/components/result-filters";
 import { SaveSearch } from "@/components/save-search";
+import { ShareLink } from "@/components/share-link";
+import { RecentSearches, RememberSearch } from "@/components/recent-searches";
 import { SearchForm } from "@/components/search-form";
 import { PageNotice } from "@/components/page-notice";
 import { SearchModes } from "@/components/search-modes";
@@ -72,8 +76,10 @@ import {
   withCarried,
 } from "@/lib/search-prefs";
 import { currentAccount, recordHistory, sessionToken } from "@/lib/session";
-import { commonFrom } from "@/lib/search-modes";
+import { commonFrom, isDraft } from "@/lib/search-modes";
 import { tripFromFlight } from "@/lib/trip-params";
+import { searchEvents } from "@/lib/server-analytics";
+import { sortOffers } from "@/lib/sort";
 import { cn } from "@/lib/utils";
 
 type Params = Promise<RawSearchParams>;
@@ -163,7 +169,7 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
   const savedFilters = account
     ? mergeFilters(account.flight_filters ?? null, flightPrefFilters(account.search_prefs))
     : null;
-  const state = parseSearchParams(raw);
+  const state = isDraft(raw) ? null : parseSearchParams(raw);
   // key: при новому пошуку форма скидається до значень з URL.
   const form = (
     <SearchForm
@@ -188,7 +194,12 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
     form
   );
   const withModes = (inner: React.ReactNode) => (
-    <SearchModes current="flights" common={commonFrom("flights", raw)} ai={status.enabled}>
+    <SearchModes
+      current="flights"
+      common={commonFrom("flights", raw)}
+      drafting={!state}
+      ai={status.enabled}
+    >
       {inner}
     </SearchModes>
   );
@@ -266,11 +277,11 @@ function ExplanationSkeleton() {
 
 async function Results({ searchParams }: { searchParams: Params }) {
   const raw = await searchParams;
-  const state = parseSearchParams(raw);
+  const state = isDraft(raw) ? null : parseSearchParams(raw);
   const t = await getTranslations("results");
 
   if (!state) {
-    const hasInput = Object.keys(raw).length > 0;
+    const hasInput = Object.keys(raw).length > 0 && !isDraft(raw);
     return hasInput ? (
       <PageNotice>{(await getTranslations("search"))("invalid")}</PageNotice>
     ) : (
@@ -295,6 +306,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const now = new Date();
   const alertTarget = flightTarget(query);
 
+  // Аналітика пошуку (модуль 19): анонімно — режим і результат, без маршруту чи дат.
+  after(
+    await searchEvents(
+      "flights",
+      result.ok
+        ? { ok: true, results: result.data.offers.length }
+        : { ok: false, reason: result.reason },
+    ),
+  );
   if (!result.ok) {
     return (
       <PageNotice tone="error" retryHref={`/?${toSearchParams(state)}`}>
@@ -368,6 +388,9 @@ async function Results({ searchParams }: { searchParams: Params }) {
                 title={historyTitle}
                 back={`/?${historyParams}`}
               />
+              {/* «Поділитися» (модуль 20.1): лише параметри пошуку з канонічного URL. */}
+              <ShareLink href={`/?${historyParams}`} testId="search-share" />
+              <RememberSearch kind="flights" params={historyParams} title={historyTitle} />
               <SortToggle state={state} />
             </div>
           </div>
@@ -438,19 +461,25 @@ async function Results({ searchParams }: { searchParams: Params }) {
               </p>
 
               {offers.length === 0 ? (
-                filtered && facets.total_offers > 0 ? (
-                  <PageNotice>
-                    {t("filteredEmpty", { total: facets.total_offers })}{" "}
-                    <Link
-                      href={`/?${withoutFilters}`}
-                      className="text-primary font-medium underline"
-                    >
-                      {t("resetFilters")}
-                    </Link>
-                  </PageNotice>
-                ) : (
-                  <PageNotice>{t("empty")}</PageNotice>
-                )
+                <div className="grid gap-4">
+                  {filtered && facets.total_offers > 0 ? (
+                    <PageNotice>
+                      {t("filteredEmpty", { total: facets.total_offers })}{" "}
+                      <Link
+                        href={`/?${withoutFilters}`}
+                        className="text-primary font-medium underline"
+                      >
+                        {t("resetFilters")}
+                      </Link>
+                    </PageNotice>
+                  ) : (
+                    <PageNotice>{t("empty")}</PageNotice>
+                  )}
+                  <EmptySuggestions
+                    items={flightSuggestions(state)}
+                    currency={query.currency ?? "EUR"}
+                  />
+                </div>
               ) : (
                 <ShowMore
                   items={offers.filter(isGroupLead).map((offer) => {
@@ -476,6 +505,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
                           }
                           score={scores.get(key)}
                           freshness={result.data.freshness?.[key]}
+                          converted={result.data.converted?.[key]}
                           airlineNames={airlineNames}
                           travellers={passengerTotal(state.query.passengers)}
                           baggageCost={result.data.baggage?.[key]}
@@ -507,22 +537,6 @@ async function Results({ searchParams }: { searchParams: Params }) {
 /** Живий пошук: провайдер зафіксував ціну в момент нашого запиту. */
 function isLivePrice(offer: Offer): boolean {
   return offer.found_at != null && offer.found_at === offer.collected_at;
-}
-
-function sortOffers(offers: Offer[], sort: SortKey, scores: Map<string, OfferScore>): Offer[] {
-  if (sort === "price") return offers;
-  if (sort === "score") {
-    // Неоцінені (невідома тривалість, інша валюта) — в кінець, між собою за ціною.
-    const total = (o: Offer) =>
-      scores.get(`${o.source}:${o.id}`)?.breakdown.total ?? Number.POSITIVE_INFINITY;
-    return [...offers].sort((a, b) => total(a) - total(b) || a.price - b.price);
-  }
-  // Невідома тривалість — в кінець, щоб не вдавати, що варіант швидкий.
-  return [...offers].sort(
-    (a, b) =>
-      (a.total_duration_min ?? Number.POSITIVE_INFINITY) -
-        (b.total_duration_min ?? Number.POSITIVE_INFINITY) || a.price - b.price,
-  );
 }
 
 function SortToggle({ state }: { state: SearchState }) {
@@ -578,6 +592,7 @@ function EmptyState() {
   const t = useTranslations("home");
   return (
     <div className="grid gap-10 py-4">
+      <RecentSearches />
       <div className="grid justify-items-center gap-3 text-center">
         <p className="text-muted-foreground">{t("emptyHint")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2 text-sm">

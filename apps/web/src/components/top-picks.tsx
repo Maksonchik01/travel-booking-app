@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useDurationText, WhyList } from "@/components/why-list";
 import { splitDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const LABEL_ICON = { cheapest: Wallet, fastest: Timer, balanced: Scale } as const;
 
@@ -69,7 +70,7 @@ function PickCard({ pick, offer, score }: { pick: Pick; offer: Offer; score?: Of
       style: "currency",
       currency: offer.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: value % 1 === 0 ? 0 : 2,
+      ...fractionDigits(value),
     });
   const duration =
     offer.total_duration_min != null ? splitDuration(offer.total_duration_min) : null;

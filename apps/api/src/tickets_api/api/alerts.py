@@ -37,7 +37,7 @@ async def create_alert(body: AlertCreate, request: Request, user: OptionalUser) 
     try:
         return await _service(request).create(body, user.id if user else None)
     except AlertError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+        raise HTTPException(status_code=422, detail=exc.code) from exc
 
 
 @router.get("/manage", response_model=AlertView)
@@ -88,7 +88,7 @@ async def edit_alert(body: EditBody, request: Request) -> AlertView:
     try:
         return _found(await _service(request).update(body.token, body.edit))
     except AlertError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+        raise HTTPException(status_code=422, detail=exc.code) from exc
 
 
 @router.post("/delete", status_code=204)

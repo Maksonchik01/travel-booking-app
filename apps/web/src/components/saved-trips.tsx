@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import type {
   SavedTrip,
   SavedTripBody,
@@ -9,13 +10,14 @@ import type {
 } from "@tickets/shared";
 import {
   Bell,
+  Globe,
+  Lock,
   BookmarkCheck,
   BookmarkPlus,
   Copy,
   Loader2,
   Pencil,
   RefreshCw,
-  Share2,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -27,6 +29,7 @@ import {
   deleteSavedTrip,
   loadSavedTrips,
   patchSavedTrip,
+  setTripSharing,
   updateSavedTrip,
 } from "@/app/actions/saved-trips";
 import { TripCompareToggle } from "@/components/trip-compare";
@@ -44,8 +47,10 @@ import {
 } from "@/lib/saved-trips";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import { toTripParams } from "@/lib/trip-params";
+import { ShareLink } from "@/components/share-link";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 type SavedTrips = {
   /** null — ще завантажується. */
@@ -55,6 +60,8 @@ type SavedTrips = {
   /** Нова поїздка (і «Створити копію»); повертає id або null. */
   create: (body: SavedTripBody) => Promise<string | null>;
   update: (id: string, body: SavedTripBody) => Promise<boolean>;
+  /** Увімкнути чи вимкнути публічне посилання (лише акаунт). */
+  share: (id: string, enabled: boolean) => Promise<void>;
   /** Назва чи статус — без зміни конфігурації й знімка. */
   patch: (id: string, patch: SavedTripPatch) => Promise<void>;
   remove: (id: string) => Promise<void>;
@@ -187,6 +194,18 @@ export function SavedTripsProvider({ children }: { children: React.ReactNode }) 
     else local(next);
   }
 
+  /** Публічне посилання (модуль 20.2) — лише для поїздок акаунта. */
+  async function share(id: string, enabled: boolean) {
+    if (!signedIn) return;
+    const state = await setTripSharing(id, enabled);
+    if (!(state.signedIn && state.ok && state.item)) {
+      setError("error");
+      return;
+    }
+    const token = state.item.share_token ?? null;
+    setItems(items.map((t) => (t.id === id ? { ...t, share_token: token } : t)));
+  }
+
   async function remove(id: string) {
     if (signedIn) {
       const state = await deleteSavedTrip(id);
@@ -201,7 +220,9 @@ export function SavedTripsProvider({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <SavedTripsContext.Provider value={{ signedIn, items, error, create, update, patch, remove }}>
+    <SavedTripsContext.Provider
+      value={{ signedIn, items, error, create, update, patch, remove, share }}
+    >
       {children}
     </SavedTripsContext.Provider>
   );
@@ -235,6 +256,7 @@ export function SaveTripButton({
     setBusy(true);
     try {
       const ok = editing ? await update(savedId!, body) : (await create(body)) !== null;
+      if (ok) track("trip_saved", { source: editing ? "edit" : "new" });
       setDone(ok);
     } finally {
       setBusy(false);
@@ -275,29 +297,63 @@ export function SaveTripButton({
 }
 
 /** «Поділитися»: посилання на ту саму конфігурацію (стан поїздки — у URL, без особистих даних). */
+/** Поділитися поїздкою як пошуком (умови й вибір рейсу/житла) — працює й для гостя. */
 export function ShareTripButton({ href }: { href: string }) {
-  const t = useTranslations("savedTrips");
-  const [copied, setCopied] = useState(false);
+  return <ShareLink href={href} testId="trip-share" />;
+}
 
-  async function share() {
-    const url = new URL(href, window.location.origin).toString();
+/**
+ * Публічне посилання на поїздку (модуль 20.2): за замовчуванням вимкнене; власник вмикає й
+ * вимикає його сам. Гість (поїздки в браузері) ділиться лише умовами пошуку.
+ */
+function PublicLink({ item }: { item: SavedTripItem }) {
+  const t = useTranslations("share");
+  const { signedIn, share } = useSavedTrips();
+  const [busy, setBusy] = useState(false);
+  if (!signedIn) return null;
+  const toggle = async (enabled: boolean) => {
+    setBusy(true);
     try {
-      if (navigator.share) {
-        await navigator.share({ url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-    } catch {
-      // Скасування діалогу «Поділитися» — не помилка.
+      await share(item.id, enabled);
+    } finally {
+      setBusy(false);
     }
+  };
+  if (!item.share_token) {
+    return (
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        disabled={busy}
+        onClick={() => toggle(true)}
+        title={t("publicHint")}
+        data-testid="trip-public-on"
+      >
+        <Globe className="size-3.5" aria-hidden />
+        {t("publicOn")}
+      </Button>
+    );
   }
-
   return (
-    <Button type="button" variant="outline" size="sm" onClick={share} data-testid="trip-share">
-      <Share2 className="size-3.5" aria-hidden />
-      {copied ? t("copied") : t("share")}
-    </Button>
+    <span className="flex flex-wrap items-center gap-2" data-testid="trip-public">
+      <ShareLink
+        href={`/shared/trip/${item.share_token}`}
+        label={t("publicShare")}
+        testId="trip-public-share"
+      />
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        disabled={busy}
+        onClick={() => toggle(false)}
+        data-testid="trip-public-off"
+      >
+        <Lock className="size-3.5" aria-hidden />
+        {t("publicOff")}
+      </Button>
+    </span>
   );
 }
 
@@ -391,7 +447,7 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
       style: "currency",
       currency: s.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(Number(value)),
     });
   const day = (iso: string) =>
     format.dateTime(new Date(`${iso}T00:00:00Z`), {
@@ -528,6 +584,7 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
           </Button>
         )}
         <ShareTripButton href={href} />
+        <PublicLink item={item} />
         <Button
           type="button"
           size="sm"

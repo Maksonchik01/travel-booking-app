@@ -8,6 +8,7 @@ import { RetryNotice } from "@/components/retry";
 import { fetchWithTimeout } from "@/lib/client-fetch";
 import { outboundHref } from "@/lib/outbound";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 export type RatesCheck =
   { state: "idle" } | { state: "loading" } | { state: "done"; result: StayRatesResult };
@@ -130,7 +131,7 @@ function RateRow({ offer, source }: { offer: RateOffer; source: string }) {
       style: "currency",
       currency: rate.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(value),
     });
   const taxes =
     rate.taxes_included === true

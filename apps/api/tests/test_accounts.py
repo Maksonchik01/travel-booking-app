@@ -3,6 +3,7 @@
 import os
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from typing import Any
 
 import pytest
@@ -27,6 +28,7 @@ from tickets_api.domain.favorites import FavoriteBody
 from tickets_api.domain.notify import NotifyPrefs
 from tickets_api.domain.profile import PreferencesBody, SearchPrefs
 from tickets_api.domain.saved_trips import SavedTripBody, SavedTripPatch
+from tickets_api.domain.trips import TripExtra
 from tickets_api.notifications.mail import MockMailer
 from tickets_api.services.accounts import (
     AccountError,
@@ -678,3 +680,39 @@ async def test_notify_prefs_saved_and_chats_cleared(env: Env) -> None:
     await env.service.clear_chats(user)
     state = await env.service.chats(user)
     assert (state.enabled, state.conversations) == (True, [])
+
+
+async def test_public_trip_link_is_off_by_default_and_shows_nothing_personal(env: Env) -> None:
+    """Модуль 20.2: приватна за замовчуванням; посилання вмикає й вимикає лише власник."""
+    user = await env.user((await env.register()).token)
+    body = saved_trip("Іван — медовий місяць")
+    query = body.query.model_copy(
+        update={
+            "budget_total": 1500,
+            "extras": [TripExtra(label="Подарунок для Олі", amount=Decimal(40))],
+        }
+    )
+    body = body.model_copy(update={"query": query})
+    [trip] = await env.service.save_trips(user, [body])
+    assert trip.share_token is None
+
+    other = await env.user((await env.register("other")).token)
+    with pytest.raises(AccountError, match="not_found"):
+        await env.service.share_trip(other, trip.id, enabled=True)
+
+    shared = await env.service.share_trip(user, trip.id, enabled=True)
+    assert shared.share_token is not None
+    assert len(shared.share_token) >= 20
+    again = await env.service.share_trip(user, trip.id, enabled=True)
+    assert again.share_token == shared.share_token  # посилання стабільне, поки ввімкнене
+
+    public = await env.service.shared_trip(shared.share_token)
+    assert public is not None
+    dumped = public.model_dump_json()
+    for personal in ("Іван", "Олі", "1500", user.id, user.username):
+        assert personal not in dumped
+    assert public.query.flight == "mock:abc123"
+    assert public.snapshot.money_total == Decimal(520)
+
+    await env.service.share_trip(user, trip.id, enabled=False)
+    assert await env.service.shared_trip(shared.share_token) is None

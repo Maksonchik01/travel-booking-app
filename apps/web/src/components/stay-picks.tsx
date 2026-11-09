@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { RatingBadge, StayScoreDetails } from "@/components/stay-card";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const LABEL_ICON = { cheapest: Wallet, top_rated: Star, balanced: Scale } as const;
 
@@ -63,12 +64,12 @@ function PickCard({ pick, stay, score }: { pick: StayPick; stay: Stay; score?: S
   const format = useFormatter();
   const Icon = LABEL_ICON[pick.label];
   const recommended = pick.label === "balanced";
-  const money = (value: number, digits = 0) =>
+  const money = (value: number) =>
     format.number(value, {
       style: "currency",
       currency: stay.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: digits,
+      ...fractionDigits(value),
     });
 
   return (
@@ -124,7 +125,7 @@ function PickCard({ pick, stay, score }: { pick: StayPick; stay: Stay; score?: S
               {tCard("whyScore")}
             </summary>
             <div className="mt-2">
-              <StayScoreDetails score={score} money={(v) => money(v, v % 1 === 0 ? 0 : 2)} />
+              <StayScoreDetails score={score} money={money} />
             </div>
           </details>
         )}

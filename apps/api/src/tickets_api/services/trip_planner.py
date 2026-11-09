@@ -27,6 +27,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from tickets_api.domain.flights import FlightQuery, Money, Offer
+from tickets_api.domain.money import convert
 from tickets_api.domain.saved_trips import (
     TripFlightSnapshot,
     TripRefreshRequest,
@@ -44,7 +45,12 @@ from tickets_api.scoring.trip import (
     default_trip_scoring_config,
     timing,
 )
-from tickets_api.services.flight_search import AirlineFacet, FlightSearchService, ProviderStatus
+from tickets_api.services.flight_search import (
+    AirlineFacet,
+    FlightSearchService,
+    ProviderStatus,
+    offer_in_currency,
+)
 from tickets_api.services.stay_search import StaySearchResult, StaySearchService
 
 MAX_FLIGHTS = 6
@@ -154,6 +160,9 @@ class TripCombo(BaseModel):
     """Пересадок туди й назад разом — для «Комфорту»."""
     currency: str
     warnings: list[TripWarning] = []
+    converted_from: list[str] = []
+    """Валюти, з яких суми переведено у валюту поїздки за курсом ЄЦБ (модуль 18.2): тоді
+    вони орієнтовні; продавець спише у своїй валюті."""
     full_nights: int = 0
     """Повноцінних ночей (модуль 14.4): без першої при пізньому прильоті (з 23:00) і останньої
     при ранньому вильоті назад (до 07:00) — їх оплачено, але виспатися не вийде."""
@@ -269,6 +278,27 @@ class TripPlanner:
         flight_query = flight_query_for(query)
         flights = await self._flights.search(flight_query)
         offers = {offer_key(o): o for o in flights.offers}
+        # Одна валюта поїздки (модуль 18.2): штрафи часу — у ній; рейс чи житло в іншій валюті
+        # рахуємо за курсом ЄЦБ — орієнтовно, а у видачі лишаються вихідні ціни.
+        rate = await self._flights.rate(self._config.currency, query.currency)
+        config = self._config.in_currency(query.currency, rate) if rate else self._config
+
+        def fx_offer(offer: Offer) -> Offer:
+            conv = flights.converted.get(offer_key(offer))
+            return offer_in_currency(offer, conv.currency, conv.rate) if conv else offer
+
+        def fx_stay(stay: Stay, result: StaySearchResult) -> Stay:
+            conv = result.converted.get(stay_key(stay))
+            if conv is None:
+                return stay
+            return stay.model_copy(
+                update={
+                    "price_per_night": convert(stay.price_per_night, conv.rate),
+                    "total_price": conv.amount,
+                    "currency": conv.currency,
+                }
+            )
+
         flight_scores = {s.offer_key: s for s in flights.scoring.scores}
         candidates = _candidates(
             flights.offers,
@@ -320,15 +350,26 @@ class TripPlanner:
             scores = {s.stay_key: s for s in result.scoring.scores}
             return self._combo(
                 query,
-                offer,
+                fx_offer(offer),
                 flight_scores.get(offer_key(offer)),
                 flights.baggage.get(offer_key(offer)),
-                stay,
+                fx_stay(stay, result),
                 register(stay, check_in),
                 scores.get(stay_key(stay)),
                 StayWindow(
                     check_in=check_in, check_out=check_out, nights=(check_out - check_in).days
                 ),
+                config,
+                converted_from=[
+                    c.original_currency
+                    for c in (
+                        flights.converted.get(offer_key(offer)),
+                        result.converted.get(stay_key(stay)),
+                    )
+                    if c is not None
+                ],
+                converted=offer_key(offer) in flights.converted,
+                stay_converted=stay_key(stay) in result.converted,
             )
 
         pinned_windows = 0
@@ -341,8 +382,8 @@ class TripPlanner:
                 pinned_windows += 1
             for offer in windows[window]:
                 for key in stay_picks:
-                    if stays[key].currency != offer.currency:
-                        continue  # курсів немає — суму в різних валютах не рахуємо
+                    if fx_stay(stays[key], result).currency != fx_offer(offer).currency:
+                        continue  # курсу немає — суму в різних валютах не рахуємо
                     combos.append(combo_for(offer, stays[key], result))
 
         ordered = sorted(combos, key=lambda c: _rank(c, query.budget_total))
@@ -359,7 +400,10 @@ class TripPlanner:
                 result = by_window[window]
                 stays = {stay_key(s): s for s in result.stays}
                 pick = query.stay if query.stay in stays else _best_stay(result)
-                if pick is not None and stays[pick].currency == pinned_offer.currency:
+                if (
+                    pick is not None
+                    and fx_stay(stays[pick], result).currency == fx_offer(pinned_offer).currency
+                ):
                     selected = combo_for(pinned_offer, stays[pick], result)
                     if query.stay is not None:
                         pinned_stay = "used" if pick == query.stay else "unavailable"
@@ -520,12 +564,22 @@ class TripPlanner:
         stay_index: int,
         stay_score: StayScore | None,
         window: StayWindow,
+        config: TripScoringConfig | None = None,
+        *,
+        converted: bool = False,
+        stay_converted: bool = False,
+        converted_from: list[str] | None = None,
     ) -> TripCombo:
-        costs = trip_costs(query, offer, baggage, stay)
+        """`offer` і `stay` — уже у валюті поїздки; `converted` — переведені за курсом (тоді
+        їхні суми орієнтовні, модуль 18.2)."""
+        config = config or self._config
+        costs = trip_costs(
+            query, offer, baggage, stay, converted=converted, stay_converted=stay_converted
+        )
         bag_extra = sum(
             (i.amount or Decimal(0) for i in costs.items if i.kind == "baggage"), Decimal(0)
         )
-        penalty, timing_warnings = timing(offer, self._config)
+        penalty, timing_warnings = timing(offer, config)
         warnings: list[TripWarning] = list(timing_warnings)
         seated = query.adults + query.children
         flight_value = flight_score.breakdown.total if flight_score else None
@@ -534,7 +588,7 @@ class TripPlanner:
         if (
             flight_value is not None
             and stay_value is not None
-            and offer.currency == self._config.currency
+            and offer.currency == config.currency
         ):
             # Ціна й оцінка перельоту вже за всіх пасажирів (ADR 0013); незручний час — на кожного.
             value = flight_value + bag_extra + stay_value * window.nights + penalty * seated
@@ -562,6 +616,7 @@ class TripPlanner:
             stops=offer.outbound.stops + back.stops,
             currency=offer.currency,
             warnings=warnings,
+            converted_from=sorted(set(converted_from or [])),
             full_nights=max(
                 0,
                 window.nights
@@ -615,11 +670,19 @@ def stay_window(offer: Offer) -> tuple[date, date] | None:
 
 
 def trip_costs(
-    query: TripQuery, offer: Offer, baggage: BaggageCost | None, stay: Stay
+    query: TripQuery,
+    offer: Offer,
+    baggage: BaggageCost | None,
+    stay: Stay,
+    *,
+    converted: bool = False,
+    stay_converted: bool = False,
 ) -> TripCosts:
     """Складові вартості з позначкою достовірності. Нічого не домальовуємо: трансфер без
-    даних не додаємо, невідому доплату за багаж не вважаємо нульовою."""
-    ticket_status: CostStatus = "confirmed" if offer.price_status == "live" else "approximate"
+    даних не додаємо, невідому доплату за багаж не вважаємо нульовою. Переведене з іншої
+    валюти за курсом — завжди орієнтовне: продавець спише у своїй валюті (модуль 18.2)."""
+    live = offer.price_status == "live" and not converted
+    ticket_status: CostStatus = "confirmed" if live else "approximate"
     items = [CostItem(kind="tickets", amount=offer.price, status=ticket_status)]
     if query.baggage != "none":
         if baggage is None or baggage.extra is None:
@@ -633,7 +696,13 @@ def trip_costs(
                     included=baggage.status == "included",
                 )
             )
-    items.append(CostItem(kind="stay", amount=stay.total_price, status="confirmed"))
+    items.append(
+        CostItem(
+            kind="stay",
+            amount=stay.total_price,
+            status="approximate" if stay_converted else "confirmed",
+        )
+    )
     items.extend(
         CostItem(kind="extra", label=e.label, amount=e.amount, status="approximate")
         for e in query.extras

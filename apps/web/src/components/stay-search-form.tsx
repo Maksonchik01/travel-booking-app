@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CommonSearch } from "@/lib/search-modes";
-import { addDays } from "@/lib/search-params";
+import { addDays, CURRENCIES } from "@/lib/search-params";
 import {
   MAX_NIGHTS,
   MAX_ROOMS,
@@ -25,7 +25,12 @@ import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 /** Пошук житла: місто, дати, гості, що важливіше. Звичайна GET-форма — працює й без JS. */
-export type StayFormPrefs = { filters: [string, string][]; profile?: StayProfile | null };
+export type StayFormPrefs = {
+  filters: [string, string][];
+  profile?: StayProfile | null;
+  /** Валюта профілю (модуль 18.2) — для нового пошуку. */
+  currency?: string | null;
+};
 
 export function StaySearchForm({
   initial,
@@ -123,6 +128,20 @@ export function StaySearchForm({
             {Array.from({ length: 9 }, (_, i) => i).map((n) => (
               <option key={n} value={n}>
                 {n}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label={t("currency")} htmlFor="stay-cur">
+          <select
+            id="stay-cur"
+            name="cur"
+            defaultValue={q?.currency ?? prefs?.currency ?? "EUR"}
+            className={SELECT_CLASS}
+          >
+            {CURRENCIES.map((code) => (
+              <option key={code} value={code}>
+                {code}
               </option>
             ))}
           </select>

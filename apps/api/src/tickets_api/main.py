@@ -13,11 +13,13 @@ from tickets_api.api import (
     ai,
     alerts,
     auth,
+    events,
     flights,
     health,
     ops,
     outbound,
     places,
+    shared,
     stays,
     trips,
 )
@@ -100,6 +102,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             scoring_config=stay_scoring_config,
             record_history=StayPriceHistoryRecorder(app.state.sessionmaker).record,
             freshness=freshness,
+            rate=app.state.flight_search.rate,
         )
         app.state.trip_planner = TripPlanner(app.state.flight_search, app.state.stay_search)
         app.state.alerts = build_alert_service(
@@ -163,5 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(account.router)
     app.include_router(ai.router)
     app.include_router(outbound.router)
+    app.include_router(events.router)
+    app.include_router(shared.router)
     app.include_router(ops.router)
     return app

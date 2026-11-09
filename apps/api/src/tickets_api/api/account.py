@@ -369,6 +369,24 @@ async def patch_trip(
         raise account_error(exc) from exc
 
 
+@router.post("/trips/{trip_id}/share", response_model=SavedTripOut)
+async def share_trip(trip_id: str, user: CurrentUser, service: Service) -> SavedTripOut:
+    """Увімкнути публічне посилання на поїздку (модуль 20.2)."""
+    try:
+        return await service.share_trip(user, trip_id, enabled=True)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.delete("/trips/{trip_id}/share", response_model=SavedTripOut)
+async def unshare_trip(trip_id: str, user: CurrentUser, service: Service) -> SavedTripOut:
+    """Вимкнути публічне посилання: старе більше не відкривається."""
+    try:
+        return await service.share_trip(user, trip_id, enabled=False)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
 @router.delete("/trips/{trip_id}", status_code=204)
 async def delete_trip(trip_id: str, user: CurrentUser, service: Service) -> Response:
     await service.delete_trip(user, trip_id)

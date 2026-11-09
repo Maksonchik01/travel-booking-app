@@ -93,6 +93,21 @@ class SavedTripOut(BaseModel):
     snapshot: TripSnapshot
     created_at: datetime
     updated_at: datetime
+    share_token: str | None = None
+    """Публічне посилання ввімкнено (модуль 20.2) — `/shared/trip/<token>`; None — приватна."""
+
+
+class SharedTrip(BaseModel):
+    """Публічний перегляд поїздки (модуль 20.2): лише сама поїздка. Без власника, назви, статусу,
+    бюджету, уподобань і підписів власних витрат — там може бути щось особисте."""
+
+    query: TripQuery
+    snapshot: TripSnapshot
+
+
+def public_query(query: TripQuery) -> TripQuery:
+    """Запит для чужих очей: маршрут, дати, люди, обрані рейс і житло, умови пошуку."""
+    return query.model_copy(update={"budget_total": None, "extras": [], "preferences": None})
 
 
 class TripRefreshRequest(_StrictInput):

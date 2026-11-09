@@ -11,6 +11,7 @@ import { localDate, localTime } from "@/lib/format";
 import { toTripParams } from "@/lib/trip-params";
 import { useHydrated } from "@/lib/use-hydrated";
 import { fetchWithTimeout } from "@/lib/client-fetch";
+import { fractionDigits } from "@/lib/money";
 
 type State =
   | { state: "idle" }
@@ -54,6 +55,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
       onClick={run}
       disabled={!hydrated || check.state === "loading"}
       data-testid="trip-cheaper"
+      data-track="cheaper_requested"
     >
       {check.state === "loading" ? (
         <Loader2 className="size-3.5 animate-spin" aria-hidden />
@@ -81,7 +83,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
       style: "currency",
       currency: result.before?.currency ?? "EUR",
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(value),
     });
   const checked = t("checked", {
     flights: result.flights_checked ?? 0,

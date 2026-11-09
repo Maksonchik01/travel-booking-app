@@ -25,6 +25,7 @@ from tickets_api.domain.flights import (
     stay_nights,
 )
 from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
+from tickets_api.domain.money import ConvertedPrice, convert, converted
 from tickets_api.domain.sellers import SellersRequest, SellersResult
 from tickets_api.providers.base import (
     FlightProvider,
@@ -132,6 +133,9 @@ class FlightSearchResult(BaseModel):
     """Той самий рейс від кількох джерел/продавців (модуль 3): одна картка, рядки продавців."""
     date_options: list[DateOption] = []
     """Гнучкі дати: найкраща ціна на кожну пару дат серед показаних пропозицій."""
+    converted: dict[str, ConvertedPrice] = {}
+    """offer_key → ціна у валюті пошуку, якщо джерело дало іншу валюту (модуль 18.2): для
+    порівняння, орієнтовно. Скоринг, «найдешевший», багаж і гнучкі дати — у валюті пошуку."""
     freshness: dict[str, PriceFreshness] = {}
     """offer_key → свіжість ціни на момент відповіді (модуль 17.3): live / cached /
     approximate / needs_recheck. Час отримання — `Offer.collected_at` / `found_at`."""
@@ -219,9 +223,11 @@ class FlightSearchService:
         # Спершу обов'язкові вимоги (відсікаємо), потім ранжування решти (модуль 14.1).
         violations = {offer_key(o): requirement_violations(o, query) for o in offers}
         shown = [o for o in offers if not violations[offer_key(o)]]
+        # Одна валюта порівняння — валюта пошуку; вихідні ціни лишаються у видачі (18.2).
+        comparable, conversions = await self._in_currency(shown, query.currency)
         excluded = Counter(failed[0] for failed in violations.values() if failed)
         baggage = (
-            {offer_key(o): baggage_cost(o, query.baggage, query.passengers) for o in shown}
+            {offer_key(o): baggage_cost(o, query.baggage, query.passengers) for o in comparable}
             if query.baggage != "none"
             else {}
         )
@@ -230,13 +236,14 @@ class FlightSearchService:
             providers=[s for s, _ in results],
             # «Найшвидший» і мінімальний час — серед того, що користувач бачить.
             scoring=score_offers(
-                shown,
+                comparable,
                 query.profile,
                 await self._config_for(query.currency),
                 travellers=query.passengers.seated,
                 baggage=baggage,
                 preferences=query.preferences,
             ),
+            converted=conversions,
             freshness=self.freshness(shown),
             excluded=[
                 Exclusion(reason=reason, offers=n)
@@ -246,7 +253,7 @@ class FlightSearchService:
             facets=self._facets(offers),
             groups=offer_groups(shown),
             date_options=(
-                date_options(shown, live={p.name for p in self._providers})
+                date_options(comparable, live={p.name for p in self._providers})
                 if query.is_flexible
                 else []
             ),
@@ -283,18 +290,41 @@ class FlightSearchService:
         pairs = best_date_pairs(candidates, query, limit=self._live_date_pairs)
         return explored, query.model_copy(update={"check_dates": pairs}) if pairs else query
 
+    async def rate(self, base: str, currency: str) -> Decimal | None:
+        """Довідковий курс ЄЦБ: одиниць `currency` за 1 `base`. Немає — None (не вгадуємо)."""
+        if base == currency:
+            return Decimal(1)
+        if self._fx is None:
+            return None
+        try:
+            return await self._fx(base, currency)
+        except Exception:
+            log.exception("fx.rate_failed")
+            return None
+
     async def _config_for(self, currency: str) -> ScoringConfig:
         """Ваги скорингу у валюті пошуку (курс ЄЦБ). Без курсу — базові: пропозиції в іншій
         валюті тоді не оцінюються (`unscored_offer_keys`), а не порівнюються навмання."""
         base = self._scoring_config
-        if currency == base.currency or self._fx is None:
-            return base
-        try:
-            rate = await self._fx(base.currency, currency)
-        except Exception:
-            log.exception("fx.rate_failed")
-            rate = None
+        rate = await self.rate(base.currency, currency)
         return base.in_currency(currency, rate) if rate else base
+
+    async def _in_currency(
+        self, offers: Sequence[Offer], currency: str
+    ) -> tuple[list[Offer], dict[str, ConvertedPrice]]:
+        """Копії для порівняння у валюті пошуку + що й за яким курсом переведено. Без курсу
+        пропозиція лишається у своїй валюті — скоринг її чесно не оцінить."""
+        rates = {c: await self.rate(c, currency) for c in {o.currency for o in offers} - {currency}}
+        result: list[Offer] = []
+        conversions: dict[str, ConvertedPrice] = {}
+        for offer in offers:
+            rate = rates.get(offer.currency)
+            if offer.currency == currency or rate is None:
+                result.append(offer)
+                continue
+            conversions[offer_key(offer)] = converted(offer.price, offer.currency, currency, rate)
+            result.append(offer_in_currency(offer, currency, rate))
+        return result, conversions
 
     def _facets(self, offers: list[Offer]) -> SearchFacets:
         counts = Counter(code for o in offers for code in set(o.airlines))
@@ -425,6 +455,22 @@ class FlightSearchService:
             log.exception("provider.unexpected_error", provider=name)
             return ProviderStatus(provider=name, status="error", error="internal error"), []
         return ProviderStatus(provider=name, status="ok", results=len(items)), items
+
+
+def offer_in_currency(offer: Offer, currency: str, rate: Decimal) -> Offer:
+    """Та сама пропозиція з ціною й доплатами за багаж у валюті порівняння (лише для оцінки)."""
+    bags = offer.baggage
+    if bags is not None:
+        bags = bags.model_copy(
+            update={
+                kind: allowance.model_copy(update={"fee": convert(allowance.fee, rate)})
+                for kind in ("personal_item", "carry_on", "checked", "checked_extra")
+                if (allowance := getattr(bags, kind)) is not None and allowance.fee is not None
+            }
+        )
+    return offer.model_copy(
+        update={"price": convert(offer.price, rate), "currency": currency, "baggage": bags}
+    )
 
 
 def _cheapest_per_day(days: list[CalendarDay], currency: str) -> list[CalendarDay]:

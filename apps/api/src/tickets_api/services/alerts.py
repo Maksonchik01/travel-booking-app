@@ -45,6 +45,7 @@ from tickets_api.domain.alerts import (
 )
 from tickets_api.domain.flights import FlightQuery, Offer
 from tickets_api.domain.notify import hold_reason, notify_prefs
+from tickets_api.i18n import as_locale, t, use_locale
 from tickets_api.notifications.mail import Mailer, MailError
 from tickets_api.notifications.telegram import Button, Keyboard, TelegramClient, TelegramError, esc
 from tickets_api.repositories.price_history import PriceStats
@@ -124,8 +125,20 @@ class AlertCreated(BaseModel):
     """Така сама підписка цього власника вже є — повертаємо її, а не дублюємо (модуль 16)."""
 
 
+AlertErrorCode = Literal[
+    "past_date", "kind_unavailable", "too_far", "closed", "owner_limit", "invalid"
+]
+
+
 class AlertError(ValueError):
-    """Підписку не створити (минула дата, канал недоступний) — для API це 422."""
+    """Підписку не створити (минула дата, канал недоступний) — для API це 422.
+
+    `code` — для UI (модуль 18.1): API віддає його в `detail`, веб показує текст своєю мовою;
+    повідомлення — для логів і тестів."""
+
+    def __init__(self, code: AlertErrorCode, message: str) -> None:
+        super().__init__(message)
+        self.code = code
 
 
 @dataclass(frozen=True)
@@ -230,11 +243,13 @@ class AlertService:
         """`user_id` — створено під час входу (видно в кабінеті); `chat_id` — створено в боті:
         людина вже в чаті, тож підписка активна одразу й перша перевірка — зараз."""
         if body.departure_date < self._clock().date():
-            raise AlertError("дата вильоту вже минула")
+            raise AlertError("past_date", "дата вильоту вже минула")
         if body.kind not in self.kinds():
-            raise AlertError("цей тип сповіщень поки недоступний")
+            raise AlertError("kind_unavailable", "цей тип сповіщень поки недоступний")
         if body.departure_date > self._clock().date() + timedelta(days=MAX_HORIZON_DAYS):
-            raise AlertError(f"стежимо за датами не далі ніж на {MAX_HORIZON_DAYS} днів уперед")
+            raise AlertError(
+                "too_far", f"стежимо за датами не далі ніж на {MAX_HORIZON_DAYS} днів уперед"
+            )
         if user_id is not None or chat_id is not None:
             same = await self._same_alert(body, user_id, chat_id)
             if same is not None:
@@ -270,6 +285,7 @@ class AlertService:
             channel=body.channel,
             email=body.email,
             telegram_chat_id=chat_id,
+            locale=body.locale,
             status="active" if active else "pending",
             confirmed_at=self._clock() if active else None,
             user_id=user_id,
@@ -284,11 +300,12 @@ class AlertService:
             bot = self._settings.bot_username or "your_bot"
             link = f"https://t.me/{bot}?start={token}"
         elif body.email is not None:
-            await self._send_mail(
-                body.email,
-                "Підтвердіть підписку на ціну",
-                confirm_email_text(alert, self.manage_url(token)),
-            )
+            with use_locale(body.locale):
+                await self._send_mail(
+                    body.email,
+                    t("alerts.confirm.subject"),
+                    confirm_email_text(alert, self.manage_url(token)),
+                )
         return AlertCreated(
             id=alert.id,
             status=alert.status,
@@ -394,16 +411,18 @@ class AlertService:
             if alert is None:
                 return None
             if alert.status in ("stopped", "expired"):
-                raise AlertError("вимкнену чи минулу підписку не змінити — створіть нову")
+                raise AlertError("closed", "вимкнену чи минулу підписку не змінити — створіть нову")
             merged = {**_create_fields(alert), **edit.model_dump()}
             try:
                 body = AlertCreate.model_validate(merged)
             except ValueError as exc:
-                raise AlertError(_first_error(exc)) from exc
+                raise AlertError("invalid", _first_error(exc)) from exc
             if body.departure_date < self._clock().date():
-                raise AlertError("дата вильоту вже минула")
+                raise AlertError("past_date", "дата вильоту вже минула")
             if body.departure_date > self._clock().date() + timedelta(days=MAX_HORIZON_DAYS):
-                raise AlertError(f"стежимо за датами не далі ніж на {MAX_HORIZON_DAYS} днів уперед")
+                raise AlertError(
+                    "too_far", f"стежимо за датами не далі ніж на {MAX_HORIZON_DAYS} днів уперед"
+                )
             changed = {f for f in EDITABLE_FIELDS if getattr(alert, f) != getattr(body, f)}
             if not changed:
                 return _view(alert)
@@ -477,8 +496,9 @@ class AlertService:
             )
         if (count or 0) >= self._settings.max_active_per_owner:
             raise AlertError(
+                "owner_limit",
                 f"забагато підписок: до {self._settings.max_active_per_owner} відкритих — "
-                "вимкніть чи видаліть зайві"
+                "вимкніть чи видаліть зайві",
             )
 
     # --- керування з бота (лише власний чат) ------------------------------------------
@@ -611,37 +631,39 @@ class AlertService:
             alert = await session.get(Alert, alert_id)
             if alert is None or alert.status != "active":
                 return 0
-            if (alert.departure_until or alert.departure_date) < now.date():
-                alert.status = "expired"
-                session.add(AlertEvent(alert_id=alert.id, kind="expired"))
+            # Тексти сповіщення — мовою підписки (модуль 18.1).
+            with use_locale(as_locale(alert.locale)):
+                if (alert.departure_until or alert.departure_date) < now.date():
+                    alert.status = "expired"
+                    session.add(AlertEvent(alert_id=alert.id, kind="expired"))
+                    await session.commit()
+                    return 0
+                found = await self._best(alert, run)
+                best = found.price if found else None
+                alert.last_checked_at = now
+                alert.last_price = best
+                if best is not None and alert.baseline_price is None:
+                    alert.baseline_price = best  # від неї — зниження на суму / відсоток
+                session.add(AlertEvent(alert_id=alert.id, kind="checked", price=best))
+                reason = await self._reason(alert, best)
+                snoozed = alert.snoozed_until is not None and now.date() < alert.snoozed_until
+                notify = reason is not None and not snoozed and self._may_notify(alert, now)
+                previous = alert.last_notified_price
+                if notify and best is not None and alert.user_id is not None:
+                    held = await self._held_by_owner(session, alert, best, now)
+                    if held is not None:
+                        session.add(AlertEvent(alert_id=alert.id, kind="held", detail=held))
+                        notify = False
                 await session.commit()
-                return 0
-            found = await self._best(alert, run)
-            best = found.price if found else None
-            alert.last_checked_at = now
-            alert.last_price = best
-            if best is not None and alert.baseline_price is None:
-                alert.baseline_price = best  # від неї — зниження на суму / відсоток
-            session.add(AlertEvent(alert_id=alert.id, kind="checked", price=best))
-            reason = await self._reason(alert, best)
-            snoozed = alert.snoozed_until is not None and now.date() < alert.snoozed_until
-            notify = reason is not None and not snoozed and self._may_notify(alert, now)
-            previous = alert.last_notified_price
-            if notify and best is not None and alert.user_id is not None:
-                held = await self._held_by_owner(session, alert, best, now)
-                if held is not None:
-                    session.add(AlertEvent(alert_id=alert.id, kind="held", detail=held))
-                    notify = False
-            await session.commit()
-            if not notify or found is None or reason is None:
-                return 0
-            delivered = await self._notify(alert, found, reason, previous)
-            if delivered:
-                alert.last_notified_price = found.price
-                alert.last_notified_at = now
-                session.add(AlertEvent(alert_id=alert.id, kind="notified", price=found.price))
-                await session.commit()
-            return int(delivered)
+                if not notify or found is None or reason is None:
+                    return 0
+                delivered = await self._notify(alert, found, reason, previous)
+                if delivered:
+                    alert.last_notified_price = found.price
+                    alert.last_notified_at = now
+                    session.add(AlertEvent(alert_id=alert.id, kind="notified", price=found.price))
+                    await session.commit()
+                return int(delivered)
 
     async def _best(self, alert: Alert, run: CheckRun | None = None) -> Found | None:
         if alert.kind in ("flight", "flex"):
@@ -722,14 +744,11 @@ class AlertService:
         ):
             return None
         if alert.condition == "below_price":
-            return f"не дорожче за ваш поріг {_money(alert, alert.threshold or 0)}"
+            return t("alerts.reason.below_price", amount=_money(alert, alert.threshold or 0))
         if alert.condition == "below_typical":
-            return f"нижче типової для маршруту ціни {_money(alert, median or 0)}"
+            return t("alerts.reason.below_typical", amount=_money(alert, median or 0))
         base = alert.baseline_price or best
-        return (
-            f"на {_money(alert, base - best)} дешевше, ніж на початку стеження "
-            f"({_money(alert, base)})"
-        )
+        return t("alerts.reason.drop", amount=_money(alert, base - best), base=_money(alert, base))
 
     async def _held_by_owner(
         self, session: AsyncSession, alert: Alert, best: Decimal, now: datetime
@@ -769,7 +788,8 @@ class AlertService:
             )
         if alert.channel == "email" and alert.email:
             text = price_drop_text(alert, best, reason, search_url, manage_url)
-            return await self._send_mail(alert.email, f"Ціна знизилась: {route_text(alert)}", text)
+            subject = t("alerts.drop.subject", route=route_text(alert))
+            return await self._send_mail(alert.email, subject, text)
         return False
 
     async def _first_check(self, alert_id: str) -> None:
@@ -913,24 +933,28 @@ def route_text(alert: Alert) -> str:
         nights = f"{alert.min_nights}"
         if alert.max_nights and alert.max_nights != alert.min_nights:
             nights += f"–{alert.max_nights}"
-        dates = f"виліт {_date(alert.departure_date)} – {_date(alert.departure_until)}, "
-        dates += f"{nights} ноч."
+        dates = t(
+            "alerts.route.flex",
+            start=_date(alert.departure_date),
+            end=_date(alert.departure_until),
+            nights=nights,
+        )
         if alert.weekends:
-            dates += ", лише вихідні"
+            dates += t("alerts.route.weekends")
     else:
         dates = _date(alert.departure_date)
         if alert.return_date:
             dates += f" – {_date(alert.return_date)}"
     if alert.kind == "stay":
-        return f"Житло: {alert.destination}, {dates}"
+        return t("alerts.route.stay", city=alert.destination, dates=dates)
     route = f"{alert.origin} → {alert.destination}, {dates}"
-    return f"Поїздка {route}" if alert.kind == "trip" else route
+    return t("alerts.route.trip", route=route) if alert.kind == "trip" else route
 
 
 def party_text(alert: Alert) -> str:
     if alert.kind == "stay":
-        return "за все проживання"
-    return "за 1 дорослого" if alert.adults == 1 else f"за {alert.adults} дорослих"
+        return t("alerts.party.stay")
+    return t("alerts.party.adults", count=alert.adults)
 
 
 def _money(alert: Alert, value: Decimal | int) -> str:
@@ -939,12 +963,13 @@ def _money(alert: Alert, value: Decimal | int) -> str:
 
 def condition_text(alert: Alert) -> str:
     if alert.condition == "below_price" and alert.threshold is not None:
-        return f"ціна до {_money(alert, alert.threshold)} {party_text(alert)}"
+        amount = _money(alert, alert.threshold)
+        return t("alerts.condition.below_price", amount=amount, party=party_text(alert))
     if alert.condition == "drop_amount" and alert.threshold is not None:
-        return f"ціна впаде щонайменше на {_money(alert, alert.threshold)} від початкової"
+        return t("alerts.condition.drop_amount", amount=_money(alert, alert.threshold))
     if alert.condition == "drop_percent" and alert.percent is not None:
-        return f"ціна впаде щонайменше на {alert.percent}% від початкової"
-    return f"ціна на {TYPICAL_DISCOUNT_PERCENT}% нижча за типову"
+        return t("alerts.condition.drop_percent", percent=alert.percent)
+    return t("alerts.condition.below_typical", percent=TYPICAL_DISCOUNT_PERCENT)
 
 
 def found_lines(alert: Alert, best: Found) -> list[str]:
@@ -954,11 +979,9 @@ def found_lines(alert: Alert, best: Found) -> list[str]:
         dates = _date(best.departure)
         if best.return_date:
             dates += f" – {_date(best.return_date)}"
-        lines.append(f"Дати: {dates}.")
+        lines.append(t("alerts.found.dates", dates=dates))
     if best.baggage_unknown:
-        lines.append(
-            "Ціна без урахування багажу: його умови джерело не знає — уточніть у продавця."
-        )
+        lines.append(t("alerts.found.baggage_unknown"))
     return lines
 
 
@@ -966,13 +989,18 @@ def alert_keyboard(
     alert: Alert, search_url: str, manage_url: str, *, snooze: bool = False
 ) -> list[list[Button]]:
     """Кнопки під повідомленням про підписку. Посилання — лише якщо сайт на https."""
-    actions = [Button("⏸ Вимкнути", data=f"stop:{alert.id}")]
+    actions = [Button(t("alerts.button.stop"), data=f"stop:{alert.id}")]
     if snooze:
-        actions.append(Button(f"😴 Тиша {SNOOZE_DAYS} днів", data=f"snooze:{alert.id}"))
+        actions.append(
+            Button(t("alerts.button.snooze", count=SNOOZE_DAYS), data=f"snooze:{alert.id}")
+        )
     else:
-        actions.append(Button("✏️ Змінити поріг", data=f"thr:{alert.id}"))
+        actions.append(Button(t("alerts.button.threshold"), data=f"thr:{alert.id}"))
     return [
-        [Button("✈️ Квитки", url=search_url), Button("⚙️ Керувати", url=manage_url)],
+        [
+            Button(t("alerts.button.tickets"), url=search_url),
+            Button(t("alerts.button.manage"), url=manage_url),
+        ],
         actions,
     ]
 
@@ -981,7 +1009,7 @@ def links_html(search_url: str, manage_url: str) -> str:
     """Поки сайт не на https, кнопки-посилання Telegram не приймає — даємо посилання текстом."""
     if search_url.startswith("https://"):
         return ""
-    return f"\n\nКвитки: {esc(search_url)}\nКерувати: {esc(manage_url)}"
+    return t("alerts.links", search=esc(search_url), manage=esc(manage_url))
 
 
 def price_drop_html(
@@ -994,39 +1022,50 @@ def price_drop_html(
 ) -> str:
     best = found.price
     lines = [
-        "✈️ <b>Ціна знизилась</b>",
+        t("alerts.drop.title_html"),
         f"<b>{esc(route_text(alert))}</b>",
         "",
-        f"Зараз від <b>{esc(money_text(best, alert.currency))}</b> {party_text(alert)} — "
-        f"{esc(reason)}.",
+        t(
+            "alerts.drop.now_html",
+            price=esc(money_text(best, alert.currency)),
+            party=esc(party_text(alert)),
+            reason=esc(reason),
+        ),
         *(esc(line) for line in found_lines(alert, found)),
     ]
     if previous is not None and previous > best:
         lines.append(
-            f"Минулого разу писали про {esc(money_text(previous, alert.currency))}: "
-            f"ще на {esc(money_text(previous - best, alert.currency))} дешевше."
+            esc(
+                t(
+                    "alerts.drop.previous",
+                    previous=money_text(previous, alert.currency),
+                    diff=money_text(previous - best, alert.currency),
+                )
+            )
         )
-    lines.append("<i>Ціна з історії пошуків: остаточну підтверджує продавець.</i>")
+    lines.append(t("alerts.drop.note_html"))
     return "\n".join(lines) + links_html(search_url, manage_url)
 
 
 def confirm_email_text(alert: Alert, manage_url: str) -> str:
-    return (
-        "Ви (чи хтось від вашого імені) підписалися на сповіщення про ціну:\n"
-        f"{route_text(alert)}\nУмова: {condition_text(alert)}.\n\n"
-        f"Щоб підтвердити, відкрийте посилання й натисніть «Підтвердити»:\n{manage_url}\n\n"
-        "Якщо це були не ви — просто проігноруйте лист: без підтвердження листів не буде."
+    return t(
+        "alerts.confirm.email",
+        route=route_text(alert),
+        condition=condition_text(alert),
+        manage=manage_url,
     )
 
 
 def price_drop_text(
     alert: Alert, found: Found, reason: str, search_url: str, manage_url: str
 ) -> str:
-    extra = "".join(f"{line}\n" for line in found_lines(alert, found))
-    return (
-        f"✈️ Ціна знизилась: {route_text(alert)}\n"
-        f"Зараз від {money_text(found.price, alert.currency)} {party_text(alert)} — {reason}.\n"
-        f"{extra}"
-        "Це кешована ціна з історії пошуків: остаточну підтверджує продавець.\n\n"
-        f"Квитки: {search_url}\nКерувати підпискою: {manage_url}"
+    return t(
+        "alerts.drop.email",
+        route=route_text(alert),
+        price=money_text(found.price, alert.currency),
+        party=party_text(alert),
+        reason=reason,
+        extra="".join(f"{line}\n" for line in found_lines(alert, found)),
+        search=search_url,
+        manage=manage_url,
     )

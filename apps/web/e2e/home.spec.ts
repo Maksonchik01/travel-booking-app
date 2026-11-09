@@ -584,7 +584,7 @@ test("поїздка 8a: гнучкий період і тривалість, п
   await page.getByLabel("Багаж").selectOption("carry_on");
   await page.getByLabel("Рейтинг від").selectOption("8");
   await page.getByLabel("Назва").first().fill("Музей");
-  await page.getByLabel("Сума, €").first().fill("40");
+  await page.getByLabel("Сума, EUR").first().fill("40");
   await page.getByRole("button", { name: "Скласти поїздку" }).click();
 
   await expect(page).toHaveURL(/nmin=3&nmax=4/);
@@ -803,4 +803,164 @@ test("модуль 15: рейс → «Додати до поїздки» → п�
   await expect(page).toHaveURL(/adults=2/);
   await expect(page.getByTestId("trip-builder")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("trip-builder-notice")).toHaveCount(0);
+});
+
+test("модуль 18.2: житло в обраній валюті, вибір валюти переживає новий пошук", async ({
+  page,
+}) => {
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08&cur=PLN");
+  await page.getByTestId("stay-card").first().waitFor();
+  await expect(page.getByTestId("stay-price").first()).toContainText("zł");
+  await expect(page.getByLabel("Валюта")).toHaveValue("PLN");
+});
+
+test("модуль 19: анонімна подія при відкритті деталей рейсу; без ідентифікаторів", async ({
+  page,
+}) => {
+  // Тіло sendBeacon Chromium не показує тестам — перевіряємо запасний шлях (fetch keepalive).
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "sendBeacon", { value: undefined });
+  });
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12");
+  const card = page.getByTestId("offer-card").first();
+  await card.waitFor();
+  const sent = page.waitForRequest((r) => r.url().endsWith("/api/events") && r.method() === "POST");
+  await card.getByText("Деталі маршруту").click();
+  const event = JSON.parse((await sent).postData() ?? "{}");
+  expect(event).toEqual({ name: "offer_opened", props: { kind: "flight" } });
+});
+
+test("модуль 20.1/20.3: «Поділитися» — лише параметри пошуку; останні пошуки на головній", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12&adults=2&stops=0");
+  await page.getByTestId("offer-card").first().waitFor();
+  const share = page.getByTestId("search-share");
+  await expect(share).toHaveAttribute(
+    "data-share-href",
+    "/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12&adults=2&stops=0",
+  );
+
+  await page.goto("/");
+  const recent = page.getByTestId("recent-search").first();
+  await expect(recent).toContainText("WAW → LIS");
+  await recent.click();
+  await expect(page).toHaveURL(/from=WAW&to=LIS/);
+  await expect(page.getByTestId("offer-card").first()).toBeVisible();
+});
+
+test("модуль 20.2: публічне посилання на поїздку — вимкнене за замовчуванням, без особистого", async ({
+  page,
+}) => {
+  const username = `share_${Date.now()}`;
+  await page.goto("/login?mode=register");
+  await page.getByLabel("Логін", { exact: true }).fill(username);
+  await page.getByLabel("Пароль", { exact: true }).fill("password123");
+  await page.getByLabel("Пароль ще раз").fill("password123");
+  await page.getByRole("button", { name: "Зареєструватися" }).click();
+  await expect(page).toHaveURL(/\/account/);
+
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+  const picks = page.locator(
+    'section[aria-labelledby="trip-picks-title"] [data-testid="trip-card"]',
+  );
+  await expect(picks.first()).toBeVisible({ timeout: 15_000 });
+  await picks.first().getByTestId("trip-choose").click();
+  await page.getByTestId("trip-save").click();
+  await expect(page.getByTestId("trip-save")).toContainText("Збережено");
+
+  await page.goto("/account/trips");
+  await expect(page.getByTestId("trip-public-share")).toHaveCount(0); // приватна за замовчуванням
+  await page.getByTestId("trip-public-on").click();
+  const link = page.getByTestId("trip-public-share");
+  await expect(link).toBeVisible();
+  const href = (await link.getAttribute("data-share-href"))!;
+  expect(href).toMatch(/^\/shared\/trip\/[A-Za-z0-9_-]{20,}$/);
+
+  await page.goto(href);
+  const shared = page.getByTestId("shared-trip");
+  await expect(shared).toContainText("WAW → LIS");
+  await expect(page.getByTestId("shared-trip-total")).toContainText("€");
+  await expect(page.locator("main")).not.toContainText(username);
+  await expect(page.getByTestId("shared-trip-open")).toHaveAttribute("href", /^\/trip\?/);
+
+  await page.goto("/account/trips");
+  await page.getByTestId("trip-public-off").click();
+  await expect(page.getByTestId("trip-public-on")).toBeVisible();
+  await page.goto(href);
+  await expect(page.getByTestId("shared-trip-missing")).toBeVisible();
+
+  await page.goto("/account/security");
+  await page.getByLabel("Пароль для підтвердження").fill("password123");
+  await page.getByRole("button", { name: "Видалити акаунт" }).click();
+});
+
+test("модуль 20.4: введене у форму переживає оновлення сторінки, але пошук сам не запускається", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Підказки й чернетка працюють після гідратації (приховане поле з кодом з'являється тоді ж).
+  await page.locator('input[type="hidden"][name="to"]').waitFor({ state: "attached" });
+  await page.getByLabel("Куди").fill("lis");
+  await page
+    .getByRole("option", { name: /Лісабон/ })
+    .first()
+    .click();
+  await page.getByLabel("Виліт").fill("2026-12-05");
+  await expect(page).toHaveURL(/to=LIS.*depart=2026-12-05.*draft=1/);
+
+  await page.reload();
+  await expect(page.getByLabel("Виліт")).toHaveValue("2026-12-05");
+  await expect(page.getByLabel("Куди")).toHaveValue(/Лісабон/);
+  await expect(page.getByTestId("offer-card")).toHaveCount(0); // шукає лише кнопка
+});
+
+test("модуль 20.5: порожні результати — альтернативи, кожна з однією зміною", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&stops=0&maxp=1");
+  const help = page.getByTestId("empty-suggestions");
+  await expect(help).toBeVisible();
+  await expect(page.getByTestId("offer-card")).toHaveCount(0);
+  await expect(help.locator('[data-suggestion="higherBudget"]')).toContainText("2 €");
+
+  await help.locator('[data-suggestion="allowStops"]').click();
+  await expect(page).not.toHaveURL(/stops=0/);
+  await expect(page).toHaveURL(/maxp=1/); // інші умови — без змін
+});
+
+test("модуль 21.6: обрив мережі — помилка з повтором, а не вічне завантаження", async ({
+  page,
+}) => {
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  const card = page
+    .getByTestId("stay-card")
+    .filter({ has: page.getByTestId("stay-rates-toggle") })
+    .first();
+  await card.waitFor();
+
+  await page.route("**/api/stays/rates", (route) => route.abort("internetdisconnected"));
+  await card.getByTestId("stay-rates-toggle").click();
+  const notice = card.getByTestId("retry-notice");
+  await expect(notice).toBeVisible();
+
+  // Мережа повернулась — «Спробувати ще раз» працює.
+  await page.unroute("**/api/stays/rates");
+  await notice.getByRole("button", { name: "Спробувати ще раз" }).click();
+  await expect(card.getByTestId("stay-rates")).toBeVisible();
+  await expect(card.getByTestId("retry-notice")).toHaveCount(0);
+});
+
+test("модуль 21.1: сортування — «Швидші» впорядковує картки за часом у дорозі", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&sort=duration");
+  const cards = page.getByTestId("offer-card");
+  await cards.first().waitFor();
+  const minutes = await page.getByTestId("total-duration").evaluateAll((nodes) =>
+    nodes.map((n) => {
+      const m = /(\d+)\s*год(?:\s*(\d+))?/.exec(n.textContent ?? "");
+      return m ? Number(m[1]) * 60 + Number(m[2] ?? 0) : Number.POSITIVE_INFINITY;
+    }),
+  );
+  expect(minutes.length).toBeGreaterThan(1);
+  expect(minutes).toEqual([...minutes].sort((a, b) => a - b));
 });

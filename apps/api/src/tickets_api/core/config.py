@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     rate_limit_ai_per_hour: int = Field(default=30, ge=1)
     rate_limit_auth_per_hour: int = Field(default=20, ge=1)
     rate_limit_clicks_per_hour: int = Field(default=200, ge=1)
+    rate_limit_events_per_hour: int = Field(default=600, ge=1)
+    """Анонімні події аналітики (модуль 19) — окремо від переходів до продавця: активне
+    користування не має вичерпати ліміт кліків «Забронювати»."""
 
     # LLM (ADR 0007): off — ШІ-функції вимкнені; mock — детерміновані відповіді (e2e, dev).
     llm_provider: LLMProviderName = "off"

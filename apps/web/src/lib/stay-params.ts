@@ -7,7 +7,7 @@ import type {
   StayQuery,
 } from "@tickets/shared";
 
-import { addDays, type RawSearchParams } from "@/lib/search-params";
+import { addDays, type RawSearchParams, parseCurrency } from "@/lib/search-params";
 
 export type StaySortKey = "price" | "rating" | "score";
 export const STAY_SORT_KEYS: readonly StaySortKey[] = ["price", "rating", "score"];
@@ -189,7 +189,7 @@ export function parseStayParams(params: RawSearchParams): StayState | null {
       check_in: checkIn,
       check_out: checkOut,
       guests: parseGuests(params),
-      currency: "EUR",
+      currency: parseCurrency(params),
       profile: STAY_PROFILES.find((p) => p === first(params.prio)) ?? "balanced",
       filters: parseStayFilters(params),
     },
@@ -211,6 +211,7 @@ export function toStayParams(state: StayState): URLSearchParams {
   if (children) params.set("children", String(children));
   if (query.guests?.children_ages?.length) params.set("ages", query.guests.children_ages.join(","));
   if ((query.guests?.rooms ?? 1) > 1) params.set("rooms", String(query.guests?.rooms));
+  if (query.currency && query.currency !== "EUR") params.set("cur", query.currency);
   if (query.profile && query.profile !== "balanced") params.set("prio", query.profile);
   if (state.sort !== "price") params.set("sort", state.sort);
   for (const [key, value] of stayFilterParams(query.filters)) params.set(key, value);

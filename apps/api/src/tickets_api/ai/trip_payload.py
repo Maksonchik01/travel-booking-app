@@ -5,19 +5,15 @@ from typing import Any
 from tickets_api.ai.explainer import duration_text, money_text
 from tickets_api.ai.stay_payload import stay_facts
 from tickets_api.domain.flights import Leg, Offer
+from tickets_api.i18n import Labels, t
 from tickets_api.services.trip_planner import (
     TripCombo,
     TripPick,
-    TripPickLabel,
     TripSearchResult,
 )
 
-TRIP_TITLES: dict[TripPickLabel, str] = {
-    "cheapest": "Економ",
-    "best_value": "Оптимальний",
-    "comfort": "Комфорт",
-}
-"""Ті самі назви, що в UI (messages/uk.json → tripPicks.label)."""
+TRIP_TITLES = Labels("ai.trip_label", ("cheapest", "best_value", "comfort"))
+"""Ті самі назви, що в UI (tripPicks.label), мовою розмови (модуль 18.1)."""
 
 
 def trip_input(result: TripSearchResult, airline_names: dict[str, str]) -> dict[str, Any]:
@@ -91,18 +87,17 @@ def combo_facts(
     """Одна поїздка текстами для моделі: суми, розбивка, рейс, житло, попередження."""
     currency = combo.currency
     costs = combo.costs
-    parts = [f"квитки {money_text(combo.flight_price, currency)}"]
+    parts = [t("ai.trip.tickets", amount=money_text(combo.flight_price, currency))]
     for item in costs.items:
         if item.kind == "baggage":
             parts.append(
-                "багаж — невідомо"
+                t("ai.trip.baggage_unknown")
                 if item.amount is None
-                else f"багаж {money_text(item.amount, currency)}"
+                else t("ai.trip.baggage", amount=money_text(item.amount, currency))
             )
         elif item.kind == "stay":
-            parts.append(
-                f"житло {money_text(combo.stay_total, currency)} за {combo.window.nights} ноч."
-            )
+            amount = money_text(combo.stay_total, currency)
+            parts.append(t("ai.trip.stay", amount=amount, nights=combo.window.nights))
         elif item.kind == "extra" and item.amount is not None:
             parts.append(f"{item.label} {money_text(item.amount, currency)}")
     return {

@@ -4,6 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { ShowOnMap } from "@/components/show-on-map";
 import { stayAnchor } from "@/components/stay-picks";
+import { fractionDigits } from "@/lib/money";
 
 /**
  * Компактний список поруч із картою (модуль 6): назва, тип, рейтинг, відстань, ціна й «На карті».
@@ -18,7 +19,7 @@ export function StayMapList({ stays, listHref }: { stays: Stay[]; listHref: stri
       style: "currency",
       currency: s.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(value),
     });
   return (
     <ol className="grid gap-2" data-testid="stay-map-list">

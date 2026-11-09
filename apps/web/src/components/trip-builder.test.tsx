@@ -6,7 +6,7 @@ import type {
   TripQuery,
   TripSearchResult,
 } from "@tickets/shared";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -111,6 +111,7 @@ const SELECTED: TripCombo = {
   warnings: [],
   full_nights: 3,
   reasons: [],
+  converted_from: [],
 };
 const QUERY: TripQuery = {
   origin: "WAW",
@@ -304,7 +305,12 @@ describe("Збереження й порівняння поїздок", () => {
     // «Поділитися» — посилання на ту саму конфігурацію.
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    await act(async () => fireEvent.click(screen.getByTestId("trip-share")));
+    // Кнопка оживає після гідратації й може перемонтуватись (key від стану) — під навантаженням
+    // це не миттєво, тож клікаємо, доки не спрацює.
+    await waitFor(async () => {
+      await act(async () => fireEvent.click(screen.getByTestId("trip-share")));
+      expect(writeText).toHaveBeenCalled();
+    });
     expect(writeText.mock.calls[0][0]).toContain("flight=mock%3Af1");
   });
 

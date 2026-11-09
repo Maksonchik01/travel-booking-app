@@ -41,6 +41,8 @@ class RegisterBody(_StrictInput):
     password: Password
     first_name: OptionalName = None
     last_name: OptionalName = None
+    locale: UiLocale | None = None
+    """Мова інтерфейсу при реєстрації — нею листи акаунта (модуль 18.1)."""
 
 
 class LoginBody(_StrictInput):

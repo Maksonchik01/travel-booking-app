@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { FOCUS_EVENT } from "@/lib/map-events";
 import { bboxParam } from "@/lib/stay-params";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 /** Безкоштовні векторні тайли OpenFreeMap (дані OpenStreetMap), без ключа — ADR 0019. */
 export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
@@ -63,7 +64,7 @@ export function StayMap({
       style: "currency",
       currency: s.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(s.price),
     });
 
   useEffect(() => {

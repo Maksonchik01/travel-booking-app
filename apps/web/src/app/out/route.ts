@@ -1,5 +1,7 @@
 import { after, type NextRequest } from "next/server";
 
+import { routeEvent } from "@/lib/server-analytics";
+
 import { logOutboundClick } from "@/lib/api";
 import { isAllowedOutbound, type ClickKind } from "@/lib/outbound";
 
@@ -16,6 +18,7 @@ export function GET(request: NextRequest) {
   const source = params.get("source") ?? "";
   if (SOURCE.test(source)) {
     after(() => logOutboundClick({ kind, source, host: new URL(url).hostname }));
+    after(routeEvent(request.headers, "outbound", { kind, source }));
   }
   return new Response(null, {
     status: 302,

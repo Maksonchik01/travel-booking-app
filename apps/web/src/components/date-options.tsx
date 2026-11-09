@@ -6,6 +6,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { daysAgo, hoursAgo } from "@/lib/format";
 import { type SearchState, toSearchParams } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const SHOWN = 8;
 
@@ -88,7 +89,7 @@ export function DateOptions({
                     style: "currency",
                     currency: o.currency,
                     currencyDisplay: "narrowSymbol",
-                    maximumFractionDigits: 0,
+                    ...fractionDigits(o.price),
                   })}
                 </span>
                 {o.verified ? (

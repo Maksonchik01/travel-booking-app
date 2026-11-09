@@ -1,7 +1,13 @@
 import type { FlightQuery, Offer, Stay, StayQuery, TripProfile, TripQuery } from "@tickets/shared";
 
 import { localDate } from "@/lib/format";
-import { BAGGAGE_NEEDS, CABINS, MAX_PERIOD_DAYS, type RawSearchParams } from "@/lib/search-params";
+import {
+  BAGGAGE_NEEDS,
+  CABINS,
+  MAX_PERIOD_DAYS,
+  type RawSearchParams,
+  parseCurrency,
+} from "@/lib/search-params";
 import { MAX_NIGHTS } from "@/lib/stay-params";
 
 export const TRIP_PROFILES: readonly TripProfile[] = ["budget", "balanced", "comfort"];
@@ -121,7 +127,7 @@ export function parseTripParams(params: RawSearchParams): TripQuery | null {
     profile: TRIP_PROFILES.find((p) => p === first(params.prio)) ?? "balanced",
     budget_total: Number.isFinite(budget) && budget > 0 && budget <= 1_000_000 ? budget : null,
     extras: parseExtras(params),
-    currency: "EUR",
+    currency: parseCurrency(params),
     stay: stayKey(first(params.stay)),
     flight: flightKey(first(params.flight)),
   };
@@ -175,6 +181,7 @@ export function toTripParams(query: TripQuery): URLSearchParams {
   if (stay?.max_distance_center_km != null) params.set("dist", String(stay.max_distance_center_km));
   if (query.profile && query.profile !== "balanced") params.set("prio", query.profile);
   if (query.budget_total != null) params.set("budget", String(query.budget_total));
+  if (query.currency && query.currency !== "EUR") params.set("cur", query.currency);
   for (const extra of query.extras ?? []) {
     params.append("xl", extra.label);
     params.append("xa", String(extra.amount));

@@ -192,6 +192,7 @@ export function tripDefaults(account: Account): Partial<TripQuery> {
   const s = account.search_prefs?.stays;
   const defaults: Partial<TripQuery> = {};
   if (account.home_airport) defaults.origin = account.home_airport;
+  if (account.currency) defaults.currency = account.currency;
   if (f?.cabin) defaults.cabin = f.cabin;
   if (f?.baggage) defaults.baggage = f.baggage;
   if (f?.max_stops === 0) defaults.direct_only = true;

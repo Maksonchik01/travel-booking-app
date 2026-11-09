@@ -103,6 +103,7 @@ const COMBO: TripCombo = {
   currency: "EUR",
   warnings: ["night_arrival", "costs_unknown"],
   full_nights: 2,
+  converted_from: ["PLN"],
   travel_min: 610,
   waiting_min: 90,
   reasons: [
@@ -133,6 +134,10 @@ describe("TripCard", () => {
     );
 
     expect(screen.getByText("Оптимальний")).toBeInTheDocument();
+    // Модуль 18.2: переведене з іншої валюти — орієнтовне, без обіцянки суми списання.
+    expect(screen.getByTestId("trip-converted")).toHaveTextContent(
+      "Частину сум переведено з PLN за курсом ЄЦБ — орієнтовно",
+    );
     // Модуль 14.4–14.5: повноцінні ночі, час у дорозі й конкретні причини.
     expect(screen.getByTestId("trip-quality")).toHaveTextContent(
       "2 з 2 ночей повноцінні · у дорозі 10 год 10 хв · з них очікування 1 год 30 хв",

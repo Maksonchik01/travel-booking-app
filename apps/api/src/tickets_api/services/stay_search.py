@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from tickets_api.domain.flights import Money
 from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
+from tickets_api.domain.money import ConvertedPrice, convert, converted
 from tickets_api.domain.stay_rates import (
     RateOffer,
     RoomOffers,
@@ -47,6 +48,8 @@ from tickets_api.services.flight_search import ProviderStatus
 log = structlog.get_logger(__name__)
 
 RecordHistory = Callable[[list[dict[str, Any]]], Awaitable[None]]
+RateLookup = Callable[[str, str], Awaitable[Decimal | None]]
+"""(база, валюта) → одиниць валюти за одиницю бази; None — курсу немає."""
 MAX_REVIEWS = 30
 
 
@@ -99,6 +102,8 @@ class StaySearchResult(BaseModel):
     facets: StayFacets
     freshness: dict[str, PriceFreshness] = {}
     """stay_key → свіжість ціни (модуль 17.3). Джерела житла дають ціну на зараз (живі)."""
+    converted: dict[str, ConvertedPrice] = {}
+    """stay_key → сума за все проживання у валюті пошуку, якщо джерело дало іншу (18.2)."""
 
 
 class StaySearchService:
@@ -112,8 +117,10 @@ class StaySearchService:
         record_history: RecordHistory | None = None,
         freshness: FreshnessRules | None = None,
         clock: Callable[[], datetime] | None = None,
+        rate: RateLookup | None = None,
     ) -> None:
         self._providers = list(providers)
+        self._rate = rate
         self._freshness = freshness or FreshnessRules()
         self._clock = clock or (lambda: datetime.now(UTC))
         self._airports = airports
@@ -155,19 +162,23 @@ class StaySearchService:
             await self._record_history(stay_rows(query, stays))
         filters = self._resolve_point(query.filters)
         shown = [s for s in stays if filters.matches(s)]
+        # Одна валюта порівняння — валюта пошуку (модуль 18.2); вихідні ціни — у видачі.
+        comparable, conversions = await self._in_currency(shown, query.currency)
+        config = await self._config_for(query.currency)
         return StaySearchResult(
             place=self.place(query.city),
             stays=shown,
             providers=[status for status, _ in results],
             # Обов'язкові вимоги (фільтри) вже відсікли зайве — оцінка лише ранжує решту.
             scoring=score_stays(
-                shown,
+                comparable,
                 query.profile,
-                self._scoring_config,
+                config,
                 preferences=query.preferences,
                 budget=filters.budget_for(query.nights),
             ),
             facets=_facets(stays),
+            converted=conversions,
             freshness={
                 stay_key(s): price_freshness(
                     live=True,
@@ -180,6 +191,40 @@ class StaySearchService:
                 for s in shown
             },
         )
+
+    async def _rate_to(self, base: str, currency: str) -> Decimal | None:
+        if base == currency:
+            return Decimal(1)
+        return await self._rate(base, currency) if self._rate is not None else None
+
+    async def _config_for(self, currency: str) -> StayScoringConfig:
+        """Ваги value-score у валюті пошуку; без курсу — базові (інша валюта не оцінюється)."""
+        base = self._scoring_config
+        rate = await self._rate_to(base.currency, currency)
+        return base.in_currency(currency, rate) if rate else base
+
+    async def _in_currency(
+        self, stays: Sequence[Stay], currency: str
+    ) -> tuple[list[Stay], dict[str, ConvertedPrice]]:
+        rates = {c: await self._rate_to(c, currency) for c in {s.currency for s in stays}}
+        result: list[Stay] = []
+        conversions: dict[str, ConvertedPrice] = {}
+        for stay in stays:
+            rate = rates.get(stay.currency)
+            if stay.currency == currency or rate is None:
+                result.append(stay)
+                continue
+            conversions[stay_key(stay)] = converted(stay.total_price, stay.currency, currency, rate)
+            result.append(
+                stay.model_copy(
+                    update={
+                        "price_per_night": convert(stay.price_per_night, rate),
+                        "total_price": convert(stay.total_price, rate),
+                        "currency": currency,
+                    }
+                )
+            )
+        return result, conversions
 
     async def reviews(self, source: str, stay_id: str) -> list[StayReview]:
         """Відгуки з того джерела, що дало об'єкт. Збій — порожньо (резюме просто не буде)."""

@@ -4,6 +4,7 @@
 дає `None` у своїй секції і рядок у `problems`, а не помилку всього зведення.
 """
 
+import json
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
@@ -14,7 +15,14 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from tickets_api.core.config import Settings
-from tickets_api.db.models import Alert, LLMUsage, OutboundClick, PriceObservation, User
+from tickets_api.db.models import (
+    Alert,
+    AnalyticsEvent,
+    LLMUsage,
+    OutboundClick,
+    PriceObservation,
+    User,
+)
 
 log = structlog.get_logger(__name__)
 
@@ -57,13 +65,51 @@ class Activity(BaseModel):
     active_alerts: int
 
 
+class Usage(BaseModel):
+    """Анонімні події за 7 днів (модуль 19): частоти й воронка пошуку за режимами."""
+
+    events_7d: dict[str, int]
+    searches_7d: dict[str, dict[str, int]]
+    """режим → {started, succeeded, empty, failed}."""
+
+
 class OpsSummary(BaseModel):
     generated_at: datetime
     serpapi: SerpApiQuota | None
     llm: LLMSpend | None
     clicks: Clicks | None
     activity: Activity | None
+    usage: Usage | None = None
     problems: list[str]
+
+
+SEARCH_OUTCOMES = {
+    "search_started": "started",
+    "search_succeeded": "succeeded",
+    "search_empty": "empty",
+    "search_failed": "failed",
+}
+
+
+async def usage_summary(sessionmaker: async_sessionmaker[AsyncSession], now: datetime) -> Usage:
+    week = now - timedelta(days=7)
+    async with sessionmaker() as session:
+        rows = (
+            await session.execute(
+                select(AnalyticsEvent.name, AnalyticsEvent.props, func.count(AnalyticsEvent.id))
+                .where(AnalyticsEvent.created_at >= week)
+                .group_by(AnalyticsEvent.name, AnalyticsEvent.props)
+            )
+        ).all()
+    events: dict[str, int] = {}
+    searches: dict[str, dict[str, int]] = {}
+    for name, props, count in rows:
+        events[name] = events.get(name, 0) + int(count)
+        if name in SEARCH_OUTCOMES:
+            mode = str(json.loads(props or "{}").get("mode", "unknown"))
+            outcome = searches.setdefault(mode, dict.fromkeys(SEARCH_OUTCOMES.values(), 0))
+            outcome[SEARCH_OUTCOMES[name]] += int(count)
+    return Usage(events_7d=events, searches_7d=searches)
 
 
 async def serpapi_quota(settings: Settings, http: httpx.AsyncClient) -> SerpApiQuota | None:
@@ -156,11 +202,18 @@ async def build_summary(
     except Exception as exc:
         log.warning("ops.database_failed", error=type(exc).__name__)
         problems.append(f"database: {type(exc).__name__}")
+    usage = None
+    try:
+        usage = await usage_summary(sessionmaker, now)
+    except Exception as exc:
+        log.warning("ops.usage_failed", error=type(exc).__name__)
+        problems.append(f"usage: {type(exc).__name__}")
     return OpsSummary(
         generated_at=now,
         serpapi=serpapi,
         llm=llm,
         clicks=clicks,
         activity=activity,
+        usage=usage,
         problems=problems,
     )

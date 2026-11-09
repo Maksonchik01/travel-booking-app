@@ -22,6 +22,7 @@ from tickets_api.ai.explainer import age_text, allowed_numbers, numbers_in
 from tickets_api.ai.stay_payload import stay_facts, stay_query_input
 from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.domain.stays import Stay, StayQuery, StayReview
+from tickets_api.i18n import use_locale
 from tickets_api.llm.prompts import system_prompt
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message
 from tickets_api.scoring.stays import StayScore
@@ -98,7 +99,8 @@ class StayAnalyst:
         """`scores` і `reviews` — за `stay.id`. `stays` — уже вибрані користувачем (1–3)."""
         if not stays:
             return StayAnalysisResult(status="no_stays")
-        payload = analyst_input(query, stays, scores, reviews, now=now)
+        with use_locale(locale):  # тексти в даних — мовою відповіді (модуль 18.1)
+            payload = analyst_input(query, stays, scores, reviews, now=now)
         payload["locale"] = locale  # мова текстів для користувача (rules.md, п. 5)
         sample = max((len(reviews.get(s.id, [])) for s in stays), default=0)
         allowed = allowed_numbers(payload) | {str(n) for n in range(sample + 1)}

@@ -7,6 +7,7 @@ import { LinkPendingOverlay } from "@/components/pending";
 import { daysAgo, hoursAgo } from "@/lib/format";
 import { type SearchState, toSearchParams, withDepartureDate } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const HIGHLIGHT = 3;
 
@@ -56,7 +57,7 @@ export function PriceCalendar({
       style: "currency",
       currencyDisplay: "narrowSymbol",
       currency,
-      maximumFractionDigits: 0,
+      ...fractionDigits(value),
     });
 
   return (

@@ -42,10 +42,21 @@ async def client() -> AsyncIterator[AsyncClient]:
 
 @pytest.fixture
 async def live_client() -> AsyncIterator[AsyncClient]:
-    """Клієнт з реальними Postgres і Redis. Пропускається, якщо вони не задані."""
+    """Клієнт з реальними Postgres і Redis. Пропускається, якщо вони не задані.
+
+    Ліміти запитів — високі: Redis спільний для всіх тестів і прогонів (і e2e), тож лічильники
+    за годину інакше залежали б від того, що запускали раніше. Самі ліміти — `test_rate_limit`."""
     db_url = os.environ.get("TEST_DATABASE_URL")
     redis_url = os.environ.get("TEST_REDIS_URL")
     if not db_url or not redis_url:
         pytest.skip("TEST_DATABASE_URL / TEST_REDIS_URL не задані")
-    async for c in _client(create_app(make_settings(database_url=db_url, redis_url=redis_url))):
+    settings = make_settings(
+        database_url=db_url,
+        redis_url=redis_url,
+        **{
+            f"rate_limit_{bucket}_per_hour": 100_000
+            for bucket in ("search", "ai", "auth", "clicks", "events")
+        },
+    )
+    async for c in _client(create_app(settings)):
         yield c

@@ -18,7 +18,7 @@ import { PlaceInput, type PlaceValue, placeValue } from "@/components/place-inpu
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/user-avatar";
-import { type Locale, locales } from "@/i18n/config";
+import { LOCALE_NAMES, type Locale, locales } from "@/i18n/config";
 import {
   BAGGAGE_NEEDS,
   CABINS,
@@ -41,8 +41,6 @@ import { cn } from "@/lib/utils";
 const IDLE: FormState = { status: "idle" };
 const MAX_FAVORITE_AIRPORTS = 5;
 const AVATAR_PX = 256;
-/** Назва мови її ж мовою — так її впізнає той, хто цієї мови не читає. */
-const LOCALE_NAMES: Record<Locale, string> = { en: "English", uk: "Українська", ru: "Русский" };
 
 function Saved({ state }: { state: FormState }) {
   const t = useTranslations("account");

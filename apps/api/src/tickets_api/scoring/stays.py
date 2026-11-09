@@ -86,6 +86,27 @@ class StayScoringConfig(_Strict):
             raise ValueError(f"у конфігу бракує профілів: {sorted(missing)}")
         return self
 
+    def in_currency(self, currency: str, rate: Decimal) -> "StayScoringConfig":
+        """Ті самі ваги в іншій валюті (як ScoringConfig.in_currency, модуль 18.2): гроші ×
+        курс; кілометри, метри й бали — як є."""
+        if currency == self.currency:
+            return self
+        return self.model_copy(
+            update={
+                "currency": currency,
+                "profiles": {
+                    name: StayProfileWeights(
+                        lambda_distance_per_km=w.lambda_distance_per_km * rate,
+                        lambda_rating_per_point=w.lambda_rating_per_point * rate,
+                    )
+                    for name, w in self.profiles.items()
+                },
+                "penalties": StayPenalties(
+                    **{k: v * rate for k, v in self.penalties.model_dump().items()}
+                ),
+            }
+        )
+
 
 def load_stay_scoring_config(path: Path) -> StayScoringConfig:
     with path.open("rb") as f:

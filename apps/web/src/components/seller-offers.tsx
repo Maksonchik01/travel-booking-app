@@ -11,6 +11,7 @@ import { RetryNotice } from "@/components/retry";
 import { fetchWithTimeout } from "@/lib/client-fetch";
 import { outboundHref } from "@/lib/outbound";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 type Check = { state: "idle" } | { state: "loading" } | { state: "done"; result: SellersResult };
 
@@ -35,6 +36,7 @@ export function SellerOffers({
 }) {
   const now = new Date(nowIso);
   const t = useTranslations("sellers");
+  const tCurrency = useTranslations("currency");
   const tResults = useTranslations("results");
   const format = useFormatter();
   const [check, setCheck] = useState<Check>({ state: "idle" });
@@ -44,7 +46,7 @@ export function SellerOffers({
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(value),
     });
   const source = (o: Offer) =>
     o.seller ??
@@ -150,6 +152,11 @@ export function SellerOffers({
         />
       )}
       {!checkable && <p className="text-muted-foreground text-xs">{t("finalAtSeller")}</p>}
+      {rows[0] && (
+        <p className="text-muted-foreground text-xs" data-testid="seller-currency">
+          {tCurrency("sellerCurrency", { currency: rows[0].currency })}
+        </p>
+      )}
     </section>
   );
 }

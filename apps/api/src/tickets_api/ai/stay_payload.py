@@ -8,15 +8,12 @@ from typing import Any
 
 from tickets_api.ai.explainer import money_text
 from tickets_api.domain.stays import Stay, StayQuery
-from tickets_api.scoring.stays import StayPick, StayPickLabel, StayScore, stay_key
+from tickets_api.i18n import Labels, t
+from tickets_api.scoring.stays import StayPick, StayScore, stay_key
 from tickets_api.services.stay_search import StaySearchResult
 
-STAY_TITLES: dict[StayPickLabel, str] = {
-    "cheapest": "Найдешевший",
-    "top_rated": "Найкращий рейтинг",
-    "balanced": "Збалансований",
-}
-"""Ті самі назви, що в UI (messages/uk.json → stayPicks.label)."""
+STAY_TITLES = Labels("ai.stay_label", ("cheapest", "top_rated", "balanced"))
+"""Ті самі назви, що в UI (stayPicks.label), мовою розмови (модуль 18.1)."""
 
 
 def stay_query_input(query: StayQuery) -> dict[str, Any]:
@@ -83,10 +80,10 @@ def stay_facts(stay: Stay) -> dict[str, Any]:
         "price_per_night_text": money_text(stay.price_per_night, stay.currency),
         "total_price_text": money_text(stay.total_price, stay.currency),
         "nights": stay.nights,
-        "rating_text": f"{stay.rating} з 10" if stay.rating is not None else None,
+        "rating_text": t("ai.stay.rating", rating=stay.rating) if stay.rating is not None else None,
         "review_count": stay.review_count,
         "distance_to_center_text": _km(stay.distance_to_center_km),
-        "distance_to_transit_text": f"{stay.distance_to_transit_m} м"
+        "distance_to_transit_text": t("ai.stay.meters", value=stay.distance_to_transit_m)
         if stay.distance_to_transit_m is not None
         else None,
         "cancellation": stay.cancellation,
@@ -95,7 +92,7 @@ def stay_facts(stay: Stay) -> dict[str, Any]:
 
 
 def _km(value: Decimal | None) -> str | None:
-    return None if value is None else f"{value} км"
+    return None if value is None else t("ai.stay.km", value=value)
 
 
 def _compare(a: dict[str, Any], stay_a: Stay, b: dict[str, Any], stay_b: Stay) -> dict[str, Any]:

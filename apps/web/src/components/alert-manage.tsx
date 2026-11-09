@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { alertSearchHref } from "@/lib/alerts";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 /** Куди повернутися після дії: сторінка за посиланням чи кабінет. */
 export type AlertBack = "link" | "account";
@@ -60,7 +61,7 @@ export function AlertManage({
       style: "currency",
       currency: alert.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(v),
     });
   const date = (iso: string) =>
     format.dateTime(new Date(`${iso}T00:00:00Z`), {

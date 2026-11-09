@@ -108,6 +108,8 @@ export function ResultFilters({
     <FilterShell titleId="filters-title" count={activeCount} testId="flight-filters">
       {({ sheet, close }) => (
         <form
+          data-track="filters_applied"
+          data-track-mode="flights"
           action="/"
           method="get"
           id="filters-panel"

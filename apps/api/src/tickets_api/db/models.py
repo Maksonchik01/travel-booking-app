@@ -31,6 +31,7 @@ from tickets_api.domain.alerts import (
     AlertKind,
     AlertStatus,
 )
+from tickets_api.domain.analytics import EventName
 from tickets_api.domain.favorites import FavoriteKind
 from tickets_api.domain.flights import BaggageNeed
 from tickets_api.domain.locale import UiLocale
@@ -211,6 +212,8 @@ class Alert(Base):
     last_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     snoozed_until: Mapped[date | None] = mapped_column(Date)
     """«Тиша» з бота: до цієї дати перевіряємо, але не сповіщаємо."""
+    locale: Mapped[str | None] = mapped_column(String(2))
+    """Мова листів і повідомлень (en / uk / ru); None — за замовчуванням (модуль 18.1)."""
 
     __table_args__ = (
         Index("ix_alerts_status", "status"),
@@ -220,6 +223,7 @@ class Alert(Base):
         one_of("channel", AlertChannel),
         one_of("condition", AlertCondition),
         one_of("baggage", BaggageNeed),
+        one_of("locale", UiLocale, nullable=True),
         CheckConstraint("adults BETWEEN 1 AND 9", name="adults"),
         CheckConstraint("threshold IS NULL OR threshold > 0", name="threshold"),
         CheckConstraint("percent IS NULL OR percent BETWEEN 1 AND 90", name="percent"),
@@ -395,6 +399,8 @@ class SavedTrip(Base):
     snapshot: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(16), server_default="draft")
     """draft / planned / archived (модуль 10a); «заброньованої» немає."""
+    share_token: Mapped[str | None] = mapped_column(String(32), unique=True)
+    """Публічне посилання (модуль 20.2): за замовчуванням None — поїздка приватна."""
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -439,4 +445,23 @@ class OutboundClick(Base):
     __table_args__ = (
         Index("ix_outbound_clicks_created_at", "created_at"),
         one_of("kind", OUTBOUND_KINDS),
+    )
+
+
+class AnalyticsEvent(Base):
+    """Анонімна подія використання (модуль 19): назва й мітки — без людини, сесії й IP.
+    Старші за RETENTION_DAYS видаляє воркер."""
+
+    __tablename__ = "analytics_events"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(32))
+    props: Mapped[str | None] = mapped_column(String(300))
+    """JSON міток (EventIn.props); None — без міток."""
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_analytics_events_name_created", "name", "created_at"),
+        Index("ix_analytics_events_created_at", "created_at"),
+        one_of("name", EventName),
     )

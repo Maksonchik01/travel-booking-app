@@ -19,7 +19,7 @@ from tickets_api.core.config import Settings
 
 log = structlog.get_logger(__name__)
 
-Bucket = Literal["search", "ai", "auth", "clicks"]
+Bucket = Literal["search", "ai", "auth", "clicks", "events"]
 WINDOW_S = 3600
 
 
@@ -39,6 +39,7 @@ def limit_for(bucket: Bucket, settings: Settings) -> int:
         "ai": settings.rate_limit_ai_per_hour,
         "auth": settings.rate_limit_auth_per_hour,
         "clicks": settings.rate_limit_clicks_per_hour,
+        "events": settings.rate_limit_events_per_hour,
     }[bucket]
 
 

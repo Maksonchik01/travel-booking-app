@@ -22,6 +22,8 @@ export type SavedTripItem = Pick<SavedTrip, "id" | "title" | "created_at" | "upd
   snapshot: TripSnapshotInput;
   /** Чернетка / запланована / архівна (модуль 10a); старі записи браузера — чернетки. */
   status?: TripStatus;
+  /** Публічне посилання ввімкнено (модуль 20.2; лише поїздки акаунта). */
+  share_token?: string | null;
 };
 
 export const TRIP_STATUSES: readonly TripStatus[] = ["draft", "planned", "archived"];

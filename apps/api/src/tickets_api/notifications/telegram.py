@@ -80,7 +80,9 @@ class TelegramClient(Protocol):
 
     async def answer_callback(self, callback_id: str, text: str | None = None) -> None: ...
 
-    async def set_commands(self, commands: Sequence[tuple[str, str]]) -> None: ...
+    async def set_commands(
+        self, commands: Sequence[tuple[str, str]], *, language_code: str | None = None
+    ) -> None: ...
 
     async def get_updates(self, offset: int | None) -> list[dict[str, Any]]: ...
 
@@ -118,11 +120,16 @@ class TelegramBot:
             payload["text"] = text[:200]
         await self._call("answerCallbackQuery", payload)
 
-    async def set_commands(self, commands: Sequence[tuple[str, str]]) -> None:
-        await self._call(
-            "setMyCommands",
-            {"commands": [{"command": c, "description": d[:256]} for c, d in commands]},
-        )
+    async def set_commands(
+        self, commands: Sequence[tuple[str, str]], *, language_code: str | None = None
+    ) -> None:
+        """Без `language_code` — меню за замовчуванням; з ним — для користувачів цієї мови."""
+        payload: dict[str, Any] = {
+            "commands": [{"command": c, "description": d[:256]} for c, d in commands]
+        }
+        if language_code:
+            payload["language_code"] = language_code
+        await self._call("setMyCommands", payload)
 
     async def get_updates(self, offset: int | None) -> list[dict[str, Any]]:
         payload: dict[str, Any] = {"timeout": 0, "allowed_updates": ["message", "callback_query"]}
@@ -178,6 +185,7 @@ class MockTelegram:
         self.updates: list[dict[str, Any]] = []
         self.answered: list[tuple[str, str | None]] = []
         self.commands: list[tuple[str, str]] = []
+        self.commands_by_language: dict[str | None, list[tuple[str, str]]] = {}
 
     async def send_message(
         self, chat_id: int, text: str, keyboard: Keyboard = (), *, html: bool = False
@@ -199,8 +207,12 @@ class MockTelegram:
     async def answer_callback(self, callback_id: str, text: str | None = None) -> None:
         self.answered.append((callback_id, text))
 
-    async def set_commands(self, commands: Sequence[tuple[str, str]]) -> None:
-        self.commands = list(commands)
+    async def set_commands(
+        self, commands: Sequence[tuple[str, str]], *, language_code: str | None = None
+    ) -> None:
+        self.commands_by_language[language_code] = list(commands)
+        if language_code is None:
+            self.commands = list(commands)
 
     async def get_updates(self, offset: int | None) -> list[dict[str, Any]]:
         return [u for u in self.updates if offset is None or u["update_id"] >= offset]

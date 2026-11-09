@@ -1,4 +1,5 @@
 import type {
+  ConvertedPrice,
   PriceFreshness,
   Stay,
   StayPickLabel,
@@ -38,6 +39,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConvertedNote } from "@/components/converted-price";
 import { FreshnessBadge } from "@/components/price-freshness";
 import { Card } from "@/components/ui/card";
 import { WhyList } from "@/components/why-list";
@@ -47,6 +49,7 @@ import { hoursAgo } from "@/lib/format";
 import { outboundHref } from "@/lib/outbound";
 import { tripFromStay } from "@/lib/trip-params";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 const KIND_ICON = {
   hotel: Hotel,
@@ -84,9 +87,12 @@ export function StayCard({
   query,
   searchParams,
   freshness,
+  converted,
 }: {
   stay: Stay;
   now: Date;
+  /** Сума у валюті пошуку, якщо джерело дало іншу (модуль 18.2). */
+  converted?: ConvertedPrice;
   /** Свіжість ціни від API (модуль 17.3). */
   freshness?: PriceFreshness;
   pickLabel?: StayPickLabel;
@@ -102,12 +108,12 @@ export function StayCard({
   const tPicks = useTranslations("stayPicks");
   const tResults = useTranslations("results");
   const format = useFormatter();
-  const money = (value: number, digits = 0) =>
+  const money = (value: number) =>
     format.number(value, {
       style: "currency",
       currency: stay.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: digits,
+      ...fractionDigits(value),
     });
   const KindIcon = KIND_ICON[stay.kind];
   const service = KNOWN_SOURCES.has(stay.source)
@@ -214,11 +220,11 @@ export function StayCard({
               />
               {t("whyScore")}{" "}
               <span className="text-foreground font-medium tabular-nums">
-                {money(score.breakdown.total, 2)}
+                {money(score.breakdown.total)}
               </span>
             </summary>
             <div className="bg-muted/50 mt-2 max-w-sm rounded-lg p-3">
-              <StayScoreDetails score={score} money={(v) => money(v, v % 1 === 0 ? 0 : 2)} />
+              <StayScoreDetails score={score} money={money} />
             </div>
           </details>
         )}
@@ -243,6 +249,7 @@ export function StayCard({
             {t("total", { nights: stay.nights, total: money(stay.total_price) })}
           </p>
           <p className="text-muted-foreground text-[11px]">{t("withTaxes")}</p>
+          <ConvertedNote converted={converted} />
         </div>
         <div className="grid w-full gap-2 text-xs sm:w-auto">
           <FreshnessBadge value={freshness} />

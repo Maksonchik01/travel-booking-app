@@ -20,11 +20,12 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 
 from tickets_api.domain.flights import FlightQuery, Leg, Offer
 from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
+from tickets_api.i18n import Labels, current_locale, t, use_locale
 from tickets_api.llm.prompts import system_prompt
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message
 from tickets_api.repositories.price_history import PriceStats
 from tickets_api.scoring.baggage import BaggageCost
-from tickets_api.scoring.engine import OfferScore, Pick, PickLabel
+from tickets_api.scoring.engine import OfferScore, Pick
 from tickets_api.services.flight_search import FlightSearchResult
 
 log = structlog.get_logger(__name__)
@@ -32,12 +33,8 @@ log = structlog.get_logger(__name__)
 MIN_HISTORY_SAMPLE = 20
 """Промпт Flight-Deal-Advisor: оцінювати ціну за історією лише при sample_size ≥ 20."""
 SMALL_NUMBERS = frozenset(range(0, 11))
-TITLES: dict[PickLabel, str] = {
-    "cheapest": "Найдешевший",
-    "fastest": "Найшвидший",
-    "balanced": "Збалансований",
-}
-"""Ті самі назви, що в UI (messages/uk.json → picks.label)."""
+TITLES = Labels("ai.flight_label", ("cheapest", "fastest", "balanced"))
+"""Ті самі назви, що в UI (picks.label), мовою розмови (модуль 18.1)."""
 """«2 пересадки», «1 варіант» — дрібні лічильники не вважаємо вигаданими даними."""
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
 
@@ -117,7 +114,9 @@ class FlightExplainer:
         price_stats: PriceStats | None = None,
         locale: UiLocale = DEFAULT_AI_LOCALE,
     ) -> ExplainResult:
-        payload = advisor_input(query, result, now=now, price_stats=price_stats)
+        # Тексти в даних (тривалість, вік ціни, назви) — тією ж мовою, що й відповідь.
+        with use_locale(locale):
+            payload = advisor_input(query, result, now=now, price_stats=price_stats)
         payload["locale"] = locale  # мова текстів для користувача (rules.md, п. 5)
         if not payload["options"]:
             return ExplainResult(status="no_options")
@@ -197,13 +196,13 @@ def advisor_input(
         "options": options,
         "recommended_by_scoring": _recommended(picks),
         "comparisons": comparisons,
-        "locale": "uk",
+        "locale": current_locale(),
     }
     if price_stats is not None and price_stats.sample_size >= MIN_HISTORY_SAMPLE:
         payload["price_stats"] = price_stats.model_dump(mode="json")
     else:
         payload["price_stats"] = None
-        payload["price_stats_note"] = "історії цін для цього маршруту поки замало"
+        payload["price_stats_note"] = t("ai.price_stats_note")
     payload["forecast"] = None
     return payload
 
@@ -318,10 +317,10 @@ def _compare(
 def age_text(delta: timedelta) -> str:
     hours = int(delta.total_seconds() // 3600)
     if hours < 1:
-        return "менше години тому"
+        return t("ai.age.under_hour")
     if hours < 48:
-        return f"{hours} год тому"
-    return f"{hours // 24} дн тому"
+        return t("ai.age.hours", count=hours)
+    return t("ai.age.days", count=hours // 24)
 
 
 def _num(value: Decimal | None) -> float | None:
@@ -338,8 +337,10 @@ def duration_text(minutes: int | None) -> str | None:
         return None
     hours, mins = divmod(minutes, 60)
     if not hours:
-        return f"{mins} хв"
-    return f"{hours} год {mins:02d} хв" if mins else f"{hours} год"
+        return t("ai.duration.minutes", minutes=mins)
+    if not mins:
+        return t("ai.duration.hours", hours=hours)
+    return t("ai.duration.hours_minutes", hours=hours, minutes=mins)
 
 
 # --- перевірка відповіді -----------------------------------------------------------------

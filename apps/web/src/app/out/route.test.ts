@@ -3,12 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const after = vi.fn();
 const logOutboundClick = vi.fn();
+const recordEvent = vi.fn();
 
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),
   after: (cb: () => unknown) => after(cb),
 }));
-vi.mock("@/lib/api", () => ({ logOutboundClick: (click: unknown) => logOutboundClick(click) }));
+vi.mock("@/lib/api", () => ({
+  logOutboundClick: (click: unknown) => logOutboundClick(click),
+  recordEvent: (event: unknown) => recordEvent(event),
+}));
 
 const { GET } = await import("./route");
 
@@ -20,6 +24,7 @@ describe("GET /out", () => {
   beforeEach(() => {
     after.mockReset();
     logOutboundClick.mockReset();
+    recordEvent.mockReset();
   });
 
   it("редиректить до партнера й рахує клік після відповіді", () => {
@@ -29,12 +34,17 @@ describe("GET /out", () => {
     expect(response.status).toBe(302);
     expect(response.headers.get("location")).toBe(url);
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
-    expect(after).toHaveBeenCalledOnce();
-    after.mock.calls[0][0]();
+    // Після відповіді: облік переходу й анонімна подія (модуль 19).
+    expect(after).toHaveBeenCalledTimes(2);
+    for (const [cb] of after.mock.calls) cb();
     expect(logOutboundClick).toHaveBeenCalledWith({
       kind: "flight",
       source: "travelpayouts",
       host: "www.aviasales.com",
+    });
+    expect(recordEvent).toHaveBeenCalledWith({
+      name: "outbound",
+      props: { kind: "flight", source: "travelpayouts" },
     });
   });
 

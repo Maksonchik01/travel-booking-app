@@ -8,6 +8,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { localTime, splitDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 export const MAX_COMPARE = 3;
 const STORAGE_KEY = "tickets.compare.v1";
@@ -124,6 +125,8 @@ export function CompareBar({ airlineNames }: { airlineNames: Record<string, stri
               size="sm"
               disabled={offers.length < 2}
               onClick={() => dialog.current?.showModal()}
+              data-track="compare_opened"
+              data-track-kind="flight"
             >
               {t("open")}
             </Button>
@@ -193,7 +196,7 @@ function CompareTable({
           {format.number(o.price, {
             style: "currency",
             currency: o.currency,
-            maximumFractionDigits: 0,
+            ...fractionDigits(o.price),
           })}
         </span>
       ),

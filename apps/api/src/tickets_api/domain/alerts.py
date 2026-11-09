@@ -16,6 +16,7 @@ from tickets_api.domain.flights import (
     Money,
     _StrictInput,
 )
+from tickets_api.domain.locale import UiLocale
 
 AlertKind = Literal["flight", "flex", "stay", "trip"]
 """flight — маршрут на дати; flex — період вильоту й тривалість (модуль 11a); stay — житло;
@@ -102,6 +103,8 @@ class AlertCreate(_StrictInput):
     currency: Currency = DEFAULT_CURRENCY
     channel: AlertChannel = "telegram"
     email: Email | None = None
+    locale: UiLocale | None = None
+    """Мова листів і повідомлень підписки (мова інтерфейсу, з якого підписались; модуль 18.1)."""
 
     @model_validator(mode="after")
     def _consistent(self) -> Self:

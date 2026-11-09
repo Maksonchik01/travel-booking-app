@@ -17,6 +17,7 @@ import { offerAnchor } from "@/components/top-picks";
 import type { StoredCard } from "@/lib/chat-history";
 import { hoursAgo, localDate, localTime, splitDuration } from "@/lib/format";
 import { toTripParams } from "@/lib/trip-params";
+import { fractionDigits } from "@/lib/money";
 
 /**
  * Посилання карток (модуль 9b): «Переглянути» — сторінка результатів з якорем на варіант;
@@ -89,7 +90,7 @@ function useMoney() {
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(value),
     });
 }
 
@@ -144,10 +145,21 @@ function Shell({
   );
 }
 
-function Action({ href, children }: { href: string; children: React.ReactNode }) {
+function Action({
+  href,
+  children,
+  track,
+}: {
+  href: string;
+  children: React.ReactNode;
+  /** Подія аналітики при переході (модуль 19). */
+  track?: "ai_to_planner";
+}) {
   return (
     <Link
       href={href}
+      data-track={track}
+      data-track-source={track ? "chat" : undefined}
       className="bg-accent text-accent-foreground hover:bg-primary hover:text-primary-foreground inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-medium transition-colors"
     >
       {children}
@@ -312,7 +324,13 @@ function TripCardView({ card, item, now }: { card: TripChatCard; item: StoredCar
       icon={Luggage}
       label={card.label}
       testId="chat-card-trip"
-      actions={item.trip && <Action href={item.trip}>{t("openInPlanner")}</Action>}
+      actions={
+        item.trip && (
+          <Action href={item.trip} track="ai_to_planner">
+            {t("openInPlanner")}
+          </Action>
+        )
+      }
     >
       <FlightLines card={card.flight} />
       <StayLines card={card.stay} />

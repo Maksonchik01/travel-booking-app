@@ -26,7 +26,11 @@ export async function loadSavedTrips(
     : { signedIn: true, ok: false, items: [], code: result.code, imported };
 }
 
-async function one(method: "POST" | "PUT" | "PATCH", path: string, body: unknown): Promise<One> {
+async function one(
+  method: "POST" | "PUT" | "PATCH" | "DELETE",
+  path: string,
+  body?: unknown,
+): Promise<One> {
   if (!(await sessionToken())) return { signedIn: false };
   const result = await call<SavedTrip>(method, path, body);
   if (!result.ok && result.status === 401) return { signedIn: false };
@@ -46,6 +50,11 @@ export async function updateSavedTrip(id: string, body: SavedTripBody): Promise<
 /** Назва та/або статус (чернетка / запланована / архівна). */
 export async function patchSavedTrip(id: string, patch: SavedTripPatch): Promise<One> {
   return one("PATCH", `/account/trips/${encodeURIComponent(id)}`, patch);
+}
+
+/** Публічне посилання на поїздку (модуль 20.2): увімкнути чи вимкнути — лише власник. */
+export async function setTripSharing(id: string, enabled: boolean): Promise<One> {
+  return one(enabled ? "POST" : "DELETE", `/account/trips/${encodeURIComponent(id)}/share`);
 }
 
 export async function deleteSavedTrip(id: string): Promise<{ signedIn: boolean; ok: boolean }> {

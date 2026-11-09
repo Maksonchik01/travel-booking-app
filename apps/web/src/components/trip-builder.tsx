@@ -15,6 +15,7 @@ import { localTime } from "@/lib/format";
 import { pinnedQuery, tripSnapshot } from "@/lib/saved-trips";
 import { toTripParams, withChoice } from "@/lib/trip-params";
 import { cn } from "@/lib/utils";
+import { fractionDigits } from "@/lib/money";
 
 /**
  * «Ваша поїздка» (модуль 8b): обраний рейс і житло з бюджетом, заміна кожного компонента
@@ -63,7 +64,7 @@ export function TripBuilder({
       style: "currency",
       currency: selected.currency,
       currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
+      ...fractionDigits(value),
     });
   const diff = (value: number) =>
     value === 0 ? t("same") : `${value > 0 ? "+" : "−"}${money(Math.abs(value))}`;

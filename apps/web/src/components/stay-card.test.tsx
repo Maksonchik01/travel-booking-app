@@ -86,8 +86,9 @@ describe("StayCard", () => {
   it("ціна за ніч і за весь період, рейтинг словом, відстані та скасування", () => {
     wrap(<StayCard stay={STAY} now={NOW} pickLabel="balanced" score={SCORE} />);
 
-    expect(screen.getByTestId("stay-price")).toHaveTextContent("121 €");
-    expect(screen.getByTestId("stay-total")).toHaveTextContent("362 € за 3 ночі");
+    // Копійки не ховаємо (модуль 18.2): 120,50 — не «121».
+    expect(screen.getByTestId("stay-price")).toHaveTextContent("120,50 €");
+    expect(screen.getByTestId("stay-total")).toHaveTextContent("361,50 € за 3 ночі");
     expect(screen.getByTestId("stay-rating")).toHaveTextContent(/8,6Дуже добре· 1\s350 відгуків/);
     expect(screen.getByText("1,4 км до центру")).toBeInTheDocument();
     expect(screen.getByText("300 м до транспорту")).toBeInTheDocument();

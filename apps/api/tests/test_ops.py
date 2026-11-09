@@ -64,7 +64,11 @@ async def test_serpapi_counters_only_and_database_problem_reported() -> None:
     assert "secret" not in response.text
     assert body["llm"] is None
     assert body["clicks"] is None
-    assert body["problems"] == ["database: ConnectionRefusedError"]
+    assert body["usage"] is None  # кожна секція падає окремо
+    assert body["problems"] == [
+        "database: ConnectionRefusedError",
+        "usage: ConnectionRefusedError",
+    ]
 
 
 @respx.mock

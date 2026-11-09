@@ -3782,6 +3782,122 @@
         }
       }
     },
+    "/account/trips/{trip_id}/share": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Share Trip",
+        "description": "Увімкнути публічне посилання на поїздку (модуль 20.2).",
+        "operationId": "share_trip_account_trips__trip_id__share_post",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedTripOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Unshare Trip",
+        "description": "Вимкнути публічне посилання: старе більше не відкривається.",
+        "operationId": "unshare_trip_account_trips__trip_id__share_delete",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedTripOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/account/alerts": {
       "get": {
         "tags": [
@@ -4062,6 +4178,85 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events": {
+      "post": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Log Event",
+        "description": "Анонімна подія використання (модуль 19). Нічого не повертає й нічого не ламає: збій\nБД — 503, сторінка про це не дізнається.",
+        "operationId": "log_event_events_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shared/trips/{token}": {
+      "get": {
+        "tags": [
+          "shared"
+        ],
+        "summary": "Shared Trip",
+        "description": "Публічний перегляд поїздки за посиланням власника (модуль 20.2). Без входу; лише сама\nпоїздка — без власника й особистого. Посилання вимкнули чи його не було — 404.",
+        "operationId": "shared_trip_shared_trips__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{16,40}$",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedTrip"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -4900,6 +5095,22 @@
               }
             ],
             "title": "Email"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "uk",
+                  "ru"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
           }
         },
         "additionalProperties": false,
@@ -6415,6 +6626,45 @@
         "title": "CompareEntry",
         "description": "Поїздка для панелі порівняння сторінки (знімок рахує код)."
       },
+      "ConvertedPrice": {
+        "properties": {
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "original_amount": {
+            "type": "string",
+            "title": "Original Amount"
+          },
+          "original_currency": {
+            "type": "string",
+            "title": "Original Currency"
+          },
+          "rate": {
+            "type": "string",
+            "title": "Rate"
+          },
+          "approximate": {
+            "type": "boolean",
+            "const": true,
+            "title": "Approximate",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount",
+          "currency",
+          "original_amount",
+          "original_currency",
+          "rate"
+        ],
+        "title": "ConvertedPrice"
+      },
       "CostItem": {
         "properties": {
           "kind": {
@@ -6656,6 +6906,54 @@
           "email"
         ],
         "title": "EmailBody"
+      },
+      "EventIn": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "search_started",
+              "search_succeeded",
+              "search_empty",
+              "search_failed",
+              "filters_applied",
+              "offer_opened",
+              "compare_opened",
+              "outbound",
+              "favorite_added",
+              "trip_saved",
+              "cheaper_requested",
+              "ai_optimize",
+              "alert_created",
+              "ai_to_planner"
+            ],
+            "title": "Name"
+          },
+          "props": {
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^[a-z0-9_+-]{1,24}$"
+            },
+            "propertyNames": {
+              "enum": [
+                "mode",
+                "kind",
+                "reason",
+                "results",
+                "source"
+              ]
+            },
+            "type": "object",
+            "maxProperties": 4,
+            "title": "Props"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "EventIn"
       },
       "Exclusion": {
         "properties": {
@@ -8126,6 +8424,14 @@
             "title": "Date Options",
             "default": []
           },
+          "converted": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ConvertedPrice"
+            },
+            "type": "object",
+            "title": "Converted",
+            "default": {}
+          },
           "freshness": {
             "additionalProperties": {
               "type": "string",
@@ -9370,6 +9676,16 @@
               }
             ]
           },
+          "usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Usage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "problems": {
             "items": {
               "type": "string"
@@ -10033,6 +10349,22 @@
               }
             ],
             "title": "Last Name"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "uk",
+                  "ru"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
           }
         },
         "additionalProperties": false,
@@ -10274,6 +10606,17 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "share_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Token"
           }
         },
         "type": "object",
@@ -11000,6 +11343,23 @@
         ],
         "title": "SessionOut",
         "description": "Токен сесії — лише для веб-сервера (кладе його в httpOnly-cookie), не для браузера."
+      },
+      "SharedTrip": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Output"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/TripSnapshot-Output"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "snapshot"
+        ],
+        "title": "SharedTrip",
+        "description": "Публічний перегляд поїздки (модуль 20.2): лише сама поїздка. Без власника, назви, статусу,\nбюджету, уподобань і підписів власних витрат — там може бути щось особисте."
       },
       "Stay": {
         "properties": {
@@ -12738,6 +13098,14 @@
             "type": "object",
             "title": "Freshness",
             "default": {}
+          },
+          "converted": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ConvertedPrice"
+            },
+            "type": "object",
+            "title": "Converted",
+            "default": {}
           }
         },
         "type": "object",
@@ -13131,6 +13499,14 @@
             },
             "type": "array",
             "title": "Warnings",
+            "default": []
+          },
+          "converted_from": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Converted From",
             "default": []
           },
           "full_nights": {
@@ -14704,6 +15080,34 @@
         ],
         "title": "Turn",
         "description": "Репліка діалогу уточнень. Приходить від клієнта — для моделі це лише дані."
+      },
+      "Usage": {
+        "properties": {
+          "events_7d": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Events 7D"
+          },
+          "searches_7d": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Searches 7D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "events_7d",
+          "searches_7d"
+        ],
+        "title": "Usage",
+        "description": "Анонімні події за 7 днів (модуль 19): частоти й воронка пошуку за режимами."
       },
       "ValidationError": {
         "properties": {
