@@ -502,7 +502,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
                 </div>
               ) : (
                 <ShowMore
-                  items={offers.filter(isGroupLead).map((offer) => {
+                  items={offers.filter(isGroupLead).map((offer, index) => {
                     const key = `${offer.source}:${offer.id}`;
                     return {
                       key: offerAnchor(key),
@@ -536,6 +536,8 @@ async function Results({ searchParams }: { searchParams: Params }) {
                               rows={groupRows(key)}
                               query={state.query}
                               now={now.toISOString()}
+                              // Етап 2 (модуль 22.9): продавці першого рейсу — одразу, без кнопки.
+                              autoCheck={index < AUTO_SELLER_CHECKS}
                             />
                           }
                         />
@@ -553,6 +555,9 @@ async function Results({ searchParams }: { searchParams: Params }) {
     </FavoritesProvider>
   );
 }
+
+/** Скільки перших карток самі порівнюють продавців: кожна — 1 запит SerpApi (кеш 30 хв). */
+const AUTO_SELLER_CHECKS = 1;
 
 /** Живий пошук: провайдер зафіксував ціну в момент нашого запиту. */
 function isLivePrice(offer: Offer): boolean {

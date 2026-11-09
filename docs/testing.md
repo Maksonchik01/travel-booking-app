@@ -40,6 +40,7 @@
 | Відмова джерела | API `test_multi_source::test_one_failed_source…` |
 | Охоплення для діагностики | API `test_multi_source::test_coverage_counters…`, `…log_has_no_route…`; `test_ops` |
 | Продавець на картці | WEB `offer-card.test` (найдешевший продавець і кількість) |
+| Продавці найкращого рейсу без кнопки | WEB `seller-offers.test` (autoCheck — один раз; невдача — лишається кнопка) |
 
 Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 

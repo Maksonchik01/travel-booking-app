@@ -127,6 +127,65 @@ describe("SellerOffers", () => {
     expect(form.querySelector<HTMLInputElement>("input[name=u]")?.value).toBe("abc");
   });
 
+  it("autoCheck: найкращий рейс порівнює продавців сам, один раз (модуль 22.9)", async () => {
+    const result: SellersResult = {
+      status: "ok",
+      checked_at: "2026-11-08T12:00:00Z",
+      sellers: [
+        {
+          seller: "KLM",
+          is_airline: true,
+          price: 121,
+          currency: "EUR",
+          included: [],
+          fare_name: null,
+          link: null,
+          checked_at: "2026-11-08T12:00:00Z",
+        },
+      ],
+    };
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify(result)));
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
+        <SellerOffers
+          offer={offer({ booking_ref: "tok" })}
+          rows={[offer({ booking_ref: "tok" })]}
+          query={query}
+          now={NOW}
+          autoCheck
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(await screen.findByTestId("checked-seller")).toHaveTextContent("KLM");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("autoCheck не вдався — лишається кнопка, без помилки, якої не просили", async () => {
+    const fetchMock = vi.fn<typeof fetch>(
+      async () => new Response(JSON.stringify({ status: "rate_limited", sellers: [] })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
+        <SellerOffers
+          offer={offer({ booking_ref: "tok" })}
+          rows={[offer({ booking_ref: "tok" })]}
+          query={query}
+          now={NOW}
+          autoCheck
+        />
+      </NextIntlClientProvider>,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Порівняти продавців і перевірити ціну" }),
+    ).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
   it("джерело без перевірки — чесно: підтверджує продавець; один продавець без імітації порівняння", async () => {
     vi.stubGlobal(
       "fetch",

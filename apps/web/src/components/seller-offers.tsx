@@ -3,7 +3,7 @@
 import type { FlightQuery, Offer, SellerOffer, SellersResult } from "@tickets/shared";
 import { ArrowUpRight, BadgeCheck, Loader2, Store } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { hoursAgo } from "@/lib/format";
@@ -20,12 +20,17 @@ type Check = { state: "idle" } | { state: "loading" } | { state: "done"; result:
  * умовами: тарифи з різним багажем не видаємо за однакові). Для джерел з перевіркою (SerpApi) —
  * «Порівняти продавців»: продавці й ціна зараз, це ж і перевірка перед переходом. Один продавець
  * — без імітації порівняння.
+ *
+ * `autoCheck` (модуль 22.9, етап 2): для найкращого рейсу порівняння запускається саме, після
+ * показу сторінки — 1 запит SerpApi (кеш 30 хв). Не вдалося — лишаємо кнопку, а не помилку, якої
+ * людина не просила.
  */
 export function SellerOffers({
   offer,
   rows,
   query,
   now: nowIso,
+  autoCheck = false,
 }: {
   offer: Offer;
   /** Пропозиції того самого рейсу (разом з `offer`), від найдешевшої. */
@@ -33,6 +38,7 @@ export function SellerOffers({
   query: FlightQuery;
   /** Час рендеру сторінки (ISO) — Date з сервера в клієнтський компонент не передається. */
   now: string;
+  autoCheck?: boolean;
 }) {
   const now = new Date(nowIso);
   const t = useTranslations("sellers");
@@ -52,11 +58,10 @@ export function SellerOffers({
     o.seller ??
     (tResults.has(`provider.${o.source}`) ? tResults(`provider.${o.source}`) : o.source);
 
-  if (rows.length < 2 && !checkable) return null;
-
-  async function verify() {
+  async function verify(auto = false) {
     if (!checkable?.booking_ref) return;
     setCheck({ state: "loading" });
+    let result: SellersResult;
     try {
       const response = await fetchWithTimeout("/api/flights/sellers", {
         method: "POST",
@@ -67,11 +72,23 @@ export function SellerOffers({
           booking_ref: checkable.booking_ref,
         }),
       });
-      setCheck({ state: "done", result: (await response.json()) as SellersResult });
+      result = (await response.json()) as SellersResult;
     } catch {
-      setCheck({ state: "done", result: { status: "error", sellers: [] } });
+      result = { status: "error", sellers: [] };
     }
+    setCheck(auto && result.status !== "ok" ? { state: "idle" } : { state: "done", result });
   }
+
+  // Один раз на картку (React у dev монтує ефекти двічі).
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (!autoCheck || autoStarted.current) return;
+    autoStarted.current = true;
+    void verify(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- лише при першому показі
+  }, [autoCheck]);
+
+  if (rows.length < 2 && !checkable) return null;
 
   const live = rows.filter((o) => o.price_status === "live");
   const cheapestLive = live.length ? Math.min(...live.map((o) => o.price)) : null;
@@ -128,7 +145,7 @@ export function SellerOffers({
 
       {checkable && check.state === "idle" && (
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={verify}>
+          <Button type="button" variant="outline" size="sm" onClick={() => void verify()}>
             {t("compare")}
           </Button>
           <span className="text-muted-foreground text-xs">{t("compareHint")}</span>

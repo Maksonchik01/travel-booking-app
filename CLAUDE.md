@@ -67,7 +67,8 @@ SkyPack — веб-застосунок для пошуку подорожей �
   рейсів; пересадка без сегментів не групується); порядок — `comparable_order` (валюта пошуку, відомий
   багаж; без курсу, `needs_recheck`, невідомий багаж — у кінці). Охоплення — `coverage` у відповіді, лог
   `flight_search.coverage`, лічильники Redis → `/ops/summary`. Інших джерел (Skyscanner, Kiwi, живий
-  Aviasales, авіакомпанії) без партнерства немає — таблиця в ADR 0041; скрапінг не робимо. Кожен запит SerpApi
+  Aviasales, авіакомпанії) без партнерства немає — таблиця в ADR 0041; скрапінг не робимо.
+  Продавці першої картки — одразу (`SellerOffers autoCheck`, `AUTO_SELLER_CHECKS`; +1 запит SerpApi на пошук). Кожен запит SerpApi
   витрачає квоту (250/міс): не роби зайвих живих запитів, тести — лише на фікстурах
   `apps/api/tests/fixtures/serpapi/`. Довідник аеропортів (пояси, місто → аеропорти):
   `reference/airports.json`, оновлення — `scripts/update_reference_data.py`.

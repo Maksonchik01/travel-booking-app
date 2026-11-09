@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     internal_api_key: SecretStr | None = None
     """Спільний секрет веб ↔ API: лише з ним API вірить X-Client-IP (IP відвідувача)."""
     rate_limit_search_per_hour: int = Field(default=40, ge=1)
-    rate_limit_ai_per_hour: int = Field(default=30, ge=1)
+    rate_limit_ai_per_hour: int = Field(default=90, ge=1)
     rate_limit_auth_per_hour: int = Field(default=20, ge=1)
     rate_limit_clicks_per_hour: int = Field(default=200, ge=1)
     rate_limit_events_per_hour: int = Field(default=600, ge=1)
