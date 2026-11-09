@@ -150,3 +150,20 @@ def test_clean_flight_filters_drops_unknown_and_odd_values() -> None:
     assert clean_flight_filters("deph=21-2&al=FR,W6&cur=USD&maxp=1 OR 1") == "deph=21-2&al=FR%2CW6"
     assert clean_flight_filters("from=WAW") is None
     assert clean_flight_filters("") is None
+
+
+def test_keys_pasted_with_line_breaks_or_invisible_chars_are_cleaned(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Прод: ключ DeepSeek з переносом усередині ламав заголовок (LocalProtocolError)."""
+    monkeypatch.setenv("LLM_PROVIDER", "deepseek")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-abc\ndef\r\n")
+    monkeypatch.setenv("SERPAPI_KEY", "﻿serp​key ")
+    monkeypatch.setenv("SMTP_PASSWORD", "pass with spaces")  # пароль — не ключ, не чіпаємо
+    settings = Settings(_env_file=None)
+    assert settings.deepseek_api_key is not None
+    assert settings.deepseek_api_key.get_secret_value() == "sk-abcdef"
+    assert settings.serpapi_key is not None
+    assert settings.serpapi_key.get_secret_value() == "serpkey"
+    assert settings.smtp_password is not None
+    assert settings.smtp_password.get_secret_value() == "pass with spaces"

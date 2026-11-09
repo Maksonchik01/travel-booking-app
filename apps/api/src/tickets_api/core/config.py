@@ -1,15 +1,40 @@
+import unicodedata
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal, Self
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import Field, SecretStr, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 FlightProviderName = Literal["mock", "travelpayouts", "serpapi"]
 StayProviderName = Literal["mock"]
 LLMProviderName = Literal["off", "mock", "deepseek"]
 CalendarProviderName = Literal["mock", "travelpayouts"]
+
+
+TOKEN_FIELDS = frozenset(
+    {
+        "deepseek_api_key",
+        "serpapi_key",
+        "travelpayouts_token",
+        "travelpayouts_marker",
+        "telegram_bot_token",
+        "internal_api_key",
+        "google_client_id",
+        "google_client_secret",
+    }
+)
+"""Ключі й токени: пробілів, переносів і невидимих символів у них не буває."""
+
+
+def clean_token(value: str) -> str:
+    """Ключ, вставлений у панель хостингу з переносом рядка чи невидимим символом усередині,
+    ламає заголовок `Authorization` на КОЖНОМУ запиті (httpx: LocalProtocolError) — так ШІ не
+    працював на проді, хоча локально працював. Прибираємо такі символи."""
+    return "".join(
+        ch for ch in value if not ch.isspace() and unicodedata.category(ch) not in ("Cc", "Cf")
+    )
 
 
 class Settings(BaseSettings):
@@ -182,13 +207,15 @@ class Settings(BaseSettings):
         mode="before",
     )
     @classmethod
-    def _empty_is_none(cls, value: object) -> object:
+    def _empty_is_none(cls, value: object, info: ValidationInfo) -> object:
         # Порожній рядок у .env означає "не задано". Значення, скопійоване з .env у панель
         # хостингу разом із лапками (SENTRY_DSN="https://…"), приймаємо без них.
         if isinstance(value, str):
             value = value.strip()
             if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
                 value = value[1:-1].strip()
+            if info.field_name in TOKEN_FIELDS:
+                value = clean_token(value)
         return None if value == "" else value
 
     @model_validator(mode="after")
