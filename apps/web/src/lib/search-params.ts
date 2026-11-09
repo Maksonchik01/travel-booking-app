@@ -10,8 +10,8 @@ import type {
 } from "@tickets/shared";
 
 export type RawSearchParams = Record<string, string | string[] | undefined>;
-export type SortKey = "price" | "duration" | "score";
-export const SORT_KEYS: readonly SortKey[] = ["price", "duration", "score"];
+export type SortKey = "price" | "duration" | "departure" | "score";
+export const SORT_KEYS: readonly SortKey[] = ["price", "duration", "departure", "score"];
 
 export type SearchState = {
   query: FlightQuery;

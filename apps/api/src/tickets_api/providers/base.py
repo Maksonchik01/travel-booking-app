@@ -35,6 +35,8 @@ class FlightProvider(Protocol):
     name: str
     # Провайдер може мати власний ліміт часу (атрибут `timeout_s`), інакше — загальний
     # PROVIDER_TIMEOUT_S. Див. FlightSearchService._call.
+    # Атрибут `live = False` — ціни з кешу пошуків (Travelpayouts): такі джерела безкоштовні,
+    # тож у гнучкому пошуку дають кандидатів дат для живих (`is_live`). Без атрибута — живе.
 
     async def search(self, query: FlightQuery) -> list[Offer]:
         """Пропозиції для запиту. Порожній список — нічого не знайдено (це не помилка)."""
@@ -45,6 +47,10 @@ class FlightProvider(Protocol):
     ) -> list[CalendarDay]:
         """Найнижчі ціни по днях місяця (`month` — будь-яка дата цього місяця), в один бік."""
         ...
+
+
+def is_live(provider: FlightProvider) -> bool:
+    return bool(getattr(provider, "live", True))
 
 
 @runtime_checkable

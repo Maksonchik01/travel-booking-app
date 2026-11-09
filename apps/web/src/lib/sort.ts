@@ -4,8 +4,9 @@ import type { SortKey } from "@/lib/search-params";
 import type { StaySortKey } from "@/lib/stay-params";
 
 /**
- * Сортування видачі (модуль 21: окремо, щоб тестувати). API віддає пропозиції від дешевших;
- * «швидші» й «вигідніші» — тут. Невідоме (тривалість, оцінка) — у кінці, а не попереду.
+ * Сортування видачі (модуль 21: окремо, щоб тестувати). API віддає пропозиції від дешевших за
+ * порівнюваною вартістю (валюта пошуку, потрібний багаж — модуль 22.5); «швидші», «виліт» і
+ * «вигідніші» — тут. Невідоме (тривалість, оцінка) — у кінці, а не попереду.
  */
 export function sortOffers(
   offers: Offer[],
@@ -18,6 +19,11 @@ export function sortOffers(
     const total = (o: Offer) =>
       scores.get(`${o.source}:${o.id}`)?.breakdown.total ?? Number.POSITIVE_INFINITY;
     return [...offers].sort((a, b) => total(a) - total(b) || a.price - b.price);
+  }
+  if (sort === "departure") {
+    // Місцевий час вильоту з ISO-рядка (як на картці), рівні — за ціною (сортування стабільне).
+    const local = (o: Offer) => o.outbound.departure_at.slice(0, 16);
+    return [...offers].sort((a, b) => local(a).localeCompare(local(b)));
   }
   // Невідома тривалість — в кінець, щоб не вдавати, що варіант швидкий.
   return [...offers].sort(

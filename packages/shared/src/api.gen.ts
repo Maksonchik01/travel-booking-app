@@ -2910,6 +2910,7 @@ export interface components {
             freshness: {
                 [key: string]: "live" | "cached" | "approximate" | "needs_recheck";
             };
+            coverage?: components["schemas"]["SearchCoverage"] | null;
         };
         /** GeoPoint */
         GeoPoint: {
@@ -3296,6 +3297,7 @@ export interface components {
             clicks: components["schemas"]["Clicks"] | null;
             activity: components["schemas"]["Activity"] | null;
             usage?: components["schemas"]["Usage"] | null;
+            coverage?: components["schemas"]["SearchCoverageSummary"] | null;
             /** Problems */
             problems: string[];
         };
@@ -3696,6 +3698,37 @@ export interface components {
              */
             cheapest_basis: "ticket" | "with_baggage";
         };
+        /**
+         * SearchCoverage
+         * @description Діагностика охоплення пошуку (модуль 22.8): які джерела питали, що відповіли й скільки
+         *     дали. Для власника й логів; UI лише чесно каже, серед яких джерел найнижча ціна.
+         */
+        SearchCoverage: {
+            /** Sources */
+            sources: components["schemas"]["SourceCoverage"][];
+            /** Sellers */
+            sellers: string[];
+            /** Flights */
+            flights: number;
+            /** Multi Seller Flights */
+            multi_seller_flights: number;
+            /** Live Offers */
+            live_offers: number;
+        };
+        /**
+         * SearchCoverageSummary
+         * @description Охоплення пошуку перельотів за 7 днів (модуль 22.8): як відповідали джерела.
+         */
+        SearchCoverageSummary: {
+            /** Searches 7D */
+            searches_7d: number;
+            /** Multi Seller Flights 7D */
+            multi_seller_flights_7d: number;
+            /** Sources */
+            sources: {
+                [key: string]: components["schemas"]["SourceStats"];
+            };
+        };
         /** SearchEntryBody */
         SearchEntryBody: {
             /**
@@ -3884,6 +3917,33 @@ export interface components {
         SharedTrip: {
             query: components["schemas"]["TripQuery-Output"];
             snapshot: components["schemas"]["TripSnapshot-Output"];
+        };
+        /** SourceCoverage */
+        SourceCoverage: {
+            /** Provider */
+            provider: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "error" | "timeout" | "rate_limited" | "unsupported";
+            /** Live */
+            live: boolean;
+            /** Received */
+            received: number;
+            /** Shown */
+            shown: number;
+        };
+        /** SourceStats */
+        SourceStats: {
+            /** Statuses */
+            statuses: {
+                [key: string]: number;
+            };
+            /** Received */
+            received: number;
+            /** Shown */
+            shown: number;
         };
         /** Stay */
         Stay: {

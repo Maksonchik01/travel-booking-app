@@ -26,7 +26,12 @@ from redis.exceptions import RedisError
 
 from tickets_api.domain.flights import CalendarDay, FlightQuery, Offer
 from tickets_api.domain.sellers import SellerOffer
-from tickets_api.providers.base import FlightProvider, ProviderUnsupportedError, SellerSource
+from tickets_api.providers.base import (
+    FlightProvider,
+    ProviderUnsupportedError,
+    SellerSource,
+    is_live,
+)
 
 log = structlog.get_logger(__name__)
 
@@ -64,6 +69,7 @@ class CachedFlightProvider:
         self._inflight: dict[str, asyncio.Future[Any]] = {}
         self.name = inner.name
         self.timeout_s: float | None = getattr(inner, "timeout_s", None)
+        self.live: bool = is_live(inner)
 
     async def search(self, query: FlightQuery) -> list[Offer]:
         key = self._key("search", search_cache_payload(query))

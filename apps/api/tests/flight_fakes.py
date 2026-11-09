@@ -57,8 +57,10 @@ class StubProvider:
         days: list[CalendarDay] | None = None,
         error: BaseException | None = None,
         delay_s: float = 0,
+        live: bool = True,
     ) -> None:
         self.name = name
+        self.live = live
         self._offers = offers or []
         self._days = days or []
         self._error = error

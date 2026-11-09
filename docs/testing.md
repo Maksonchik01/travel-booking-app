@@ -27,9 +27,21 @@
 | Пересадки | E2E «пошук…» («Лише прямі», приховані пересадки); API `test_offer_filters`, `test_flight_ranking` (direct_only — обов'язкова вимога), `test_scoring_engine` |
 | Багаж | E2E «сім'я з багажем»; API `test_baggage`, `test_flight_ranking` (тариф без багажу відсіюється, доплата в оцінці); WEB `offer-card.test` |
 | Цінові фільтри | E2E «розширені фільтри…», «порожні результати…»; API `test_offer_filters` (max_price / max_total_price) |
-| Сортування | E2E «модуль 21.1: сортування — «Швидші»…»; WEB `sort.test` (ціна / час / оцінка, невідоме — в кінці) |
+| Сортування | E2E «модуль 21.1: сортування — «Швидші»…»; WEB `sort.test` (ціна / час / виліт / оцінка, невідоме — в кінці); API `test_multi_source` (порівнювана вартість: валюта, багаж, стара ціна — в кінці) |
 | Порівняння | E2E «картка: … порівняння трьох варіантів»; WEB `compare.test` |
 | Відкриття пропозицій | E2E «картка: … деталі маршруту», «модуль 15: рейс → «Додати до поїздки»»; WEB `seller-offers.test`, `outbound.test`; `app/out/route.test` |
+
+## 22 Кілька джерел перельотів
+
+| Сценарій | Тести |
+|---|---|
+| Кілька джерел в одному пошуку | API `test_multi_source::test_same_flight_from_all_sources…` (кожне джерело — раз, одна картка) |
+| Гнучкі дати з кешованим пошуковим джерелом | API `test_multi_source::test_flexible_search_asks_cached…`, `test_flexible_dates` (жива ціна дати — перевірена) |
+| Відмова джерела | API `test_multi_source::test_one_failed_source…` |
+| Охоплення для діагностики | API `test_multi_source::test_coverage_counters…`, `…log_has_no_route…`; `test_ops` |
+| Продавець на картці | WEB `offer-card.test` (найдешевший продавець і кількість) |
+
+Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 
 ## 21.2 Житло
 
@@ -96,7 +108,7 @@
 | Нічні рейси | API `test_overnight_flight_books_stay_from_arrival_date…`, `test_flight_ranking::test_night_arrival_is_penalised` |
 | Self-transfer | API `test_scoring_engine` (штраф), `test_offer_filters` (min_self_transfer); WEB `risks.test`, `offer-card.test` |
 | Немає даних про багаж | API `test_baggage` (unknown ≠ безкоштовно), `test_flight_ranking` (невідоме не відсікає); WEB `offer-card.test` |
-| Дублікат рейсу в різних джерелах | API `test_flight_search_service` (offer_groups), `test_sellers` |
+| Дублікат рейсу в різних джерелах | API `test_flight_search_service` (offer_groups), `test_sellers`, `test_multi_source` (номери рейсів, пересадки — усі рейси, стара ціна не очолює картку) |
 | Одночасні пошуки | API `test_provider_resilience` (однакові запити — один виклик, замок Redis між процесами) |
 | Повільне з'єднання | E2E «модуль 21.6: обрив мережі — помилка з повтором»; WEB `client-fetch.test` (тайм-аут) |
 | Повторне відкриття збережених результатів | E2E «поїздка 8c», «модуль 20.1/20.3» (останні пошуки), «модуль 20.4» (чернетка після оновлення) |

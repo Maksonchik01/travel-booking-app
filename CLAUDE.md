@@ -60,9 +60,14 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `full_nights`, `travel_min`, `waiting_min`); веб — `why-list.tsx`. Ваги змінюються в
   `scoring/config.toml`; після зміни ваг свідомо перераховуй еталони в
   `apps/api/tests/fixtures/scoring/`.
-- **Джерела** ([ADR 0006](docs/adr/0006-live-prices-serpapi.md)): пошук — SerpApi Google
-  Flights (живі ціни, `FLIGHT_PROVIDERS=serpapi`), календар — Travelpayouts
-  (`CALENDAR_PROVIDERS=travelpayouts`); без ключів — `mock`. Кожен запит SerpApi
+- **Джерела** ([ADR 0006](docs/adr/0006-live-prices-serpapi.md), [ADR 0041](docs/adr/0041-multi-source-flight-search.md)):
+  пошук — SerpApi Google Flights (живі) + Travelpayouts (кешовані ціни продавців, `live = False`):
+  `FLIGHT_PROVIDERS=serpapi,travelpayouts`, календар — `CALENDAR_PROVIDERS=travelpayouts`; без ключів — `mock`.
+  Кешоване джерело — розвідник гнучких дат і вдруге не питається. Однаковий рейс — `flight_key` (усі номери
+  рейсів; пересадка без сегментів не групується); порядок — `comparable_order` (валюта пошуку, відомий
+  багаж; без курсу, `needs_recheck`, невідомий багаж — у кінці). Охоплення — `coverage` у відповіді, лог
+  `flight_search.coverage`, лічильники Redis → `/ops/summary`. Інших джерел (Skyscanner, Kiwi, живий
+  Aviasales, авіакомпанії) без партнерства немає — таблиця в ADR 0041; скрапінг не робимо. Кожен запит SerpApi
   витрачає квоту (250/міс): не роби зайвих живих запитів, тести — лише на фікстурах
   `apps/api/tests/fixtures/serpapi/`. Довідник аеропортів (пояси, місто → аеропорти):
   `reference/airports.json`, оновлення — `scripts/update_reference_data.py`.

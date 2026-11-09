@@ -57,6 +57,7 @@ TRAVELPAYOUTS_RETRY = RetryPolicy(attempts=3, base_delay_s=0.3, max_delay_s=2.0)
 
 class TravelpayoutsFlightProvider:
     name = "travelpayouts"
+    live = False
 
     def __init__(
         self,

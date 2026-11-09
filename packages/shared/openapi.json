@@ -8445,6 +8445,16 @@
             "type": "object",
             "title": "Freshness",
             "default": {}
+          },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchCoverage"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -9686,6 +9696,16 @@
               }
             ]
           },
+          "coverage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchCoverageSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "problems": {
             "items": {
               "type": "string"
@@ -10883,6 +10903,73 @@
         ],
         "title": "ScoringResult"
       },
+      "SearchCoverage": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCoverage"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "sellers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sellers"
+          },
+          "flights": {
+            "type": "integer",
+            "title": "Flights"
+          },
+          "multi_seller_flights": {
+            "type": "integer",
+            "title": "Multi Seller Flights"
+          },
+          "live_offers": {
+            "type": "integer",
+            "title": "Live Offers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sources",
+          "sellers",
+          "flights",
+          "multi_seller_flights",
+          "live_offers"
+        ],
+        "title": "SearchCoverage",
+        "description": "Діагностика охоплення пошуку (модуль 22.8): які джерела питали, що відповіли й скільки\nдали. Для власника й логів; UI лише чесно каже, серед яких джерел найнижча ціна."
+      },
+      "SearchCoverageSummary": {
+        "properties": {
+          "searches_7d": {
+            "type": "integer",
+            "title": "Searches 7D"
+          },
+          "multi_seller_flights_7d": {
+            "type": "integer",
+            "title": "Multi Seller Flights 7D"
+          },
+          "sources": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SourceStats"
+            },
+            "type": "object",
+            "title": "Sources"
+          }
+        },
+        "type": "object",
+        "required": [
+          "searches_7d",
+          "multi_seller_flights_7d",
+          "sources"
+        ],
+        "title": "SearchCoverageSummary",
+        "description": "Охоплення пошуку перельотів за 7 днів (модуль 22.8): як відповідали джерела."
+      },
       "SearchEntryBody": {
         "properties": {
           "kind": {
@@ -11360,6 +11447,72 @@
         ],
         "title": "SharedTrip",
         "description": "Публічний перегляд поїздки (модуль 20.2): лише сама поїздка. Без власника, назви, статусу,\nбюджету, уподобань і підписів власних витрат — там може бути щось особисте."
+      },
+      "SourceCoverage": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error",
+              "timeout",
+              "rate_limited",
+              "unsupported"
+            ],
+            "title": "Status"
+          },
+          "live": {
+            "type": "boolean",
+            "title": "Live"
+          },
+          "received": {
+            "type": "integer",
+            "title": "Received"
+          },
+          "shown": {
+            "type": "integer",
+            "title": "Shown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider",
+          "status",
+          "live",
+          "received",
+          "shown"
+        ],
+        "title": "SourceCoverage"
+      },
+      "SourceStats": {
+        "properties": {
+          "statuses": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Statuses"
+          },
+          "received": {
+            "type": "integer",
+            "title": "Received"
+          },
+          "shown": {
+            "type": "integer",
+            "title": "Shown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "statuses",
+          "received",
+          "shown"
+        ],
+        "title": "SourceStats"
       },
       "Stay": {
         "properties": {

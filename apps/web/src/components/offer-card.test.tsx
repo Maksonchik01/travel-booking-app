@@ -103,6 +103,18 @@ describe("OfferCard", () => {
     expect(screen.getByTestId("seller")).toHaveTextContent("Продавець: Kiwi.com");
   });
 
+  it("рейс у кількох продавців — найдешевший продавець і їх кількість (модуль 22.6)", () => {
+    render(
+      <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
+        <OfferCard offer={{ ...base, seller: "Trip.com" }} now={NOW} sellerCount={3} />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByTestId("seller")).toHaveTextContent(
+      "Найдешевше: Trip.com · 3 продавці · через Тестові дані",
+    );
+  });
+
   it("для кешованого джерела без деталей пише, що деталі невідомі", () => {
     renderCard({
       ...base,

@@ -194,7 +194,7 @@ export function OfferCard({
             <Store className="mt-px size-3.5 shrink-0" aria-hidden />
             <span>
               {sellerCount > 1
-                ? `${t("sellerCount", { count: sellerCount })} · `
+                ? `${offer.seller ? `${t("cheapestSeller", { seller: offer.seller })} · ` : ""}${t("sellerCount", { count: sellerCount })} · `
                 : offer.seller
                   ? `${t("seller", { seller: offer.seller })} · `
                   : null}

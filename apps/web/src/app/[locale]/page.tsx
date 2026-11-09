@@ -354,6 +354,13 @@ async function Results({ searchParams }: { searchParams: Params }) {
     scoring.picks.map((p) => [p.offer_key, p.also ?? []]),
   );
   const airlineNames = Object.fromEntries(facets.airlines.map((a) => [a.code, a.name]));
+  const checkedSources = result.data.providers
+    .filter((p) => p.status === "ok")
+    .map((p) =>
+      t.has(`provider.${p.provider}`)
+        ? t(`provider.${p.provider as "serpapi" | "travelpayouts" | "mock"}`)
+        : p.provider,
+    );
   const filtered = hasFilters(query.filters);
   const withoutFilters = toSearchParams({ ...state, query: { ...query, filters: {} } });
   return (
@@ -455,9 +462,22 @@ async function Results({ searchParams }: { searchParams: Params }) {
                 </Suspense>
               )}
 
-              <p className="bg-accent/60 text-accent-foreground flex items-start gap-2 rounded-lg px-3 py-2 text-xs">
+              <p
+                className="bg-accent/60 text-accent-foreground flex items-start gap-2 rounded-lg px-3 py-2 text-xs"
+                data-testid="price-note"
+              >
                 <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-                {offers.length > 0 && offers.every(isLivePrice) ? t("liveNote") : t("cachedNote")}
+                <span>
+                  {offers.length > 0 && offers.every(isLivePrice)
+                    ? t("liveNote")
+                    : offers.some(isLivePrice)
+                      ? t("mixedNote")
+                      : t("cachedNote")}
+                  {/* Чесно (модуль 22.7): найнижча — серед перевірених джерел, а не всього ринку. */}
+                  {offers.length > 0 && checkedSources.length > 0 && (
+                    <> {t("checkedSources", { sources: checkedSources.join(", ") })}</>
+                  )}
+                </span>
               </p>
 
               {offers.length === 0 ? (
@@ -544,6 +564,7 @@ function SortToggle({ state }: { state: SearchState }) {
   const labels: Record<SortKey, string> = {
     price: t("sortPrice"),
     duration: t("sortDuration"),
+    departure: t("sortDeparture"),
     score: t("sortScore"),
   };
   const options = SORT_KEYS.map((key) => ({ key, label: labels[key] }));

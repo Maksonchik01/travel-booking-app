@@ -5,6 +5,7 @@
 """
 
 import asyncio
+import re
 from collections import Counter
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from datetime import UTC, date, datetime, timedelta
@@ -33,6 +34,7 @@ from tickets_api.providers.base import (
     ProviderRateLimitedError,
     ProviderUnsupportedError,
     SellerSource,
+    is_live,
 )
 from tickets_api.repositories.price_history import calendar_rows, offer_rows
 from tickets_api.scoring.baggage import BaggageCost, baggage_cost
@@ -44,6 +46,8 @@ log = structlog.get_logger(__name__)
 RecordHistory = Callable[[list[dict[str, Any]]], Awaitable[None]]
 RateLookup = Callable[[str, str], Awaitable[Decimal | None]]
 """(база, валюта) → одиниць валюти за одиницю бази; None — курсу немає."""
+RecordCoverage = Callable[["SearchCoverage"], Awaitable[None]]
+PriceOrder = tuple[bool, bool, bool, Decimal, str, str]
 
 
 class ProviderStatus(BaseModel):
@@ -120,6 +124,40 @@ class OfferGroup(BaseModel):
     """Від найдешевшої; умови тарифів можуть відрізнятися — UI показує їх у кожному рядку."""
 
 
+class SourceCoverage(BaseModel):
+    provider: str
+    status: Literal["ok", "error", "timeout", "rate_limited", "unsupported"]
+    live: bool
+    """Ціни на момент пошуку (а не з кешу пошуків)."""
+    received: int
+    """Скільки пропозицій джерело повернуло."""
+    shown: int
+    """Скільки з них у видачі — після обов'язкових вимог і ночей."""
+
+
+class SearchCoverage(BaseModel):
+    """Діагностика охоплення пошуку (модуль 22.8): які джерела питали, що відповіли й скільки
+    дали. Для власника й логів; UI лише чесно каже, серед яких джерел найнижча ціна."""
+
+    sources: list[SourceCoverage]
+    sellers: list[str]
+    """Різні продавці у видачі (`Offer.seller`, без нього — джерело)."""
+    flights: int
+    """Різних рейсів у видачі (однаковий рейс від кількох продавців — один)."""
+    multi_seller_flights: int
+    live_offers: int
+
+    def log_fields(self) -> dict[str, Any]:
+        """Для журналу — лише лічильники й назви джерел, без маршруту й дат."""
+        return {
+            "sources": {s.provider: f"{s.status}:{s.received}/{s.shown}" for s in self.sources},
+            "sellers": len(self.sellers),
+            "flights": self.flights,
+            "multi_seller_flights": self.multi_seller_flights,
+            "live_offers": self.live_offers,
+        }
+
+
 class FlightSearchResult(BaseModel):
     offers: list[Offer]
     """Лише ті, що пройшли обов'язкові вимоги (`requirement_violations`); скоринг — по них же."""
@@ -140,6 +178,8 @@ class FlightSearchResult(BaseModel):
     """offer_key → свіжість ціни на момент відповіді (модуль 17.3): live / cached /
     approximate / needs_recheck. Час отримання — `Offer.collected_at` / `found_at`."""
     """offer_key → вартість з потрібним багажем (`query.baggage`); порожньо — багаж не потрібен."""
+    coverage: SearchCoverage | None = None
+    """Які джерела перевірено й що вони дали (модуль 22.8)."""
 
 
 class MatrixCell(BaseModel):
@@ -182,6 +222,7 @@ class FlightSearchService:
         live_date_pairs: int = 2,
         freshness: FreshnessRules | None = None,
         clock: Callable[[], datetime] | None = None,
+        record_coverage: RecordCoverage | None = None,
     ) -> None:
         self._providers = list(providers)
         # Календар може йти з інших джерел (напр. живий пошук без календаря + кешований календар).
@@ -196,14 +237,18 @@ class FlightSearchService:
         self._live_date_pairs = live_date_pairs
         self._freshness = freshness or FreshnessRules()
         self._clock = clock or (lambda: datetime.now(UTC))
+        self._record_coverage = record_coverage
 
     @property
     def airline_names(self) -> Mapping[str, str]:
         return self._airline_names
 
     async def search(self, query: FlightQuery) -> FlightSearchResult:
-        explored, live_query = await self._explore(query)
-        results = explored + await self._gather(self._providers, lambda p: p.search(live_query))
+        # Етап 1 (модуль 22): кешовані джерела (безкоштовні) — кандидати дат для гнучкого
+        # пошуку; живі — на вибрані дати. Джерело, яке вже відповіло на розвідці, вдруге не питаємо.
+        explored, live_query, asked = await self._explore(query)
+        rest = [p for p in self._providers if p.name not in asked]
+        results = explored + await self._gather(rest, lambda p: p.search(live_query))
         # Ночі рахуємо за фактичним прильотом — і для живих пропозицій (нічний рейс).
         unique = {
             (o.source, o.id): o for _, items in results for o in items if _fits_trip(o, query)
@@ -231,9 +276,20 @@ class FlightSearchService:
             if query.baggage != "none"
             else {}
         )
+        # Порядок видачі — порівнювана загальна вартість (модуль 22.5), а не сира ціна джерела.
+        freshness = self.freshness(shown)
+        price_order = comparable_order(comparable, query.currency, baggage, freshness)
+        shown.sort(key=lambda o: price_order[offer_key(o)])
+        comparable.sort(key=lambda o: price_order[offer_key(o)])
+        statuses = [s for s, _ in results]
+        groups = offer_groups(shown, order=price_order)
+        coverage = search_coverage(statuses, shown, groups, live=self._live_names())
+        log.info("flight_search.coverage", **coverage.log_fields())
+        if self._record_coverage:
+            await self._record_coverage(coverage)
         return FlightSearchResult(
             offers=shown,
-            providers=[s for s, _ in results],
+            providers=statuses,
             # «Найшвидший» і мінімальний час — серед того, що користувач бачить.
             scoring=score_offers(
                 comparable,
@@ -244,20 +300,23 @@ class FlightSearchService:
                 preferences=query.preferences,
             ),
             converted=conversions,
-            freshness=self.freshness(shown),
+            freshness=freshness,
             excluded=[
                 Exclusion(reason=reason, offers=n)
                 for reason, n in sorted(excluded.items(), key=lambda kv: (-kv[1], kv[0]))
             ],
             baggage=baggage,
             facets=self._facets(offers),
-            groups=offer_groups(shown),
+            groups=groups,
+            coverage=coverage,
             date_options=(
-                date_options(comparable, live={p.name for p in self._providers})
-                if query.is_flexible
-                else []
+                date_options(comparable, live=self._live_names()) if query.is_flexible else []
             ),
         )
+
+    def _live_names(self) -> set[str]:
+        """Джерела, що перевіряють ціну на момент пошуку (а не беруть з кешу пошуків)."""
+        return {p.name for p in self._providers if is_live(p)}
 
     def freshness(self, offers: Sequence[Offer]) -> dict[str, PriceFreshness]:
         now = self._clock()
@@ -275,20 +334,30 @@ class FlightSearchService:
 
     async def _explore(
         self, query: FlightQuery
-    ) -> tuple[list[tuple[ProviderStatus, list[Offer]]], FlightQuery]:
+    ) -> tuple[list[tuple[ProviderStatus, list[Offer]]], FlightQuery, set[str]]:
         """Гнучкі дати (ADR 0016): кешовані джерела календаря безкоштовно дають кандидатів на все
-        вікно, а живі джерела перевіряють лише найдешевші пари дат (`check_dates`)."""
+        вікно, а живі джерела перевіряють лише найдешевші пари дат (`check_dates`).
+
+        Розвідник — джерело календаря, якого немає серед пошукових, або кешоване (тоді й
+        пошукове: його відповідь на розвідці вже є пропозиціями пошуку). Повертає й імена
+        опитаних розвідників."""
         own = {p.name for p in self._providers}
-        explorers = [p for p in self._calendar_providers if p.name not in own]
-        if not query.is_flexible or not explorers or self._live_date_pairs == 0:
-            return [], query
+        explorers = [p for p in self._calendar_providers if p.name not in own or not is_live(p)]
+        if (
+            not query.is_flexible
+            or not explorers
+            or self._live_date_pairs == 0
+            or not self._live_names() - {p.name for p in explorers}
+        ):
+            return [], query, set()
         explored = await self._gather(explorers, lambda p: p.search(query))
         candidates = [o for _, items in explored for o in items if _fits_trip(o, query)]
         explored = [
             (status, [o for o in items if _fits_trip(o, query)]) for status, items in explored
         ]
         pairs = best_date_pairs(candidates, query, limit=self._live_date_pairs)
-        return explored, query.model_copy(update={"check_dates": pairs}) if pairs else query
+        live_query = query.model_copy(update={"check_dates": pairs}) if pairs else query
+        return explored, live_query, {p.name for p in explorers}
 
     async def rate(self, base: str, currency: str) -> Decimal | None:
         """Довідковий курс ЄЦБ: одиниць `currency` за 1 `base`. Немає — None (не вгадуємо)."""
@@ -532,7 +601,10 @@ def date_options(offers: Sequence[Offer], *, live: set[str]) -> list[DateOption]
         groups.setdefault(_dates(o), []).append(o)
     options = []
     for (dep, ret), items in groups.items():
-        cheapest = min(items, key=lambda o: o.price)
+        # Живе джерело перевірило ці дати — його ціна і є актуальна; кешована на ті самі дати —
+        # старіший доказ, не «перевірена» ціна (модуль 22). Без живих — найдешевша кешована.
+        checked = [o for o in items if o.source in live]
+        cheapest = min(checked or items, key=lambda o: o.price)
         nights, approximate = (
             stay_nights(cheapest.outbound, cheapest.inbound) if cheapest.inbound else (None, False)
         )
@@ -542,7 +614,7 @@ def date_options(offers: Sequence[Offer], *, live: set[str]) -> list[DateOption]
                 return_date=ret,
                 price=cheapest.price,
                 currency=cheapest.currency,
-                verified=any(o.source in live for o in items),
+                verified=bool(checked),
                 found_at=cheapest.found_at,
                 found_on=cheapest.found_on,
                 offers=len(items),
@@ -557,32 +629,108 @@ def _days(start: date, end: date) -> list[date]:
     return [start + timedelta(days=i) for i in range((end - start).days + 1)]
 
 
+FLIGHT_NUMBER = re.compile(r"^([A-Z0-9]{2,3}?)0*(\d{1,4}[A-Z]?)$")
+
+
+def normalize_flight_number(number: str) -> str:
+    """«LO 0437», «LO437», «lo 437» → «LO437»: джерела пишуть номер по-різному."""
+    raw = number.replace(" ", "").upper()
+    match = FLIGHT_NUMBER.match(raw)
+    return f"{match[1]}{match[2]}" if match else raw
+
+
 def flight_key(offer: Offer) -> str | None:
-    """Ключ однакового рейсу між джерелами: перший номер рейсу, місцевий час вильоту до хвилини
-    й кількість пересадок у кожному напрямку. Без номера рейсу — не групуємо (не вгадуємо)."""
+    """Ключ однакового рейсу між джерелами: номери ВСІХ рейсів маршруту, місцевий час вильоту
+    до хвилини й кількість пересадок у кожному напрямку. З пересадкою, але без сегментів
+    (Travelpayouts дає лише перший номер) — не групуємо: той самий перший рейс з різними
+    другими — різні маршрути й ціни (контрольний пошук WAW→BCN, модуль 22). Без номера — теж."""
     parts = []
     for leg in (offer.outbound, offer.inbound):
         if leg is None:
             continue
-        number = leg.segments[0].flight_number if leg.segments else leg.flight_number
-        if not number:
+        if leg.segments and len(leg.segments) == leg.stops + 1:
+            numbers = [s.flight_number for s in leg.segments]
+        elif leg.stops == 0 and leg.flight_number:
+            numbers = [leg.flight_number]
+        else:
+            return None
+        if not all(numbers):
             return None
         when = leg.departure_at.strftime("%Y-%m-%dT%H:%M")
-        parts.append(f"{number.replace(' ', '').upper()}@{when}/{leg.stops}")
+        flights = "+".join(normalize_flight_number(n) for n in numbers)
+        parts.append(f"{flights}@{when}/{leg.stops}")
     return "|".join(parts)
 
 
-def offer_groups(offers: Sequence[Offer]) -> list[OfferGroup]:
+def comparable_order(
+    offers: Sequence[Offer],
+    currency: str,
+    baggage: Mapping[str, BaggageCost],
+    freshness: Mapping[str, PriceFreshness],
+) -> dict[str, PriceOrder]:
+    """Ключ порядку «від найдешевшого» (модуль 22.5) для копій у валюті пошуку: ціна за всіх
+    пасажирів і весь маршрут, з потрібним багажем, якщо його вартість відома. Невідоме — у
+    кінці, а не попереду: ціна без курсу (інша валюта), стара ціна, яку треба перевірити
+    (`needs_recheck` — інакше вона очолила б список і картку рейсу, а в продавця вже інша),
+    потрібний багаж з невідомою доплатою."""
+    order: dict[str, PriceOrder] = {}
+    for o in offers:
+        key = offer_key(o)
+        cost = baggage.get(key)
+        total = cost.total if cost is not None else None
+        order[key] = (
+            o.currency != currency,
+            freshness.get(key) == "needs_recheck",
+            bool(baggage) and total is None,
+            total if total is not None else o.price,
+            o.source,
+            o.id,
+        )
+    return order
+
+
+def offer_groups(
+    offers: Sequence[Offer], *, order: Mapping[str, PriceOrder] | None = None
+) -> list[OfferGroup]:
+    """Перший у групі — картка рейсу: перший за `comparable_order` (без нього — за ціною)."""
     groups: dict[str, list[Offer]] = {}
     for o in offers:
         key = flight_key(o)
         if key is not None:
             groups.setdefault(key, []).append(o)
+
+    def rank(o: Offer) -> Any:
+        return order[offer_key(o)] if order is not None else (o.price, o.source)
+
     return [
-        OfferGroup(
-            key=key,
-            offer_keys=[offer_key(o) for o in sorted(items, key=lambda o: (o.price, o.source))],
-        )
+        OfferGroup(key=key, offer_keys=[offer_key(o) for o in sorted(items, key=rank)])
         for key, items in groups.items()
         if len(items) > 1
     ]
+
+
+def search_coverage(
+    statuses: Sequence[ProviderStatus],
+    shown: Sequence[Offer],
+    groups: Sequence[OfferGroup],
+    *,
+    live: set[str],
+) -> SearchCoverage:
+    per_source = Counter(o.source for o in shown)
+    grouped = sum(len(g.offer_keys) for g in groups)
+    return SearchCoverage(
+        sources=[
+            SourceCoverage(
+                provider=s.provider,
+                status=s.status,
+                live=s.provider in live,
+                received=s.results,
+                shown=per_source.get(s.provider, 0),
+            )
+            for s in statuses
+        ],
+        sellers=sorted({o.seller or o.source for o in shown}),
+        flights=len(shown) - grouped + len(groups),
+        multi_seller_flights=len(groups),
+        live_offers=sum(o.price_status == "live" for o in shown),
+    )

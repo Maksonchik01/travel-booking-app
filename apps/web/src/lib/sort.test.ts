@@ -24,6 +24,23 @@ describe("сортування перельотів (модуль 21.1)", () => 
     expect(sortOffers(offers, "score", scores).map((o) => o.id)).toEqual(["b", "a", "c"]);
   });
 
+  it("за часом вильоту — місцевий час з ISO; рівні лишаються за ціною (модуль 22.5)", () => {
+    const at = (id: string, price: number, departure_at: string) =>
+      ({ id, source: "t", price, outbound: { departure_at } }) as Offer;
+    const byDeparture = [
+      at("late", 50, "2026-12-12T21:05:00+01:00"),
+      at("early", 90, "2026-12-12T06:40:00+01:00"),
+      at("early-dearer", 120, "2026-12-12T06:40:00+01:00"),
+      at("next-day", 40, "2026-12-13T05:00:00+01:00"),
+    ];
+    expect(sortOffers(byDeparture, "departure", scores).map((o) => o.id)).toEqual([
+      "early",
+      "early-dearer",
+      "late",
+      "next-day",
+    ]);
+  });
+
   it("не змінює вхідний масив", () => {
     const copy = [...offers];
     sortOffers(offers, "duration", scores);

@@ -23,4 +23,9 @@ async def ops_summary(
     expected = settings.internal_api_key.get_secret_value().encode()
     if not x_internal_key or not hmac.compare_digest(x_internal_key.encode(), expected):
         raise HTTPException(status_code=401, detail="not_authenticated")
-    return await build_summary(settings, request.app.state.http, request.app.state.sessionmaker)
+    return await build_summary(
+        settings,
+        request.app.state.http,
+        request.app.state.sessionmaker,
+        redis=getattr(request.app.state, "redis", None),
+    )

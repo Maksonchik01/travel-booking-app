@@ -1,4 +1,5 @@
-"""Зведення для власника (`GET /ops/summary`): квота SerpApi, витрати LLM, кліки, активність.
+"""Зведення для власника (`GET /ops/summary`): квота SerpApi, витрати LLM, кліки, активність,
+охоплення пошуку джерелами.
 
 Лише агрегати — без email, токенів чи текстів. Кожна частина незалежна: збій SerpApi чи БД
 дає `None` у своїй секції і рядок у `problems`, а не помилку всього зведення.
@@ -11,6 +12,7 @@ from decimal import Decimal
 import httpx
 import structlog
 from pydantic import BaseModel
+from redis.asyncio import Redis
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -23,6 +25,7 @@ from tickets_api.db.models import (
     PriceObservation,
     User,
 )
+from tickets_api.repositories.search_coverage import read_coverage
 
 log = structlog.get_logger(__name__)
 
@@ -73,6 +76,22 @@ class Usage(BaseModel):
     """режим → {started, succeeded, empty, failed}."""
 
 
+class SourceStats(BaseModel):
+    statuses: dict[str, int]
+    """статус (ok / error / timeout / rate_limited / unsupported) → скільки пошуків."""
+    received: int
+    shown: int
+
+
+class SearchCoverageSummary(BaseModel):
+    """Охоплення пошуку перельотів за 7 днів (модуль 22.8): як відповідали джерела."""
+
+    searches_7d: int
+    multi_seller_flights_7d: int
+    """Рейсів, що продавались у кількох продавців (порівняння цін спрацювало)."""
+    sources: dict[str, SourceStats]
+
+
 class OpsSummary(BaseModel):
     generated_at: datetime
     serpapi: SerpApiQuota | None
@@ -80,6 +99,7 @@ class OpsSummary(BaseModel):
     clicks: Clicks | None
     activity: Activity | None
     usage: Usage | None = None
+    coverage: SearchCoverageSummary | None = None
     problems: list[str]
 
 
@@ -110,6 +130,24 @@ async def usage_summary(sessionmaker: async_sessionmaker[AsyncSession], now: dat
             outcome = searches.setdefault(mode, dict.fromkeys(SEARCH_OUTCOMES.values(), 0))
             outcome[SEARCH_OUTCOMES[name]] += int(count)
     return Usage(events_7d=events, searches_7d=searches)
+
+
+def coverage_summary(totals: dict[str, int]) -> SearchCoverageSummary:
+    sources: dict[str, SourceStats] = {}
+    for field, value in totals.items():
+        provider, sep, part = field.rpartition(":")
+        if not sep:
+            continue
+        stats = sources.setdefault(provider, SourceStats(statuses={}, received=0, shown=0))
+        if part in ("received", "shown"):
+            setattr(stats, part, getattr(stats, part) + value)
+        else:
+            stats.statuses[part] = stats.statuses.get(part, 0) + value
+    return SearchCoverageSummary(
+        searches_7d=totals.get("searches", 0),
+        multi_seller_flights_7d=totals.get("multi_seller_flights", 0),
+        sources=dict(sorted(sources.items())),
+    )
 
 
 async def serpapi_quota(settings: Settings, http: httpx.AsyncClient) -> SerpApiQuota | None:
@@ -187,6 +225,7 @@ async def build_summary(
     http: httpx.AsyncClient,
     sessionmaker: async_sessionmaker[AsyncSession],
     now: datetime | None = None,
+    redis: Redis | None = None,
 ) -> OpsSummary:
     now = now or datetime.now(UTC)
     problems: list[str] = []
@@ -208,8 +247,16 @@ async def build_summary(
     except Exception as exc:
         log.warning("ops.usage_failed", error=type(exc).__name__)
         problems.append(f"usage: {type(exc).__name__}")
+    coverage = None
+    if redis is not None:
+        try:
+            coverage = coverage_summary(await read_coverage(redis, now))
+        except Exception as exc:
+            log.warning("ops.coverage_failed", error=type(exc).__name__)
+            problems.append(f"coverage: {type(exc).__name__}")
     return OpsSummary(
         generated_at=now,
+        coverage=coverage,
         serpapi=serpapi,
         llm=llm,
         clicks=clicks,

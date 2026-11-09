@@ -32,8 +32,8 @@ services:
         sync: false
       - key: CORS_ORIGINS # та сама адреса Vercel
         sync: false
-      - key: FLIGHT_PROVIDERS
-        value: serpapi
+      - key: FLIGHT_PROVIDERS # живі ціни + продавці з кешу Aviasales (ADR 0041)
+        value: serpapi,travelpayouts
       - key: CALENDAR_PROVIDERS
         value: travelpayouts
       - key: STAY_PROVIDERS

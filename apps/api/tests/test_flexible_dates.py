@@ -73,7 +73,8 @@ async def test_cheapest_cached_pairs_are_checked_live() -> None:
     ]
     # Альтернативні дати: найкраща ціна на пару, перевірена наживо чи лише кешована.
     options = [(o.departure.day, int(o.price), o.verified) for o in result.date_options]
-    assert options == [(6, 80, True), (4, 90, False), (7, 120, False)]
+    # 6-го кешована 80, а жива перевірка дала 95 — показуємо перевірену (модуль 22).
+    assert options == [(4, 90, False), (6, 95, True), (7, 120, False)]
     assert {p.provider for p in result.providers} == {"cached", "live"}
 
 
@@ -209,7 +210,8 @@ async def test_nights_filter_applies_to_live_and_cached_offers() -> None:
         DatePair(departure=d(2026, 12, 10), return_date=d(2026, 12, 14)),
     ]
     nights = {(o.departure.day, o.nights, o.nights_approximate) for o in result.date_options}
-    assert nights == {(5, 6, True), (10, 4, True)}
+    # 10-го — перевірена жива ціна з відомим прильотом: ночі точні (модуль 22).
+    assert nights == {(5, 6, True), (10, 4, False)}
 
 
 async def test_matrix_uses_cached_sources_only_and_keeps_cheapest_per_cell() -> None:
