@@ -2,7 +2,12 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query
 
-from tickets_api.reference.airports import Lang, Place, default_airport_directory
+from tickets_api.reference.airports import (
+    Lang,
+    Place,
+    default_airport_directory,
+    default_country_codes,
+)
 
 router = APIRouter(prefix="/places", tags=["places"])
 
@@ -22,3 +27,9 @@ async def search_places(
     if kind == "city":
         return directory.search_cities(q, limit=limit, lang=lang)
     return directory.search(q, limit=limit, lang=lang)
+
+
+@router.get("/countries", response_model=list[str])
+async def countries() -> list[str]:
+    """Коди країн довідника (ISO 3166-1 alpha-2); назви мовою сторінки підставляє веб."""
+    return default_country_codes()

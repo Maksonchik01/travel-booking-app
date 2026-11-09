@@ -76,6 +76,19 @@ def _option(
     stay: Any,
     airline_names: dict[str, str],
 ) -> dict[str, Any]:
+    return {
+        "id": pick.label,
+        "title": TRIP_TITLES[pick.label],
+        "also": [TRIP_TITLES[label] for label in pick.also],
+        "over_budget": pick.over_budget,
+        **combo_facts(combo, offer, stay, airline_names),
+    }
+
+
+def combo_facts(
+    combo: TripCombo, offer: Offer, stay: Any, airline_names: dict[str, str]
+) -> dict[str, Any]:
+    """Одна поїздка текстами для моделі: суми, розбивка, рейс, житло, попередження."""
     currency = combo.currency
     costs = combo.costs
     parts = [f"квитки {money_text(combo.flight_price, currency)}"]
@@ -93,15 +106,12 @@ def _option(
         elif item.kind == "extra" and item.amount is not None:
             parts.append(f"{item.label} {money_text(item.amount, currency)}")
     return {
-        "id": pick.label,
-        "title": TRIP_TITLES[pick.label],
-        "also": [TRIP_TITLES[label] for label in pick.also],
-        "over_budget": pick.over_budget,
         "money_total_text": money_text(combo.money_total, currency),
         "breakdown_text": " + ".join(parts),
         "confirmed_text": money_text(costs.confirmed, currency),
         "approximate_text": money_text(costs.approximate, currency),
         "unknown_parts": costs.unknown,
+        "prices_cached": offer.price_status != "live",
         "flight": {
             "flight_total_text": money_text(combo.flight_total, currency),
             "airlines": [airline_names.get(c, c) for c in offer.airlines],
@@ -114,6 +124,7 @@ def _option(
             **stay_facts(stay),
             "check_in": combo.window.check_in.isoformat(),
             "check_out": combo.window.check_out.isoformat(),
+            "nights": combo.window.nights,
         },
         "warnings": combo.warnings,
     }

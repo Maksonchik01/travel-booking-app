@@ -45,11 +45,18 @@ const SCORE: StayScore = {
     transit_penalty: 0,
     rating_penalty: 6.15,
     cancellation_penalty: 0,
+    amenity_penalty: 4,
+    missing_amenities: ["parking"],
     adjusted_rating: 8.59,
     total: 129.85,
   },
   warnings: [{ code: "few_reviews" }],
   pareto_optimal: true,
+  reasons: [
+    { code: "pricier_but_closer", vs: "cheapest", amount: 30, km: 2.6 },
+    { code: "cheaper_than_top_rated", vs: "top_rated", amount: 45, rating: 0.4 },
+    { code: "within_budget", amount: 38 },
+  ],
 };
 
 const QUERY: StayQuery = {
@@ -89,6 +96,17 @@ describe("StayCard", () => {
     const breakdown = screen.getByTestId("stay-breakdown");
     expect(within(breakdown).getByTestId("stay-total-score")).toHaveTextContent("129,85 €");
     expect(screen.getByText("Мало відгуків — оцінка ненадійна")).toBeInTheDocument();
+    // «Чому цей варіант?»: конкретні порівняння й бажані зручності (модуль 14).
+    expect(screen.getByText("Чому цей варіант?")).toBeInTheDocument();
+    const why = screen.getByTestId("stay-why-reasons");
+    expect(why).toHaveTextContent(
+      "На 30 € дорожчий за найдешевший, але на 2,6 км ближче до центру",
+    );
+    expect(why).toHaveTextContent(
+      "На 45 € дешевший за найкраще оцінений, рейтинг нижчий лише на 0,4",
+    );
+    expect(why).toHaveTextContent("У межах бюджету, запас 38 €");
+    expect(breakdown).toHaveTextContent("Бракує бажаного: Парковка+4 €");
   });
 
   it("невідоме — так і пишемо, а не «ні»", () => {

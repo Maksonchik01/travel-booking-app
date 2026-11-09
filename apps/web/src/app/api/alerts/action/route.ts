@@ -1,19 +1,19 @@
 import type { NextRequest } from "next/server";
 
-import { changeAlert } from "@/lib/api";
+import { backUrl } from "@/lib/alert-routes";
+import { type AlertAction, changeAlert } from "@/lib/api";
+
+const ACTIONS: readonly AlertAction[] = ["confirm", "stop", "pause", "resume", "delete"];
 
 /**
- * Кнопки сторінки керування (звичайна форма — працює без JS): підтвердити чи вимкнути
- * підписку, і повернутися на ту саму сторінку з результатом.
+ * Кнопки керування підпискою (звичайна форма — працює без JS): підтвердити, вимкнути,
+ * призупинити, відновити, видалити — і повернутися туди, звідки натиснули, з результатом.
  */
 export async function POST(request: NextRequest) {
   const form = await request.formData();
   const token = String(form.get("token") ?? "");
-  const action = form.get("action") === "confirm" ? "confirm" : "stop";
+  const action = ACTIONS.find((a) => a === form.get("action")) ?? "stop";
   const result = token ? await changeAlert(action, token) : null;
   const done = result?.ok ? action : "failed";
-  const url = new URL("/alerts", request.url);
-  url.searchParams.set("token", token);
-  url.searchParams.set("done", done);
-  return Response.redirect(url, 303);
+  return Response.redirect(backUrl(request, form, token, done, action === "delete"), 303);
 }

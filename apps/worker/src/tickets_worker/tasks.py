@@ -1,7 +1,9 @@
 from typing import Any
 
 import structlog
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from tickets_api.services.alerts import AlertService
+from tickets_api.services.maintenance import prune_expired
 from tickets_api.services.telegram_bot import TelegramBotService
 
 log = structlog.get_logger(__name__)
@@ -25,3 +27,9 @@ async def poll_telegram(ctx: dict[str, Any]) -> int:
     """Забрати нові повідомлення й натискання кнопок бота і відповісти."""
     bot: TelegramBotService = ctx["bot"]
     return await bot.poll()
+
+
+async def prune_database(ctx: dict[str, Any]) -> int:
+    """Раз на добу: прострочені сесії входу й токени з листів (модуль 16)."""
+    sessionmaker: async_sessionmaker[AsyncSession] = ctx["sessionmaker"]
+    return await prune_expired(sessionmaker)

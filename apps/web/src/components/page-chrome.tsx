@@ -8,7 +8,8 @@ import { fetchReadiness } from "@/lib/api";
 /** М'яке синє сяйво й пунктир маршруту за пошуком — лише декор. */
 export function HeroBackdrop() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+    // overflow-hidden: розмиті плями за краєм не дають горизонтальної прокрутки на телефоні.
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       <div className="from-primary/[0.08] absolute inset-0 bg-gradient-to-b via-sky-500/[0.03] to-transparent" />
       <div className="bg-primary/20 absolute -top-24 -right-24 size-80 rounded-full blur-3xl" />
       <div className="absolute -top-16 left-1/3 size-64 rounded-full bg-sky-400/15 blur-3xl" />

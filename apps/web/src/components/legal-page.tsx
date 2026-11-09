@@ -4,7 +4,7 @@ import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { SiteHeader } from "@/components/site-header";
 
 /** Дата останньої правки текстів у `legal.*` (uk.json) — оновлюйте разом із текстом. */
-export const LEGAL_UPDATED = "2026-11-08";
+export const LEGAL_UPDATED = "2026-11-09";
 
 type Section = { h: string; p: string[] };
 
@@ -17,7 +17,7 @@ export function LegalPage({ page }: { page: "terms" | "privacy" | "howItWorks" }
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <SiteHeader active={null} />
-      <main className="relative isolate flex-1">
+      <main id="main" tabIndex={-1} className="outline-none relative isolate flex-1">
         <HeroBackdrop />
         <article className="mx-auto grid w-full max-w-2xl gap-6 px-4 py-8 sm:py-12">
           <header className="grid gap-2">

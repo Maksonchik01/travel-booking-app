@@ -46,7 +46,9 @@ export function ShowMore({ items }: { items: { key: string; node: ReactNode }[] 
             key={item.key}
             id={item.key}
             hidden={i >= limit}
-            className="animate-in fade-in-0 slide-in-from-bottom-2 scroll-mt-20 duration-300"
+            // content-visibility: картки нижче екрана браузер не верстає й не малює, поки до них
+            // не догорнули — довга видача не гальмує телефон (модуль 17.5).
+            className="animate-in fade-in-0 slide-in-from-bottom-2 scroll-mt-20 duration-300 [contain-intrinsic-size:auto_16rem] [content-visibility:auto]"
           >
             {item.node}
           </li>

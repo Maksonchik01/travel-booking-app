@@ -48,11 +48,22 @@ def _build(
 
 
 def build_providers(
-    names: Sequence[str], settings: Settings, http: httpx.AsyncClient, redis: Redis
+    names: Sequence[str],
+    settings: Settings,
+    http: httpx.AsyncClient,
+    redis: Redis,
+    *,
+    pool: dict[str, FlightProvider] | None = None,
 ) -> list[FlightProvider]:
+    """`pool` — спільні екземпляри: пошук і календар з одного джерела ділять ліміт одночасних
+    запитів і об'єднання однакових запитів (модуль 17.2), а не мають кожен свої."""
     providers = []
     for name in dict.fromkeys(names):  # без дублів, порядок зберігається
-        provider = _build(name, settings, http, redis)
+        provider = pool.get(name) if pool is not None else None
+        if provider is None:
+            provider = _build(name, settings, http, redis)
+            if provider is not None and pool is not None:
+                pool[name] = provider
         if provider is not None:
             providers.append(provider)
     return providers

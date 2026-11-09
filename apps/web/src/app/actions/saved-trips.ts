@@ -1,6 +1,6 @@
 "use server";
 
-import type { SavedTrip, SavedTripBody } from "@tickets/shared";
+import type { SavedTrip, SavedTripBody, SavedTripPatch } from "@tickets/shared";
 
 import { call, sessionToken } from "@/lib/session";
 
@@ -43,8 +43,9 @@ export async function updateSavedTrip(id: string, body: SavedTripBody): Promise<
   return one("PUT", `/account/trips/${encodeURIComponent(id)}`, body);
 }
 
-export async function renameSavedTrip(id: string, title: string): Promise<One> {
-  return one("PATCH", `/account/trips/${encodeURIComponent(id)}`, { title });
+/** Назва та/або статус (чернетка / запланована / архівна). */
+export async function patchSavedTrip(id: string, patch: SavedTripPatch): Promise<One> {
+  return one("PATCH", `/account/trips/${encodeURIComponent(id)}`, patch);
 }
 
 export async function deleteSavedTrip(id: string): Promise<{ signedIn: boolean; ok: boolean }> {

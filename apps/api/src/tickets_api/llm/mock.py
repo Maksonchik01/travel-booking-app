@@ -62,8 +62,22 @@ def _assistant_answer(request: ChatRequest, tools: set[str]) -> ChatResponse:
         )
 
     said = " ".join(m.content for m in request.messages if m.role == "user")
+    last = next((m.content for m in reversed(request.messages) if m.role == "user"), "").lower()
     if not results and len(said.split()) < 2:
         return text(QUESTIONS[mode])
+    # Модуль 9a: прості команди за ключовими словами (не розуміння мови — сценарій для e2e).
+    if mode == "trip" and context.get("current_trip"):
+        command = _trip_command(last, context)
+        if command is not None:
+            if not results:
+                return call(*command)
+            return text(_command_text(results[-1]))
+    if mode == "flights" and context.get("current_search") and not results:
+        change = _flight_change(last)
+        if change:
+            return call("refine_flights", change)
+    if mode == "flights" and results and "active_filters" in results[-1] and flights:
+        return text(_flight_text(flights) or "")
     if mode == "trip":
         if trip is None:
             return_date = departure + timedelta(days=3)
@@ -87,6 +101,56 @@ def _assistant_answer(request: ChatRequest, tools: set[str]) -> ChatResponse:
         check_out = (date.fromisoformat(check_in) + timedelta(days=3)).isoformat()
         return call("search_stays", {"city": "LIS", "check_in": check_in, "check_out": check_out})
     return text(" ".join(filter(None, (_flight_text(flights), _stay_text(stays)))))
+
+
+def _number(text: str) -> int | None:
+    digits = "".join(ch if ch.isdigit() else " " for ch in text).split()
+    return int(digits[-1]) if digits else None
+
+
+def _flight_change(said: str) -> dict[str, Any]:
+    change: dict[str, Any] = {}
+    if "прям" in said:
+        change["direct_only"] = True
+    if "після" in said and (hour := _number(said.split("після", 1)[1][:6])) is not None:
+        change["departure_after"] = min(hour, 23)
+    if "бюджет" in said and (amount := _number(said.split("бюджет", 1)[1])) is not None:
+        change["max_price"] = amount
+    return change
+
+
+def _trip_command(said: str, context: dict[str, Any]) -> tuple[str, dict[str, Any]] | None:
+    if "повер" in said:
+        return "undo_trip", {}
+    if "збереж" in said:
+        return "save_trip", {}
+    if "порівн" in said:
+        second = "previous" if context.get("previous_trip") else "cheapest"
+        return "compare_trips", {"first": "current", "second": second}
+    if "швидш" in said:
+        return "change_trip", {"flight": "faster", "stay": "keep"}
+    if "дешевш" in said and ("готел" in said or "житл" in said):
+        return "change_trip", {"flight": "keep", "stay": "cheaper"}
+    if "ближч" in said:
+        return "change_trip", {"flight": "keep", "stay": "closer_to_center"}
+    if "бюджет" in said and (amount := _number(said)) is not None:
+        key = "budget_change" if " на " in said else "budget_total"
+        return "change_trip", {key: amount}
+    return None
+
+
+def _command_text(result: dict[str, Any]) -> str:
+    if "error" in result:
+        return "Не вдалося виконати: " + str(result["error"])
+    if "after" in result:
+        if result.get("no_better_option_found"):
+            return "Кращого варіанта серед знайдених немає."
+        return f"Готово: тепер разом {result['after']['money_total_text']}."
+    if "second_minus_first_text" in result:
+        return "Порівняння додано на панель."
+    if "title" in result and "money_total_text" in result:
+        return f"Зберіг поїздку «{result['title']}»."
+    return "Готово."
 
 
 def _trip_text(result: dict[str, Any]) -> str:

@@ -7,6 +7,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { hoursAgo } from "@/lib/format";
+import { RetryNotice } from "@/components/retry";
+import { fetchWithTimeout } from "@/lib/client-fetch";
 import { outboundHref } from "@/lib/outbound";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +56,7 @@ export function SellerOffers({
     if (!checkable?.booking_ref) return;
     setCheck({ state: "loading" });
     try {
-      const response = await fetch("/api/flights/sellers", {
+      const response = await fetchWithTimeout("/api/flights/sellers", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -88,7 +90,7 @@ export function SellerOffers({
                 "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-3 py-2",
                 o.price_status === "live" &&
                   o.price === cheapestLive &&
-                  "border-emerald-500/50 bg-emerald-500/5",
+                  "border-success/50 bg-success/5",
               )}
               data-testid="seller-row"
             >
@@ -144,6 +146,7 @@ export function SellerOffers({
           source={checkable?.source ?? offer.source}
           now={now}
           money={money}
+          onRetry={() => void verify()}
         />
       )}
       {!checkable && <p className="text-muted-foreground text-xs">{t("finalAtSeller")}</p>}
@@ -158,7 +161,9 @@ function CheckedSellers({
   source,
   now,
   money,
+  onRetry,
 }: {
+  onRetry: () => void;
   result: SellersResult;
   searchPrice: number;
   currency: string;
@@ -174,6 +179,7 @@ function CheckedSellers({
         : result.status === "unsupported" || result.status === "ok"
           ? "finalAtSeller"
           : "checkFailed";
+    if (key === "checkFailed") return <RetryNotice message={t(key)} onRetry={onRetry} />;
     return (
       <p className="text-muted-foreground text-xs" role="status">
         {t(key)}
@@ -189,12 +195,12 @@ function CheckedSellers({
   return (
     <div className="grid gap-1.5" data-testid="checked-sellers">
       <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
-        <BadgeCheck className="size-3.5 text-emerald-600" aria-hidden />
+        <BadgeCheck className="size-3.5 text-success" aria-hidden />
         {minutes != null && minutes > 1 ? t("checkedMinutes", { minutes }) : t("checkedNow")}
       </p>
       {changed && (
         <p
-          className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-xs"
+          className="rounded-md border border-warning/40 bg-warning/10 px-2 py-1 text-xs"
           role="status"
         >
           {t("priceChanged", {
@@ -237,7 +243,7 @@ function SellerRow({
     <li
       className={cn(
         "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-3 py-2",
-        cheapest && "border-emerald-500/50 bg-emerald-500/5",
+        cheapest && "border-success/50 bg-success/5",
       )}
       data-testid="checked-seller"
     >

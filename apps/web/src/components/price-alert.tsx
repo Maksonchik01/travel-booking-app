@@ -6,24 +6,27 @@ import type {
   AlertCreate,
   AlertCreated,
   ChannelStatus,
-  FlightQuery,
 } from "@tickets/shared";
-import { Bell, BellRing, Loader2, Mail, Send, X } from "lucide-react";
+import { Bell, BellOff, BellRing, Loader2, Mail, Send, X } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import type { AlertKind, AlertTarget } from "@/lib/alerts";
 import { FIELD_CLASS } from "@/lib/styles";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
+import { fetchWithTimeout } from "@/lib/client-fetch";
 
 /** Підписки, створені в цьому браузері: маршрут → токен керування (лише локально). */
 const WATCHED_KEY = "tickets.alerts.v1";
 
+const PERCENTS = [5, 10, 15, 20, 30] as const;
+
 type Props = {
-  query: FlightQuery;
-  /** Найкраща ціна зараз — від неї пропонуємо поріг. */
+  target: AlertTarget;
+  /** Найкраща ціна зараз (за всіх) — від неї пропонуємо поріг. */
   bestPrice: number | null;
   channels: ChannelStatus;
   /** Підміна мережі в тестах. */
@@ -31,16 +34,12 @@ type Props = {
 };
 
 async function createViaApi(body: AlertCreate): Promise<AlertCreated | null> {
-  const response = await fetch("/api/alerts", {
+  const response = await fetchWithTimeout("/api/alerts", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
   return response.ok ? ((await response.json()) as AlertCreated) : null;
-}
-
-function routeKey(q: FlightQuery): string {
-  return [q.origin, q.destination, q.departure_date, q.return_date ?? ""].join("|");
 }
 
 function readWatched(): Record<string, string> {
@@ -51,9 +50,9 @@ function readWatched(): Record<string, string> {
   }
 }
 
-function remember(q: FlightQuery, token: string) {
+function remember(key: string, token: string) {
   try {
-    localStorage.setItem(WATCHED_KEY, JSON.stringify({ ...readWatched(), [routeKey(q)]: token }));
+    localStorage.setItem(WATCHED_KEY, JSON.stringify({ ...readWatched(), [key]: token }));
   } catch {
     // без сховища позначки «стежите» не буде — підписка від цього не залежить
   }
@@ -64,18 +63,31 @@ function suggestedThreshold(best: number | null): number {
   return best ? Math.max(1, Math.floor(best * 0.9)) : 100;
 }
 
+/** Зниження на суму за замовчуванням — 10% від поточної ціни (щонайменше 5). */
+function suggestedDrop(best: number | null): number {
+  return best ? Math.max(5, Math.round(best * 0.1)) : 20;
+}
+
 /**
- * «Стежити за ціною»: підписка на маршрут з умовою й каналом. Без акаунта — підтвердження
- * в Telegram (/start) чи листом; керування — за посиланням з токеном.
+ * «Стежити за ціною»: підписка з умовою й каналом. Без акаунта — підтвердження
+ * в Telegram (/start) чи листом; керування — за посиланням з токеном. Тип, якого зараз
+ * не можна створити (житло без реального джерела), — неактивна кнопка з поясненням.
  */
 export function PriceAlert(props: Props) {
+  if (!props.channels.kinds?.includes(props.target.kind)) {
+    return <AlertUnavailable kind={props.target.kind} />;
+  }
+  return <AvailableAlert {...props} />;
+}
+
+function AvailableAlert(props: Props) {
   const hydrated = useHydrated();
   // До гідратації localStorage недоступний — показуємо кнопку, потім позначку «стежите».
   return <AlertPanel key={hydrated ? "client" : "server"} restored={hydrated} {...props} />;
 }
 
 function AlertPanel({
-  query,
+  target,
   bestPrice,
   channels,
   create = createViaApi,
@@ -84,10 +96,14 @@ function AlertPanel({
   const t = useTranslations("alerts");
   const [open, setOpen] = useState(false);
   const [watchToken, setWatchToken] = useState(() =>
-    restored ? (readWatched()[routeKey(query)] ?? null) : null,
+    restored ? (readWatched()[target.key] ?? null) : null,
   );
   const [condition, setCondition] = useState<AlertCondition>("below_price");
   const [threshold, setThreshold] = useState(String(suggestedThreshold(bestPrice)));
+  const [amount, setAmount] = useState(String(suggestedDrop(bestPrice)));
+  const [percent, setPercent] = useState<number>(10);
+  const [weekends, setWeekends] = useState(false);
+  const currency = target.base.currency ?? "EUR";
   const [channel, setChannel] = useState<AlertChannel>("telegram");
   const [email, setEmail] = useState("");
   const [created, setCreated] = useState<AlertCreated | null>(null);
@@ -101,14 +117,16 @@ function AlertPanel({
       let result: AlertCreated | null;
       try {
         result = await create({
-          origin: query.origin,
-          destination: query.destination,
-          departure_date: query.departure_date,
-          return_date: query.return_date ?? null,
-          adults: query.passengers?.adults ?? 1,
+          ...target.base,
+          weekends: target.kind === "flex" && weekends,
           condition,
-          threshold: condition === "below_price" ? Number(threshold) : null,
-          currency: query.currency ?? "EUR",
+          threshold:
+            condition === "below_price"
+              ? Number(threshold)
+              : condition === "drop_amount"
+                ? Number(amount)
+                : null,
+          percent: condition === "drop_percent" ? percent : null,
           channel,
           email: channel === "email" ? email.trim() : null,
         });
@@ -119,7 +137,7 @@ function AlertPanel({
         setFailed(true);
         return;
       }
-      remember(query, result.manage_token);
+      remember(target.key, result.manage_token);
       setCreated(result);
       setWatchToken(result.manage_token);
     });
@@ -142,6 +160,8 @@ function AlertPanel({
         type="button"
         variant="outline"
         onClick={() => setOpen(true)}
+        // До гідратації клік загубився б (а панель ще й перемонтується) — кнопка неактивна.
+        disabled={!restored}
         className="bg-card hover:border-primary/50 hover:text-primary w-fit rounded-full shadow-xs"
       >
         <Bell className="size-4" aria-hidden />
@@ -159,7 +179,9 @@ function AlertPanel({
         <div className="grid gap-0.5">
           <h2 id="price-alert-title" className="flex items-center gap-2 font-semibold">
             <Bell className="text-primary size-4" aria-hidden />
-            {t("title", { from: query.origin, to: query.destination })}
+            {target.kind === "stay"
+              ? t("titleStay", { city: target.title.to })
+              : t("title", target.title)}
           </h2>
           <p className="text-muted-foreground text-xs">{t("hint")}</p>
         </div>
@@ -181,42 +203,74 @@ function AlertPanel({
             <legend className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
               {t("condition")}
             </legend>
-            <label className="flex flex-wrap items-center gap-2">
-              <input
-                type="radio"
-                name="condition"
-                checked={condition === "below_price"}
-                onChange={() => setCondition("below_price")}
-                className="size-4"
-              />
+            <ConditionRow value="below_price" current={condition} onPick={setCondition}>
               {t("belowPrice")}
-              <input
-                type="number"
-                min={1}
-                step={1}
-                inputMode="numeric"
-                aria-label={t("threshold", { currency: query.currency ?? "EUR" })}
+              <AmountInput
+                label={t("threshold", { currency })}
                 value={threshold}
-                onChange={(e) => setThreshold(e.target.value)}
-                disabled={condition !== "below_price"}
-                required={condition === "below_price"}
-                className={cn(FIELD_CLASS, "border-input h-9 w-24 border px-2 text-sm")}
+                onChange={setThreshold}
+                active={condition === "below_price"}
               />
-              <span className="text-muted-foreground">
-                {t("perAdult", { currency: query.currency ?? "EUR" })}
-              </span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="condition"
-                checked={condition === "below_typical"}
-                onChange={() => setCondition("below_typical")}
-                className="size-4"
+              <span className="text-muted-foreground">{t("forAll", { currency })}</span>
+            </ConditionRow>
+            <ConditionRow value="drop_amount" current={condition} onPick={setCondition}>
+              {t("dropAmount")}
+              <AmountInput
+                label={t("dropAmountLabel", { currency })}
+                value={amount}
+                onChange={setAmount}
+                active={condition === "drop_amount"}
               />
-              {t("belowTypical")}
-            </label>
+              <span className="text-muted-foreground">{currency}</span>
+            </ConditionRow>
+            <ConditionRow value="drop_percent" current={condition} onPick={setCondition}>
+              {t("dropPercent")}
+              <select
+                aria-label={t("dropPercentLabel")}
+                value={percent}
+                onChange={(e) => setPercent(Number(e.target.value))}
+                disabled={condition !== "drop_percent"}
+                className={cn(FIELD_CLASS, "border-input h-9 w-20 border px-2 text-sm")}
+              >
+                {PERCENTS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}%
+                  </option>
+                ))}
+              </select>
+            </ConditionRow>
+            {target.kind === "flight" && (
+              <ConditionRow value="below_typical" current={condition} onPick={setCondition}>
+                {t("belowTypical")}
+              </ConditionRow>
+            )}
+            <p className="text-muted-foreground text-xs">{t("dropHint")}</p>
           </fieldset>
+
+          {target.kind === "flex" && (
+            <div className="grid gap-1 text-sm">
+              <p className="text-muted-foreground text-xs">
+                {t("flexSummary", {
+                  from: target.base.departure_date,
+                  until: target.base.departure_until ?? "",
+                  min: target.base.min_nights ?? 1,
+                  max: target.base.max_nights ?? target.base.min_nights ?? 1,
+                })}
+              </p>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={weekends}
+                  onChange={(e) => setWeekends(e.target.checked)}
+                  className="accent-primary size-4"
+                />
+                {t("weekends")}
+              </label>
+            </div>
+          )}
+          {target.base.baggage && target.base.baggage !== "none" && (
+            <p className="text-muted-foreground text-xs">{t("baggageNote")}</p>
+          )}
 
           <fieldset className="grid gap-2 text-sm">
             <legend className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">
@@ -261,7 +315,7 @@ function AlertPanel({
           </fieldset>
 
           {failed && (
-            <p role="alert" className="text-sm text-amber-700 dark:text-amber-400">
+            <p role="alert" className="text-sm text-warning">
               {t("error")}
             </p>
           )}
@@ -286,7 +340,9 @@ function Created({ created, channels }: { created: AlertCreated; channels: Chann
   const t = useTranslations("alerts");
   return (
     <div role="status" className="grid gap-3 text-sm">
-      {created.channel === "telegram" && created.telegram_link ? (
+      {created.existing ? (
+        <p>{t("existing")}</p>
+      ) : created.channel === "telegram" && created.telegram_link ? (
         <>
           <p>{t("telegramNext")}</p>
           <a
@@ -308,6 +364,72 @@ function Created({ created, channels }: { created: AlertCreated; channels: Chann
       >
         {t("manage")}
       </Link>
+    </div>
+  );
+}
+
+function ConditionRow({
+  value,
+  current,
+  onPick,
+  children,
+}: {
+  value: AlertCondition;
+  current: AlertCondition;
+  onPick: (value: AlertCondition) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex flex-wrap items-center gap-2">
+      <input
+        type="radio"
+        name="condition"
+        checked={current === value}
+        onChange={() => onPick(value)}
+        className="size-4"
+      />
+      {children}
+    </label>
+  );
+}
+
+function AmountInput({
+  label,
+  value,
+  onChange,
+  active,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  active: boolean;
+}) {
+  return (
+    <input
+      type="number"
+      min={1}
+      step={1}
+      inputMode="numeric"
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={!active}
+      required={active}
+      className={cn(FIELD_CLASS, "border-input h-9 w-24 border px-2 text-sm")}
+    />
+  );
+}
+
+/** Тип підписки поки недоступний (житло й поїздка — без реального джерела житла, ТЗ 11.4). */
+export function AlertUnavailable({ kind }: { kind: AlertKind | "party" }) {
+  const t = useTranslations("alerts");
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-sm" data-testid="alert-unavailable">
+      <Button type="button" variant="outline" disabled className="w-fit rounded-full">
+        <BellOff className="size-4" aria-hidden />
+        {t("watch")}
+      </Button>
+      <span className="text-muted-foreground text-xs">{t(`unavailable.${kind}`)}</span>
     </div>
   );
 }

@@ -1,9 +1,16 @@
-import type { ChatMode, ChatTurn } from "@tickets/shared";
+import type {
+  ChatCard,
+  ChatConversationBody,
+  ChatConversationOut,
+  ChatMode,
+  ChatTurn,
+} from "@tickets/shared";
 
 /**
- * Історія розмов з помічником — лише в цьому браузері (localStorage): на сервері її немає,
- * користувач може видалити будь-яку розмову чи всю історію. Кожна розмова має свій режим
- * (квитки / житло / уся поїздка), тож теми не змішуються.
+ * Історія розмов з помічником — у цьому браузері (localStorage); з акаунтом і ЛИШЕ за згодою
+ * («Синхронізувати між пристроями», модуль 9c) — ще й в акаунті. Користувач може
+ * перейменувати чи видалити будь-яку розмову. Кожна розмова має свій режим (квитки / житло /
+ * уся поїздка), тож теми не змішуються.
  */
 export const CHAT_STORAGE_KEY = "tickets.chats.v2";
 export const MAX_CONVERSATIONS = 30;
@@ -11,9 +18,16 @@ export const MAX_CONVERSATIONS = 30;
 export const MAX_STORED_TURNS = 80;
 const TITLE_LENGTH = 60;
 
-/** Репліка в браузері: для «усієї поїздки» — ще й посилання на знайдене. */
+/**
+ * Картка результату в репліці (модуль 9b) з готовими посиланнями: «Переглянути» — сторінка
+ * результатів з якорем, `trip` — перенести в планувальник.
+ */
+export type StoredCard = { card: ChatCard; href?: string; trip?: string };
+
+/** Репліка в браузері: для «усієї поїздки» — ще й посилання на знайдене й картки. */
 export type StoredTurn = ChatTurn & {
   links?: { flights?: string; stays?: string; trip?: string };
+  cards?: StoredCard[];
 };
 
 export type Conversation = {
@@ -118,4 +132,57 @@ export function historyList(store: ChatStore): Conversation[] {
 function truncate(text: string): string {
   const clean = text.replace(/\s+/g, " ").trim();
   return clean.length > TITLE_LENGTH ? `${clean.slice(0, TITLE_LENGTH - 1)}…` : clean;
+}
+
+/** «Перейменувати»: власна назва замість першого питання. */
+export function rename(store: ChatStore, id: string, title: string): ChatStore {
+  return {
+    ...store,
+    conversations: store.conversations.map((c) =>
+      c.id === id ? { ...c, title: truncate(title) || c.title } : c,
+    ),
+  };
+}
+
+/** Для синхронізації (модуль 9c): розмова так, як її приймає API. */
+export function toBody(c: Conversation): ChatConversationBody {
+  return {
+    mode: c.mode,
+    title: c.title,
+    created_at: c.createdAt,
+    updated_at: c.updatedAt,
+    turns: c.turns as ChatConversationBody["turns"],
+  };
+}
+
+/**
+ * Злиття браузера й акаунта: та сама розмова (id) — новіша перемагає; решта — разом.
+ * Повертає новий стан і розмови, яких в акаунті немає чи там вони старіші (їх вивантажити).
+ */
+export function mergeStores(
+  local: ChatStore,
+  remote: ChatConversationOut[],
+): { store: ChatStore; upload: Conversation[] } {
+  const byId = new Map(local.conversations.map((c) => [c.id, c]));
+  const remoteIds = new Map(remote.map((r) => [r.id, r.updated_at]));
+  for (const r of remote) {
+    const mine = byId.get(r.id);
+    if (!mine || mine.updatedAt < r.updated_at) {
+      byId.set(r.id, {
+        id: r.id,
+        mode: r.mode,
+        title: r.title ?? "",
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        turns: r.turns as StoredTurn[],
+      });
+    }
+  }
+  const conversations = [...byId.values()]
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .slice(0, MAX_CONVERSATIONS);
+  const upload = conversations.filter(
+    (c) => c.turns.length > 0 && (remoteIds.get(c.id) ?? -1) < c.updatedAt,
+  );
+  return { store: { ...local, conversations }, upload };
 }

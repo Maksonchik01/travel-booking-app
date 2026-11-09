@@ -10,7 +10,7 @@ from tickets_api.core.config import Settings
 from tickets_api.domain.flights import FlightQuery
 from tickets_api.notifications.factory import build_mailer
 from tickets_api.notifications.telegram import MockTelegram, TelegramBot, TelegramClient
-from tickets_api.providers.registry import build_providers
+from tickets_api.providers.registry import build_providers, build_stay_providers
 from tickets_api.reference.airports import default_airport_directory
 from tickets_api.repositories.price_history import (
     PriceHistoryRecorder,
@@ -18,8 +18,11 @@ from tickets_api.repositories.price_history import (
     route_price_stats,
 )
 from tickets_api.scoring.config import default_scoring_config
+from tickets_api.scoring.stays import default_stay_scoring_config
+from tickets_api.services.alert_sources import stay_price_source, trip_price_source
 from tickets_api.services.alerts import AlertService, AlertSettings
 from tickets_api.services.flight_search import FlightSearchService
+from tickets_api.services.stay_search import StaySearchService
 from tickets_api.services.telegram_bot import TelegramBotService
 
 
@@ -63,7 +66,7 @@ def build_alert_service(
                 cabin=query.cabin,
             )
 
-    return AlertService(
+    service = AlertService(
         sessionmaker,
         search=search,
         telegram=telegram,
@@ -72,9 +75,26 @@ def build_alert_service(
             public_web_url=settings.public_web_url.rstrip("/"),
             bot_username=settings.telegram_bot_username,
             min_hours_between_notifications=settings.alert_min_hours_between_notifications,
+            check_interval_hours=settings.alert_check_interval_hours,
+            max_searches_per_run=settings.alert_max_searches_per_run,
+            max_active_per_owner=settings.alert_max_active_per_owner,
         ),
         price_stats=price_stats,
+        redis=redis,
     )
+    # Житло й поїздка — лише з реальним джерелом житла (ТЗ 11.4: не вмикати ненадійне).
+    real_stays = [name for name in settings.stay_providers if name != "mock"]
+    if real_stays:
+        stays = StaySearchService(
+            build_stay_providers(real_stays),
+            airports=default_airport_directory(),
+            timeout_s=settings.provider_timeout_s,
+            scoring_config=default_stay_scoring_config(),
+        )
+        stay_source = stay_price_source(stays)
+        service.add_source("stay", stay_source)
+        service.add_source("trip", trip_price_source(service.best_flight, stay_source))
+    return service
 
 
 def build_bot_service(

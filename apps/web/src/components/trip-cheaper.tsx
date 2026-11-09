@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { localDate, localTime } from "@/lib/format";
 import { toTripParams } from "@/lib/trip-params";
 import { useHydrated } from "@/lib/use-hydrated";
+import { fetchWithTimeout } from "@/lib/client-fetch";
 
 type State =
   | { state: "idle" }
@@ -31,7 +32,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
   async function run() {
     setCheck({ state: "loading" });
     try {
-      const response = await fetch("/api/trips/cheaper", {
+      const response = await fetchWithTimeout("/api/trips/cheaper", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(query),
@@ -68,7 +69,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
     return (
       <div className="grid gap-2">
         {button}
-        <p className="text-muted-foreground text-xs" role="status">
+        <p className="text-muted-foreground text-xs" role={limited ? "status" : "alert"}>
           {t(limited ? "rateLimited" : "cheaperFailed")}
         </p>
       </div>
@@ -106,7 +107,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
     });
   return (
     <div
-      className="grid gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 text-sm"
+      className="grid gap-2 rounded-lg border border-success/40 bg-success/5 p-3 text-sm"
       data-testid="trip-cheaper-result"
       role="status"
     >
@@ -116,7 +117,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
         </span>
         <ArrowRight className="size-3.5 self-center" aria-hidden />
         <span className="text-lg font-bold tabular-nums">{money(result.after.money_total)}</span>
-        <span className="font-medium text-emerald-700 dark:text-emerald-400">
+        <span className="font-medium text-success">
           {t("saving", { amount: money(result.saving ?? 0) })}
         </span>
       </p>

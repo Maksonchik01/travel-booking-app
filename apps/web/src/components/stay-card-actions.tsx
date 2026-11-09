@@ -42,12 +42,15 @@ export function StayCardActions({
   // Клієнтські панелі: до гідратації кнопки неактивні (клік би загубився).
   const hydrated = useHydrated();
 
+  async function loadRates() {
+    setCheck({ state: "loading" });
+    setCheck({ state: "done", result: await requestStayRates(query, stay.source, stay.id) });
+  }
+
   async function openRates() {
     if (panel === "rates") return setPanel(null);
     setPanel("rates");
-    if (check.state !== "idle") return;
-    setCheck({ state: "loading" });
-    setCheck({ state: "done", result: await requestStayRates(query, stay.source, stay.id) });
+    if (check.state === "idle") await loadRates();
   }
 
   return (
@@ -82,7 +85,7 @@ export function StayCardActions({
             {t("comparePrices")}
           </Button>
         )}
-        <FavoriteToggle stay={favorite} />
+        <FavoriteToggle body={{ kind: "stay", stay: favorite }} />
         <Button asChild variant="outline" size="sm">
           <Link href={tripHref} data-testid="stay-add-to-trip">
             <Luggage className="size-3.5" aria-hidden />
@@ -91,7 +94,14 @@ export function StayCardActions({
         </Button>
       </div>
       {panel === "details" && <div data-testid="stay-details">{details}</div>}
-      {panel === "rates" && <StayRates check={check} now={new Date(nowIso)} source={stay.source} />}
+      {panel === "rates" && (
+        <StayRates
+          check={check}
+          now={new Date(nowIso)}
+          source={stay.source}
+          onRetry={() => void loadRates()}
+        />
+      )}
     </div>
   );
 }

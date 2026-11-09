@@ -19,7 +19,7 @@
 """
 
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Literal
@@ -27,7 +27,12 @@ from typing import Literal
 from pydantic import BaseModel
 
 from tickets_api.domain.flights import FlightQuery, Money, Offer
-from tickets_api.domain.saved_trips import TripRefreshRequest
+from tickets_api.domain.saved_trips import (
+    TripFlightSnapshot,
+    TripRefreshRequest,
+    TripSnapshot,
+    TripStaySnapshot,
+)
 from tickets_api.domain.stays import Stay, StayQuery
 from tickets_api.domain.trips import FLIGHT_PROFILE, STAY_PROFILE, TRIP_NEARBY_KM, TripQuery
 from tickets_api.scoring.baggage import BaggageCost
@@ -89,6 +94,40 @@ class TripCosts(BaseModel):
     """Скільки складових з невідомою сумою (не входять у `money_total`)."""
 
 
+TripReasonCode = Literal[
+    "only_option",
+    "cheapest",
+    "best_value",
+    "comfort",
+    "pricier_but_faster",
+    "better_rated_stay",
+    "closer_stay",
+    "more_full_nights",
+    "fewer_stops",
+    "cheaper_than_comfort",
+    "all_nights_full",
+    "within_budget",
+    "over_budget",
+]
+MIN_TRIP_TIME_GAIN_MIN = 30
+MIN_STAY_RATING_GAIN = Decimal("0.3")
+MIN_STAY_DISTANCE_GAIN_KM = Decimal("0.5")
+
+
+class TripReason(BaseModel):
+    """Причина «Чому цей варіант?» поїздки (модуль 14.5) — факт з даних, рахує код.
+
+    Гроші — сума поїздки за відомими складовими; `vs` — з яким сценарієм порівнюємо."""
+
+    code: TripReasonCode
+    vs: TripPickLabel | None = None
+    amount: Money | None = None
+    minutes: int | None = None
+    count: int | None = None
+    rating: Money | None = None
+    km: Money | None = None
+
+
 class TripCombo(BaseModel):
     key: str
     offer_key: str
@@ -115,6 +154,14 @@ class TripCombo(BaseModel):
     """Пересадок туди й назад разом — для «Комфорту»."""
     currency: str
     warnings: list[TripWarning] = []
+    full_nights: int = 0
+    """Повноцінних ночей (модуль 14.4): без першої при пізньому прильоті (з 23:00) і останньої
+    при ранньому вильоті назад (до 07:00) — їх оплачено, але виспатися не вийде."""
+    travel_min: int | None = None
+    """У дорозі туди й назад разом; None — тривалість невідома."""
+    waiting_min: int | None = None
+    """З них — очікування на пересадках; None — деталі пересадок невідомі."""
+    reasons: list[TripReason] = []
 
 
 class TripPick(BaseModel):
@@ -248,6 +295,7 @@ class TripPlanner:
                 currency=query.currency,
                 profile=STAY_PROFILE[query.profile],
                 filters=query.stay_filters,
+                preferences=query.preferences.stays if query.preferences else None,
             )
             for check_in, check_out in chosen
         ]
@@ -326,14 +374,16 @@ class TripPlanner:
             _flight_option(query, o, flights.baggage.get(offer_key(o))) for o in candidates
         ]
         shown = {c.offer_key for c in ordered} | {f.offer_key for f in flight_options}
+        picks = _picks(ordered, offers, stay_list, query.budget_total)
+        explain = _explainer(ordered, picks, stay_list, query.budget_total)
         return TripSearchResult(
             query=query,
             flight_query=flight_query,
             stay_queries=stay_queries,
             offers=[o for k, o in offers.items() if k in shown],
             stays=stay_list,
-            combos=ordered,
-            picks=_picks(ordered, offers, stay_list, query.budget_total),
+            combos=[explain(c) for c in ordered],
+            picks=picks,
             budget=_budget(query, combos),
             providers=[
                 *flights.providers,
@@ -343,7 +393,7 @@ class TripPlanner:
             airlines=flights.facets.airlines,
             pinned_stay=pinned_stay,
             pinned_flight=pinned_flight,
-            selected=selected,
+            selected=explain(selected) if selected is not None else None,
             flight_options=flight_options,
             stay_options=stay_options,
         )
@@ -512,6 +562,14 @@ class TripPlanner:
             stops=offer.outbound.stops + back.stops,
             currency=offer.currency,
             warnings=warnings,
+            full_nights=max(
+                0,
+                window.nights
+                - ("late_arrival" in timing_warnings)
+                - ("early_return" in timing_warnings),
+            ),
+            travel_min=offer.total_duration_min,
+            waiting_min=_waiting(offer),
         )
 
 
@@ -539,6 +597,7 @@ def flight_query_for(query: TripQuery) -> FlightQuery:
         profile=FLIGHT_PROFILE[query.profile],
         origin_radius_km=radius,
         destination_radius_km=radius,
+        preferences=query.preferences.flights if query.preferences else None,
     )
 
 
@@ -727,3 +786,224 @@ def _picks(
             picks[key] = TripPick(label=label, combo_key=key, over_budget=not within)
     order = {label: i for i, label in enumerate(DISPLAY_ORDER)}
     return sorted(picks.values(), key=lambda p: order[p.label])
+
+
+def _waiting(offer: Offer) -> int | None:
+    total = 0
+    for leg in (offer.outbound, offer.inbound):
+        if leg is None or leg.stops == 0:
+            continue
+        if leg.layovers is None:
+            return None
+        total += sum(lay.duration_min for lay in leg.layovers)
+    return total
+
+
+def _explainer(
+    combos: list[TripCombo], picks: list[TripPick], stays: list[Stay], budget: int | None
+) -> Callable[[TripCombo], TripCombo]:
+    """«Чому цей варіант?» поїздки: що виграла і чим відрізняється від «Економу» (дорожче, але
+    менше в дорозі, краще житло, більше повноцінних ночей) та «Комфорту» (дешевше)."""
+    winners = {label: p.combo_key for p in picks for label in (p.label, *p.also)}
+    by_key = {c.key: c for c in combos}
+    cheapest = by_key.get(winners.get("cheapest", ""))
+    comfort = by_key.get(winners.get("comfort", ""))
+
+    def explain(combo: TripCombo) -> TripCombo:
+        reasons: list[TripReason] = []
+        if len(combos) == 1:
+            reasons.append(TripReason(code="only_option"))
+        else:
+            for label in ("cheapest", "best_value", "comfort"):
+                if winners.get(label) == combo.key:
+                    reasons.append(TripReason(code=label, count=len(combos)))
+        if cheapest is not None and cheapest.key != combo.key:
+            extra = max(combo.money_total - cheapest.money_total, Decimal(0))
+            if combo.travel_min is not None and cheapest.travel_min is not None:
+                gain = cheapest.travel_min - combo.travel_min
+                if gain >= MIN_TRIP_TIME_GAIN_MIN:
+                    reasons.append(
+                        TripReason(
+                            code="pricier_but_faster", vs="cheapest", amount=extra, minutes=gain
+                        )
+                    )
+            if combo.stops < cheapest.stops:
+                reasons.append(
+                    TripReason(
+                        code="fewer_stops", vs="cheapest", count=cheapest.stops - combo.stops
+                    )
+                )
+            mine, base = stays[combo.stay_index], stays[cheapest.stay_index]
+            if (
+                mine.rating is not None
+                and base.rating is not None
+                and mine.rating - base.rating >= MIN_STAY_RATING_GAIN
+            ):
+                reasons.append(
+                    TripReason(
+                        code="better_rated_stay",
+                        vs="cheapest",
+                        amount=extra,
+                        rating=mine.rating - base.rating,
+                    )
+                )
+            near, far = mine.distance_to_center_km, base.distance_to_center_km
+            if near is not None and far is not None and far - near >= MIN_STAY_DISTANCE_GAIN_KM:
+                reasons.append(
+                    TripReason(code="closer_stay", vs="cheapest", amount=extra, km=far - near)
+                )
+            if combo.full_nights > cheapest.full_nights:
+                reasons.append(
+                    TripReason(
+                        code="more_full_nights",
+                        vs="cheapest",
+                        count=combo.full_nights - cheapest.full_nights,
+                    )
+                )
+        if (
+            comfort is not None
+            and comfort.key != combo.key
+            and combo.money_total < comfort.money_total
+        ):
+            longer = (
+                combo.travel_min - comfort.travel_min
+                if combo.travel_min is not None and comfort.travel_min is not None
+                else None
+            )
+            reasons.append(
+                TripReason(
+                    code="cheaper_than_comfort",
+                    vs="comfort",
+                    amount=comfort.money_total - combo.money_total,
+                    minutes=longer if longer and longer > 0 else None,
+                )
+            )
+        if combo.full_nights == combo.window.nights and not combo.warnings:
+            reasons.append(TripReason(code="all_nights_full", count=combo.full_nights))
+        if budget is not None:
+            left = Decimal(budget) - combo.money_total
+            reasons.append(
+                TripReason(code="within_budget", amount=left)
+                if left >= 0
+                else TripReason(code="over_budget", amount=-left)
+            )
+        return combo.model_copy(update={"reasons": reasons})
+
+    return explain
+
+
+# --- для розмови (модуль 9a): вибір кодом, не моделлю -----------------------------------
+
+
+def current_combo(result: TripSearchResult) -> TripCombo | None:
+    """«Ваша поїздка», а без вибору — рекомендований сценарій (Оптимальний, якщо є)."""
+    if result.selected is not None:
+        return result.selected
+    order = {"best_value": 0, "cheapest": 1, "comfort": 2}
+    picks = sorted(result.picks, key=lambda p: order[p.label])
+    combos = {c.key: c for c in result.combos}
+    return next((combos[p.combo_key] for p in picks if p.combo_key in combos), None)
+
+
+def pick_flight(result: TripSearchResult, current: TripCombo, preference: str) -> str | None:
+    """Кращий за побажанням рейс серед варіантів пошуку; None — кращого немає."""
+    offers = {offer_key(o): o for o in result.offers}
+    now = offers.get(current.offer_key)
+    best: tuple[tuple[Decimal, Decimal], str] | None = None
+    for option in result.flight_options:
+        offer = offers.get(option.offer_key)
+        if offer is None or option.offer_key == current.offer_key or option.window is None:
+            continue
+        stops = offer.outbound.stops + (offer.inbound.stops if offer.inbound else 0)
+        minutes = offer.total_duration_min
+        if preference == "cheaper":
+            if option.flight_total >= current.flight_total:
+                continue
+            key = (option.flight_total, option.flight_total)
+        elif preference == "faster":
+            current_minutes = now.total_duration_min if now else None
+            if minutes is None or (current_minutes is not None and minutes >= current_minutes):
+                continue
+            key = (Decimal(minutes), option.flight_total)
+        elif preference == "fewer_stops":
+            if stops >= current.stops:
+                continue
+            key = (Decimal(stops), option.flight_total)
+        else:
+            return None
+        if best is None or key < best[0]:
+            best = (key, option.offer_key)
+    return best[1] if best else None
+
+
+def pick_stay(result: TripSearchResult, current: TripCombo, preference: str) -> str | None:
+    """Краще за побажанням житло на дати поточної поїздки; None — кращого немає. Тип житла
+    не змінюємо: «дешевший готель» — не хостел (як і в «Знайти дешевший варіант»)."""
+    now = result.stays[current.stay_index]
+    best: tuple[tuple[Decimal, Decimal], str] | None = None
+    for index in result.stay_options:
+        stay = result.stays[index]
+        key_str = stay_key(stay)
+        if key_str == current.stay_key or stay.kind != now.kind:
+            continue
+        if preference == "cheaper":
+            if stay.total_price >= current.stay_total:
+                continue
+            key = (stay.total_price, stay.total_price)
+        elif preference == "closer_to_center":
+            distance = stay.distance_to_center_km
+            if distance is None or (
+                now.distance_to_center_km is not None and distance >= now.distance_to_center_km
+            ):
+                continue
+            key = (distance, stay.total_price)
+        elif preference == "better_rating":
+            if stay.rating is None or (now.rating is not None and stay.rating <= now.rating):
+                continue
+            key = (-stay.rating, stay.total_price)
+        else:
+            return None
+        if best is None or key < best[0]:
+            best = (key, key_str)
+    return best[1] if best else None
+
+
+def trip_snapshot(combo: TripCombo, offer: Offer, stay: Stay, priced_at: datetime) -> TripSnapshot:
+    """Знімок для збереження й порівняння — як `tripSnapshot` у вебі."""
+    back = offer.inbound
+    return TripSnapshot(
+        money_total=combo.money_total,
+        confirmed=combo.costs.confirmed,
+        approximate=combo.costs.approximate,
+        unknown=combo.costs.unknown,
+        currency=combo.currency,
+        check_in=combo.window.check_in,
+        check_out=combo.window.check_out,
+        nights=combo.window.nights,
+        flight=TripFlightSnapshot(
+            origin=offer.outbound.origin,
+            destination=offer.outbound.destination,
+            departure_at=offer.outbound.departure_at,
+            arrival_at=offer.outbound.arrival_at,
+            return_departure_at=combo.return_departure_at,
+            return_arrival_at=back.arrival_at if back else None,
+            stops=combo.stops,
+            duration_min=offer.total_duration_min,
+            airlines=offer.airlines[:8],
+            price=offer.price,
+            price_status=offer.price_status,
+        ),
+        stay=TripStaySnapshot(
+            name=stay.name[:200],
+            kind=stay.kind,
+            rating=float(stay.rating) if stay.rating is not None else None,
+            review_count=stay.review_count,
+            district=stay.district[:100] if stay.district else None,
+            distance_to_center_km=float(stay.distance_to_center_km)
+            if stay.distance_to_center_km is not None
+            else None,
+            cancellation=stay.cancellation,
+            total_price=stay.total_price,
+        ),
+        priced_at=priced_at,
+    )

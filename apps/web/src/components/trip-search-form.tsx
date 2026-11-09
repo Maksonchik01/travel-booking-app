@@ -60,7 +60,7 @@ export function TripSearchForm({
   );
 
   return (
-    <Form action="/trip" className="grid gap-4">
+    <Form action="/trip" className="grid gap-4" data-search-form>
       {saved && <input type="hidden" name="saved" value={saved} />}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={tSearch("from")} htmlFor="trip-from">

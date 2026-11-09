@@ -39,6 +39,7 @@ from tickets_api.domain.flights import (
 )
 from tickets_api.domain.sellers import GOOGLE_BOOKING_URL, BookingLink, SellerOffer
 from tickets_api.providers.base import ProviderError, ProviderRateLimitedError
+from tickets_api.providers.gate import ProviderGate, RetryPolicy
 from tickets_api.reference.airports import AirportDirectory
 
 log = structlog.get_logger(__name__)
@@ -49,6 +50,8 @@ DEFAULT_BASE_URL = "https://serpapi.com"
 SEARCH_PATH = "/search.json"
 GOOGLE_FLIGHTS_PREFIX = "https://www.google.com/travel/flights"
 AIRLINE_LOGO_PREFIX = "https://www.gstatic.com/flights/airline_logos/"
+SERPAPI_MAX_CONCURRENCY = 4
+SERPAPI_RETRY = RetryPolicy(attempts=2, retry_timeouts=False)
 NO_RESULTS_MARKER = "hasn't returned any results"
 NIGHT_START, NIGHT_END = time(0, 0), time(6, 0)
 TRAVEL_CLASS: dict[Cabin, str] = {
@@ -86,9 +89,15 @@ class SerpApiFlightProvider:
         market: str | None = None,
         base_url: str = DEFAULT_BASE_URL,
         clock: Clock | None = None,
+        gate: ProviderGate | None = None,
     ) -> None:
         self._client = client
         self._api_key = api_key
+        # Кожен запит — квота (250/міс): тайм-аут не повторюємо (невідомо, чи його врахували),
+        # лише обрив з'єднання й 502–504, один раз.
+        self._gate = gate or ProviderGate(
+            self.name, max_concurrency=SERPAPI_MAX_CONCURRENCY, retry=SERPAPI_RETRY
+        )
         self._airports = airports
         self._max_requests = max_requests_per_search
         self._returns_per_date = returns_per_date
@@ -235,10 +244,12 @@ class SerpApiFlightProvider:
 
     async def _get(self, params: dict[str, str]) -> tuple[dict[str, Any], str | None]:
         try:
-            response = await self._client.get(
-                f"{self._base_url}{SEARCH_PATH}",
-                params={"engine": "google_flights", **params, "api_key": self._api_key},
-                timeout=self._request_timeout_s,
+            response = await self._gate.send(
+                lambda: self._client.get(
+                    f"{self._base_url}{SEARCH_PATH}",
+                    params={"engine": "google_flights", **params, "api_key": self._api_key},
+                    timeout=self._request_timeout_s,
+                )
             )
         except httpx.TimeoutException as exc:
             raise ProviderError(self.name, "timeout") from exc

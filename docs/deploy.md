@@ -11,7 +11,7 @@ Next звертається до API лише із сервера (`API_URL`), �
 
 1. supabase.com → New project, регіон **Central EU (Frankfurt)**, згенерований пароль бази
    збережіть.
-2. Project Settings → Data API → вимкніть Data API (таблиці й так закриті RLS, міграція 0009).
+2. Project Settings → Data API → вимкніть Data API (таблиці й так закриті RLS, міграція 0009, а з 0020 ролі `anon`/`authenticated` не мають на них прав).
 3. **Connect → Connection String → Session pooler** — рядок
    `postgresql://postgres.<ref>:<пароль>@aws-…pooler.supabase.com:5432/postgres`. Це
    `DATABASE_URL` для API й воркера на Render (не Direct — він лише IPv6; не Transaction pooler).

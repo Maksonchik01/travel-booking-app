@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { fetchWithTimeout } from "@/lib/client-fetch";
 
 type Props = {
   query: StayQuery;
@@ -17,10 +18,11 @@ type Props = {
 };
 
 async function analyzeViaApi(query: StayQuery, keys: string[]): Promise<StayAnalysisResult | null> {
-  const response = await fetch("/api/ai/stays/analysis", {
+  const response = await fetchWithTimeout("/api/ai/stays/analysis", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ query, stay_keys: keys }),
+    // Мова резюме — мова сторінки (<html lang>, її ставить кореневий layout).
+    body: JSON.stringify({ query, stay_keys: keys, locale: document.documentElement.lang }),
   });
   return response.ok ? ((await response.json()) as StayAnalysisResult) : null;
 }
@@ -67,7 +69,7 @@ export function StayAnalysis({ query, stays, analyze = analyzeViaApi }: Props) {
           </p>
           <p className="text-muted-foreground text-xs">{t("hint")}</p>
           {failed && (
-            <p role="alert" className="text-xs text-amber-700 dark:text-amber-400">
+            <p role="alert" className="text-xs text-warning">
               {t("error")}
             </p>
           )}
@@ -118,21 +120,17 @@ export function StayAnalysis({ query, stays, analyze = analyzeViaApi }: Props) {
               className={cn(
                 "w-fit rounded px-1.5 py-0.5 text-[11px] font-medium",
                 insight.reliability === "low"
-                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                  ? "bg-warning/10 text-warning"
                   : "bg-muted text-muted-foreground",
               )}
             >
               {t(`reliability.${insight.reliability ?? "medium"}`)}
               {insight.reliability_note ? ` · ${insight.reliability_note}` : null}
             </p>
-            <Points
-              items={insight.pros}
-              sign="+"
-              className="text-emerald-700 dark:text-emerald-400"
-            />
+            <Points items={insight.pros} sign="+" className="text-success" />
             <Points items={insight.cons} sign="−" className="text-muted-foreground" />
             {insight.red_flags && insight.red_flags.length > 0 && (
-              <ul className="grid gap-0.5 text-amber-700 dark:text-amber-400">
+              <ul className="grid gap-0.5 text-warning">
                 {insight.red_flags.map((flag, i) => (
                   <li key={i} className="flex gap-1">
                     <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden />

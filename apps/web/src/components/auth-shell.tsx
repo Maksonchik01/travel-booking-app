@@ -15,7 +15,7 @@ export function AuthShell({
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <SiteHeader active={null} />
-      <main className="relative isolate flex-1">
+      <main id="main" tabIndex={-1} className="outline-none relative isolate flex-1">
         <HeroBackdrop />
         <div className="mx-auto grid w-full max-w-md gap-5 px-4 py-10 sm:py-14">
           <div className="grid gap-1 text-center">

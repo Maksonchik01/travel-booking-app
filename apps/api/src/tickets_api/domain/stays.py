@@ -138,6 +138,13 @@ class StayFilters(_StrictInput):
     bbox: BoundingBox | None = None
     """Лише об'єкти в цій області карти; без координат — не потрапляють (місце невідоме)."""
 
+    def budget_for(self, nights: int) -> Decimal | None:
+        """Найсуворіший ліміт на все проживання з фільтрів ціни; None — бюджету немає."""
+        limits = [Decimal(self.max_total_price)] if self.max_total_price is not None else []
+        if self.max_price_per_night is not None:
+            limits.append(Decimal(self.max_price_per_night) * nights)
+        return min(limits, default=None)
+
     def matches(self, stay: "Stay") -> bool:
         if self.max_price_per_night is not None and stay.price_per_night > Decimal(
             self.max_price_per_night
@@ -186,6 +193,13 @@ class StayFilters(_StrictInput):
         return not self.kinds or stay.kind in self.kinds
 
 
+class StayPreferences(_StrictInput):
+    """Особисті уподобання з профілю (модуль 14.3) — М'ЯКІ: бракує бажаної зручності — штраф
+    в оцінці, а не відсів. Обов'язкові зручності — у `filters.amenities`."""
+
+    amenities: list[Amenity] = Field(default_factory=list, max_length=20)
+
+
 class StayQuery(_StrictInput):
     city: Iata
     """Код міста (LIS) або аеропорту (WAW → Варшава)."""
@@ -196,6 +210,8 @@ class StayQuery(_StrictInput):
     profile: StayProfile = "balanced"
     """Що важливіше: ціна, баланс чи близькість до центру — ваги value-score."""
     filters: StayFilters = StayFilters()
+    preferences: StayPreferences | None = None
+    """Лише в оцінку; None — немає."""
 
     @model_validator(mode="after")
     def _dates(self) -> Self:

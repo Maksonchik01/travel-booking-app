@@ -7,7 +7,7 @@
 import asyncio
 from collections import Counter
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any, Literal, cast
 
@@ -18,11 +18,13 @@ from tickets_api.domain.flights import (
     MAX_NIGHTS,
     CalendarDay,
     DatePair,
+    FilterCode,
     FlightQuery,
     Money,
     Offer,
     stay_nights,
 )
+from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
 from tickets_api.domain.sellers import SellersRequest, SellersResult
 from tickets_api.providers.base import (
     FlightProvider,
@@ -66,6 +68,32 @@ class SearchFacets(BaseModel):
     airlines: list[AirlineFacet]
 
 
+ExclusionReason = Literal[FilterCode, "direct", "baggage"]
+
+
+class Exclusion(BaseModel):
+    """Скільки пропозицій відсіяно обов'язковою вимогою (модуль 14.1) — за першою порушеною."""
+
+    reason: ExclusionReason
+    offers: int
+
+
+def requirement_violations(offer: Offer, query: FlightQuery) -> list[ExclusionReason]:
+    """Обов'язкові вимоги користувача: «лише прямі», фільтри видачі, потрібний багаж, якого
+    тариф не дозволяє. Порушив хоч одну — пропозиція не ранжується й не рекомендується, хоч
+    би якою дешевою була. Невідоме (тривалість, умови багажу) не порушує (ADR 0004)."""
+    failed: list[ExclusionReason] = []
+    if query.direct_only and offer.stops > 0:
+        failed.append("direct")
+    failed.extend(query.filters.violations(offer, passengers=query.passengers.total))
+    if (
+        query.baggage != "none"
+        and baggage_cost(offer, query.baggage, query.passengers).status == "not_available"
+    ):
+        failed.append("baggage")
+    return failed
+
+
 class DateOption(BaseModel):
     departure: date
     return_date: date | None
@@ -93,8 +121,10 @@ class OfferGroup(BaseModel):
 
 class FlightSearchResult(BaseModel):
     offers: list[Offer]
-    """Лише ті, що пройшли `query.filters`; скоринг рахується по них же."""
+    """Лише ті, що пройшли обов'язкові вимоги (`requirement_violations`); скоринг — по них же."""
     providers: list[ProviderStatus]
+    excluded: list[Exclusion] = []
+    """Що відсіяли обов'язкові вимоги — щоб UI чесно сказав, скільки й чому приховано."""
     scoring: ScoringResult
     facets: SearchFacets
     baggage: dict[str, BaggageCost] = {}
@@ -102,6 +132,9 @@ class FlightSearchResult(BaseModel):
     """Той самий рейс від кількох джерел/продавців (модуль 3): одна картка, рядки продавців."""
     date_options: list[DateOption] = []
     """Гнучкі дати: найкраща ціна на кожну пару дат серед показаних пропозицій."""
+    freshness: dict[str, PriceFreshness] = {}
+    """offer_key → свіжість ціни на момент відповіді (модуль 17.3): live / cached /
+    approximate / needs_recheck. Час отримання — `Offer.collected_at` / `found_at`."""
     """offer_key → вартість з потрібним багажем (`query.baggage`); порожньо — багаж не потрібен."""
 
 
@@ -143,6 +176,8 @@ class FlightSearchService:
         airline_names: Mapping[str, str] | None = None,
         fx: RateLookup | None = None,
         live_date_pairs: int = 2,
+        freshness: FreshnessRules | None = None,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         self._providers = list(providers)
         # Календар може йти з інших джерел (напр. живий пошук без календаря + кешований календар).
@@ -155,6 +190,8 @@ class FlightSearchService:
         self._airline_names = airline_names or {}
         self._fx = fx
         self._live_date_pairs = live_date_pairs
+        self._freshness = freshness or FreshnessRules()
+        self._clock = clock or (lambda: datetime.now(UTC))
 
     @property
     def airline_names(self) -> Mapping[str, str]:
@@ -179,8 +216,10 @@ class FlightSearchService:
                     cabin=query.cabin,
                 )
             )
-        total = query.passengers.total
-        shown = [o for o in offers if query.filters.matches(o, passengers=total)]
+        # Спершу обов'язкові вимоги (відсікаємо), потім ранжування решти (модуль 14.1).
+        violations = {offer_key(o): requirement_violations(o, query) for o in offers}
+        shown = [o for o in offers if not violations[offer_key(o)]]
+        excluded = Counter(failed[0] for failed in violations.values() if failed)
         baggage = (
             {offer_key(o): baggage_cost(o, query.baggage, query.passengers) for o in shown}
             if query.baggage != "none"
@@ -196,7 +235,13 @@ class FlightSearchService:
                 await self._config_for(query.currency),
                 travellers=query.passengers.seated,
                 baggage=baggage,
+                preferences=query.preferences,
             ),
+            freshness=self.freshness(shown),
+            excluded=[
+                Exclusion(reason=reason, offers=n)
+                for reason, n in sorted(excluded.items(), key=lambda kv: (-kv[1], kv[0]))
+            ],
             baggage=baggage,
             facets=self._facets(offers),
             groups=offer_groups(shown),
@@ -206,6 +251,20 @@ class FlightSearchService:
                 else []
             ),
         )
+
+    def freshness(self, offers: Sequence[Offer]) -> dict[str, PriceFreshness]:
+        now = self._clock()
+        return {
+            offer_key(o): price_freshness(
+                live=o.price_status == "live",
+                collected_at=o.collected_at,
+                found_at=o.found_at,
+                found_on=o.found_on,
+                now=now,
+                rules=self._freshness,
+            )
+            for o in offers
+        }
 
     async def _explore(
         self, query: FlightQuery
@@ -411,9 +470,8 @@ def _dates(offer: Offer) -> tuple[date, date | None]:
 def best_date_pairs(offers: Sequence[Offer], query: FlightQuery, *, limit: int) -> list[DatePair]:
     """Найдешевші різні пари дат серед кандидатів, що пройшли б фільтри видачі."""
     best: dict[tuple[date, date | None], Decimal] = {}
-    total = query.passengers.total
     for o in offers:
-        if not query.filters.matches(o, passengers=total):
+        if requirement_violations(o, query):
             continue
         key = _dates(o)
         if key not in best or o.price < best[key]:

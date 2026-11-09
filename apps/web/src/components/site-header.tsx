@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,7 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
   const t = useTranslations("nav");
   return (
     <header className="bg-background/75 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 border-b backdrop-blur-md">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-4 sm:gap-6">
+      <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-4 sm:gap-6">
         <Link
           href="/"
           aria-label={t("brand")}
@@ -24,14 +25,17 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
           </span>
           <span className="hidden sm:inline">{t("brand")}</span>
         </Link>
-        <nav className="text-muted-foreground -mx-1 flex items-center gap-1 overflow-x-auto px-1 text-sm">
+        <nav
+          aria-label={t("sectionsLabel")}
+          className="text-muted-foreground -mx-1 hidden min-w-0 items-center gap-0.5 overflow-x-auto px-1 text-[13px] sm:flex sm:gap-1 sm:text-sm"
+        >
           {(Object.keys(SECTIONS) as (keyof typeof SECTIONS)[]).map((section) => (
             <Link
               key={section}
               href={SECTIONS[section]}
               aria-current={active === section ? "page" : undefined}
               className={cn(
-                "shrink-0 rounded-md px-2.5 py-1.5 font-medium transition-colors sm:px-3",
+                "shrink-0 rounded-md px-2 py-1.5 font-medium transition-colors sm:px-3",
                 active === section
                   ? "bg-accent text-accent-foreground"
                   : "hover:text-foreground hover:bg-muted",
@@ -41,7 +45,7 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           {/* На телефоні місця для розділів замало — «Обране» й «Мої поїздки» там у футері. */}
           <Link
             href="/trips"
@@ -59,6 +63,7 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
           >
             <Heart className="size-4" aria-hidden />
           </Link>
+          <LanguageSwitcher />
           <ThemeToggle />
           {/* Сесія читається під час запиту — окремо від статичної шапки. */}
           <Suspense fallback={<span className="bg-muted h-9 w-20 animate-pulse rounded-lg" />}>

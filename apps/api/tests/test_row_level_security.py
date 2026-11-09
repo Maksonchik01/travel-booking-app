@@ -3,9 +3,7 @@
 import os
 
 import pytest
-import tickets_api.db.models  # noqa: F401 — регіструє таблиці в metadata
 from sqlalchemy import text
-from tickets_api.db.base import Base
 from tickets_api.db.session import create_engine
 
 pytestmark = pytest.mark.integration
@@ -26,7 +24,8 @@ async def test_every_table_has_row_level_security() -> None:
         without_rls = {r[0] for r in rows}
     await engine.dispose()
 
-    assert without_rls.isdisjoint(Base.metadata.tables), (
-        f"Таблиці без RLS: {sorted(without_rls & set(Base.metadata.tables))}. "
+    # Усі таблиці схеми — і службові (alembic_version), не лише моделі: Data API бачить кожну.
+    assert not without_rls, (
+        f"Таблиці без RLS: {sorted(without_rls)}. "
         "Додайте ALTER TABLE … ENABLE ROW LEVEL SECURITY у міграцію таблиці."
     )

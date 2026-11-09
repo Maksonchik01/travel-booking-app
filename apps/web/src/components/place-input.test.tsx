@@ -126,3 +126,18 @@ describe("PlaceInput", () => {
     expect((input as HTMLInputElement).validity.customError).toBe(false);
   });
 });
+
+describe("PlaceInput: порожньо й помилка (13.2)", () => {
+  it("нічого не знайдено — підказка про код IATA", async () => {
+    const { input } = setup(placeValue(""), []);
+    await typeAndWait(input, "Атлантида");
+    expect(screen.getByTestId("places-miss")).toHaveTextContent("Нічого не знайдено");
+  });
+
+  it("джерело недоступне — інша підказка, а не «нічого»", async () => {
+    const { input, load } = setup(placeValue(""), []);
+    load.mockRejectedValueOnce(new Error("down"));
+    await typeAndWait(input, "Лон");
+    expect(screen.getByTestId("places-miss")).toHaveTextContent("Підказки зараз недоступні");
+  });
+});

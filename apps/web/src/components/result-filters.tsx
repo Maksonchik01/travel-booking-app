@@ -1,13 +1,14 @@
 "use client";
 
 import type { AirlineFacet, DeparturePeriod, HourRange, OfferFilters } from "@tickets/shared";
-import { ChevronDown, Loader2, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { saveFlightFilters } from "@/app/actions/account";
+import { FilterShell, SheetActions } from "@/components/filter-shell";
 import { Button } from "@/components/ui/button";
 import { pickFilters, writeLocalFilters } from "@/lib/saved-filters";
 import {
@@ -68,7 +69,6 @@ export function ResultFilters({
   const hydrated = useHydrated();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [open, setOpen] = useState(false);
   const [savedNote, setSavedNote] = useState<"account" | "browser" | null>(null);
   const active = filterParams(filters);
   const activeCount = active.length;
@@ -105,218 +105,198 @@ export function ResultFilters({
   }
 
   return (
-    <aside
-      className="bg-card grid content-start gap-4 rounded-xl border p-4 shadow-xs lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto"
-      aria-labelledby="filters-title"
-    >
-      <div className="flex items-center justify-between gap-2">
-        <h2 id="filters-title" className="flex items-center gap-2 font-semibold">
-          <SlidersHorizontal className="text-primary size-4" aria-hidden />
-          {t("title")}
-          {activeCount > 0 && (
-            <span
-              className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-medium tabular-nums"
-              data-testid="filters-count"
-            >
-              {activeCount}
-            </span>
-          )}
-        </h2>
-        {hydrated && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="hover:border-primary/50 hover:text-primary lg:hidden"
-            aria-expanded={open}
-            aria-controls="filters-panel"
-            onClick={() => setOpen((v) => !v)}
-          >
-            {open ? t("hide") : t("show", { count: activeCount })}
-          </Button>
-        )}
-      </div>
-
-      <form
-        action="/"
-        method="get"
-        id="filters-panel"
-        className={cn("grid gap-5 text-sm", hydrated && !open && "hidden lg:grid")}
-        onSubmit={apply}
-        onChange={(e) => e.currentTarget.requestSubmit()}
-      >
-        {baseParams.map(([key, value]) => (
-          <input key={`${key}=${value}`} type="hidden" name={key} value={value} />
-        ))}
-
-        <Group legend={t("stops")}>
-          <Choice name="stops" value="" checked={filters.max_stops == null} label={t("anyStops")} />
-          {MAX_STOPS_OPTIONS.map((n) => (
-            <Choice
-              key={n}
-              name="stops"
-              value={String(n)}
-              checked={filters.max_stops === n}
-              label={t("maxStops", { count: n })}
-            />
+    <FilterShell titleId="filters-title" count={activeCount} testId="flight-filters">
+      {({ sheet, close }) => (
+        <form
+          action="/"
+          method="get"
+          id="filters-panel"
+          className="grid gap-5 text-sm"
+          onSubmit={(e) => {
+            apply(e);
+            close();
+          }}
+          // Десктоп — одразу; у вікні на телефоні — кнопкою «Застосувати».
+          onChange={sheet ? undefined : (e) => e.currentTarget.requestSubmit()}
+        >
+          {baseParams.map(([key, value]) => (
+            <input key={`${key}=${value}`} type="hidden" name={key} value={value} />
           ))}
-        </Group>
 
-        <TimeGroup
-          legend={t("departure")}
-          name="dep"
-          periods={filters.departure_periods}
-          hours={filters.departure_hours}
-        />
-
-        <OptionSelect
-          label={t("maxDuration")}
-          name="maxh"
-          value={filters.max_duration_hours}
-          options={MAX_DURATION_OPTIONS}
-          any={t("anyDuration")}
-          format={(h) => t("upToHours", { hours: h })}
-        />
-
-        <NumberField
-          label={t("maxPrice", { currency })}
-          name="maxp"
-          value={filters.max_price}
-          placeholder={t("anyPrice")}
-        />
-        <NumberField
-          label={t("maxTotalPrice", { currency })}
-          name="maxt"
-          value={filters.max_total_price}
-          placeholder={t("anyPrice")}
-        />
-
-        <details className="group grid gap-5" open={advancedCount > 0}>
-          <summary className="text-primary flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold tracking-wide uppercase [&::-webkit-details-marker]:hidden">
-            {t("advanced")}
-            {advancedCount > 0 && (
-              <span className="tabular-nums" data-testid="advanced-count">
-                ({advancedCount})
-              </span>
-            )}
-            <ChevronDown
-              className="size-3.5 transition-transform group-open:rotate-180"
-              aria-hidden
+          <Group legend={t("stops")}>
+            <Choice
+              name="stops"
+              value=""
+              checked={filters.max_stops == null}
+              label={t("anyStops")}
             />
-          </summary>
-          <div className="mt-4 grid gap-5">
-            <TimeGroup
-              legend={t("arrival")}
-              name="arr"
-              periods={filters.arrival_periods}
-              hours={filters.arrival_hours}
-            />
-            {roundTrip && (
+            {MAX_STOPS_OPTIONS.map((n) => (
+              <Choice
+                key={n}
+                name="stops"
+                value={String(n)}
+                checked={filters.max_stops === n}
+                label={t("maxStops", { count: n })}
+              />
+            ))}
+          </Group>
+
+          <TimeGroup
+            legend={t("departure")}
+            name="dep"
+            periods={filters.departure_periods}
+            hours={filters.departure_hours}
+          />
+
+          <OptionSelect
+            label={t("maxDuration")}
+            name="maxh"
+            value={filters.max_duration_hours}
+            options={MAX_DURATION_OPTIONS}
+            any={t("anyDuration")}
+            format={(h) => t("upToHours", { hours: h })}
+          />
+
+          <NumberField
+            label={t("maxPrice", { currency })}
+            name="maxp"
+            value={filters.max_price}
+            placeholder={t("anyPrice")}
+          />
+          <NumberField
+            label={t("maxTotalPrice", { currency })}
+            name="maxt"
+            value={filters.max_total_price}
+            placeholder={t("anyPrice")}
+          />
+
+          <details className="group grid gap-5" open={advancedCount > 0}>
+            <summary className="text-primary flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold tracking-wide uppercase [&::-webkit-details-marker]:hidden">
+              {t("advanced")}
+              {advancedCount > 0 && (
+                <span className="tabular-nums" data-testid="advanced-count">
+                  ({advancedCount})
+                </span>
+              )}
+              <ChevronDown
+                className="size-3.5 transition-transform group-open:rotate-180"
+                aria-hidden
+              />
+            </summary>
+            <div className="mt-4 grid gap-5">
+              <TimeGroup
+                legend={t("arrival")}
+                name="arr"
+                periods={filters.arrival_periods}
+                hours={filters.arrival_hours}
+              />
+              {roundTrip && (
+                <>
+                  <TimeGroup
+                    legend={t("returnDeparture")}
+                    name="rdep"
+                    periods={filters.return_departure_periods}
+                    hours={filters.return_departure_hours}
+                  />
+                  <TimeGroup
+                    legend={t("returnArrival")}
+                    name="rarr"
+                    periods={filters.return_arrival_periods}
+                    hours={filters.return_arrival_hours}
+                  />
+                </>
+              )}
+              <OptionSelect
+                label={t("maxLayover")}
+                name="maxlay"
+                value={filters.max_layover_hours}
+                options={MAX_LAYOVER_OPTIONS}
+                any={t("anyDuration")}
+                format={(h) => t("upToHours", { hours: h })}
+              />
+              <OptionSelect
+                label={t("minLayover")}
+                name="minlay"
+                value={filters.min_layover_min}
+                options={MIN_LAYOVER_OPTIONS}
+                any={t("anyDuration")}
+                format={(m) => t("fromMinutes", { minutes: m })}
+              />
+              <OptionSelect
+                label={t("minSelfTransfer")}
+                hint={t("minSelfTransferHint")}
+                name="minself"
+                value={filters.min_self_transfer_min}
+                options={MIN_SELF_TRANSFER_OPTIONS}
+                any={t("anyDuration")}
+                format={(m) => t("fromHours", { hours: m / 60 })}
+              />
+              {airlineOptions.length > 1 && (
+                <Group legend={t("airlines")} hint={t("airlinesHint")}>
+                  {airlineOptions.map((a) => (
+                    <Choice
+                      key={a.code}
+                      type="checkbox"
+                      name="al"
+                      value={a.code}
+                      checked={filters.airlines?.includes(a.code) ?? false}
+                      label={a.name ?? a.code}
+                      count={a.offers}
+                    />
+                  ))}
+                </Group>
+              )}
+              {excludeOptions.length > 0 && (
+                <Group legend={t("excludeAirlines")} hint={t("excludeAirlinesHint")}>
+                  {excludeOptions.map((a) => (
+                    <Choice
+                      key={a.code}
+                      type="checkbox"
+                      name="xal"
+                      value={a.code}
+                      checked={filters.excluded_airlines?.includes(a.code) ?? false}
+                      label={a.name ?? a.code}
+                    />
+                  ))}
+                </Group>
+              )}
+            </div>
+          </details>
+
+          <p
+            role="status"
+            className="text-muted-foreground flex min-h-4 items-center gap-1.5 text-xs"
+          >
+            {pending && (
               <>
-                <TimeGroup
-                  legend={t("returnDeparture")}
-                  name="rdep"
-                  periods={filters.return_departure_periods}
-                  hours={filters.return_departure_hours}
-                />
-                <TimeGroup
-                  legend={t("returnArrival")}
-                  name="rarr"
-                  periods={filters.return_arrival_periods}
-                  hours={filters.return_arrival_hours}
-                />
+                <Loader2 className="size-3.5 animate-spin" aria-hidden />
+                {t("updating")}
               </>
             )}
-            <OptionSelect
-              label={t("maxLayover")}
-              name="maxlay"
-              value={filters.max_layover_hours}
-              options={MAX_LAYOVER_OPTIONS}
-              any={t("anyDuration")}
-              format={(h) => t("upToHours", { hours: h })}
-            />
-            <OptionSelect
-              label={t("minLayover")}
-              name="minlay"
-              value={filters.min_layover_min}
-              options={MIN_LAYOVER_OPTIONS}
-              any={t("anyDuration")}
-              format={(m) => t("fromMinutes", { minutes: m })}
-            />
-            <OptionSelect
-              label={t("minSelfTransfer")}
-              hint={t("minSelfTransferHint")}
-              name="minself"
-              value={filters.min_self_transfer_min}
-              options={MIN_SELF_TRANSFER_OPTIONS}
-              any={t("anyDuration")}
-              format={(m) => t("fromHours", { hours: m / 60 })}
-            />
-            {airlineOptions.length > 1 && (
-              <Group legend={t("airlines")} hint={t("airlinesHint")}>
-                {airlineOptions.map((a) => (
-                  <Choice
-                    key={a.code}
-                    type="checkbox"
-                    name="al"
-                    value={a.code}
-                    checked={filters.airlines?.includes(a.code) ?? false}
-                    label={a.name ?? a.code}
-                    count={a.offers}
-                  />
-                ))}
-              </Group>
-            )}
-            {excludeOptions.length > 0 && (
-              <Group legend={t("excludeAirlines")} hint={t("excludeAirlinesHint")}>
-                {excludeOptions.map((a) => (
-                  <Choice
-                    key={a.code}
-                    type="checkbox"
-                    name="xal"
-                    value={a.code}
-                    checked={filters.excluded_airlines?.includes(a.code) ?? false}
-                    label={a.name ?? a.code}
-                  />
-                ))}
-              </Group>
-            )}
-          </div>
-        </details>
+            {!pending && savedNote && t(savedNote === "account" ? "savedAccount" : "savedBrowser")}
+          </p>
 
-        <p
-          role="status"
-          className="text-muted-foreground flex min-h-4 items-center gap-1.5 text-xs"
-        >
-          {pending && (
-            <>
-              <Loader2 className="size-3.5 animate-spin" aria-hidden />
-              {t("updating")}
-            </>
-          )}
-          {!pending && savedNote && t(savedNote === "account" ? "savedAccount" : "savedBrowser")}
-        </p>
-
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <Button type="submit" size="sm">
-            {t("apply")}
-          </Button>
-          {activeCount > 0 && (
-            <Link
-              href={resetHref}
-              className="text-primary rounded text-xs font-medium underline-offset-4 hover:underline"
-            >
-              {t("reset")}
-            </Link>
-          )}
-          {hydrated && (
-            <Button type="button" variant="outline" size="sm" onClick={save}>
-              {t("save")}
+          <SheetActions sheet={sheet}>
+            <Button type="submit" size={sheet ? "default" : "sm"} className={cn(sheet && "flex-1")}>
+              {t("apply")}
             </Button>
-          )}
-        </div>
-      </form>
-    </aside>
+            {activeCount > 0 && (
+              <Link
+                href={resetHref}
+                className="text-primary rounded text-xs font-medium underline-offset-4 hover:underline"
+              >
+                {t("reset")}
+              </Link>
+            )}
+            {hydrated && (
+              <Button type="button" variant="outline" size="sm" onClick={save}>
+                {t("save")}
+              </Button>
+            )}
+          </SheetActions>
+        </form>
+      )}
+    </FilterShell>
   );
 }
 

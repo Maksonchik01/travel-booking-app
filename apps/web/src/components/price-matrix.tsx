@@ -118,7 +118,7 @@ export function PriceMatrix({ matrix, state }: { matrix: Matrix; state: SearchSt
                           current && "border-primary bg-primary text-primary-foreground",
                           !current &&
                             cell.price === min &&
-                            "border-emerald-500/50 bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
+                            "border-success/50 bg-emerald-50 font-semibold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
                         )}
                       >
                         {money(cell)}
@@ -139,7 +139,7 @@ export function PriceMatrix({ matrix, state }: { matrix: Matrix; state: SearchSt
               href={href(c)}
               className={cn(
                 "hover:border-primary/50 flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm",
-                c.price === min && "border-emerald-500/50 bg-emerald-500/5",
+                c.price === min && "border-success/50 bg-success/5",
               )}
             >
               <span>

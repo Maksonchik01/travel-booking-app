@@ -39,6 +39,7 @@ from tickets_api.providers.base import (
     ProviderRateLimitedError,
     ProviderUnsupportedError,
 )
+from tickets_api.providers.gate import ProviderGate, RetryPolicy
 from tickets_api.reference.airports import AirportDirectory
 
 log = structlog.get_logger(__name__)
@@ -50,6 +51,8 @@ BOOKING_HOST = "https://www.aviasales.com"
 PRICES_FOR_DATES = "/aviasales/v3/prices_for_dates"
 GROUPED_PRICES = "/aviasales/v3/grouped_prices"
 MAX_LIMIT = 100
+TRAVELPAYOUTS_MAX_CONCURRENCY = 6
+TRAVELPAYOUTS_RETRY = RetryPolicy(attempts=3, base_delay_s=0.3, max_delay_s=2.0)
 
 
 class TravelpayoutsFlightProvider:
@@ -64,9 +67,14 @@ class TravelpayoutsFlightProvider:
         airports: AirportDirectory | None = None,
         base_url: str = DEFAULT_BASE_URL,
         clock: Clock | None = None,
+        gate: ProviderGate | None = None,
     ) -> None:
         self._client = client
         self._token = token
+        # Кешований API без квоти на запит: повторюємо й тайм-аут, до 3 спроб.
+        self._gate = gate or ProviderGate(
+            self.name, max_concurrency=TRAVELPAYOUTS_MAX_CONCURRENCY, retry=TRAVELPAYOUTS_RETRY
+        )
         # API шукає по МІСТУ (WAW дає і Модлін); з довідником лишаємо лише обрані аеропорти.
         self._airports = airports
         self._marker = marker
@@ -170,10 +178,12 @@ class TravelpayoutsFlightProvider:
 
     async def _get(self, path: str, params: dict[str, str | int]) -> dict[str, Any]:
         try:
-            response = await self._client.get(
-                f"{self._base_url}{path}",
-                params=params,
-                headers={"X-Access-Token": self._token, "Accept-Encoding": "gzip"},
+            response = await self._gate.send(
+                lambda: self._client.get(
+                    f"{self._base_url}{path}",
+                    params=params,
+                    headers={"X-Access-Token": self._token, "Accept-Encoding": "gzip"},
+                )
             )
         except httpx.TimeoutException as exc:
             raise ProviderError(self.name, "timeout") from exc

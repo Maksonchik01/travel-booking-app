@@ -5,7 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import messages from "../../messages/uk.json";
 import { FavoritesList, FavoritesProvider } from "./favorites";
-import { StayCard, tripHref } from "./stay-card";
+import { tripFromStay } from "@/lib/trip-params";
+
+import { StayCard } from "./stay-card";
 
 const actions = vi.hoisted(() => ({
   loadFavorites: vi.fn(),
@@ -207,7 +209,7 @@ describe("картка житла: дії модуля 7", () => {
   it("«Додати до поїздки» веде в планувальник з містом, датами, гостями й житлом", () => {
     renderCard();
     const href = screen.getByTestId("stay-add-to-trip").getAttribute("href")!;
-    expect(href).toBe(tripHref(STAY, QUERY));
+    expect(href).toBe(tripFromStay(STAY, QUERY));
     expect(Object.fromEntries(new URLSearchParams(href.split("?")[1]))).toEqual({
       to: "LIS",
       depart: "2026-12-05",
@@ -285,7 +287,9 @@ describe("обране", () => {
     );
 
     const card = await screen.findByTestId("favorite-item");
-    expect(actions.loadFavorites).toHaveBeenCalledWith([stay]);
+    expect(actions.loadFavorites).toHaveBeenCalledWith([
+      expect.objectContaining({ kind: "stay", stay }),
+    ]);
     expect(localStorage.getItem("tickets.favorites.v1")).toBeNull();
     expect(card).toHaveTextContent("Hotel Meridian");
     expect(card).toHaveTextContent("ціна на 6 лист.");

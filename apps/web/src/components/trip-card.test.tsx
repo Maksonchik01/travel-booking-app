@@ -102,6 +102,15 @@ const COMBO: TripCombo = {
   stops: 0,
   currency: "EUR",
   warnings: ["night_arrival", "costs_unknown"],
+  full_nights: 2,
+  travel_min: 610,
+  waiting_min: 90,
+  reasons: [
+    { code: "best_value", count: 6 },
+    { code: "pricier_but_faster", vs: "cheapest", amount: 40, minutes: 300 },
+    { code: "more_full_nights", vs: "cheapest", count: 1 },
+    { code: "over_budget", amount: 37 },
+  ],
 };
 
 describe("TripCard", () => {
@@ -124,6 +133,17 @@ describe("TripCard", () => {
     );
 
     expect(screen.getByText("Оптимальний")).toBeInTheDocument();
+    // Модуль 14.4–14.5: повноцінні ночі, час у дорозі й конкретні причини.
+    expect(screen.getByTestId("trip-quality")).toHaveTextContent(
+      "2 з 2 ночей повноцінні · у дорозі 10 год 10 хв · з них очікування 1 год 30 хв",
+    );
+    const why = screen.getByTestId("trip-why-reasons");
+    expect(why).toHaveTextContent(
+      "Найкраще поєднання ціни, часу в дорозі й житла серед 6 комбінацій",
+    );
+    expect(why).toHaveTextContent("На 40 € дорожча за «Економ», але на 5 год менше в дорозі");
+    expect(why).toHaveTextContent("На 1 повноцінну ніч більше, ніж в «Економі»");
+    expect(why).toHaveTextContent("Перевищує бюджет на 37 €");
     expect(screen.getByText("також Економ")).toBeInTheDocument();
     expect(screen.getByTestId("trip-over-budget")).toBeInTheDocument();
     expect(screen.getByTestId("trip-total")).toHaveTextContent("437 €");

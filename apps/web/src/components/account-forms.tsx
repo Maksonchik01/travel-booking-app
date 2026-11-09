@@ -24,7 +24,7 @@ const IDLE: FormState = { status: "idle" };
 function Saved({ state, text }: { state: FormState; text: string }) {
   if (state.status !== "ok") return null;
   return (
-    <p role="status" className="text-sm text-emerald-700 dark:text-emerald-400">
+    <p role="status" className="text-sm text-success">
       {text}
     </p>
   );

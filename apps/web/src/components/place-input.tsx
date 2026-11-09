@@ -55,7 +55,8 @@ export type PlaceKind = "any" | "city";
 
 async function fetchPlaces(q: string, signal: AbortSignal, kind: PlaceKind): Promise<Place[]> {
   const response = await fetch(`/api/places?${new URLSearchParams({ q, kind })}`, { signal });
-  return response.ok ? ((await response.json()) as Place[]) : [];
+  if (!response.ok) throw new Error(`places ${response.status}`); // помилка ≠ «нічого не знайдено»
+  return (await response.json()) as Place[];
 }
 
 // Сталі функції: від них залежать ефекти підказок.
@@ -85,6 +86,8 @@ export function PlaceInput({
   const [places, setPlaces] = useState<Place[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  // Порожньо чи помилка підказок для цього тексту (модуль 13.2) — пояснюємо, а не мовчимо.
+  const [miss, setMiss] = useState<{ q: string; error: boolean } | null>(null);
 
   const latest = useRef({ value, onChange });
   useEffect(() => {
@@ -116,12 +119,17 @@ export function PlaceInput({
     if (!wanted) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
-      loadPlaces(text.trim(), controller.signal)
+      const q = text.trim();
+      loadPlaces(q, controller.signal)
         .then((found) => {
           setPlaces(found);
           setActive(found.length ? 0 : -1);
+          setMiss(found.length ? null : { q, error: false });
         })
-        .catch(() => {}); // скасовано або мережа — просто без підказок
+        .catch(() => {
+          // Скасовано — нічого; мережа — сказати, що можна ввести код вручну.
+          if (!controller.signal.aborted) setMiss({ q, error: true });
+        });
     }, DEBOUNCE_MS);
     return () => {
       clearTimeout(timer);
@@ -235,6 +243,15 @@ export function PlaceInput({
           </li>
         ))}
       </ul>
+      {wanted && miss?.q === text.trim() && (
+        <p
+          role="status"
+          className="bg-popover text-muted-foreground absolute z-30 mt-1.5 w-full min-w-64 rounded-lg border px-3 py-2 text-xs shadow-lg"
+          data-testid="places-miss"
+        >
+          {t(miss.error ? "placesError" : "placesEmpty")}
+        </p>
+      )}
     </div>
   );
 }

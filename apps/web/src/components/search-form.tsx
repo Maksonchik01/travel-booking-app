@@ -6,8 +6,10 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { ParamsToggle } from "@/components/params-toggle";
 import { PassengerPicker } from "@/components/passenger-picker";
 import { readLocalFilters } from "@/lib/saved-filters";
+import type { FlightDefaults } from "@/lib/search-prefs";
 import { useHydrated } from "@/lib/use-hydrated";
 import { PlaceInput, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
@@ -27,20 +29,26 @@ import { cn } from "@/lib/utils";
 export function SearchForm({
   initial,
   savedFilters = null,
+  defaults = null,
 }: {
   initial: SearchState | null;
   /** Збережені в профілі фільтри (рядок URL); гостю — з браузера після гідратації. */
   savedFilters?: string | null;
+  /** Налаштування профілю для нового пошуку (модуль 10b); пошук з URL їх не бере. */
+  defaults?: FlightDefaults | null;
 }) {
   const t = useTranslations("search");
   const q = initial?.query;
-  const [depart, setDepart] = useState(q?.departure_date ?? "");
-  const [from, setFrom] = useState(() => placeValue(q?.origin));
-  const [to, setTo] = useState(() => placeValue(q?.destination));
+  const d = q ? null : defaults;
+  const [depart, setDepart] = useState(q?.departure_date ?? d?.departure ?? "");
+  const [from, setFrom] = useState(() => placeValue(q?.origin ?? d?.origin ?? undefined));
+  const [to, setTo] = useState(() => placeValue(q?.destination ?? d?.destination));
   const [fromNear, setFromNear] = useState(!!q?.origin_radius_km);
   const [toNear, setToNear] = useState(!!q?.destination_radius_km);
   // Новий пошук — туди й назад (найчастіше); відкритий з URL — як у ньому.
-  const [roundTrip, setRoundTrip] = useState(q ? !!q.return_date : true);
+  const [roundTrip, setRoundTrip] = useState(
+    q ? !!q.return_date : d?.departure ? !!d.returnDate : true,
+  );
   const [flex, setFlex] = useState(initialFlex(q));
   // Пошук за кількістю ночей (2b): місяць чи період туди й назад — без дати повернення.
   const nightsMode = roundTrip && (flex === "month" || flex === "range");
@@ -53,7 +61,7 @@ export function SearchForm({
   }
 
   return (
-    <Form action="/" className="grid gap-4">
+    <Form action="/" className="grid gap-4" data-search-form>
       <fieldset className="flex items-center gap-2 text-sm">
         <legend className="sr-only">{t("tripType")}</legend>
         <div className="bg-muted inline-flex rounded-lg p-1">
@@ -133,7 +141,7 @@ export function SearchForm({
             required={roundTrip && !nightsMode}
             disabled={!roundTrip || nightsMode}
             className={cn(FIELD_CLASS, (!roundTrip || nightsMode) && "opacity-50")}
-            defaultValue={q?.return_date ?? ""}
+            defaultValue={q?.return_date ?? d?.returnDate ?? ""}
           />
         </Field>
         <Field label={t("flex")} htmlFor="flex">
@@ -171,10 +179,15 @@ export function SearchForm({
         <div className="grid gap-1.5">
           <span className="text-muted-foreground text-xs font-medium">{t("passengers")}</span>
           <PassengerPicker
-            passengers={q?.passengers}
-            cabin={q?.cabin}
-            baggage={q?.baggage}
-            currency={q?.currency}
+            passengers={
+              q?.passengers ??
+              (d?.adults
+                ? { adults: d.adults, children: d.children ?? 0, infants: 0, infants_in_seat: 0 }
+                : undefined)
+            }
+            cabin={q?.cabin ?? d?.cabin ?? undefined}
+            baggage={q?.baggage ?? d?.baggage ?? undefined}
+            currency={q?.currency ?? d?.currency ?? undefined}
           />
         </div>
       </div>
@@ -197,7 +210,7 @@ export function SearchForm({
                     type="radio"
                     name="profile"
                     value={profile}
-                    defaultChecked={(q?.profile ?? "balanced") === profile}
+                    defaultChecked={(q?.profile ?? d?.profile ?? "balanced") === profile}
                     className="sr-only"
                   />
                   {t(`profiles.${profile}`)}
@@ -298,25 +311,9 @@ function Field({
 function SavedFilters({ fromAccount }: { fromAccount: string | null }) {
   const t = useTranslations("search");
   const hydrated = useHydrated();
-  const [use, setUse] = useState(true);
   const saved = fromAccount ?? (hydrated ? readLocalFilters() : "");
   const entries = [...new URLSearchParams(saved)];
-  if (entries.length === 0) return null;
-  return (
-    <label className="text-muted-foreground flex cursor-pointer items-center gap-2 text-xs">
-      <input
-        type="checkbox"
-        checked={use}
-        onChange={(e) => setUse(e.target.checked)}
-        className="accent-primary size-4"
-      />
-      {t("useSavedFilters", { count: entries.length })}
-      {use &&
-        entries.map(([key, value]) => (
-          <input key={`${key}=${value}`} type="hidden" name={key} value={value} />
-        ))}
-    </label>
-  );
+  return <ParamsToggle entries={entries} label={t("useSavedFilters", { count: entries.length })} />;
 }
 
 /** Режим гнучкості для поля форми — так само, як його пише URL (`flex=`). */

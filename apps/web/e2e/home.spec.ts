@@ -8,8 +8,13 @@ test("головна українською з формою пошуку і ст
 
   await expect(page.locator("html")).toHaveAttribute("lang", "uk");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Знайдіть переліт, який справді вигідний",
+    "Подорож без зайвих вкладок: квитки, житло й план в одному місці",
   );
+  // Три головні можливості (12.3) і режими пошуку (12.2).
+  await expect(
+    page.getByRole("list", { name: "Що вміє SkyPack" }).getByRole("listitem"),
+  ).toHaveCount(3);
+  await expect(page.getByTestId("search-modes").getByRole("link")).toHaveCount(3);
   await expect(page.getByLabel("Звідки")).toBeVisible();
   await expect(page.getByText(/Стан сервісів|API недоступний/)).toBeVisible();
 });
@@ -38,12 +43,18 @@ test("пошук: підказки міст → результати → філ�
   await expect(cards).toHaveCount(4);
   await expect(page.getByRole("heading", { name: "WAW → LIS" })).toBeVisible();
   await expect(page.getByTestId("price").first()).toContainText("€");
+  // Свіжість ціни від API (модуль 17.3): mock — живе джерело, ціна щойно.
+  await expect(page.getByTestId("price-freshness").first()).toHaveAttribute(
+    "data-freshness",
+    "live",
+  );
   await expect(page.getByRole("heading", { name: "Наш вибір" })).toBeVisible();
   await expect(page.locator('[data-testid="top-pick"][data-label="balanced"]')).toHaveCount(1);
   await expect(page.getByTestId("airlines").first()).toContainText("LOT Polish");
 
-  // Розбивка оцінки в будь-якій картці.
-  await cards.first().getByText("Чому така оцінка?").click();
+  // «Чому цей варіант?» у будь-якій картці: конкретні причини й розбивка оцінки (модуль 14.5).
+  await cards.first().getByText("Чому цей варіант?").click();
+  await expect(cards.first().getByTestId("why-reasons")).toBeVisible();
   await expect(cards.first().getByTestId("breakdown")).toBeVisible();
 
   // Фільтр застосовується одразу і не губить маршрут.
@@ -52,6 +63,8 @@ test("пошук: підказки міст → результати → філ�
   await expect(page).toHaveURL(/from=WAW/);
   await expect(cards).toHaveCount(1);
   await expect(page.getByText("1 варіант з 4")).toBeVisible();
+  // Обов'язкова вимога: відсіяне не ранжується, але видно, скільки й чому (модуль 14.1).
+  await expect(page.getByTestId("excluded-note")).toContainText("3 — забагато пересадок");
   await page.getByRole("link", { name: "Скинути всі" }).click();
   await expect(cards).toHaveCount(4);
 
@@ -73,7 +86,7 @@ test("розмова з ШІ-помічником: питання → відпо
   await page.waitForLoadState("networkidle");
 
   // Помічник — друга вкладка картки пошуку; спершу він питає, що шукаємо.
-  await page.getByRole("tab", { name: "ШІ-помічник" }).click();
+  await page.getByRole("button", { name: "ШІ-пошук" }).click();
   await expect(page.getByText("Що шукаємо?")).toBeVisible();
   await page.getByRole("button", { name: /^Квитки/ }).click();
   const box = page.getByLabel("Запитайте ШІ-помічника");
@@ -96,10 +109,10 @@ test("розмова з ШІ-помічником: питання → відпо
   await expect(explanation).toContainText("Радимо:");
 
   // Після переходу на результати розмова на місці, і її видно після оновлення вкладки
-  // (вкладка «ШІ-помічник» теж запам'ятовується).
+  // (режим «ШІ-пошук» теж запам'ятовується).
   await page.reload();
-  await expect(page.getByRole("tab", { name: "ШІ-помічник" })).toHaveAttribute(
-    "aria-selected",
+  await expect(page.getByRole("button", { name: "ШІ-пошук" })).toHaveAttribute(
+    "aria-pressed",
     "true",
   );
   await expect(conversation).toContainText("Куди і коли ви хочете полетіти?");
@@ -139,7 +152,7 @@ test("помічник «уся поїздка»: загальна сума й �
   await page.goto("/stays");
   await page.waitForLoadState("networkidle");
 
-  await page.getByRole("tab", { name: "ШІ-помічник" }).click();
+  await page.getByRole("button", { name: "ШІ-пошук" }).click();
   await page.getByRole("button", { name: /^Уся поїздка/ }).click();
   await page.getByLabel("Запитайте ШІ-помічника").fill("Поїздка з Варшави до Лісабона");
   await page.getByRole("button", { name: "Надіслати" }).click();
@@ -208,6 +221,75 @@ test("підписка на ціну: створення → сторінка к
   await expect(page.getByRole("link", { name: /Ви стежите за цим маршрутом/ })).toBeVisible();
 });
 
+test("сповіщення 11a: гнучкі дати, лише вихідні, зниження на відсоток; житло — неактивне", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-01&flex=range&until=2026-12-31&nmin=2&nmax=3");
+  await page.getByTestId("offer-card").first().waitFor();
+  await page.getByRole("button", { name: "Стежити за ціною" }).click();
+  await expect(
+    page.getByText(/Гнучкі дати: виліт 2026-12-01 – 2026-12-31, 2–3 ноч\./),
+  ).toBeVisible();
+  await page.getByLabel(/Лише вихідні/).check();
+  // У формі пошуку теж є радіо «Ціна» (пріоритет) — лише в панелі підписки: третя умова.
+  const alert = page.getByRole("region", { name: /Стежити за ціною/ });
+  await alert.getByRole("radio", { name: /Ціна/ }).nth(2).check();
+  await page.locator("label", { hasText: "Email" }).click();
+  await page.getByPlaceholder("you@example.com").fill("e2e-flex@example.com");
+  await page.getByRole("button", { name: "Підписатися" }).click();
+  await expect(page.getByText(/надіслали лист/)).toBeVisible();
+
+  await page.getByRole("link", { name: "Керувати підпискою" }).click();
+  await expect(page.getByText(/виліт 1 грудня – 31 грудня, 2–3 ноч\./)).toBeVisible();
+  await expect(page.getByText(/лише вихідні/)).toBeVisible();
+  await expect(page.getByText("Ціна впаде щонайменше на 10%")).toBeVisible();
+
+  // 11b: підтвердити, призупинити, відновити, змінити умову, історія, видалити.
+  await page.getByRole("button", { name: "Підтвердити підписку" }).click();
+  await expect(page.getByText("Активна", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Призупинити" }).click();
+  await expect(page.getByText("Призупинена", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Відновити" }).click();
+  await expect(page.getByText("Підписку відновлено.")).toBeVisible();
+  const edit = page.getByTestId("alert-edit");
+  await edit.getByText("Редагувати").click();
+  await edit.getByRole("radio", { name: /Ціна до/ }).check();
+  await edit.getByLabel("Поріг ціни, EUR").fill("150");
+  await edit.getByRole("button", { name: "Зберегти зміни" }).click();
+  await expect(page.getByText("Зміни збережено.")).toBeVisible();
+  await expect(page.getByText(/ціна до 150/)).toBeVisible();
+  const history = page.getByTestId("alert-history");
+  await history.locator("summary").click();
+  await expect(history).toContainText("Змінено");
+  await expect(history).toContainText("Призупинено");
+  await page.getByRole("button", { name: "Видалити" }).click();
+  await expect(page.getByRole("heading", { name: "Підписку видалено" })).toBeVisible();
+
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  await page.getByTestId("stay-card").first().waitFor();
+  await expect(page.getByTestId("alert-unavailable")).toContainText("реальне джерело цін на житло");
+});
+
+test("режими пошуку (12.2): місто, дати й люди переходять між авіаквитками, житлом і поїздкою", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
+  await page.getByTestId("offer-card").first().waitFor();
+  const modes = page.getByTestId("search-modes");
+  await expect(modes.getByRole("link", { name: "Авіаквитки" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+
+  await modes.getByRole("link", { name: "Житло" }).click();
+  await expect(page).toHaveURL(/\/stays\?city=LIS&in=2026-12-05&out=2026-12-08&adults=2/);
+  await page.getByTestId("stay-card").first().waitFor();
+
+  await page.getByTestId("search-modes").getByRole("link", { name: "Поїздка" }).click();
+  await expect(page).toHaveURL(/\/trip\?to=LIS&depart=2026-12-05&return=2026-12-08&adults=2/);
+  await expect(page.locator("#trip-depart")).toHaveValue("2026-12-05");
+});
+
 test("кабінет: реєстрація → профіль → історія й збережене → вихід і вхід → видалення", async ({
   page,
 }) => {
@@ -220,12 +302,30 @@ test("кабінет: реєстрація → профіль → історія
   await page.getByRole("button", { name: "Зареєструватися" }).click();
 
   await expect(page).toHaveURL(/\/account/);
-  await expect(page.getByRole("heading", { name: "Профіль" })).toBeVisible();
+  // «Огляд» (модуль 10a): привітання й швидкі дії.
+  await expect(page.getByRole("heading", { name: "Вітаємо, Олена!" })).toBeVisible();
+  await expect(page.getByTestId("quick-actions")).toContainText("Спланувати поїздку");
   await expect(page.getByRole("link", { name: "Особистий кабінет" })).toContainText("Олена");
 
-  await page.getByLabel("Прізвище").fill("Тестова");
-  await page.getByRole("button", { name: "Зберегти", exact: true }).click();
-  await expect(page.getByText("Збережено.")).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Розділи кабінету" })
+    .getByRole("link", { name: "Налаштування" })
+    .click();
+  await expect(page.getByRole("heading", { name: "Профіль" })).toBeVisible();
+  const profile = page.locator("#profile");
+  await profile.getByLabel("Прізвище").fill("Тестова");
+  await profile.getByRole("button", { name: "Зберегти", exact: true }).click();
+  await expect(profile.getByText("Збережено.")).toBeVisible();
+  // Без фото — ініціали з імені й прізвища (модуль 10b).
+  await expect(profile.getByTestId("user-avatar")).toHaveText("ОТ");
+
+  // Налаштування пошуку (10b): тип житла → позначка з фільтром у новому пошуку житла.
+  const prefs = page.getByTestId("search-prefs-form");
+  await prefs.getByText("Готель", { exact: true }).click();
+  await prefs.getByRole("button", { name: "Зберегти налаштування" }).click();
+  await expect(prefs.getByText("Збережено.")).toBeVisible();
+  await page.goto("/stays");
+  await expect(page.getByTestId("stay-prefs-toggle")).toContainText("1 фільтр");
 
   // Пошук житла (mock) потрапляє в історію; «Зберегти пошук» — у збережене.
   await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
@@ -233,13 +333,32 @@ test("кабінет: реєстрація → профіль → історія
   await page.getByRole("button", { name: "Зберегти пошук" }).click();
   await expect(page.getByRole("link", { name: "У збереженому" })).toBeVisible();
 
+  // Обраний квиток (модуль 10a) — в акаунті, у категорії «Квитки» й «Обраних маршрутах».
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-10");
+  await page.getByTestId("favorite-toggle").first().click();
+  await expect(page.getByTestId("favorite-toggle").first()).toHaveAttribute("aria-pressed", "true");
+  await page.goto("/account/favorites");
+  await page.getByTestId("favorites-tab-flight").click();
+  await expect(page.getByTestId("favorite-item")).toContainText("WAW → LIS");
   await page.goto("/account");
+  await expect(page.locator("#routes")).toContainText("WAW → LIS");
+
+  await page.goto("/account/history");
   const saved = page.locator("#saved");
   const history = page.locator("#history");
   await expect(saved).toContainText("Лісабон");
   await expect(history).toContainText("Лісабон");
+  // Параметри запису історії (10.5) без повторного пошуку.
+  await history.getByTestId("entry-params").first().getByText("Параметри").click();
+  await expect(history.getByTestId("entry-params").first()).toContainText("LIS");
   await saved.getByRole("link", { name: /Лісабон/ }).click();
   await expect(page).toHaveURL(/\/stays\?city=LIS/);
+
+  // Мова (10b): англійська з перемикача — і назад; вибір запамʼятовує профіль.
+  await page.getByRole("banner").getByTestId("language-switcher").selectOption("en");
+  await expect(page.getByRole("link", { name: "My account" })).toBeVisible();
+  await page.getByRole("banner").getByTestId("language-switcher").selectOption("uk");
+  await expect(page.getByRole("link", { name: "Особистий кабінет" })).toBeVisible();
 
   // Вихід і вхід тим самим логіном.
   await page.goto("/account");
@@ -251,6 +370,23 @@ test("кабінет: реєстрація → профіль → історія
   await page.getByRole("button", { name: "Увійти", exact: true }).click();
   await expect(page).toHaveURL(/\/account/);
 
+  // Налаштування сповіщень (10c) зберігаються в акаунті.
+  await page.goto("/account/alerts");
+  const notify = page.getByTestId("notify-form");
+  await notify.getByLabel("Email", { exact: true }).uncheck();
+  await notify.getByLabel("Частота").selectOption("72");
+  await notify.getByRole("button", { name: "Зберегти" }).click();
+  await expect(notify.getByText("Збережено.")).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByTestId("notify-form").getByLabel("Email", { exact: true }),
+  ).not.toBeChecked();
+  await expect(page.getByTestId("notify-form").getByLabel("Частота")).toHaveValue("72");
+
+  // Сесії (10c): поточна позначена, пристрій — з User-Agent браузера.
+  await page.goto("/account/security");
+  await expect(page.getByTestId("sessions")).toContainText("Ця сесія");
+  await expect(page.getByTestId("sessions")).toContainText("Chrome");
   await page.getByLabel("Пароль для підтвердження").fill("password123");
   await page.getByRole("button", { name: "Видалити акаунт" }).click();
   await expect(page).toHaveURL(/\/\?done=deleted|\/$/);
@@ -405,6 +541,11 @@ test("житло: детальніше, порівняння цін продав
   await card.getByTestId("stay-details-toggle").click();
   await expect(card.getByTestId("stay-details")).toContainText("До центру");
 
+  // «Чому цей варіант?» — причини з цифрами й розбивка оцінки (модуль 14.5).
+  await card.getByText("Чому цей варіант?").click();
+  await expect(card.getByTestId("stay-why-reasons")).toBeVisible();
+  await expect(card.getByTestId("stay-breakdown")).toBeVisible();
+
   await card.getByTestId("stay-rates-toggle").click();
   await expect(card.getByTestId("stay-rates")).toBeVisible();
   expect(await card.getByTestId("stay-room").count()).toBeGreaterThan(1);
@@ -459,6 +600,10 @@ test("поїздка 8a: гнучкий період і тривалість, п
   await expect(breakdown).toContainText("Музей");
   await expect(breakdown).toContainText("Орієнтовно");
   await expect(picks.first().getByTestId("trip-dates")).toContainText("→ заїзд");
+  // Модуль 14.4–14.5: повноцінні ночі, час у дорозі й «Чому цей варіант?».
+  await expect(picks.first().getByTestId("trip-quality")).toContainText("ночей повноцінні");
+  await picks.first().getByText("Чому цей варіант?").click();
+  await expect(picks.first().getByTestId("trip-why-reasons")).toBeVisible();
   // Форма зберегла умови: розкрита, зі значеннями з URL.
   await expect(page.getByLabel("Рейтинг від")).toHaveValue("8");
 });
@@ -532,6 +677,11 @@ test("поїздка 8c: порівняння, зберегти, мої поїз
   await expect(trips.first()).toContainText("сума на");
   await trips.first().getByTestId("saved-trip-refresh").click();
   await expect(page.getByTestId("saved-trip-refreshed")).toContainText("Зараз:");
+  // Поїздка → сповіщення (модуль 15): підписка на сторінці поїздки, тим самим блоком.
+  await expect(trips.first().getByTestId("saved-trip-watch")).toHaveAttribute(
+    "href",
+    /^\/trip\?.*#price-alert$/,
+  );
   await trips.first().getByTestId("saved-trip-copy").click();
   await expect(trips).toHaveCount(2);
 
@@ -551,4 +701,106 @@ test("поїздка 8c: порівняння, зберегти, мої поїз
   await trips.first().getByTestId("saved-trip-delete").click();
   await trips.first().getByTestId("saved-trip-delete-yes").click();
   await expect(trips).toHaveCount(1);
+});
+
+test("ШІ 9a: команди готової поїздки змінюють сторінку, зберігають і порівнюють", async ({
+  page,
+}) => {
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+  await page.getByTestId("trip-choose").first().click();
+  await expect(page.getByTestId("trip-builder")).toBeVisible({ timeout: 15_000 });
+  const before = new URL(page.url()).searchParams;
+
+  await page.getByRole("button", { name: "ШІ-пошук" }).click();
+  await page.getByRole("button", { name: /^Уся поїздка/ }).click();
+  const ask = async (text: string) => {
+    await page.getByLabel("Запитайте ШІ-помічника").fill(text);
+    await page.getByRole("button", { name: "Надіслати" }).click();
+  };
+  const conversation = page.getByRole("list", { name: "Розмова з помічником" });
+
+  await ask("Знайди дешевший готель, авіаквитки не змінюй");
+  await expect(conversation).toContainText(/Готово: тепер разом|Кращого варіанта/);
+  const after = new URL(page.url()).searchParams;
+  expect(after.get("flight")).toBe(before.get("flight")); // рейс не змінився
+
+  await ask("Збережи цей варіант");
+  await expect(conversation).toContainText("Зберіг поїздку");
+  await ask("Порівняй з попереднім");
+  await expect(conversation).toContainText("Порівняння додано");
+  await expect(page.getByTestId("trip-compare-bar")).toContainText("Обрано поїздок: 2");
+
+  await page.goto("/trips");
+  await expect(page.getByTestId("saved-trip")).toHaveCount(1);
+});
+
+test("ШІ 9b: картки поїздок у чаті → планувальник; планувальник → «Оптимізувати з ШІ»", async ({
+  page,
+}) => {
+  await page.goto("/stays");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "ШІ-пошук" }).click();
+  await page.getByRole("button", { name: /^Уся поїздка/ }).click();
+  await page.getByLabel("Запитайте ШІ-помічника").fill("Поїздка з Варшави до Лісабона");
+  await page.getByRole("button", { name: "Надіслати" }).click();
+
+  const card = page.getByTestId("chat-card-trip").first();
+  await expect(card).toBeVisible({ timeout: 15_000 });
+  await expect(card).toContainText("€");
+  await expect(card.getByTestId("chat-card-age")).toBeVisible();
+  const total = await card.getByTestId("chat-card-total").innerText();
+  await card.getByRole("link", { name: /Відкрити в планувальнику/ }).click();
+
+  // Саме ця комбінація: рейс і житло закріплені, сума та сама.
+  await expect(page).toHaveURL(/\/trip\?.*flight=.*stay=|\/trip\?.*stay=.*flight=/);
+  const builder = page.getByTestId("trip-builder");
+  await expect(builder).toBeVisible();
+  await expect(builder.getByTestId("trip-total")).toHaveText(total);
+
+  await builder.getByTestId("trip-optimize-ai").click();
+  // Попередня сторінка (/stays) лишається змонтованою прихованою — дивимось лише видиме.
+  await expect(page.getByText("Розмова: Уся поїздка").filter({ visible: true })).toHaveCount(1);
+  await expect(page.getByLabel("Запитайте ШІ-помічника").filter({ visible: true })).toHaveValue(
+    /Оптимізуй цю поїздку/,
+  );
+});
+
+test("ШІ 9c: історія чатів — перейменувати, продовжити, новий чат, видалити", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "ШІ-пошук" }).click();
+  await page.getByRole("button", { name: /^Квитки/ }).click();
+  await page.getByLabel("Запитайте ШІ-помічника").fill("Привіт");
+  await page.getByRole("button", { name: "Надіслати" }).click();
+  const conversation = page.getByRole("list", { name: "Розмова з помічником" });
+  await expect(conversation).toContainText("Куди і коли");
+
+  await page.getByRole("button", { name: "Новий чат" }).click();
+  await page.getByRole("button", { name: /Історія/ }).click();
+  await page.getByRole("button", { name: "Перейменувати розмову «Привіт»" }).click();
+  await page.getByLabel("Назва розмови").fill("Мій перший чат");
+  await page.getByRole("button", { name: "Готово" }).click();
+  await expect(page.getByText("Мій перший чат")).toBeVisible();
+  await expect(page.getByText(/Увійдіть, щоб синхронізувати/)).toBeVisible();
+
+  // Продовжити попередню розмову.
+  await page.getByText("Мій перший чат").click();
+  await expect(conversation).toContainText("Привіт");
+  await page.getByRole("button", { name: /Історія/ }).click();
+  await page.getByRole("button", { name: "Видалити розмову «Мій перший чат»" }).click();
+  await expect(page.getByText("Мій перший чат")).toHaveCount(0);
+});
+
+test("модуль 15: рейс → «Додати до поїздки» → планувальник з цим рейсом і житлом на його дати", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12&adults=2");
+  const card = page.getByTestId("offer-card").first();
+  await card.waitFor();
+  await card.getByTestId("offer-add-to-trip").click();
+
+  await expect(page).toHaveURL(/\/trip\?.*flight=/);
+  await expect(page).toHaveURL(/adults=2/);
+  await expect(page.getByTestId("trip-builder")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("trip-builder-notice")).toHaveCount(0);
 });

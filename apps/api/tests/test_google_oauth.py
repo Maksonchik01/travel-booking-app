@@ -9,6 +9,7 @@ from tickets_api.auth.google import (
     USERINFO_ENDPOINT,
     GoogleAuthError,
     GoogleOAuth,
+    _picture,
     new_pkce,
 )
 
@@ -57,6 +58,7 @@ async def test_code_exchange_and_profile(client: httpx.AsyncClient) -> None:
                 "email_verified": True,
                 "given_name": "Макс",
                 "family_name": "Д",
+                "picture": "https://lh3.googleusercontent.com/a/photo=s96-c",
             },
         )
     )
@@ -67,6 +69,7 @@ async def test_code_exchange_and_profile(client: httpx.AsyncClient) -> None:
 
     assert (profile.sub, profile.email, profile.email_verified) == ("1234", "max@example.com", True)
     assert profile.given_name == "Макс"
+    assert profile.picture == "https://lh3.googleusercontent.com/a/photo=s96-c"
     form = parse_qs(token.calls.last.request.content.decode())
     assert form["grant_type"] == ["authorization_code"]
     assert form["code_verifier"] == ["v"]
@@ -86,3 +89,11 @@ async def test_errors_do_not_leak_secret(client: httpx.AsyncClient) -> None:
 
     assert "invalid_grant" in str(error.value)
     assert "super-secret" not in str(error.value)
+
+
+def test_picture_only_from_google_over_https() -> None:
+    assert _picture("http://lh3.googleusercontent.com/a/x") is None
+    assert _picture("https://evil.example/googleusercontent.com/x") is None
+    assert _picture("https://googleusercontent.com.evil.example/x") is None
+    assert _picture("https://evil.example/x.png") is None
+    assert _picture(42) is None

@@ -9,7 +9,8 @@ from tickets_api.ai.assistant import (
     ChatTurn,
     TravelAssistant,
 )
-from tickets_api.domain.flights import FlightQuery
+from tickets_api.domain.flights import FlightPreferences, FlightQuery
+from tickets_api.domain.trips import TripPreferences
 from tickets_api.llm.types import ChatRequest, ChatResponse, LLMError, ToolCall
 from tickets_api.providers.mock import MockFlightProvider
 from tickets_api.providers.mock_stays import MockStayProvider
@@ -249,7 +250,11 @@ async def test_stays_chat_has_only_stay_tools() -> None:
 
     reply = await agent.reply(turns("Житло в Лісабоні 5–8 грудня"), CONTEXT, client, "stays")
 
-    assert {t.name for t in client.requests[0].tools} == {"lookup_airport", "search_stays"}
+    assert {t.name for t in client.requests[0].tools} == {
+        "lookup_airport",
+        "search_stays",
+        "refine_stays",
+    }
     assert "Stay-Assistant" in client.requests[0].messages[0].content
     unknown, stays = tool_outputs(client)
     assert "unknown tool" in unknown["error"]  # квитки — в іншому чаті
@@ -277,10 +282,47 @@ async def test_trip_chat_plans_whole_trip_with_totals_from_code() -> None:
     reply = await agent.reply(turns("Поїздка Варшава–Лісабон 5–8 грудня"), CONTEXT, client, "trip")
 
     assert reply.status == "ok"
-    assert {t.name for t in client.requests[0].tools} == {"lookup_airport", "plan_trip"}
+    assert {t.name for t in client.requests[0].tools} == {
+        "lookup_airport",
+        "plan_trip",
+        "change_trip",
+        "undo_trip",
+        "compare_trips",
+        "save_trip",
+    }
     assert reply.trip_search is not None
     assert (reply.trip_search.origin, reply.trip_search.destination) == ("WAW", "LIS")
     [trip] = tool_outputs(client)
     best = next(o for o in trip["options"] if o["id"] == trip["recommended_by_scoring"])
     assert best["money_total_text"].endswith("EUR")
     assert "житло" in best["breakdown_text"]
+
+
+async def test_profile_currency_and_preferences_reach_assistant_searches() -> None:
+    # Модуль 15: налаштування кабінету діють і в помічнику — валюта й м'які уподобання.
+    agent, provider = assistant()
+    client = Scripted(
+        tool("search_flights", origin="WAW", destination="LIS", departure_date="2026-11-10"),
+        text("Знайшла варіанти."),
+    )
+    prefs = TripPreferences(flights=FlightPreferences(airlines=["LO"]))
+    context = ChatContext(today=TODAY, currency="PLN", preferences=prefs)
+
+    reply = await agent.reply(turns("Варшава — Лісабон 10 листопада"), context, client)
+
+    assert reply.search is not None
+    assert reply.search.currency == "PLN"
+    assert reply.search.preferences == prefs.flights
+    assert provider.queries[-1].currency == "PLN"
+
+
+async def test_preferences_are_not_sent_to_the_model() -> None:
+    agent, _ = assistant()
+    client = Scripted(text("Куди летимо?"))
+    prefs = TripPreferences(flights=FlightPreferences(airlines=["LO"]))
+
+    await agent.reply(turns("Привіт"), ChatContext(today=TODAY, preferences=prefs), client)
+
+    system = client.requests[0].messages[0].content
+    assert "preferences" not in system
+    assert '"currency":"EUR"' in system

@@ -189,12 +189,7 @@ function CompareTable({
     [
       t("price"),
       (o) => (
-        <span
-          className={cn(
-            "font-semibold tabular-nums",
-            o.price === cheapest && "text-emerald-700 dark:text-emerald-400",
-          )}
-        >
+        <span className={cn("font-semibold tabular-nums", o.price === cheapest && "text-success")}>
           {format.number(o.price, {
             style: "currency",
             currency: o.currency,
@@ -206,12 +201,7 @@ function CompareTable({
     [
       t("duration"),
       (o) => (
-        <span
-          className={cn(
-            o.total_duration_min === fastest &&
-              "font-medium text-emerald-700 dark:text-emerald-400",
-          )}
-        >
+        <span className={cn(o.total_duration_min === fastest && "font-medium text-success")}>
           {dur(o.total_duration_min)}
         </span>
       ),

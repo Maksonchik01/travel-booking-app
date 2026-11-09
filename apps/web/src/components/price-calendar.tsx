@@ -133,9 +133,7 @@ export function PriceCalendar({
                     <span
                       className={cn(
                         "text-[10px] tabular-nums",
-                        diff < 0
-                          ? "text-emerald-700 dark:text-emerald-400"
-                          : "text-rose-700 dark:text-rose-400",
+                        diff < 0 ? "text-success" : "text-rose-700 dark:text-rose-400",
                       )}
                       data-testid="calendar-diff"
                     >
@@ -145,7 +143,7 @@ export function PriceCalendar({
                   )}
                   {live != null && (
                     <BadgeCheck
-                      className="absolute top-0.5 right-0.5 size-3 text-emerald-600"
+                      className="absolute top-0.5 right-0.5 size-3 text-success"
                       aria-label={t("verified")}
                     />
                   )}
@@ -162,7 +160,7 @@ export function PriceCalendar({
                 !day && "opacity-45",
                 !selected &&
                   cheapest &&
-                  "border-emerald-500/50 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
+                  "border-success/50 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
                 !selected && top && !cheapest && "border-emerald-500/30 bg-emerald-500/[0.06]",
                 !selected && day && !top && level > 0.66 && "bg-rose-500/[0.04]",
               );
@@ -202,11 +200,11 @@ export function PriceCalendar({
       )}
       <p className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block size-2.5 rounded-sm border border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/15" />
+          <span className="inline-block size-2.5 rounded-sm border border-success/50 bg-emerald-50 dark:bg-emerald-500/15" />
           {t("legendCheap")}
         </span>
         <span className="flex items-center gap-1">
-          <BadgeCheck className="size-3 text-emerald-600" aria-hidden />
+          <BadgeCheck className="size-3 text-success" aria-hidden />
           {t("legendVerified")}
         </span>
         <span>{t("legendCached")}</span>

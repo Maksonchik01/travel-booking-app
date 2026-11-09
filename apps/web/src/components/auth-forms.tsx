@@ -204,7 +204,7 @@ export function VerifyEmailForm({ token }: { token: string }) {
     return (
       <p
         role="status"
-        className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-300"
+        className="rounded-lg border border-success/40 bg-success/5 px-3 py-2 text-sm text-success"
       >
         {t("emailVerified")}
       </p>

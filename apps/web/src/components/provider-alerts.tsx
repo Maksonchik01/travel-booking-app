@@ -14,9 +14,9 @@ export function ProviderAlerts({ providers }: { providers: ProviderStatus[] }) {
         <li
           key={p.provider}
           role="status"
-          className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm"
+          className="flex items-start gap-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm"
         >
-          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" aria-hidden />
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
           {p.status === "rate_limited"
             ? t("providerQuota", { provider: providerName(p.provider) })
             : p.status === "unsupported"

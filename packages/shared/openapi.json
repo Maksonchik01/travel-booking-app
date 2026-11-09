@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Tickets API",
+    "title": "SkyPack API",
     "version": "0.1.0"
   },
   "paths": {
@@ -430,6 +430,32 @@
         }
       }
     },
+    "/places/countries": {
+      "get": {
+        "tags": [
+          "places"
+        ],
+        "summary": "Countries",
+        "description": "Коди країн довідника (ISO 3166-1 alpha-2); назви мовою сторінки підставляє веб.",
+        "operationId": "countries_places_countries_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Response Countries Places Countries Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/stays/search": {
       "post": {
         "tags": [
@@ -849,6 +875,214 @@
         }
       }
     },
+    "/alerts/pause": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Pause Alert",
+        "description": "Призупинити: не перевіряємо й не пишемо, доки не відновите.",
+        "operationId": "pause_alert_alerts_pause_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/tickets_api__api__alerts__TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/resume": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Resume Alert",
+        "operationId": "resume_alert_alerts_resume_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/tickets_api__api__alerts__TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/edit": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Edit Alert",
+        "description": "Змінити дати, людей, багаж чи умову (маршрут і канал — лише новою підпискою).",
+        "operationId": "edit_alert_alerts_edit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/delete": {
+      "post": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Delete Alert",
+        "operationId": "delete_alert_alerts_delete_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/tickets_api__api__alerts__TokenBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/alerts/history": {
+      "get": {
+        "tags": [
+          "alerts"
+        ],
+        "summary": "Alert History",
+        "description": "Історія спрацювань і змін (без рядових перевірок).",
+        "operationId": "alert_history_alerts_history_get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 16,
+              "maxLength": 64,
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AlertEventOut"
+                  },
+                  "title": "Response Alert History Alerts History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/status": {
       "get": {
         "tags": [
@@ -877,15 +1111,33 @@
         ],
         "summary": "Register",
         "operationId": "register_auth_register_post",
+        "parameters": [
+          {
+            "name": "x-client-device",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-Device"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterBody"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -918,15 +1170,33 @@
         ],
         "summary": "Login",
         "operationId": "login_auth_login_post",
+        "parameters": [
+          {
+            "name": "x-client-device",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-Device"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginBody"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1072,15 +1342,33 @@
         "summary": "Google Callback",
         "description": "Код від Google → сесія (вхід) або null (прив'язка до вже відкритої сесії).",
         "operationId": "google_callback_auth_google_callback_post",
+        "parameters": [
+          {
+            "name": "x-client-device",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-Device"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/GoogleCallbackBody"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1189,15 +1477,33 @@
         ],
         "summary": "Reset Password",
         "operationId": "reset_password_auth_password_reset_post",
+        "parameters": [
+          {
+            "name": "x-client-device",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Client-Device"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PasswordResetBody"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1229,7 +1535,7 @@
           "auth"
         ],
         "summary": "Me",
-        "description": "Швидка перевірка сесії для шапки сайту: лише логін та ім'я.",
+        "description": "Швидка перевірка сесії для шапки сайту: логін, ім'я, фото й мова.",
         "operationId": "me_auth_me_get",
         "parameters": [
           {
@@ -1254,7 +1560,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
               }
             }
           },
@@ -1362,6 +1670,629 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/preferences": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Update Preferences",
+        "description": "Мова, валюта, країна, домашній і улюблені аеропорти (форма надсилає все разом).",
+        "operationId": "update_preferences_account_preferences_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/locale": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Set Locale",
+        "description": "Перемикач мови в шапці: запам'ятовуємо вибір і в профілі (інші пристрої).",
+        "operationId": "set_locale_account_locale_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocaleBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/search-preferences": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Save Search Prefs",
+        "description": "Особисті налаштування пошуку — значення за замовчуванням для нових пошуків.",
+        "operationId": "save_search_prefs_account_search_preferences_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchPrefs-Input"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/avatar": {
+      "get": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Get Avatar",
+        "operationId": "get_avatar_account_avatar_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "image/png": {},
+              "image/jpeg": {},
+              "image/webp": {}
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Upload Avatar",
+        "description": "Тіло — саме зображення (PNG/JPEG/WebP, до 300 КБ); тип визначаємо за вмістом.",
+        "operationId": "upload_avatar_account_avatar_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Delete Avatar",
+        "operationId": "delete_avatar_account_avatar_delete",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/notifications": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Save Notify Prefs",
+        "description": "Налаштування сповіщень для підписок акаунта (канали, частота, тиша, категорії).",
+        "operationId": "save_notify_prefs_account_notifications_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotifyPrefs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/sessions": {
+      "get": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Sessions",
+        "operationId": "sessions_account_sessions_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionInfo"
+                  },
+                  "title": "Response Sessions Account Sessions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/sessions/{session_id}": {
+      "delete": {
+        "tags": [
+          "account"
+        ],
+        "summary": "End Session",
+        "operationId": "end_session_account_sessions__session_id__delete",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/sessions/end-others": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "End Other Sessions",
+        "description": "Вийти на всіх інших пристроях; поточна сесія лишається.",
+        "operationId": "end_other_sessions_account_sessions_end_others_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response End Other Sessions Account Sessions End Others Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/chats": {
+      "delete": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Clear Chats",
+        "operationId": "clear_chats_account_chats_delete",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Chats",
+        "description": "Розмови з помічником — лише якщо синхронізацію увімкнено (згода).",
+        "operationId": "chats_account_chats_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSyncState"
                 }
               }
             }
@@ -2313,6 +3244,185 @@
         }
       }
     },
+    "/account/chats/sync": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Set Chat Sync",
+        "description": "Увімкнути / вимкнути синхронізацію. Вимкнення видаляє розмови з сервера.",
+        "operationId": "set_chat_sync_account_chats_sync_put",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatSyncBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSyncState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/chats/{conversation_id}": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Save Chat",
+        "operationId": "save_chat_account_chats__conversation_id__put",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]{8,64}$",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatConversationBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatConversationOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Delete Chat",
+        "operationId": "delete_chat_account_chats__conversation_id__delete",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9-]{8,64}$",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/account/trips": {
       "get": {
         "tags": [
@@ -2395,7 +3505,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SavedTripBody"
+                "$ref": "#/components/schemas/SavedTripBody-Input"
               }
             }
           }
@@ -2527,7 +3637,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SavedTripBody"
+                "$ref": "#/components/schemas/SavedTripBody-Input"
               }
             }
           }
@@ -2559,8 +3669,9 @@
         "tags": [
           "account"
         ],
-        "summary": "Rename Trip",
-        "operationId": "rename_trip_account_trips__trip_id__patch",
+        "summary": "Patch Trip",
+        "description": "Назва чи статус поїздки (чернетка / запланована / архівна).",
+        "operationId": "patch_trip_account_trips__trip_id__patch",
         "parameters": [
           {
             "name": "trip_id",
@@ -2593,7 +3704,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SearchEntryRename"
+                "$ref": "#/components/schemas/SavedTripPatch"
               }
             }
           }
@@ -2877,17 +3988,34 @@
           "ai"
         ],
         "summary": "Explain Results",
-        "description": "Пояснення найкращих варіантів пошуку. Числа — лише з результатів скорингу.",
+        "description": "Пояснення найкращих варіантів пошуку мовою інтерфейсу. Числа — лише з результатів\nскорингу.",
         "operationId": "explain_results_ai_explain_post",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "en",
+                "uk",
+                "ru"
+              ],
+              "type": "string",
+              "default": "uk",
+              "title": "Locale"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/FlightQuery"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -3101,6 +4229,114 @@
             ],
             "title": "Flight Filters"
           },
+          "chat_sync": {
+            "type": "boolean",
+            "title": "Chat Sync",
+            "default": false
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "uk",
+                  "ru"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "home_airport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Airport"
+          },
+          "favorite_airports": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Favorite Airports",
+            "default": []
+          },
+          "search_prefs": {
+            "$ref": "#/components/schemas/SearchPrefs-Output",
+            "default": {
+              "flights": {
+                "airlines": [],
+                "departure_periods": []
+              },
+              "stays": {
+                "amenities": [],
+                "free_cancellation": false,
+                "kinds": []
+              }
+            }
+          },
+          "notify_prefs": {
+            "$ref": "#/components/schemas/NotifyPrefs",
+            "default": {
+              "email": true,
+              "telegram": true,
+              "min_interval_hours": 24,
+              "min_drop_percent": 0,
+              "muted": []
+            }
+          },
+          "google_picture": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Picture"
+          },
+          "avatar_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Version"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -3128,8 +4364,26 @@
             "type": "string",
             "title": "Id"
           },
-          "origin": {
+          "kind": {
             "type": "string",
+            "enum": [
+              "flight",
+              "flex",
+              "stay",
+              "trip"
+            ],
+            "title": "Kind",
+            "default": "flight"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Origin"
           },
           "destination": {
@@ -3153,15 +4407,79 @@
             ],
             "title": "Return Date"
           },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
+          },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
+            "default": false
+          },
           "adults": {
             "type": "integer",
             "title": "Adults"
+          },
+          "baggage": {
+            "type": "string",
+            "enum": [
+              "none",
+              "personal_item",
+              "carry_on",
+              "checked",
+              "checked_extra"
+            ],
+            "title": "Baggage",
+            "default": "none"
+          },
+          "stay_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay Key"
           },
           "condition": {
             "type": "string",
             "enum": [
               "below_price",
-              "below_typical"
+              "below_typical",
+              "drop_amount",
+              "drop_percent"
             ],
             "title": "Condition"
           },
@@ -3175,6 +4493,28 @@
               }
             ],
             "title": "Threshold"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          },
+          "baseline_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Price"
           },
           "currency": {
             "type": "string",
@@ -3193,6 +4533,7 @@
             "enum": [
               "pending",
               "active",
+              "paused",
               "stopped",
               "expired"
             ],
@@ -3376,9 +4717,27 @@
       },
       "AlertCreate": {
         "properties": {
-          "origin": {
+          "kind": {
             "type": "string",
-            "pattern": "^[A-Za-z]{3}$",
+            "enum": [
+              "flight",
+              "flex",
+              "stay",
+              "trip"
+            ],
+            "title": "Kind",
+            "default": "flight"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Origin"
           },
           "destination": {
@@ -3403,6 +4762,49 @@
             ],
             "title": "Return Date"
           },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
+          },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
+            "default": false
+          },
           "adults": {
             "type": "integer",
             "maximum": 9.0,
@@ -3410,11 +4812,37 @@
             "title": "Adults",
             "default": 1
           },
+          "baggage": {
+            "type": "string",
+            "enum": [
+              "none",
+              "personal_item",
+              "carry_on",
+              "checked",
+              "checked_extra"
+            ],
+            "title": "Baggage",
+            "default": "none"
+          },
+          "stay_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9_-]{1,20}:[\\w.-]{1,80}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay Key"
+          },
           "condition": {
             "type": "string",
             "enum": [
               "below_price",
-              "below_typical"
+              "below_typical",
+              "drop_amount",
+              "drop_percent"
             ],
             "title": "Condition",
             "default": "below_price"
@@ -3431,6 +4859,19 @@
               }
             ],
             "title": "Threshold"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 90.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
           },
           "currency": {
             "type": "string",
@@ -3464,7 +4905,6 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "origin",
           "destination",
           "departure_date"
         ],
@@ -3502,6 +4942,11 @@
               }
             ],
             "title": "Telegram Link"
+          },
+          "existing": {
+            "type": "boolean",
+            "title": "Existing",
+            "default": false
           }
         },
         "type": "object",
@@ -3513,14 +4958,217 @@
         ],
         "title": "AlertCreated"
       },
+      "AlertEdit": {
+        "properties": {
+          "departure_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure Date"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
+          },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
+            "default": false
+          },
+          "adults": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Adults",
+            "default": 1
+          },
+          "baggage": {
+            "type": "string",
+            "enum": [
+              "none",
+              "personal_item",
+              "carry_on",
+              "checked",
+              "checked_extra"
+            ],
+            "title": "Baggage",
+            "default": "none"
+          },
+          "condition": {
+            "type": "string",
+            "enum": [
+              "below_price",
+              "below_typical",
+              "drop_amount",
+              "drop_percent"
+            ],
+            "title": "Condition",
+            "default": "below_price"
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 90.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "departure_date"
+        ],
+        "title": "AlertEdit",
+        "description": "Редагування підписки: усі змінювані поля разом (форма надсилає їх усі)."
+      },
+      "AlertEventOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "created",
+              "confirmed",
+              "checked",
+              "notified",
+              "held",
+              "paused",
+              "resumed",
+              "edited",
+              "snoozed",
+              "threshold",
+              "stopped",
+              "expired"
+            ],
+            "title": "Kind"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "price",
+          "detail",
+          "created_at"
+        ],
+        "title": "AlertEventOut",
+        "description": "Запис історії підписки: спрацювання, затримки, зміни статусу (без текстів листів)."
+      },
       "AlertView": {
         "properties": {
           "id": {
             "type": "string",
             "title": "Id"
           },
-          "origin": {
+          "kind": {
             "type": "string",
+            "enum": [
+              "flight",
+              "flex",
+              "stay",
+              "trip"
+            ],
+            "title": "Kind",
+            "default": "flight"
+          },
+          "origin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Origin"
           },
           "destination": {
@@ -3544,15 +5192,79 @@
             ],
             "title": "Return Date"
           },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
+          },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
+            "default": false
+          },
           "adults": {
             "type": "integer",
             "title": "Adults"
+          },
+          "baggage": {
+            "type": "string",
+            "enum": [
+              "none",
+              "personal_item",
+              "carry_on",
+              "checked",
+              "checked_extra"
+            ],
+            "title": "Baggage",
+            "default": "none"
+          },
+          "stay_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay Key"
           },
           "condition": {
             "type": "string",
             "enum": [
               "below_price",
-              "below_typical"
+              "below_typical",
+              "drop_amount",
+              "drop_percent"
             ],
             "title": "Condition"
           },
@@ -3566,6 +5278,28 @@
               }
             ],
             "title": "Threshold"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          },
+          "baseline_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Price"
           },
           "currency": {
             "type": "string",
@@ -3584,6 +5318,7 @@
             "enum": [
               "pending",
               "active",
+              "paused",
               "stopped",
               "expired"
             ],
@@ -4042,6 +5777,28 @@
               }
             ],
             "title": "Bot Username"
+          },
+          "kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "flight",
+                "flex",
+                "stay",
+                "trip"
+              ]
+            },
+            "type": "array",
+            "title": "Kinds",
+            "default": [
+              "flight",
+              "flex"
+            ]
+          },
+          "max_active_per_owner": {
+            "type": "integer",
+            "title": "Max Active Per Owner",
+            "default": 20
           }
         },
         "type": "object",
@@ -4093,6 +5850,26 @@
               }
             ]
           },
+          "current_trip": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripQuery-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previous_trip": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripQuery-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "home_airport": {
             "anyOf": [
               {
@@ -4104,6 +5881,32 @@
               }
             ],
             "title": "Home Airport"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency",
+            "default": "EUR"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "uk",
+              "ru"
+            ],
+            "title": "Locale",
+            "default": "uk"
           }
         },
         "additionalProperties": false,
@@ -4112,6 +5915,103 @@
           "messages"
         ],
         "title": "ChatBody"
+      },
+      "ChatConversationBody": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "flights",
+              "stays",
+              "trip"
+            ],
+            "title": "Mode"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Title",
+            "default": ""
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Updated At"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/SyncedTurn"
+            },
+            "type": "array",
+            "maxItems": 80,
+            "title": "Turns"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode",
+          "created_at",
+          "updated_at",
+          "turns"
+        ],
+        "title": "ChatConversationBody"
+      },
+      "ChatConversationOut": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "flights",
+              "stays",
+              "trip"
+            ],
+            "title": "Mode"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Title",
+            "default": ""
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Updated At"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/SyncedTurn"
+            },
+            "type": "array",
+            "maxItems": 80,
+            "title": "Turns"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode",
+          "created_at",
+          "updated_at",
+          "turns",
+          "id"
+        ],
+        "title": "ChatConversationOut"
       },
       "ChatReply": {
         "properties": {
@@ -4164,6 +6064,62 @@
                 "type": "null"
               }
             ]
+          },
+          "trip_action": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "undo"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trip Action"
+          },
+          "save_trip": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SavedTripBody-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "compare": {
+            "items": {
+              "$ref": "#/components/schemas/CompareEntry"
+            },
+            "type": "array",
+            "title": "Compare",
+            "default": []
+          },
+          "cards": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FlightCard"
+                },
+                {
+                  "$ref": "#/components/schemas/StayCard"
+                },
+                {
+                  "$ref": "#/components/schemas/TripCard"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "flight": "#/components/schemas/FlightCard",
+                  "stay": "#/components/schemas/StayCard",
+                  "trip": "#/components/schemas/TripCard"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Cards",
+            "default": []
           }
         },
         "type": "object",
@@ -4171,6 +6127,41 @@
           "status"
         ],
         "title": "ChatReply"
+      },
+      "ChatSyncBody": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "ChatSyncBody"
+      },
+      "ChatSyncState": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "conversations": {
+            "items": {
+              "$ref": "#/components/schemas/ChatConversationOut"
+            },
+            "type": "array",
+            "title": "Conversations",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "ChatSyncState"
       },
       "ChatTurn": {
         "properties": {
@@ -4401,6 +6392,29 @@
         ],
         "title": "Clicks"
       },
+      "CompareEntry": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/TripSnapshot-Output"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "title",
+          "snapshot"
+        ],
+        "title": "CompareEntry",
+        "description": "Поїздка для панелі порівняння сторінки (знімок рахує код)."
+      },
       "CostItem": {
         "properties": {
           "kind": {
@@ -4607,6 +6621,26 @@
         ],
         "title": "DeleteAccountBody"
       },
+      "EditBody": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 16,
+            "title": "Token"
+          },
+          "edit": {
+            "$ref": "#/components/schemas/AlertEdit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "token",
+          "edit"
+        ],
+        "title": "EditBody"
+      },
       "EmailBody": {
         "properties": {
           "email": {
@@ -4622,6 +6656,35 @@
           "email"
         ],
         "title": "EmailBody"
+      },
+      "Exclusion": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": [
+              "stops",
+              "airlines",
+              "times",
+              "layovers",
+              "price",
+              "duration",
+              "direct",
+              "baggage"
+            ],
+            "title": "Reason"
+          },
+          "offers": {
+            "type": "integer",
+            "title": "Offers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason",
+          "offers"
+        ],
+        "title": "Exclusion",
+        "description": "Скільки пропозицій відсіяно обов'язковою вимогою (модуль 14.1) — за першою порушеною."
       },
       "ExplainResult": {
         "properties": {
@@ -4714,20 +6777,350 @@
         "properties": {
           "kind": {
             "type": "string",
-            "const": "stay",
+            "enum": [
+              "stay",
+              "flight",
+              "trip"
+            ],
             "title": "Kind",
             "default": "stay"
           },
           "stay": {
-            "$ref": "#/components/schemas/FavoriteStay-Input"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteStay-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "flight": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteFlight-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trip": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteTrip-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "FavoriteBody"
+      },
+      "FavoriteFlight-Input": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,32}$",
+            "title": "Source"
+          },
+          "offer_id": {
+            "type": "string",
+            "pattern": "^[\\w.-]{1,64}$",
+            "title": "Offer Id"
+          },
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Destination"
+          },
+          "departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departure At"
+          },
+          "arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival At"
+          },
+          "return_departure_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Departure At"
+          },
+          "return_arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Arrival At"
+          },
+          "stops": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Stops"
+          },
+          "duration_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Min"
+          },
+          "airlines": {
+            "items": {
+              "type": "string",
+              "maxLength": 3
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Airlines"
+          },
+          "passengers": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Passengers",
+            "default": 1
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Price"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "price_status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "cached"
+            ],
+            "title": "Price Status"
+          },
+          "price_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Price At"
+          },
+          "params": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[\\w%=&.,+:-]+$",
+            "title": "Params"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "stay"
+          "source",
+          "offer_id",
+          "origin",
+          "destination",
+          "departure_at",
+          "stops",
+          "airlines",
+          "price",
+          "currency",
+          "price_status",
+          "price_at",
+          "params"
         ],
-        "title": "FavoriteBody"
+        "title": "FavoriteFlight",
+        "description": "Авіаквиток: рейс (ідентифікатор джерела), маршрут, час, умови й ціна з часом отримання."
+      },
+      "FavoriteFlight-Output": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,32}$",
+            "title": "Source"
+          },
+          "offer_id": {
+            "type": "string",
+            "pattern": "^[\\w.-]{1,64}$",
+            "title": "Offer Id"
+          },
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Destination"
+          },
+          "departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departure At"
+          },
+          "arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival At"
+          },
+          "return_departure_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Departure At"
+          },
+          "return_arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Arrival At"
+          },
+          "stops": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Stops"
+          },
+          "duration_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Min"
+          },
+          "airlines": {
+            "items": {
+              "type": "string",
+              "maxLength": 3
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Airlines"
+          },
+          "passengers": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Passengers",
+            "default": 1
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "price_status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "cached"
+            ],
+            "title": "Price Status"
+          },
+          "price_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Price At"
+          },
+          "params": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[\\w%=&.,+:-]+$",
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "offer_id",
+          "origin",
+          "destination",
+          "departure_at",
+          "stops",
+          "airlines",
+          "price",
+          "currency",
+          "price_status",
+          "price_at",
+          "params"
+        ],
+        "title": "FavoriteFlight",
+        "description": "Авіаквиток: рейс (ідентифікатор джерела), маршрут, час, умови й ціна з часом отримання."
       },
       "FavoriteOut": {
         "properties": {
@@ -4737,7 +7130,11 @@
           },
           "kind": {
             "type": "string",
-            "const": "stay",
+            "enum": [
+              "stay",
+              "flight",
+              "trip"
+            ],
             "title": "Kind"
           },
           "item_key": {
@@ -4745,7 +7142,34 @@
             "title": "Item Key"
           },
           "stay": {
-            "$ref": "#/components/schemas/FavoriteStay-Output"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteStay-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "flight": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteFlight-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trip": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteTrip-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "created_at": {
             "type": "string",
@@ -4758,7 +7182,6 @@
           "id",
           "kind",
           "item_key",
-          "stay",
           "created_at"
         ],
         "title": "FavoriteOut"
@@ -5019,6 +7442,56 @@
         ],
         "title": "FavoriteStay"
       },
+      "FavoriteTrip-Input": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Input"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/TripSnapshot-Input"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "query",
+          "snapshot"
+        ],
+        "title": "FavoriteTrip",
+        "description": "Готова поїздка: запит з вибором рейсу й житла + знімок (як «Мої поїздки», без статусу)."
+      },
+      "FavoriteTrip-Output": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Output"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/TripSnapshot-Output"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "query",
+          "snapshot"
+        ],
+        "title": "FavoriteTrip",
+        "description": "Готова поїздка: запит з вибором рейсу й житла + знімок (як «Мої поїздки», без статусу)."
+      },
       "FavoritesImport": {
         "properties": {
           "items": {
@@ -5037,6 +7510,108 @@
         ],
         "title": "FavoritesImport",
         "description": "Обране гостя з браузера — до акаунта після входу (повтори пропускаються)."
+      },
+      "FlightCard": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "flight",
+            "title": "Kind",
+            "default": "flight"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "airlines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Airlines"
+          },
+          "outbound": {
+            "$ref": "#/components/schemas/LegCard"
+          },
+          "inbound": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegCard"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "duration_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Min"
+          },
+          "stops": {
+            "type": "integer",
+            "title": "Stops"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "price_status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "cached"
+            ],
+            "title": "Price Status"
+          },
+          "found_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "airlines",
+          "outbound",
+          "inbound",
+          "duration_min",
+          "stops",
+          "price",
+          "currency",
+          "price_status",
+          "found_at"
+        ],
+        "title": "FlightCard"
       },
       "FlightFiltersBody": {
         "properties": {
@@ -5091,6 +7666,224 @@
         ],
         "title": "FlightOption",
         "description": "Рейс, на який можна замінити переліт (модуль 8b)."
+      },
+      "FlightPreferences": {
+        "properties": {
+          "airlines": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9]{2}$"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Airlines"
+          },
+          "departure_periods": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "night",
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Departure Periods"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "FlightPreferences",
+        "description": "Особисті уподобання з профілю (модуль 14.2) — М'ЯКІ: не відсікають пропозицію, а лише\nдодають «ціну» невідповідності в скоринг. Обов'язкові вимоги — у `filters` і `direct_only`."
+      },
+      "FlightPrefs-Input": {
+        "properties": {
+          "cabin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "economy",
+                  "premium_economy",
+                  "business",
+                  "first"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cabin"
+          },
+          "baggage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "personal_item",
+                  "carry_on",
+                  "checked",
+                  "checked_extra"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baggage"
+          },
+          "max_stops": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Stops"
+          },
+          "airlines": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Airlines"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "budget",
+                  "balanced",
+                  "time_is_money"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "departure_periods": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "night",
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Departure Periods"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "FlightPrefs"
+      },
+      "FlightPrefs-Output": {
+        "properties": {
+          "cabin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "economy",
+                  "premium_economy",
+                  "business",
+                  "first"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cabin"
+          },
+          "baggage": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "personal_item",
+                  "carry_on",
+                  "checked",
+                  "checked_extra"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baggage"
+          },
+          "max_stops": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Stops"
+          },
+          "airlines": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{2}$"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Airlines"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "budget",
+                  "balanced",
+                  "time_is_money"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "departure_periods": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "night",
+                "morning",
+                "afternoon",
+                "evening"
+              ]
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Departure Periods"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "FlightPrefs"
       },
       "FlightQuery": {
         "properties": {
@@ -5258,6 +8051,16 @@
               "return_departure_periods": [],
               "return_arrival_periods": []
             }
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FlightPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -5284,6 +8087,14 @@
             },
             "type": "array",
             "title": "Providers"
+          },
+          "excluded": {
+            "items": {
+              "$ref": "#/components/schemas/Exclusion"
+            },
+            "type": "array",
+            "title": "Excluded",
+            "default": []
           },
           "scoring": {
             "$ref": "#/components/schemas/ScoringResult"
@@ -5314,6 +8125,20 @@
             "type": "array",
             "title": "Date Options",
             "default": []
+          },
+          "freshness": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "live",
+                "cached",
+                "approximate",
+                "needs_recheck"
+              ]
+            },
+            "type": "object",
+            "title": "Freshness",
+            "default": {}
           }
         },
         "type": "object",
@@ -5683,6 +8508,68 @@
         "title": "Leg",
         "description": "Один напрямок подорожі (туди або назад)."
       },
+      "LegCard": {
+        "properties": {
+          "origin": {
+            "type": "string",
+            "title": "Origin"
+          },
+          "destination": {
+            "type": "string",
+            "title": "Destination"
+          },
+          "departure_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departure At"
+          },
+          "arrival_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival At"
+          },
+          "stops": {
+            "type": "integer",
+            "title": "Stops"
+          }
+        },
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "departure_at",
+          "arrival_at",
+          "stops"
+        ],
+        "title": "LegCard"
+      },
+      "LocaleBody": {
+        "properties": {
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "uk",
+              "ru"
+            ],
+            "title": "Locale"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "locale"
+        ],
+        "title": "LocaleBody",
+        "description": "Перемикач мови в шапці: лише мова, без решти профілю."
+      },
       "LoginBody": {
         "properties": {
           "login": {
@@ -5771,6 +8658,158 @@
           "found_on"
         ],
         "title": "MatrixCell"
+      },
+      "Me": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name",
+            "default": ""
+          },
+          "google_picture": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Google Picture"
+          },
+          "avatar_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Version"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "uk",
+                  "ru"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "first_name"
+        ],
+        "title": "Me",
+        "description": "Шапка сайту: хто увійшов і як його показати."
+      },
+      "NotifyPrefs": {
+        "properties": {
+          "email": {
+            "type": "boolean",
+            "title": "Email",
+            "default": true
+          },
+          "telegram": {
+            "type": "boolean",
+            "title": "Telegram",
+            "default": true
+          },
+          "min_interval_hours": {
+            "type": "integer",
+            "enum": [
+              24,
+              72,
+              168
+            ],
+            "title": "Min Interval Hours",
+            "default": 24
+          },
+          "min_drop_percent": {
+            "type": "integer",
+            "enum": [
+              0,
+              3,
+              5,
+              10
+            ],
+            "title": "Min Drop Percent",
+            "default": 0
+          },
+          "quiet_start": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 23.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Start"
+          },
+          "quiet_end": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 23.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet End"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "muted": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "below_price",
+                "below_typical",
+                "drop_amount",
+                "drop_percent"
+              ]
+            },
+            "type": "array",
+            "maxItems": 2,
+            "title": "Muted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NotifyPrefs"
       },
       "Offer": {
         "properties": {
@@ -6265,6 +9304,14 @@
           "pareto_optimal": {
             "type": "boolean",
             "title": "Pareto Optimal"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "type": "array",
+            "title": "Reasons",
+            "default": []
           }
         },
         "type": "object",
@@ -6615,6 +9662,77 @@
         "title": "Place",
         "description": "Варіант автодоповнення: аеропорт або місто, де жоден аеропорт не має коду міста."
       },
+      "PreferencesBody": {
+        "properties": {
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "en",
+                  "uk",
+                  "ru"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "EUR",
+                  "USD",
+                  "GBP",
+                  "PLN"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "home_airport": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Home Airport"
+          },
+          "favorite_airports": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Favorite Airports"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PreferencesBody",
+        "description": "Налаштування профілю: форма надсилає всі поля (None — «не задано»)."
+      },
       "PriceMatrix": {
         "properties": {
           "departures": {
@@ -6785,6 +9903,101 @@
         ],
         "title": "ReadinessResponse"
       },
+      "Reason": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "only_option",
+              "cheapest",
+              "fastest",
+              "best_balance",
+              "pricier_but_faster",
+              "cheaper_but_slower",
+              "fewer_stops",
+              "avoids_risk",
+              "baggage_included",
+              "preferred_airline",
+              "preferred_time"
+            ],
+            "title": "Code"
+          },
+          "vs": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cheapest",
+                  "fastest",
+                  "balanced"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vs"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "risk": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "short_layover",
+                  "overnight_layover",
+                  "self_transfer",
+                  "night_departure",
+                  "night_arrival",
+                  "airport_change"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Risk"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "Reason",
+        "description": "Одна конкретна причина «Чому цей варіант?» — факт із даних пошуку, не оцінка LLM.\n\nСуми — у валюті скорингу, різниця за абсолютним значенням; `vs` — з чим порівнюємо."
+      },
       "RegisterBody": {
         "properties": {
           "username": {
@@ -6838,7 +10051,9 @@
               "short_layover",
               "overnight_layover",
               "self_transfer",
-              "night_departure"
+              "night_departure",
+              "night_arrival",
+              "airport_change"
             ],
             "title": "Code"
           },
@@ -6956,7 +10171,7 @@
         "title": "RoomOffers",
         "description": "Група однакових умов: той самий номер, ліжко, харчування й скасування."
       },
-      "SavedTripBody": {
+      "SavedTripBody-Input": {
         "properties": {
           "title": {
             "type": "string",
@@ -6969,6 +10184,50 @@
           },
           "snapshot": {
             "$ref": "#/components/schemas/TripSnapshot-Input"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "planned",
+              "archived"
+            ],
+            "title": "Status",
+            "default": "draft"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "query",
+          "snapshot"
+        ],
+        "title": "SavedTripBody"
+      },
+      "SavedTripBody-Output": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Output"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/TripSnapshot-Output"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "planned",
+              "archived"
+            ],
+            "title": "Status",
+            "default": "draft"
           }
         },
         "additionalProperties": false,
@@ -6989,6 +10248,16 @@
           "title": {
             "type": "string",
             "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "planned",
+              "archived"
+            ],
+            "title": "Status",
+            "default": "draft"
           },
           "query": {
             "$ref": "#/components/schemas/TripQuery-Output"
@@ -7018,11 +10287,48 @@
         ],
         "title": "SavedTripOut"
       },
+      "SavedTripPatch": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "planned",
+                  "archived"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SavedTripPatch",
+        "description": "Назва та/або статус (без зміни конфігурації й знімка)."
+      },
       "SavedTripsImport": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/SavedTripBody"
+              "$ref": "#/components/schemas/SavedTripBody-Input"
             },
             "type": "array",
             "maxItems": 50,
@@ -7042,6 +10348,17 @@
           "price": {
             "type": "number",
             "title": "Price"
+          },
+          "baggage_extra": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baggage Extra"
           },
           "time_penalty": {
             "anyOf": [
@@ -7068,6 +10385,23 @@
           "risk_total": {
             "type": "number",
             "title": "Risk Total"
+          },
+          "preference_penalty": {
+            "type": "number",
+            "title": "Preference Penalty",
+            "default": 0.0
+          },
+          "preference_misses": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "airline",
+                "departure_time"
+              ]
+            },
+            "type": "array",
+            "title": "Preference Misses",
+            "default": []
           },
           "total": {
             "anyOf": [
@@ -7328,6 +10662,32 @@
         "title": "SearchFacets",
         "description": "Що є у видачі ДО фільтрів — щоб UI показав доступні варіанти фільтрів."
       },
+      "SearchPrefs-Input": {
+        "properties": {
+          "flights": {
+            "$ref": "#/components/schemas/FlightPrefs-Input"
+          },
+          "stays": {
+            "$ref": "#/components/schemas/StayPrefs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SearchPrefs"
+      },
+      "SearchPrefs-Output": {
+        "properties": {
+          "flights": {
+            "$ref": "#/components/schemas/FlightPrefs-Output"
+          },
+          "stays": {
+            "$ref": "#/components/schemas/StayPrefs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SearchPrefs"
+      },
       "Segment": {
         "properties": {
           "origin": {
@@ -7564,6 +10924,62 @@
         },
         "type": "object",
         "title": "SerpApiQuota"
+      },
+      "SessionInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "device": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "last_seen_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Seen At"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "device",
+          "created_at",
+          "last_seen_at",
+          "expires_at",
+          "current"
+        ],
+        "title": "SessionInfo",
+        "description": "Сесія входу в кабінеті «Безпека»: пристрій грубо, без IP."
       },
       "SessionOut": {
         "properties": {
@@ -7960,6 +11376,16 @@
             "maxItems": 3,
             "minItems": 1,
             "title": "Stay Keys"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "uk",
+              "ru"
+            ],
+            "title": "Locale",
+            "default": "uk"
           }
         },
         "additionalProperties": false,
@@ -7998,6 +11424,139 @@
           "status"
         ],
         "title": "StayAnalysisResult"
+      },
+      "StayCard": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "stay",
+            "title": "Kind",
+            "default": "stay"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "stay_kind": {
+            "type": "string",
+            "enum": [
+              "hotel",
+              "apartment",
+              "hostel",
+              "guesthouse",
+              "other"
+            ],
+            "title": "Stay Kind"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "review_count": {
+            "type": "integer",
+            "title": "Review Count"
+          },
+          "district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District"
+          },
+          "distance_to_center_km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance To Center Km"
+          },
+          "price_per_night": {
+            "type": "number",
+            "title": "Price Per Night"
+          },
+          "total_price": {
+            "type": "number",
+            "title": "Total Price"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "found_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "stay_kind",
+          "image_url",
+          "rating",
+          "review_count",
+          "district",
+          "distance_to_center_km",
+          "price_per_night",
+          "total_price",
+          "nights",
+          "currency",
+          "found_at"
+        ],
+        "title": "StayCard"
       },
       "StayFacets": {
         "properties": {
@@ -8433,6 +11992,133 @@
         "title": "StayPlace",
         "description": "Місто пошуку (для заголовка й відстаней)."
       },
+      "StayPreferences": {
+        "properties": {
+          "amenities": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "wifi",
+                "breakfast",
+                "parking",
+                "pool",
+                "gym",
+                "kitchen",
+                "air_conditioning",
+                "spa",
+                "pets",
+                "airport_shuttle",
+                "balcony"
+              ]
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Amenities"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "StayPreferences",
+        "description": "Особисті уподобання з профілю (модуль 14.3) — М'ЯКІ: бракує бажаної зручності — штраф\nв оцінці, а не відсів. Обов'язкові зручності — у `filters.amenities`."
+      },
+      "StayPrefs": {
+        "properties": {
+          "kinds": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "hotel",
+                "apartment",
+                "hostel",
+                "guesthouse",
+                "other"
+              ]
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Kinds"
+          },
+          "min_rating": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  7,
+                  8,
+                  9
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rating"
+          },
+          "max_distance_km": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  1,
+                  2,
+                  3,
+                  5,
+                  10
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Distance Km"
+          },
+          "amenities": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "wifi",
+                "breakfast",
+                "parking",
+                "pool",
+                "gym",
+                "kitchen",
+                "air_conditioning",
+                "spa",
+                "pets",
+                "airport_shuttle",
+                "balcony"
+              ]
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Amenities"
+          },
+          "free_cancellation": {
+            "type": "boolean",
+            "title": "Free Cancellation",
+            "default": false
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "budget",
+                  "balanced",
+                  "center"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "StayPrefs"
+      },
       "StayQuery": {
         "properties": {
           "city": {
@@ -8486,6 +12172,16 @@
               "amenities": [],
               "districts": []
             }
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -8750,6 +12446,92 @@
         ],
         "title": "StayRatesResult"
       },
+      "StayReason": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "only_option",
+              "cheapest",
+              "top_rated",
+              "best_balance",
+              "pricier_but_closer",
+              "pricier_but_better_rated",
+              "cheaper_than_top_rated",
+              "free_cancellation",
+              "preferred_amenities",
+              "within_budget"
+            ],
+            "title": "Code"
+          },
+          "vs": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cheapest",
+                  "top_rated",
+                  "balanced"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vs"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Km"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "StayReason",
+        "description": "Причина «Чому цей варіант?» — факт з даних пошуку. Гроші — за все проживання."
+      },
       "StayScore": {
         "properties": {
           "stay_key": {
@@ -8769,6 +12551,14 @@
           "pareto_optimal": {
             "type": "boolean",
             "title": "Pareto Optimal"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/StayReason"
+            },
+            "type": "array",
+            "title": "Reasons",
+            "default": []
           }
         },
         "type": "object",
@@ -8801,6 +12591,32 @@
           "cancellation_penalty": {
             "type": "number",
             "title": "Cancellation Penalty"
+          },
+          "amenity_penalty": {
+            "type": "number",
+            "title": "Amenity Penalty",
+            "default": 0.0
+          },
+          "missing_amenities": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "wifi",
+                "breakfast",
+                "parking",
+                "pool",
+                "gym",
+                "kitchen",
+                "air_conditioning",
+                "spa",
+                "pets",
+                "airport_shuttle",
+                "balcony"
+              ]
+            },
+            "type": "array",
+            "title": "Missing Amenities",
+            "default": []
           },
           "adjusted_rating": {
             "anyOf": [
@@ -8908,6 +12724,20 @@
           },
           "facets": {
             "$ref": "#/components/schemas/StayFacets"
+          },
+          "freshness": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "live",
+                "cached",
+                "approximate",
+                "needs_recheck"
+              ]
+            },
+            "type": "object",
+            "title": "Freshness",
+            "default": {}
           }
         },
         "type": "object",
@@ -8965,6 +12795,143 @@
         ],
         "title": "StayWindow"
       },
+      "SyncedCard": {
+        "properties": {
+          "card": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Card"
+          },
+          "href": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^/([^/\\s][^\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Href"
+          },
+          "trip": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^/([^/\\s][^\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trip"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "card"
+        ],
+        "title": "SyncedCard"
+      },
+      "SyncedLinks": {
+        "properties": {
+          "flights": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^/([^/\\s][^\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flights"
+          },
+          "stays": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^/([^/\\s][^\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stays"
+          },
+          "trip": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^/([^/\\s][^\\s]*)?$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trip"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SyncedLinks"
+      },
+      "SyncedTurn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "links": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SyncedLinks"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cards": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/SyncedCard"
+                },
+                "type": "array",
+                "maxItems": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cards"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "SyncedTurn"
+      },
       "TripBudget": {
         "properties": {
           "budget": {
@@ -8994,6 +12961,85 @@
           "shortfall"
         ],
         "title": "TripBudget"
+      },
+      "TripCard": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "trip",
+            "title": "Kind",
+            "default": "trip"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "money_total": {
+            "type": "number",
+            "title": "Money Total"
+          },
+          "unknown_parts": {
+            "type": "integer",
+            "title": "Unknown Parts"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "check_in": {
+            "type": "string",
+            "format": "date",
+            "title": "Check In"
+          },
+          "check_out": {
+            "type": "string",
+            "format": "date",
+            "title": "Check Out"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          },
+          "prices_cached": {
+            "type": "boolean",
+            "title": "Prices Cached"
+          },
+          "flight": {
+            "$ref": "#/components/schemas/FlightCard"
+          },
+          "stay": {
+            "$ref": "#/components/schemas/StayCard"
+          },
+          "query": {
+            "$ref": "#/components/schemas/TripQuery-Output"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "money_total",
+          "unknown_parts",
+          "currency",
+          "check_in",
+          "check_out",
+          "nights",
+          "prices_cached",
+          "flight",
+          "stay",
+          "query"
+        ],
+        "title": "TripCard"
       },
       "TripCombo": {
         "properties": {
@@ -9085,6 +13131,41 @@
             },
             "type": "array",
             "title": "Warnings",
+            "default": []
+          },
+          "full_nights": {
+            "type": "integer",
+            "title": "Full Nights",
+            "default": 0
+          },
+          "travel_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Travel Min"
+          },
+          "waiting_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Waiting Min"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/TripReason"
+            },
+            "type": "array",
+            "title": "Reasons",
             "default": []
           }
         },
@@ -9444,6 +13525,34 @@
         ],
         "title": "TripPick"
       },
+      "TripPreferences": {
+        "properties": {
+          "flights": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FlightPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stays": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TripPreferences",
+        "description": "Уподобання з профілю (модуль 14.4): м'які — лише в оцінку перельоту й житла."
+      },
       "TripQuery-Input": {
         "properties": {
           "origin": {
@@ -9637,6 +13746,16 @@
               }
             ],
             "title": "Flight"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -9841,6 +13960,16 @@
               }
             ],
             "title": "Flight"
+          },
+          "preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -9851,6 +13980,106 @@
           "departure_date"
         ],
         "title": "TripQuery"
+      },
+      "TripReason": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "only_option",
+              "cheapest",
+              "best_value",
+              "comfort",
+              "pricier_but_faster",
+              "better_rated_stay",
+              "closer_stay",
+              "more_full_nights",
+              "fewer_stops",
+              "cheaper_than_comfort",
+              "all_nights_full",
+              "within_budget",
+              "over_budget"
+            ],
+            "title": "Code"
+          },
+          "vs": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cheapest",
+                  "best_value",
+                  "comfort"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vs"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Km"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "TripReason",
+        "description": "Причина «Чому цей варіант?» поїздки (модуль 14.5) — факт з даних, рахує код.\n\nГроші — сума поїздки за відомими складовими; `vs` — з яким сценарієм порівнюємо."
       },
       "TripRefresh": {
         "properties": {

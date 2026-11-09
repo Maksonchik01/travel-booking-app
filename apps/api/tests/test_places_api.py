@@ -41,3 +41,11 @@ async def test_city_only_suggestions_for_stays(client: AsyncClient) -> None:
     assert by_airport[0]["code"] == "WAW"
     london = (await client.get("/places", params={"q": "LON", "kind": "city"})).json()
     assert [p["code"] for p in london].count("LON") == 1
+
+
+async def test_country_codes(client: AsyncClient) -> None:
+    codes = (await client.get("/places/countries")).json()
+
+    assert {"PL", "UA", "GB"} <= set(codes)
+    assert codes == sorted(codes)
+    assert all(len(c) == 2 and c.isupper() for c in codes)

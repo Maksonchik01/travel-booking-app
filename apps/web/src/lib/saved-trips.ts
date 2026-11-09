@@ -6,6 +6,7 @@ import type {
   TripCombo,
   TripQuery,
   TripSnapshotInput,
+  TripStatus,
 } from "@tickets/shared";
 
 /**
@@ -19,7 +20,11 @@ const STORAGE_KEY = "tickets.savedTrips.v1";
 export type SavedTripItem = Pick<SavedTrip, "id" | "title" | "created_at" | "updated_at"> & {
   query: TripQuery;
   snapshot: TripSnapshotInput;
+  /** Чернетка / запланована / архівна (модуль 10a); старі записи браузера — чернетки. */
+  status?: TripStatus;
 };
+
+export const TRIP_STATUSES: readonly TripStatus[] = ["draft", "planned", "archived"];
 
 /** Знімок «Вашої поїздки» чи сценарію: лише те, що потрібно для списку й порівняння. */
 export function tripSnapshot(
@@ -70,7 +75,12 @@ export function pinnedQuery(query: TripQuery, combo: TripCombo): TripQuery {
 }
 
 export function savedBody(item: SavedTripItem): SavedTripBody {
-  return { title: item.title, query: item.query, snapshot: item.snapshot };
+  return {
+    title: item.title,
+    query: item.query,
+    snapshot: item.snapshot,
+    status: item.status ?? "draft",
+  };
 }
 
 function isItem(value: unknown): value is SavedTripItem {

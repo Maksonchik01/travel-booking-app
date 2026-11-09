@@ -26,8 +26,10 @@ from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
+from tickets_api.domain.freshness import FreshnessRules
 from tickets_api.llm.pricing import default_pricing, load_pricing
 from tickets_api.notifications.factory import build_mailer
+from tickets_api.providers.base import FlightProvider
 from tickets_api.providers.fx import EcbRates
 from tickets_api.providers.registry import build_providers, build_stay_providers
 from tickets_api.reference.airlines import default_airline_names
@@ -71,10 +73,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             settings.redis_url, socket_timeout=1.0, socket_connect_timeout=1.0
         )
         app.state.http = httpx.AsyncClient(timeout=settings.provider_timeout_s)
+        pool: dict[str, FlightProvider] = {}
+        freshness = FreshnessRules(
+            live_fresh_min=settings.price_live_fresh_min,
+            cached_stale_days=settings.price_cached_stale_days,
+        )
         app.state.flight_search = FlightSearchService(
-            build_providers(settings.flight_providers, settings, app.state.http, app.state.redis),
+            build_providers(
+                settings.flight_providers, settings, app.state.http, app.state.redis, pool=pool
+            ),
             calendar_providers=build_providers(
-                settings.calendar_providers, settings, app.state.http, app.state.redis
+                settings.calendar_providers, settings, app.state.http, app.state.redis, pool=pool
             ),
             timeout_s=settings.provider_timeout_s,
             scoring_config=scoring_config,
@@ -82,6 +91,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             airline_names=default_airline_names(),
             fx=EcbRates(app.state.http, app.state.redis).rate,
             live_date_pairs=settings.flex_live_date_pairs,
+            freshness=freshness,
         )
         app.state.stay_search = StaySearchService(
             build_stay_providers(settings.stay_providers),
@@ -89,6 +99,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             timeout_s=settings.provider_timeout_s,
             scoring_config=stay_scoring_config,
             record_history=StayPriceHistoryRecorder(app.state.sessionmaker).record,
+            freshness=freshness,
         )
         app.state.trip_planner = TripPlanner(app.state.flight_search, app.state.stay_search)
         app.state.alerts = build_alert_service(
@@ -134,7 +145,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await app.state.redis.aclose()
             await app.state.engine.dispose()
 
-    app = FastAPI(title="Tickets API", version=__version__, lifespan=lifespan)
+    app = FastAPI(title="SkyPack API", version=__version__, lifespan=lifespan)
     app.state.settings = settings
     app.add_middleware(
         CORSMiddleware,

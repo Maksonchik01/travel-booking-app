@@ -24,6 +24,13 @@ class Penalties(_Strict):
     overnight_layover: Decimal = Field(ge=0)
     self_transfer: Decimal = Field(ge=0)
     night_departure: Decimal = Field(ge=0)
+    night_arrival: Decimal = Field(ge=0)
+    airport_change: Decimal = Field(ge=0)
+
+
+class PreferencePenalties(_Strict):
+    airline: Decimal = Field(ge=0)
+    departure_time: Decimal = Field(ge=0)
 
 
 class Thresholds(_Strict):
@@ -43,6 +50,7 @@ class ScoringConfig(_Strict):
     currency: str = Field(pattern=r"^[A-Z]{3}$")
     profiles: dict[Profile, ProfileWeights]
     penalties: Penalties
+    preferences: PreferencePenalties
     thresholds: Thresholds
 
     @model_validator(mode="after")
@@ -71,6 +79,9 @@ class ScoringConfig(_Strict):
                 },
                 "penalties": Penalties(
                     **{k: v * rate for k, v in self.penalties.model_dump().items()}
+                ),
+                "preferences": PreferencePenalties(
+                    **{k: v * rate for k, v in self.preferences.model_dump().items()}
                 ),
             }
         )

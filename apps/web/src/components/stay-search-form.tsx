@@ -1,15 +1,18 @@
 "use client";
 
+import type { StayProfile } from "@tickets/shared";
 import { Building2, Loader2, Search } from "lucide-react";
 import Form from "next/form";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { ParamsToggle } from "@/components/params-toggle";
 import { PlaceInput, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { CommonSearch } from "@/lib/search-modes";
 import { addDays } from "@/lib/search-params";
 import {
   MAX_NIGHTS,
@@ -22,17 +25,30 @@ import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 /** Пошук житла: місто, дати, гості, що важливіше. Звичайна GET-форма — працює й без JS. */
-export function StaySearchForm({ initial }: { initial: StayState | null }) {
+export type StayFormPrefs = { filters: [string, string][]; profile?: StayProfile | null };
+
+export function StaySearchForm({
+  initial,
+  prefs = null,
+  carried = null,
+}: {
+  initial: StayState | null;
+  /** Перенесене з іншого режиму (модуль 12.2), коли для пошуку ще чогось бракує. */
+  carried?: CommonSearch | null;
+  /** Налаштування пошуку житла з профілю (модуль 10b): фільтри й пріоритет. */
+  prefs?: StayFormPrefs | null;
+}) {
   const t = useTranslations("stays");
   const q = initial?.query;
-  const [city, setCity] = useState(() => placeValue(q?.city));
-  const [checkIn, setCheckIn] = useState(q?.check_in ?? "");
-  const [checkOut, setCheckOut] = useState(q?.check_out ?? "");
+  const c = q ? null : carried;
+  const [city, setCity] = useState(() => placeValue(q?.city ?? c?.to));
+  const [checkIn, setCheckIn] = useState(q?.check_in ?? c?.depart ?? "");
+  const [checkOut, setCheckOut] = useState(q?.check_out ?? c?.return ?? "");
   const nights = checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 0;
-  const [children, setChildren] = useState(q?.guests?.children ?? 0);
+  const [children, setChildren] = useState(q?.guests?.children ?? c?.children ?? 0);
 
   return (
-    <Form action="/stays" className="grid gap-4">
+    <Form action="/stays" className="grid gap-4" data-search-form>
       <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
         <Field label={t("city")} htmlFor="city">
           <PlaceInput
@@ -86,7 +102,7 @@ export function StaySearchForm({ initial }: { initial: StayState | null }) {
           <select
             id="adults"
             name="adults"
-            defaultValue={q?.guests?.adults ?? 2}
+            defaultValue={q?.guests?.adults ?? c?.adults ?? 2}
             className={SELECT_CLASS}
           >
             {Array.from({ length: 9 }, (_, i) => i + 1).map((n) => (
@@ -172,7 +188,9 @@ export function StaySearchForm({ initial }: { initial: StayState | null }) {
                   type="radio"
                   name="prio"
                   value={profile}
-                  defaultChecked={(q?.profile ?? "balanced") === profile}
+                  defaultChecked={
+                    (q?.profile ?? (q ? null : prefs?.profile) ?? "balanced") === profile
+                  }
                   className="sr-only"
                 />
                 {t(`priorities.${profile}`)}
@@ -182,6 +200,13 @@ export function StaySearchForm({ initial }: { initial: StayState | null }) {
         </fieldset>
         <SubmitButton idle={t("submit")} pending={t("searching")} />
       </div>
+      {prefs && (
+        <ParamsToggle
+          entries={prefs.filters}
+          label={t("usePrefs", { count: prefs.filters.length })}
+          testId="stay-prefs-toggle"
+        />
+      )}
     </Form>
   );
 }

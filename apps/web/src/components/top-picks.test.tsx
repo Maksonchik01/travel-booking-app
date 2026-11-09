@@ -57,9 +57,15 @@ const scoring: ScoringResult = {
         stop_penalty: 30,
         risk_penalties: [{ code: "night_departure", leg: "outbound", amount: 20, airport: "WAW" }],
         risk_total: 20,
+        preference_penalty: 0,
+        preference_misses: [],
         total: 185,
       },
       warnings: [{ code: "layover_details_unknown", leg: "outbound", airport: null }],
+      reasons: [
+        { code: "cheapest", count: 2 },
+        { code: "cheaper_but_slower", vs: "fastest", amount: 90, minutes: 180 },
+      ],
     },
     {
       offer_key: "mock:B",
@@ -70,9 +76,18 @@ const scoring: ScoringResult = {
         stop_penalty: 0,
         risk_penalties: [],
         risk_total: 0,
+        preference_penalty: 0,
+        preference_misses: [],
         total: 180,
       },
       warnings: [],
+      reasons: [
+        { code: "fastest", count: 2 },
+        { code: "best_balance", amount: 180 },
+        { code: "pricier_but_faster", vs: "cheapest", amount: 90, minutes: 180 },
+        { code: "fewer_stops", vs: "cheapest", count: 1 },
+        { code: "avoids_risk", vs: "cheapest", risk: "night_departure" },
+      ],
     },
   ],
   picks: [
@@ -110,6 +125,36 @@ describe("TopPicks", () => {
     expect(breakdown).toHaveTextContent("Нічний виліт з WAW");
     expect(within(cheapest).getByTestId("total")).toHaveTextContent("185 €");
     expect(within(cheapest).getByText("Деталі пересадок невідомі")).toBeInTheDocument();
+  });
+
+  it("«Чому цей варіант?» — конкретні причини з цифрами", () => {
+    renderPicks();
+
+    const [cheapest, balanced] = screen.getAllByTestId("top-pick");
+    expect(within(cheapest!).getByText("Чому цей варіант?")).toBeInTheDocument();
+    const mine = within(cheapest!).getByTestId("why-reasons");
+    expect(mine).toHaveTextContent("Найнижча ціна серед 2 варіантів");
+    expect(mine).toHaveTextContent("На 90 € дешевший за найшвидший, у дорозі на 3 год довше");
+    const why = within(balanced!).getByTestId("why-reasons");
+    expect(why).toHaveTextContent("На 90 € дорожчий за найдешевший, але економить 3 год дороги");
+    expect(why).toHaveTextContent("На 1 пересадку менше, ніж у найдешевшого");
+    expect(why).toHaveTextContent("Без ризику, який є в найдешевшого: нічний виліт");
+    expect(why).toHaveTextContent("оцінка 180 € — найменша");
+  });
+
+  it("показує доплату за багаж і невідповідність налаштуванням у розбивці", () => {
+    const withExtras = structuredClone(scoring);
+    const b = withExtras.scores[0]!.breakdown;
+    b.baggage_extra = 35;
+    b.preference_penalty = 25;
+    b.preference_misses = ["airline", "departure_time"];
+    renderPicks(withExtras);
+
+    const breakdown = within(screen.getAllByTestId("top-pick")[0]!).getByTestId("breakdown");
+    expect(breakdown).toHaveTextContent("Доплата за обраний багаж+35 €");
+    expect(breakdown).toHaveTextContent(
+      "Не за вашими налаштуваннями: інша авіакомпанія, інший час вильоту+25 €",
+    );
   });
 
   it("чесно пише, коли оцінку не порахувати", () => {

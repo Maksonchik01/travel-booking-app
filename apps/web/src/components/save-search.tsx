@@ -46,7 +46,7 @@ export function SaveSearch({
       <input type="hidden" name="back" value={back} />
       <SaveButton label={t("save")} />
       {state.status === "error" && (
-        <span role="alert" className="text-xs text-amber-700 dark:text-amber-400">
+        <span role="alert" className="text-xs text-warning">
           {t(state.code === "limit_reached" ? "limit" : "error")}
         </span>
       )}

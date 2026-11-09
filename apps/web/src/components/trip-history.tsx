@@ -65,3 +65,21 @@ export function TripUndo({ params, showButton }: { params: string; showButton: b
     </Button>
   );
 }
+
+/** Попередній крок поїздки (рядок запиту) — для чату: «поверни», «порівняй з попереднім». */
+export function previousTripParams(): string | null {
+  const steps = read();
+  return steps.length > 1 ? steps[steps.length - 2] : null;
+}
+
+/** Крок назад, як кнопка «Повернути попередній вибір». false — повертатися нікуди. */
+export function undoTripStep(router: {
+  push: (href: string, options?: { scroll?: boolean }) => void;
+}): boolean {
+  const steps = read();
+  if (steps.length < 2) return false;
+  steps.pop();
+  write(steps);
+  router.push(`/trip?${steps.at(-1)}`, { scroll: false });
+  return true;
+}

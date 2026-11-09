@@ -1,13 +1,14 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import NextError from "next/error";
 import { useEffect } from "react";
+
+import { reportError } from "@/lib/sentry-client";
 
 /** Падіння кореневого layout: звітуємо в Sentry і показуємо стандартну сторінку помилки. */
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
   useEffect(() => {
-    Sentry.captureException(error);
+    reportError(error);
   }, [error]);
 
   return (

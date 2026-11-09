@@ -23,6 +23,17 @@ def session_token(authorization: Annotated[str | None, Header()] = None) -> str 
     return None
 
 
+def client_device(x_client_device: Annotated[str | None, Header()] = None) -> str | None:
+    """Пристрій сесії («Chrome · macOS») від вебу — лише для впізнавання в списку сесій.
+
+    Не секрет і не доказ: беремо друковані символи, до 60.
+    """
+    if not x_client_device:
+        return None
+    cleaned = "".join(ch for ch in x_client_device if ch.isprintable()).strip()[:60]
+    return cleaned or None
+
+
 async def optional_user(
     service: Annotated[AccountService, Depends(accounts)],
     token: Annotated[str | None, Depends(session_token)],
@@ -40,3 +51,4 @@ Service = Annotated[AccountService, Depends(accounts)]
 CurrentUser = Annotated[User, Depends(current_user)]
 OptionalUser = Annotated[User | None, Depends(optional_user)]
 Token = Annotated[str | None, Depends(session_token)]
+Device = Annotated[str | None, Depends(client_device)]

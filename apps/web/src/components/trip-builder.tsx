@@ -3,6 +3,8 @@ import { BedDouble, Plane, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
+import { FavoriteToggle } from "@/components/favorites";
+import { OptimizeWithAI } from "@/components/open-chat-button";
 import { SaveTripButton, ShareTripButton } from "@/components/saved-trips";
 import { TripCard } from "@/components/trip-card";
 import { TripCompareToggle } from "@/components/trip-compare";
@@ -30,6 +32,7 @@ export function TripBuilder({
   saved,
   title,
   pricedAt,
+  aiEnabled = false,
 }: {
   data: TripSearchResult;
   query: TripQuery;
@@ -44,6 +47,8 @@ export function TripBuilder({
   title: string;
   /** Час рендеру (ISO) — коли отримано ціни знімка. */
   pricedAt: string;
+  /** ШІ увімкнено — кнопка «Оптимізувати з ШІ». */
+  aiEnabled?: boolean;
 }) {
   const t = useTranslations("tripBuilder");
   const format = useFormatter();
@@ -108,7 +113,7 @@ export function TripBuilder({
       {notices.map((text) => (
         <p
           key={text}
-          className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs"
+          className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs"
           role="status"
           data-testid="trip-builder-notice"
         >
@@ -126,7 +131,12 @@ export function TripBuilder({
           airlineNames={airlineNames}
           flightsHref={flightsHref}
           staysHref={staysHref}
-          compare={<TripCompareToggle item={{ key: selected.key, title: t("title"), snapshot }} />}
+          compare={
+            <>
+              <TripCompareToggle item={{ key: selected.key, title: t("title"), snapshot }} />
+              <FavoriteToggle body={{ kind: "trip", trip: { title, query: pinned, snapshot } }} />
+            </>
+          }
         />
 
         <div className="grid gap-4">
@@ -135,10 +145,11 @@ export function TripBuilder({
               {/* key: інша конфігурація — свіжа кнопка (стан «Збережено» не переноситься). */}
               <SaveTripButton
                 key={here}
-                body={{ title, query: pinned, snapshot }}
+                body={{ title, query: pinned, snapshot, status: "draft" }}
                 savedId={saved}
               />
               <ShareTripButton key={`share-${here}`} href={`/trip?${toTripParams(pinned)}`} />
+              {aiEnabled && <OptimizeWithAI />}
             </div>
             <p className="text-muted-foreground text-[11px]">{t("saveHint")}</p>
           </div>
@@ -293,14 +304,14 @@ function OptionRow({
         <span className="grid min-w-0">
           <span className="truncate font-medium">{title}</span>
           <span className="text-muted-foreground truncate text-xs">{detail}</span>
-          {note && <span className="text-xs text-amber-700 dark:text-amber-400">{note}</span>}
+          {note && <span className="text-xs text-warning">{note}</span>}
         </span>
         <span className="grid text-right">
           <span className="font-semibold tabular-nums">{price}</span>
           <span
             className={cn(
               "text-xs tabular-nums",
-              cheaper ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground",
+              cheaper ? "text-success" : "text-muted-foreground",
             )}
           >
             {delta}

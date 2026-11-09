@@ -1,6 +1,6 @@
 "use server";
 
-import type { FavoriteOut, FavoriteStayInput } from "@tickets/shared";
+import type { FavoriteBody, FavoriteOut } from "@tickets/shared";
 
 import { call, sessionToken } from "@/lib/session";
 
@@ -13,13 +13,13 @@ export type FavoritesState =
  * (повтори API пропускає), тоді `imported: true` і клієнт чистить локальне.
  */
 export async function loadFavorites(
-  local: FavoriteStayInput[],
+  local: FavoriteBody[],
 ): Promise<FavoritesState & { imported?: boolean }> {
   if (!(await sessionToken())) return { signedIn: false };
   let imported = false;
   if (local.length) {
     const result = await call<FavoriteOut[]>("POST", "/account/favorites/import", {
-      items: local.map((stay) => ({ kind: "stay", stay })),
+      items: local,
     });
     imported = result.ok;
   }
@@ -30,9 +30,9 @@ export async function loadFavorites(
     : { signedIn: true, ok: false, items: [], code: result.code, imported };
 }
 
-export async function addFavorite(stay: FavoriteStayInput): Promise<FavoritesState> {
+export async function addFavorite(body: FavoriteBody): Promise<FavoritesState> {
   if (!(await sessionToken())) return { signedIn: false };
-  const result = await call<FavoriteOut[]>("POST", "/account/favorites", { kind: "stay", stay });
+  const result = await call<FavoriteOut[]>("POST", "/account/favorites", body);
   if (!result.ok && result.status === 401) return { signedIn: false };
   return result.ok
     ? { signedIn: true, ok: true, items: result.data }

@@ -5,6 +5,7 @@
 
 import os
 from collections.abc import AsyncIterator
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
@@ -15,15 +16,16 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from tickets_api.db.models import Alert, AlertEvent, AuthToken, User
 from tickets_api.db.session import create_engine, create_sessionmaker
-from tickets_api.domain.alerts import AlertCreate
-from tickets_api.domain.flights import FlightQuery
+from tickets_api.domain.alerts import AlertCreate, AlertEdit
+from tickets_api.domain.flights import FlightQuery, Leg, Offer
+from tickets_api.domain.notify import NotifyPrefs
 from tickets_api.notifications.mail import MockMailer
 from tickets_api.notifications.telegram import MockTelegram
 from tickets_api.reference.airports import default_airport_directory
 from tickets_api.repositories.price_history import PriceStats
 from tickets_api.scoring.config import default_scoring_config
 from tickets_api.services.accounts import token_hash
-from tickets_api.services.alerts import AlertError, AlertService, AlertSettings
+from tickets_api.services.alerts import AlertError, AlertService, AlertSettings, Found
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.telegram_bot import (
     COMMANDS,
@@ -179,15 +181,213 @@ async def test_price_drop_notifies_once_then_only_lower_and_not_too_often(env: E
     created = await env.create(threshold=100)
     await env.say(f"/start {created.manage_token}")  # перша перевірка — зі сповіщенням
 
-    assert "Зараз від <b>88 EUR</b> за дорослого — нижче вашого порогу 100 EUR" in env.last()
+    assert "Зараз від <b>88 EUR</b> за 1 дорослого — не дорожче за ваш поріг 100 EUR" in env.last()
 
     assert await env.service.check(created.id) == 0  # та сама ціна — мовчимо
+    env.provider._offers = offers_for("stub", [87])
+    env.now = NOW + timedelta(hours=25)
+    assert await env.service.check(created.id) == 0  # −1 EUR — не нова істотна зміна (< 3%)
     env.provider._offers = offers_for("stub", [80])
     env.now = NOW + timedelta(hours=3)
     assert await env.service.check(created.id) == 0  # нижча, але менш ніж за добу
     env.now = NOW + timedelta(hours=25)
     assert await env.service.check(created.id) == 1
     assert "Минулого разу писали про 88 EUR: ще на 8 EUR дешевше." in env.last()
+
+
+async def test_owner_notification_settings_hold_and_release(env: Env) -> None:
+    """Налаштування сповіщень акаунта (10c): тиша, мін. зниження, канал — перевіряє воркер."""
+    prefs = NotifyPrefs(quiet_start=11, quiet_end=14, timezone="Europe/Warsaw", min_drop_percent=10)
+    async with env.sessionmaker() as session, session.begin():
+        session.add(User(id=USER_ID, username="ittest_np", notify_prefs=prefs.model_dump_json()))
+    created = await env.create(threshold=100)
+    async with env.sessionmaker() as session, session.begin():
+        alert = await session.get(Alert, created.id)
+        assert alert is not None
+        alert.user_id = USER_ID
+    # 12:00 UTC = 13:00 у Варшаві — тихі години: підтвердження є, сповіщення ще ні.
+    await env.say(f"/start {created.manage_token}")
+    assert not any("Ціна знизилась" in t for t in env.texts())
+
+    env.now = NOW + timedelta(hours=2)  # 15:00 у Варшаві
+    assert await env.service.check(created.id) == 1
+
+    env.provider._offers = offers_for("stub", [84])  # −4.5% — менше за 10%
+    env.now = NOW + timedelta(hours=30)
+    assert await env.service.check(created.id) == 0
+    env.provider._offers = offers_for("stub", [75])  # −15%
+    assert await env.service.check(created.id) == 1
+
+    async with env.sessionmaker() as session, session.begin():
+        user = await session.get(User, USER_ID)
+        assert user is not None
+        user.notify_prefs = NotifyPrefs(telegram=False).model_dump_json()
+    env.provider._offers = offers_for("stub", [60])
+    env.now = NOW + timedelta(hours=60)
+    assert await env.service.check(created.id) == 0
+    async with env.sessionmaker() as session:
+        held = (
+            await session.scalars(
+                select(AlertEvent.detail).where(
+                    AlertEvent.alert_id == created.id, AlertEvent.kind == "held"
+                )
+            )
+        ).all()
+    assert held == ["quiet_hours", "small_drop", "channel_off"]
+
+
+def round_trip(oid: str, price: int, out: datetime, back: datetime) -> Offer:
+    leg = offers_for("stub", [price])[0]
+    return leg.model_copy(
+        update={
+            "id": oid,
+            "outbound": leg.outbound.model_copy(update={"departure_at": out}),
+            "inbound": Leg(
+                origin="LIS", destination="WAW", departure_at=back, duration_min=240, stops=0
+            ),
+        }
+    )
+
+
+async def test_flexible_weekends_drop_percent_and_baggage_note(env: Env) -> None:
+    """11a: «будь-які вихідні», зниження на % від першої перевірки, чесна примітка про багаж."""
+    friday = datetime(2026, 11, 13, 7, tzinfo=UTC)
+    tuesday = datetime(2026, 11, 17, 7, tzinfo=UTC)
+    env.provider._offers = [
+        round_trip("weekday", 60, tuesday, tuesday + timedelta(days=2)),  # дешевше, але не вихідні
+        round_trip("weekend", 100, friday, friday + timedelta(days=2)),
+    ]
+    created = await env.create(
+        kind="flex",
+        departure_date=date(2026, 11, 9),
+        departure_until=date(2026, 11, 30),
+        min_nights=1,
+        max_nights=3,
+        weekends=True,
+        baggage="carry_on",
+        condition="drop_percent",
+        percent=10,
+        threshold=None,
+    )
+    await env.say(f"/start {created.manage_token}")
+    view = await env.service.view(created.manage_token)
+    assert view is not None
+    assert view.baseline_price == Decimal(100)  # перша перевірка — база, без сповіщення
+    assert not any("Ціна знизилась" in t for t in env.texts())
+
+    env.provider._offers = [round_trip("weekend", 85, friday, friday + timedelta(days=2))]
+    env.now = NOW + timedelta(hours=1)
+    assert await env.service.check(created.id) == 1
+    text = env.last()
+    assert "виліт 09.11.2026 – 30.11.2026, 1–3 ноч., лише вихідні" in text
+    assert "Дати: 13.11.2026 – 15.11.2026." in text
+    assert "Ціна без урахування багажу" in text
+    assert "на 15 EUR дешевше, ніж на початку стеження (100 EUR)" in text
+    url = env.service.search_url(
+        (await _alert(env, created.id)), Found(Decimal(85), date(2026, 11, 13), date(2026, 11, 15))
+    )
+    assert url.endswith("/?from=WAW&to=LIS&depart=2026-11-13&return=2026-11-15&bag=carry_on")
+
+    # Ще −5% від сповіщеної ціни — менше за 10%: не нова істотна зміна.
+    env.provider._offers = [round_trip("weekend", 80, friday, friday + timedelta(days=2))]
+    env.now = NOW + timedelta(hours=30)
+    assert await env.service.check(created.id) == 0
+
+
+async def test_stay_and_trip_alerts_are_off_without_real_stays(env: Env) -> None:
+    assert env.service.channels().kinds == ["flight", "flex"]
+    with pytest.raises(AlertError, match="недоступний"):
+        await env.create(kind="stay", origin=None, return_date=date(2026, 11, 12))
+    with pytest.raises(AlertError, match="недоступний"):
+        await env.create(kind="trip", return_date=date(2026, 11, 12))
+
+
+async def _alert(env: Env, alert_id: str) -> Alert:
+    async with env.sessionmaker() as session:
+        alert = await session.get(Alert, alert_id)
+    assert alert is not None
+    return alert
+
+
+async def test_pause_resume_edit_history_delete(env: Env) -> None:
+    """11.3: призупинити, відновити, змінити умову й дати, історія, видалити."""
+    created = await env.create(channel="email", email="me@example.com", threshold=80)
+    await env.service.confirm_email(created.manage_token)
+    token = created.manage_token
+
+    paused = await env.service.pause(token)
+    assert paused is not None
+    assert paused.status == "paused"
+    assert await env.service.check(created.id) == 0  # призупинена — не перевіряємо
+    resumed = await env.service.resume(token)
+    assert resumed is not None
+    assert resumed.status == "active"
+
+    edit = AlertEdit(departure_date=DEPART, adults=1, condition="below_price", threshold=90)
+    updated = await env.service.update(token, edit)
+    assert updated is not None
+    assert updated.threshold == 90
+    assert updated.last_notified_price == Decimal(88)  # умова змінилась — перевірили одразу
+    with pytest.raises(AlertError, match="потрібна сума"):
+        await env.service.update(token, AlertEdit(departure_date=DEPART, threshold=None))
+    with pytest.raises(AlertError, match="минула"):
+        await env.service.update(token, AlertEdit(departure_date=date(2026, 11, 1), threshold=90))
+
+    history = await env.service.history(token)
+    assert history is not None
+    kinds = [e.kind for e in history]
+    assert kinds[:3] == ["notified", "edited", "resumed"]
+    assert "checked" not in kinds
+    assert "paused" in kinds
+    assert kinds[-1] == "created"
+    assert history[1].detail == "threshold"
+
+    assert await env.service.delete(token)
+    assert await env.service.view(token) is None
+    async with env.sessionmaker() as session:
+        left = await session.scalar(select(AlertEvent.id).where(AlertEvent.alert_id == created.id))
+    assert left is None
+    env.created.remove(created.id)
+
+
+async def test_check_all_reuses_searches_respects_budget_and_skips_fresh(env: Env) -> None:
+    """11.4: однакові пошуки — один запит; ліміт запитів; свіжоперевірені — не повторюємо."""
+    same = [await env.create(channel="email", email=f"r{i}@example.com") for i in range(3)]
+    other = await env.create(channel="email", email="o@example.com", return_date=date(2026, 11, 12))
+    async with env.sessionmaker() as session, session.begin():
+        for a in [*same, other]:
+            alert = await session.get(Alert, a.id)
+            assert alert is not None
+            alert.status = "active"
+    env.service._settings = replace(env.service.settings, max_searches_per_run=1)
+    env.service._redis = env.redis  # type: ignore[assignment]
+
+    env.provider.queries.clear()
+    await env.service.check_all()
+    assert len(env.provider.queries) == 1  # три однакові — один пошук, четверта — пізніше
+    checked = {a.id: (await _alert(env, a.id)).last_checked_at for a in [*same, other]}
+    assert all(checked[a.id] is not None for a in same)
+    assert checked[other.id] is None
+
+    env.now = NOW + timedelta(hours=1)  # повторний запуск одразу — лише відкладена
+    await env.service.check_all()
+    assert len(env.provider.queries) == 2
+    assert (await _alert(env, other.id)).last_checked_at is not None
+
+    await env.redis.set("alerts:check_all", "1")  # інша перевірка ще йде
+    env.now = NOW + timedelta(hours=10)
+    assert await env.service.check_all() == 0
+    assert len(env.provider.queries) == 2
+
+
+async def test_owner_limit_and_horizon(env: Env) -> None:
+    env.service._settings = replace(env.service.settings, max_active_per_owner=2)
+    await env.create(channel="email", email="lim@example.com")
+    await env.create(channel="email", email="lim@example.com")
+    with pytest.raises(AlertError, match="забагато"):
+        await env.create(channel="email", email="lim@example.com")
+    with pytest.raises(AlertError, match="365"):
+        await env.create(channel="email", email="far@example.com", departure_date=date(2027, 12, 1))
 
 
 async def test_typical_price_needs_history(env: Env) -> None:
@@ -282,6 +482,7 @@ async def test_list_stop_snooze_and_threshold_buttons_are_chat_scoped(env: Env) 
 async def test_link_account_and_polling_offset(env: Env) -> None:
     async with env.sessionmaker() as session, session.begin():
         session.add(User(id=USER_ID, username="ittest_tg"))
+        await session.flush()  # спершу власник: токен посилається на нього (ключ, 0020)
         session.add(
             AuthToken(
                 token_hash=token_hash("link-code-1234567890"),

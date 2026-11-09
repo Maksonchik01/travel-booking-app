@@ -1,9 +1,19 @@
-import type { CostItem, Leg, Offer, Stay, TripCombo, TripPickLabel } from "@tickets/shared";
+import type {
+  CostItem,
+  Leg,
+  Offer,
+  Stay,
+  TripCombo,
+  TripPickLabel,
+  TripReason,
+} from "@tickets/shared";
 import {
   AlertTriangle,
   ArrowRight,
   BedDouble,
   Briefcase,
+  ChevronRight,
+  Clock,
   Crown,
   Plane,
   PlaneLanding,
@@ -22,14 +32,15 @@ import { RatingBadge } from "@/components/stay-card";
 import { stayAnchor } from "@/components/stay-picks";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { useDurationText, WhyList } from "@/components/why-list";
 import { localDate, localTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const LABEL_ICON = { cheapest: Wallet, best_value: Scale, comfort: Crown } as const;
 const COST_ICON = { tickets: Plane, baggage: Briefcase, stay: BedDouble, extra: Receipt } as const;
 const STATUS_CLASS = {
-  confirmed: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
-  approximate: "bg-amber-500/10 text-amber-800 dark:text-amber-300",
+  confirmed: "bg-success/10 text-success",
+  approximate: "bg-warning/10 text-warning",
   unknown: "bg-muted text-muted-foreground",
 } as const;
 
@@ -118,7 +129,7 @@ export function TripCard({
       {overBudget && (
         <Badge
           variant="outline"
-          className="h-auto w-fit border-amber-500/50 bg-amber-500/10 text-left whitespace-normal text-amber-800 dark:text-amber-300"
+          className="h-auto w-fit border-warning/50 bg-warning/10 text-left whitespace-normal text-warning"
           data-testid="trip-over-budget"
         >
           <AlertTriangle className="size-3" /> {t("overBudget")}
@@ -133,9 +144,7 @@ export function TripCard({
           {t("forTrip", { nights: combo.window.nights, travelers })}
         </p>
         {combo.costs.unknown > 0 && (
-          <p className="text-xs text-amber-700 dark:text-amber-400">
-            {t("plusUnknown", { count: combo.costs.unknown })}
-          </p>
+          <p className="text-xs text-warning">{t("plusUnknown", { count: combo.costs.unknown })}</p>
         )}
       </div>
 
@@ -151,17 +160,13 @@ export function TripCard({
             money={money}
           />
         ))}
-        <dt className="border-t pt-1 text-xs text-emerald-800 dark:text-emerald-300">
-          {t("status.confirmed")}
-        </dt>
+        <dt className="border-t pt-1 text-xs text-success">{t("status.confirmed")}</dt>
         <dd className="col-span-2 border-t pt-1 text-right text-xs tabular-nums">
           {money(combo.costs.confirmed)}
         </dd>
         {combo.costs.approximate > 0 && (
           <>
-            <dt className="text-xs text-amber-800 dark:text-amber-300">
-              {t("status.approximate")}
-            </dt>
+            <dt className="text-xs text-warning">{t("status.approximate")}</dt>
             <dd className="col-span-2 text-right text-xs tabular-nums">
               {money(combo.costs.approximate)}
             </dd>
@@ -198,6 +203,8 @@ export function TripCard({
         </div>
       </dl>
 
+      <TripQuality combo={combo} />
+
       <div className="grid gap-2 border-t pt-3 text-xs">
         <LegLine leg={offer.outbound} offer={offer} names={airlineNames} label={t("outbound")} />
         {offer.inbound && (
@@ -224,7 +231,7 @@ export function TripCard({
             <li key={w}>
               <Badge
                 variant="outline"
-                className="h-auto border-amber-500/40 bg-amber-500/5 text-left whitespace-normal text-amber-700 dark:text-amber-400"
+                className="h-auto border-warning/40 bg-warning/5 text-left whitespace-normal text-warning"
               >
                 <AlertTriangle className="size-3 shrink-0" /> {t(`warning.${w}`)}
               </Badge>
@@ -233,10 +240,24 @@ export function TripCard({
         </ul>
       )}
 
-      {combo.value_total != null && (
-        <p className="text-muted-foreground text-[11px]">
-          {t("value", { value: money(combo.value_total) })}
-        </p>
+      {(combo.reasons ?? []).length > 0 && (
+        <details className="group text-xs" data-testid="trip-why">
+          <summary className="text-muted-foreground hover:text-primary flex w-fit cursor-pointer list-none items-center gap-1 rounded transition-colors select-none">
+            <ChevronRight
+              className="size-3.5 transition-transform group-open:rotate-90"
+              aria-hidden
+            />
+            {t("why")}
+          </summary>
+          <div className="mt-2 grid gap-2">
+            <TripWhyReasons reasons={combo.reasons ?? []} money={money} />
+            {combo.value_total != null && (
+              <p className="text-muted-foreground text-[11px]">
+                {t("value", { value: money(combo.value_total) })}
+              </p>
+            )}
+          </div>
+        </details>
       )}
 
       <div className="mt-auto flex flex-wrap gap-2">
@@ -260,6 +281,69 @@ export function TripCard({
       </div>
     </Card>
   );
+}
+
+/** Повноцінні ночі й час у дорозі (модуль 14.4) — факти, з яких складається оцінка. */
+function TripQuality({ combo }: { combo: TripCombo }) {
+  const t = useTranslations("tripCard");
+  const duration = useDurationText();
+  const parts = [t("nightsFull", { full: combo.full_nights ?? 0, nights: combo.window.nights })];
+  if (combo.travel_min != null) {
+    parts.push(t("travel", { duration: duration(combo.travel_min) }));
+    if (combo.waiting_min) parts.push(t("waiting", { duration: duration(combo.waiting_min) }));
+  }
+  return (
+    <p
+      className="text-muted-foreground flex items-start gap-1.5 text-xs"
+      data-testid="trip-quality"
+    >
+      <Clock className="text-primary mt-px size-3.5 shrink-0" aria-hidden />
+      {parts.join(" · ")}
+    </p>
+  );
+}
+
+/** «Чому цей варіант?» поїздки: порівняння з «Економом» і «Комфортом», бюджет. Рахує API. */
+function TripWhyReasons({
+  reasons,
+  money,
+}: {
+  reasons: TripReason[];
+  money: (v: number) => string;
+}) {
+  const t = useTranslations("tripPicks.reason");
+  const format = useFormatter();
+  const duration = useDurationText();
+  const num = (v: number | null | undefined) => format.number(v ?? 0, { maximumFractionDigits: 1 });
+  const text = (r: TripReason) => {
+    const amount = money(r.amount ?? 0);
+    switch (r.code) {
+      case "pricier_but_faster":
+        return r.amount
+          ? t("pricier_but_faster", { amount, duration: duration(r.minutes ?? 0) })
+          : t("same_price_faster", { duration: duration(r.minutes ?? 0) });
+      case "cheaper_than_comfort":
+        return r.minutes
+          ? t("cheaper_than_comfort_slower", { amount, duration: duration(r.minutes) })
+          : t("cheaper_than_comfort", { amount });
+      case "better_rated_stay":
+        return t("better_rated_stay", { rating: num(r.rating) });
+      case "closer_stay":
+        return t("closer_stay", { km: num(r.km) });
+      case "within_budget":
+      case "over_budget":
+        return t(r.code, { amount });
+      case "cheapest":
+      case "best_value":
+      case "comfort":
+      case "more_full_nights":
+      case "fewer_stops":
+        return t(r.code, { count: r.count ?? 0 });
+      default:
+        return t(r.code);
+    }
+  };
+  return <WhyList items={reasons.map(text)} testId="trip-why-reasons" />;
 }
 
 function CostRow({

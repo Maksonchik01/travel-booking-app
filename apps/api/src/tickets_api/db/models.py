@@ -1,10 +1,59 @@
+"""ORM-моделі. Цілісність тримає й сама БД (модуль 16, ADR 0033): зовнішні ключі з каскадним
+видаленням до `users` / `alerts` і CHECK на переліки — значення беремо з тих самих Literal,
+що й Pydantic, тож код і БД не розходяться (перевіряє test_db_integrity)."""
+
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Any, get_args
 
-from sqlalchemy import BigInteger, Date, DateTime, Index, Integer, Numeric, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    LargeBinary,
+    Numeric,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from tickets_api.db.base import Base
+from tickets_api.domain.accounts import SearchKind
+from tickets_api.domain.alerts import (
+    AlertChannel,
+    AlertCondition,
+    AlertEventKind,
+    AlertKind,
+    AlertStatus,
+)
+from tickets_api.domain.favorites import FavoriteKind
+from tickets_api.domain.flights import BaggageNeed
+from tickets_api.domain.locale import UiLocale
+from tickets_api.domain.profile import ProfileCurrency
+from tickets_api.domain.saved_trips import TripStatus
+
+AUTH_PURPOSES = ("verify_email", "reset_password", "telegram_link")
+OUTBOUND_KINDS = ("flight", "stay")
+PRICE_KINDS = ("offer", "calendar_min")
+
+
+def one_of(column: str, values: Any, *, nullable: bool = False) -> CheckConstraint:
+    """CHECK «значення з переліку»: `values` — Literal чи кортеж; NULL — лише якщо дозволено."""
+    options = get_args(values) or tuple(values)
+    listed = ", ".join(f"'{v}'" for v in options)
+    rule = f"{column} IN ({listed})"
+    if nullable:
+        rule = f"{column} IS NULL OR {rule}"
+    return CheckConstraint(rule, name=column)  # → ck_<таблиця>_<колонка> (NAMING_CONVENTION)
+
+
+def _user_fk() -> ForeignKey:
+    return ForeignKey("users.id", ondelete="CASCADE")
 
 
 class PriceObservation(Base):
@@ -46,6 +95,7 @@ class PriceObservation(Base):
             "collected_at",
             unique=True,
         ),
+        one_of("kind", PRICE_KINDS),
     )
 
 
@@ -127,19 +177,31 @@ class Alert(Base):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
     token: Mapped[str] = mapped_column(String(64), unique=True)
-    origin: Mapped[str] = mapped_column(String(3))
+    kind: Mapped[str] = mapped_column(String(8), default="flight", server_default="flight")
+    """flight / flex / stay / trip (модуль 11a)."""
+    origin: Mapped[str | None] = mapped_column(String(3))
     destination: Mapped[str] = mapped_column(String(3))
     departure_date: Mapped[date] = mapped_column(Date)
     return_date: Mapped[date | None] = mapped_column(Date)
+    departure_until: Mapped[date | None] = mapped_column(Date)
+    min_nights: Mapped[int | None] = mapped_column(Integer)
+    max_nights: Mapped[int | None] = mapped_column(Integer)
+    weekends: Mapped[bool] = mapped_column(default=False, server_default="false")
     adults: Mapped[int] = mapped_column(Integer, default=1)
+    baggage: Mapped[str] = mapped_column(String(16), default="none", server_default="none")
+    stay_key: Mapped[str | None] = mapped_column(String(110))
     condition: Mapped[str] = mapped_column(String(16))
     threshold: Mapped[int | None] = mapped_column(Integer)
+    percent: Mapped[int | None] = mapped_column(Integer)
+    baseline_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    """Ціна першої вдалої перевірки — від неї рахуємо зниження (drop_amount / drop_percent)."""
     currency: Mapped[str] = mapped_column(String(3))
     channel: Mapped[str] = mapped_column(String(16))
     email: Mapped[str | None] = mapped_column(String(254))
     telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger)
-    user_id: Mapped[str | None] = mapped_column(String(32), index=True)
-    """Власник, якщо підписку створено під час входу (тоді видно в кабінеті)."""
+    user_id: Mapped[str | None] = mapped_column(String(32), _user_fk(), index=True)
+    """Власник, якщо підписку створено під час входу (тоді видно в кабінеті); видалення акаунта
+    видаляє й підписки."""
     status: Mapped[str] = mapped_column(String(16), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -153,6 +215,18 @@ class Alert(Base):
     __table_args__ = (
         Index("ix_alerts_status", "status"),
         Index("ix_alerts_telegram_chat", "telegram_chat_id"),
+        one_of("kind", AlertKind),
+        one_of("status", AlertStatus),
+        one_of("channel", AlertChannel),
+        one_of("condition", AlertCondition),
+        one_of("baggage", BaggageNeed),
+        CheckConstraint("adults BETWEEN 1 AND 9", name="adults"),
+        CheckConstraint("threshold IS NULL OR threshold > 0", name="threshold"),
+        CheckConstraint("percent IS NULL OR percent BETWEEN 1 AND 90", name="percent"),
+        CheckConstraint(
+            "min_nights IS NULL OR max_nights IS NULL OR min_nights <= max_nights",
+            name="nights",
+        ),
     )
 
 
@@ -162,11 +236,15 @@ class AlertEvent(Base):
     __tablename__ = "alert_events"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    alert_id: Mapped[str] = mapped_column(String(32), index=True)
+    alert_id: Mapped[str] = mapped_column(
+        String(32), ForeignKey("alerts.id", ondelete="CASCADE"), index=True
+    )
     kind: Mapped[str] = mapped_column(String(16))
     price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
     detail: Mapped[str | None] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (one_of("kind", AlertEventKind),)
 
 
 class User(Base):
@@ -188,7 +266,39 @@ class User(Base):
     telegram_chat_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
     flight_filters: Mapped[str | None] = mapped_column(String(1000))
     """Збережені фільтри пошуку перельотів: рядок URL (`stops=1&dep=morning`), відомі ключі."""
+    chat_sync: Mapped[bool] = mapped_column(server_default="false")
+    """Згода зберігати розмови з помічником в акаунті (модуль 9c); без неї — лише браузер."""
+    locale: Mapped[str | None] = mapped_column(String(2))
+    """Мова інтерфейсу (en / uk / ru); None — за замовчуванням сайту."""
+    currency: Mapped[str | None] = mapped_column(String(3))
+    country: Mapped[str | None] = mapped_column(String(2))
+    """Країна проживання (ISO 3166-1 alpha-2)."""
+    home_airport: Mapped[str | None] = mapped_column(String(3))
+    favorite_airports: Mapped[str | None] = mapped_column(String(40))
+    """До 5 кодів IATA через кому."""
+    search_prefs: Mapped[str | None] = mapped_column(Text)
+    notify_prefs: Mapped[str | None] = mapped_column(Text)
+    """Налаштування сповіщень (JSON NotifyPrefs, модуль 10c); NULL — за замовчуванням."""
+    """Особисті налаштування пошуку (JSON SearchPrefs) — значення за замовчуванням."""
+    google_picture: Mapped[str | None] = mapped_column(String(500))
+    """Фото профілю Google (оновлюється при вході через Google)."""
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        one_of("locale", UiLocale, nullable=True),
+        one_of("currency", ProfileCurrency, nullable=True),
+    )
+
+
+class UserAvatar(Base):
+    """Власне фото профілю (модуль 10b): невелике зображення в БД — без окремого сховища."""
+
+    __tablename__ = "user_avatars"
+
+    user_id: Mapped[str] = mapped_column(String(32), _user_fk(), primary_key=True)
+    content_type: Mapped[str] = mapped_column(String(32))
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class UserSession(Base):
@@ -197,9 +307,14 @@ class UserSession(Base):
     __tablename__ = "user_sessions"
 
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(32), index=True)
+    user_id: Mapped[str] = mapped_column(String(32), _user_fk(), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    """Прострочені видаляє воркер (`prune_expired`)."""
+    device: Mapped[str | None] = mapped_column(String(60))
+    """Грубо: браузер і ОС («Chrome · macOS») — щоб упізнати сесію в кабінеті. Без IP."""
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    """Остання активність (оновлюється не частіше, ніж раз на 15 хв)."""
 
 
 class AuthToken(Base):
@@ -208,12 +323,14 @@ class AuthToken(Base):
     __tablename__ = "auth_tokens"
 
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(32), index=True)
+    user_id: Mapped[str] = mapped_column(String(32), _user_fk(), index=True)
     purpose: Mapped[str] = mapped_column(String(16))
-    """verify_email — нова адреса в `email`; reset_password."""
+    """verify_email — нова адреса в `email`; reset_password; telegram_link."""
     email: Mapped[str | None] = mapped_column(String(254))
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (one_of("purpose", AUTH_PURPOSES),)
 
 
 class SearchEntry(Base):
@@ -225,7 +342,7 @@ class SearchEntry(Base):
     __tablename__ = "search_entries"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(32))
+    user_id: Mapped[str] = mapped_column(String(32), _user_fk())
     kind: Mapped[str] = mapped_column(String(16))
     """flights / stays / trip."""
     params: Mapped[str] = mapped_column(String(500))
@@ -234,7 +351,10 @@ class SearchEntry(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    __table_args__ = (Index("ix_search_entries_user", "user_id", "saved", "updated_at"),)
+    __table_args__ = (
+        Index("ix_search_entries_user", "user_id", "saved", "updated_at"),
+        one_of("kind", SearchKind),
+    )
 
 
 class Favorite(Base):
@@ -247,9 +367,9 @@ class Favorite(Base):
     __tablename__ = "favorites"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(32))
+    user_id: Mapped[str] = mapped_column(String(32), _user_fk())
     kind: Mapped[str] = mapped_column(String(16))
-    """stay (далі — й інші типи)."""
+    """stay / flight / trip."""
     item_key: Mapped[str] = mapped_column(String(200))
     data: Mapped[str] = mapped_column(Text)
     """JSON знімка (FavoriteStay), перевірений моделлю перед записом."""
@@ -258,6 +378,7 @@ class Favorite(Base):
     __table_args__ = (
         Index("uq_favorites_item", "user_id", "kind", "item_key", unique=True),
         Index("ix_favorites_user", "user_id", "created_at"),
+        one_of("kind", FavoriteKind),
     )
 
 
@@ -268,14 +389,38 @@ class SavedTrip(Base):
     __tablename__ = "saved_trips"
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(32))
+    user_id: Mapped[str] = mapped_column(String(32), _user_fk())
     title: Mapped[str] = mapped_column(String(120))
     query: Mapped[str] = mapped_column(Text)
     snapshot: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), server_default="draft")
+    """draft / planned / archived (модуль 10a); «заброньованої» немає."""
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    __table_args__ = (Index("ix_saved_trips_user", "user_id", "updated_at"),)
+    __table_args__ = (
+        Index("ix_saved_trips_user", "user_id", "updated_at"),
+        one_of("status", TripStatus),
+    )
+
+
+class ChatConversation(Base):
+    """Розмова з помічником (модуль 9c) — лише якщо користувач увімкнув `chat_sync`.
+
+    `data` — JSON розмови (ChatConversationBody, перевірений перед записом). Вимкнення
+    синхронізації чи видалення акаунта видаляє всі розмови користувача.
+    """
+
+    __tablename__ = "chat_conversations"
+
+    user_id: Mapped[str] = mapped_column(String(32), _user_fk(), primary_key=True)
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    """Id розмови з браузера (uuid) — однаковий на всіх пристроях."""
+    data: Mapped[str] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    """Час останньої зміни в браузері — злиття «новіше перемагає»."""
+
+    __table_args__ = (Index("ix_chat_conversations_user", "user_id", "updated_at"),)
 
 
 class OutboundClick(Base):
@@ -291,4 +436,7 @@ class OutboundClick(Base):
     host: Mapped[str] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    __table_args__ = (Index("ix_outbound_clicks_created_at", "created_at"),)
+    __table_args__ = (
+        Index("ix_outbound_clicks_created_at", "created_at"),
+        one_of("kind", OUTBOUND_KINDS),
+    )

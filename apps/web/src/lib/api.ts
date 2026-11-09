@@ -1,5 +1,7 @@
 import type {
   AIStatus,
+  AlertEdit,
+  AlertEventOut,
   AlertView,
   ChannelStatus,
   CalendarResult,
@@ -25,6 +27,8 @@ import type {
   TripRefreshRequest,
   TripSearchResult,
 } from "@tickets/shared";
+
+import { cache } from "react";
 
 import { clientIpHeaders } from "@/lib/client-ip";
 
@@ -72,6 +76,7 @@ async function request<T>(
     });
     if (response.status === 429) return { ok: false, reason: "rate_limited" };
     if (!response.ok) return { ok: false, reason: "error" };
+    if (response.status === 204) return { ok: true, data: null as T };
     return { ok: true, data: (await response.json()) as T };
   } catch {
     return { ok: false, reason: "unreachable" };
@@ -165,16 +170,19 @@ export function fetchPlaces(
   q: string,
   limit = 8,
   kind: "any" | "city" = "any",
+  lang: "uk" | "en" = "uk",
 ): Promise<ApiResult<Place[]>> {
-  const params = new URLSearchParams({ q, limit: String(limit), lang: "uk", kind });
+  const params = new URLSearchParams({ q, limit: String(limit), lang, kind });
   return request(`/places?${params}`);
 }
 
 /** Вимкнений чи недоступний ШІ — просто без ШІ-функцій, пошук формою працює. */
-export async function fetchAIStatus(): Promise<AIStatus> {
+export const fetchAIStatus = cache(async (): Promise<AIStatus> => {
+  // Один запит на рендер: форма, чат і пояснення на одній сторінці питають те саме
+  // (fetch із signal Next не об'єднує сам, модуль 17.5).
   const result = await request<AIStatus>("/ai/status");
   return result.ok ? result.data : { enabled: false, provider: "off" };
-}
+});
 
 export function chatWithAssistant(body: ChatBody): Promise<ApiResult<ChatReply>> {
   return request(
@@ -188,9 +196,12 @@ export function chatWithAssistant(body: ChatBody): Promise<ApiResult<ChatReply>>
   );
 }
 
-export function explainSearch(query: FlightQuery): Promise<ApiResult<ExplainResult>> {
+export function explainSearch(
+  query: FlightQuery,
+  locale: string,
+): Promise<ApiResult<ExplainResult>> {
   return request(
-    "/ai/explain",
+    `/ai/explain?${new URLSearchParams({ locale })}`,
     {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -215,13 +226,14 @@ export function searchStays(query: StayQuery): Promise<ApiResult<StaySearchResul
 export function analyzeStays(
   query: StayQuery,
   stayKeys: string[],
+  locale: string,
 ): Promise<ApiResult<StayAnalysisResult>> {
   return request(
     "/ai/stays/analysis",
     {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query, stay_keys: stayKeys }),
+      body: JSON.stringify({ query, stay_keys: stayKeys, locale }),
     },
     EXPLAIN_TIMEOUT_MS,
   );
@@ -240,25 +252,41 @@ export function searchTrip(query: TripQuery): Promise<ApiResult<TripSearchResult
   );
 }
 
-export async function fetchAlertChannels(): Promise<ChannelStatus | null> {
+export const fetchAlertChannels = cache(async (): Promise<ChannelStatus | null> => {
   const result = await request<ChannelStatus>("/alerts/channels");
   return result.ok ? result.data : null;
-}
+});
 
 export function fetchAlert(token: string): Promise<ApiResult<AlertView>> {
   return request(`/alerts/manage?${new URLSearchParams({ token })}`);
 }
 
-/** Підтвердити (email) чи вимкнути підписку за токеном з посилання. */
-export function changeAlert(
-  action: "confirm" | "stop",
-  token: string,
-): Promise<ApiResult<AlertView>> {
+export type AlertAction = "confirm" | "stop" | "pause" | "resume" | "delete";
+
+/** Дія над підпискою за токеном з посилання (11.3): підтвердити, вимкнути, призупинити,
+ * відновити, видалити. */
+export function changeAlert(action: AlertAction, token: string): Promise<ApiResult<unknown>> {
   return request(`/alerts/${action}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ token }),
   });
+}
+
+export function editAlert(token: string, edit: AlertEdit): Promise<ApiResult<AlertView>> {
+  return request("/alerts/edit", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ token, edit }),
+  });
+}
+
+/** Історія спрацювань і змін; помилка — порожньо (сторінка працює й без неї). */
+export async function fetchAlertHistory(token: string): Promise<AlertEventOut[]> {
+  const result = await request<AlertEventOut[]>(
+    `/alerts/history?${new URLSearchParams({ token })}`,
+  );
+  return result.ok ? result.data : [];
 }
 
 /** Облік переходу на партнера. Без відповіді й винятків: редирект від нього не залежить. */
@@ -282,3 +310,8 @@ export const ERROR_KEY = {
   error: "error",
   rate_limited: "rateLimited",
 } as const;
+
+export async function fetchCountryCodes(): Promise<string[]> {
+  const result = await request<string[]>("/places/countries");
+  return result.ok ? result.data : [];
+}

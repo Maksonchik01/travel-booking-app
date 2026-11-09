@@ -1,6 +1,13 @@
+import type { FlightQuery, Offer } from "@tickets/shared";
 import { describe, expect, it } from "vitest";
 
-import { parseTripDraft, parseTripParams, toTripParams, withChoice } from "./trip-params";
+import {
+  parseTripDraft,
+  parseTripParams,
+  tripFromFlight,
+  toTripParams,
+  withChoice,
+} from "./trip-params";
 
 describe("trip params", () => {
   it("URL → запит і назад", () => {
@@ -142,5 +149,60 @@ describe("trip params", () => {
       withChoice(query, { flight: null, stay: null }).split("?")[1],
     );
     expect(reset.has("flight")).toBe(false);
+  });
+
+  it("«Додати до поїздки» з рейсу: фактичні дати, умови пошуку й закріплений рейс", () => {
+    const leg = (at: string) => ({ departure_at: at }) as Offer["outbound"];
+    const offer = {
+      source: "mock",
+      id: "f1",
+      outbound: leg("2026-12-04T23:40:00+01:00"),
+      inbound: leg("2026-12-09T07:10:00+00:00"),
+    } as Offer;
+    const search = {
+      origin: "WAW",
+      destination: "LIS",
+      departure_date: "2026-12-03",
+      flex_days: 3,
+      passengers: { adults: 1, children: 1, infants: 0, infants_in_seat: 0 },
+      baggage: "checked",
+      cabin: "economy",
+      direct_only: true,
+      origin_radius_km: 150,
+      destination_radius_km: 0,
+    } as FlightQuery;
+
+    const href = tripFromFlight(offer, search)!;
+    const query = parseTripParams(Object.fromEntries(new URLSearchParams(href.split("?")[1])));
+    expect(query).toMatchObject({
+      origin: "WAW",
+      destination: "LIS",
+      departure_date: "2026-12-04",
+      return_date: "2026-12-09",
+      adults: 1,
+      children: 1,
+      baggage: "checked",
+      direct_only: true,
+      nearby: true,
+      flight: "mock:f1",
+    });
+    // В один бік чи з немовлям поїздку не складемо — кнопки немає.
+    expect(tripFromFlight({ ...offer, inbound: null }, search)).toBeNull();
+    expect(
+      tripFromFlight(offer, { ...search, passengers: { ...search.passengers!, infants: 1 } }),
+    ).toBeNull();
+  });
+
+  it("публічне посилання на поїздку — лише умови пошуку, без приватного (модуль 16)", () => {
+    const params = toTripParams({
+      ...parseTripParams({ from: "WAW", to: "LIS", depart: "2026-12-05", return: "2026-12-08" })!,
+      preferences: { flights: { airlines: ["LO"], departure_periods: [] } },
+      flight: "mock:f1",
+    });
+    const keys = [...params.keys()];
+    expect(keys).not.toContain("saved");
+    expect(keys).not.toContain("preferences");
+    expect(params.toString()).not.toContain("LO");
+    expect(params.get("flight")).toBe("mock:f1");
   });
 });

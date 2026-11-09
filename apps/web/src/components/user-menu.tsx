@@ -2,15 +2,17 @@ import { LogIn } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
+import { UserAvatar } from "@/components/user-avatar";
 import { currentUser } from "@/lib/session";
 
-/** Гість — «Увійти»; користувач — ініціал і ім'я, перехід у кабінет. */
+/** Гість — «Увійти»; користувач — фото (чи ініціали) і ім'я, перехід у кабінет. */
 export async function UserMenu() {
   const [user, t] = await Promise.all([currentUser(), getTranslations("nav")]);
   if (!user) {
     return (
       <Link
         href="/login"
+        aria-label={t("signIn")}
         className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium shadow-sm transition-colors"
       >
         <LogIn className="size-4" aria-hidden />
@@ -25,9 +27,7 @@ export async function UserMenu() {
       aria-label={t("account")}
       className="hover:bg-accent flex h-9 items-center gap-2 rounded-lg border px-1.5 text-sm font-medium transition-colors sm:pr-3"
     >
-      <span className="from-primary grid size-6 place-items-center rounded-md bg-gradient-to-br to-sky-500 text-xs font-bold text-white uppercase">
-        {name.slice(0, 1)}
-      </span>
+      <UserAvatar user={user} size={24} className="rounded-md" />
       <span className="hidden max-w-28 truncate sm:inline">{name}</span>
     </Link>
   );

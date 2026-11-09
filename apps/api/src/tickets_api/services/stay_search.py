@@ -7,6 +7,7 @@
 import asyncio
 from collections import Counter
 from collections.abc import Awaitable, Callable, Sequence
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any, Literal, cast
 
@@ -14,6 +15,7 @@ import structlog
 from pydantic import BaseModel
 
 from tickets_api.domain.flights import Money
+from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
 from tickets_api.domain.stay_rates import (
     RateOffer,
     RoomOffers,
@@ -39,7 +41,7 @@ from tickets_api.providers.base import (
 )
 from tickets_api.reference.airports import AirportDirectory
 from tickets_api.repositories.stay_price_history import rate_rows, stay_rows
-from tickets_api.scoring.stays import StayScoringConfig, StayScoringResult, score_stays
+from tickets_api.scoring.stays import StayScoringConfig, StayScoringResult, score_stays, stay_key
 from tickets_api.services.flight_search import ProviderStatus
 
 log = structlog.get_logger(__name__)
@@ -95,6 +97,8 @@ class StaySearchResult(BaseModel):
     providers: list[ProviderStatus]
     scoring: StayScoringResult
     facets: StayFacets
+    freshness: dict[str, PriceFreshness] = {}
+    """stay_key → свіжість ціни (модуль 17.3). Джерела житла дають ціну на зараз (живі)."""
 
 
 class StaySearchService:
@@ -106,8 +110,12 @@ class StaySearchService:
         timeout_s: float,
         scoring_config: StayScoringConfig,
         record_history: RecordHistory | None = None,
+        freshness: FreshnessRules | None = None,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         self._providers = list(providers)
+        self._freshness = freshness or FreshnessRules()
+        self._clock = clock or (lambda: datetime.now(UTC))
         self._airports = airports
         self._timeout_s = timeout_s
         self._scoring_config = scoring_config
@@ -151,8 +159,26 @@ class StaySearchService:
             place=self.place(query.city),
             stays=shown,
             providers=[status for status, _ in results],
-            scoring=score_stays(shown, query.profile, self._scoring_config),
+            # Обов'язкові вимоги (фільтри) вже відсікли зайве — оцінка лише ранжує решту.
+            scoring=score_stays(
+                shown,
+                query.profile,
+                self._scoring_config,
+                preferences=query.preferences,
+                budget=filters.budget_for(query.nights),
+            ),
             facets=_facets(stays),
+            freshness={
+                stay_key(s): price_freshness(
+                    live=True,
+                    collected_at=s.collected_at,
+                    found_at=s.found_at,
+                    found_on=None,
+                    now=self._clock(),
+                    rules=self._freshness,
+                )
+                for s in shown
+            },
         )
 
     async def reviews(self, source: str, stay_id: str) -> list[StayReview]:

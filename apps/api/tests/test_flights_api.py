@@ -57,6 +57,9 @@ async def test_search_includes_scoring_for_requested_profile(client: AsyncClient
     breakdown = scoring["scores"][0]["breakdown"]
     assert set(breakdown) == {
         "price",
+        "baggage_extra",
+        "preference_penalty",
+        "preference_misses",
         "time_penalty",
         "stop_penalty",
         "risk_penalties",

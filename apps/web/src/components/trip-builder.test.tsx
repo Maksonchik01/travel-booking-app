@@ -11,6 +11,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import messages from "../../messages/uk.json";
+import { FavoritesProvider } from "./favorites";
 import { SavedTripsList, SavedTripsProvider } from "./saved-trips";
 import { TripBuilder } from "./trip-builder";
 import { TripCompareBar, TripCompareProvider } from "./trip-compare";
@@ -27,6 +28,12 @@ const actions = vi.hoisted(() => ({
   deleteSavedTrip: vi.fn(),
 }));
 vi.mock("@/app/actions/saved-trips", () => actions);
+const favoriteActions = vi.hoisted(() => ({
+  loadFavorites: vi.fn(),
+  addFavorite: vi.fn(),
+  removeFavorite: vi.fn(),
+}));
+vi.mock("@/app/actions/favorites", () => favoriteActions);
 
 const LEG = {
   origin: "WAW",
@@ -102,6 +109,8 @@ const SELECTED: TripCombo = {
   stops: 0,
   currency: "EUR",
   warnings: [],
+  full_nights: 3,
+  reasons: [],
 };
 const QUERY: TripQuery = {
   origin: "WAW",
@@ -127,10 +136,12 @@ function wrap(node: React.ReactNode) {
   return render(
     <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
       <SavedTripsProvider>
-        <TripCompareProvider>
-          {node}
-          <TripCompareBar />
-        </TripCompareProvider>
+        <FavoritesProvider>
+          <TripCompareProvider>
+            {node}
+            <TripCompareBar />
+          </TripCompareProvider>
+        </FavoritesProvider>
       </SavedTripsProvider>
     </NextIntlClientProvider>,
   );
@@ -156,6 +167,7 @@ beforeEach(() => {
   sessionStorage.clear();
   localStorage.clear();
   actions.loadSavedTrips.mockResolvedValue({ signedIn: false });
+  favoriteActions.loadFavorites.mockResolvedValue({ signedIn: false });
 });
 afterEach(() => {
   vi.restoreAllMocks();
@@ -437,8 +449,8 @@ describe("Збереження й порівняння поїздок", () => {
     expect(table).toHaveTextContent("5 днів, 3 ночі");
     expect(table).toHaveTextContent("Безкоштовне скасування");
     const totals = within(table).getByText("Загальний бюджет (відоме)").closest("tr")!;
-    expect(within(totals).getByText(/500\s€/).className).toContain("emerald");
+    expect(within(totals).getByText(/500\s€/).className).toContain("success");
     const rating = within(table).getByText("Рейтинг житла").closest("tr")!;
-    expect(within(rating).getByText(/9,1/).className).toContain("emerald");
+    expect(within(rating).getByText(/9,1/).className).toContain("success");
   });
 });

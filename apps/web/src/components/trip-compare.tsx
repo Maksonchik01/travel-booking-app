@@ -12,6 +12,23 @@ import { cn } from "@/lib/utils";
 
 export const MAX_TRIP_COMPARE = 3;
 const STORAGE_KEY = "tickets.tripCompare.v1";
+const CHANGED_EVENT = "trip-compare:changed";
+
+/**
+ * Додати поїздки до порівняння ззовні провайдера (з чату, модуль 9a): у сховище вкладки й
+ * подія — відкриті панелі перечитують його. Понад MAX_TRIP_COMPARE — найстаріші випадають.
+ */
+export function addToTripCompare(items: TripCompareItem[]): void {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]") as TripCompareItem[];
+    const keys = new Set(items.map((i) => i.key));
+    const next = [...(Array.isArray(saved) ? saved : []).filter((i) => !keys.has(i.key)), ...items];
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next.slice(-MAX_TRIP_COMPARE)));
+    window.dispatchEvent(new Event(CHANGED_EVENT));
+  } catch {
+    // Немає сховища — порівняння з чату недоступне.
+  }
+}
 
 export type TripCompareItem = { key: string; title: string; snapshot: TripSnapshotInput };
 
@@ -33,15 +50,19 @@ export function TripCompareProvider({ children }: { children: React.ReactNode })
   const loaded = useRef(false);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]") as TripCompareItem[];
-      // Відновлення зі сховища браузера — разово після гідратації.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (Array.isArray(saved)) setItems(saved.slice(0, MAX_TRIP_COMPARE));
-    } catch {
-      // Немає сховища — порівняння лише до перезавантаження.
-    }
+    const load = () => {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]") as TripCompareItem[];
+        if (Array.isArray(saved)) setItems(saved.slice(0, MAX_TRIP_COMPARE));
+      } catch {
+        // Немає сховища — порівняння лише до перезавантаження.
+      }
+    };
+    // Відновлення зі сховища браузера — після гідратації і коли чат додав поїздки.
+    load();
     loaded.current = true;
+    window.addEventListener(CHANGED_EVENT, load);
+    return () => window.removeEventListener(CHANGED_EVENT, load);
   }, []);
 
   useEffect(() => {
@@ -185,7 +206,7 @@ function CompareTable({ onEmpty }: { onEmpty: () => void }) {
     stops: Math.min(...snaps.map((s) => s.flight.stops)),
     rating: Math.max(...snaps.map((s) => s.stay.rating ?? -1)),
   };
-  const good = "font-medium text-emerald-700 dark:text-emerald-400";
+  const good = "font-medium text-success";
   const duration = (minutes: number | null | undefined) => {
     if (minutes == null) return t("unknown");
     const { hours, minutes: mins } = splitDuration(minutes);

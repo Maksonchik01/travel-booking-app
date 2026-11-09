@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Query, Request, Response
 
 from tickets_api.api.auth import account_error
 from tickets_api.api.deps import CurrentUser, Service, Token
@@ -13,10 +13,25 @@ from tickets_api.domain.accounts import (
     SearchEntryBody,
     SearchEntryOut,
     SearchEntryRename,
+    SessionInfo,
+)
+from tickets_api.domain.chats import (
+    ChatConversationBody,
+    ChatConversationOut,
+    ChatSyncBody,
+    ChatSyncState,
+    ConversationId,
 )
 from tickets_api.domain.favorites import FavoriteBody, FavoriteOut, FavoritesImport
-from tickets_api.domain.saved_trips import SavedTripBody, SavedTripOut, SavedTripsImport
-from tickets_api.services.accounts import AccountError
+from tickets_api.domain.notify import NotifyPrefs
+from tickets_api.domain.profile import LocaleBody, PreferencesBody, SearchPrefs
+from tickets_api.domain.saved_trips import (
+    SavedTripBody,
+    SavedTripOut,
+    SavedTripPatch,
+    SavedTripsImport,
+)
+from tickets_api.services.accounts import MAX_AVATAR_BYTES, AccountError
 
 router = APIRouter(prefix="/account", tags=["account"])
 
@@ -31,6 +46,105 @@ async def update_profile(body: ProfileBody, user: CurrentUser, service: Service)
     await service.update_profile(user, body.first_name, body.last_name)
     refreshed = await service.user_by_id(user.id)
     return await service.account(refreshed)
+
+
+@router.put("/preferences", response_model=Account)
+async def update_preferences(body: PreferencesBody, user: CurrentUser, service: Service) -> Account:
+    """Мова, валюта, країна, домашній і улюблені аеропорти (форма надсилає все разом)."""
+    try:
+        await service.update_preferences(user, body)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+    return await service.account(await service.user_by_id(user.id))
+
+
+@router.put("/locale", status_code=204)
+async def set_locale(body: LocaleBody, user: CurrentUser, service: Service) -> Response:
+    """Перемикач мови в шапці: запам'ятовуємо вибір і в профілі (інші пристрої)."""
+    await service.set_locale(user, body.locale)
+    return Response(status_code=204)
+
+
+@router.put("/search-preferences", response_model=Account)
+async def save_search_prefs(body: SearchPrefs, user: CurrentUser, service: Service) -> Account:
+    """Особисті налаштування пошуку — значення за замовчуванням для нових пошуків."""
+    await service.save_search_prefs(user, body)
+    return await service.account(await service.user_by_id(user.id))
+
+
+@router.get(
+    "/avatar",
+    responses={200: {"content": {"image/png": {}, "image/jpeg": {}, "image/webp": {}}}},
+    response_class=Response,
+)
+async def get_avatar(user: CurrentUser, service: Service) -> Response:
+    avatar = await service.avatar(user.id)
+    if avatar is None:
+        return Response(status_code=404)
+    content_type, data = avatar
+    # Адреса у вебі містить версію (avatar_version) — тож кешувати можна довго.
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "private, max-age=86400",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@router.put("/avatar", response_model=Account)
+async def upload_avatar(request: Request, user: CurrentUser, service: Service) -> Account:
+    """Тіло — саме зображення (PNG/JPEG/WebP, до 300 КБ); тип визначаємо за вмістом."""
+    data = bytearray()
+    async for chunk in request.stream():
+        data.extend(chunk)
+        if len(data) > MAX_AVATAR_BYTES:
+            raise account_error(AccountError("image_too_large"))
+    try:
+        await service.set_avatar(user, bytes(data))
+    except AccountError as exc:
+        raise account_error(exc) from exc
+    return await service.account(await service.user_by_id(user.id))
+
+
+@router.delete("/avatar", response_model=Account)
+async def delete_avatar(user: CurrentUser, service: Service) -> Account:
+    await service.delete_avatar(user)
+    return await service.account(await service.user_by_id(user.id))
+
+
+@router.put("/notifications", response_model=Account)
+async def save_notify_prefs(body: NotifyPrefs, user: CurrentUser, service: Service) -> Account:
+    """Налаштування сповіщень для підписок акаунта (канали, частота, тиша, категорії)."""
+    await service.save_notify_prefs(user, body)
+    return await service.account(await service.user_by_id(user.id))
+
+
+@router.get("/sessions", response_model=list[SessionInfo])
+async def sessions(user: CurrentUser, service: Service, token: Token) -> list[SessionInfo]:
+    return await service.sessions(user, token)
+
+
+@router.delete("/sessions/{session_id}", status_code=204)
+async def end_session(session_id: str, user: CurrentUser, service: Service) -> Response:
+    try:
+        await service.end_session(user, session_id)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+    return Response(status_code=204)
+
+
+@router.post("/sessions/end-others", response_model=dict[str, int])
+async def end_other_sessions(user: CurrentUser, service: Service, token: Token) -> dict[str, int]:
+    """Вийти на всіх інших пристроях; поточна сесія лишається."""
+    return {"ended": await service.end_other_sessions(user, token or "")}
+
+
+@router.delete("/chats", status_code=204)
+async def clear_chats(user: CurrentUser, service: Service) -> Response:
+    await service.clear_chats(user)
+    return Response(status_code=204)
 
 
 @router.put("/flight-filters", response_model=Account)
@@ -175,6 +289,39 @@ async def delete_favorite(
     return Response(status_code=204)
 
 
+@router.get("/chats", response_model=ChatSyncState)
+async def chats(user: CurrentUser, service: Service) -> ChatSyncState:
+    """Розмови з помічником — лише якщо синхронізацію увімкнено (згода)."""
+    return await service.chats(user)
+
+
+@router.put("/chats/sync", response_model=ChatSyncState)
+async def set_chat_sync(body: ChatSyncBody, user: CurrentUser, service: Service) -> ChatSyncState:
+    """Увімкнути / вимкнути синхронізацію. Вимкнення видаляє розмови з сервера."""
+    return await service.set_chat_sync(user, body.enabled)
+
+
+@router.put("/chats/{conversation_id}", response_model=ChatConversationOut)
+async def save_chat(
+    conversation_id: ConversationId,
+    body: ChatConversationBody,
+    user: CurrentUser,
+    service: Service,
+) -> ChatConversationOut:
+    try:
+        return await service.save_chat(user, conversation_id, body)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.delete("/chats/{conversation_id}", status_code=204)
+async def delete_chat(
+    conversation_id: ConversationId, user: CurrentUser, service: Service
+) -> Response:
+    await service.delete_chat(user, conversation_id)
+    return Response(status_code=204)
+
+
 @router.get("/trips", response_model=list[SavedTripOut])
 async def saved_trips(user: CurrentUser, service: Service) -> list[SavedTripOut]:
     return await service.saved_trips(user)
@@ -212,11 +359,12 @@ async def update_trip(
 
 
 @router.patch("/trips/{trip_id}", response_model=SavedTripOut)
-async def rename_trip(
-    trip_id: str, body: SearchEntryRename, user: CurrentUser, service: Service
+async def patch_trip(
+    trip_id: str, body: SavedTripPatch, user: CurrentUser, service: Service
 ) -> SavedTripOut:
+    """Назва чи статус поїздки (чернетка / запланована / архівна)."""
     try:
-        return await service.rename_trip(user, trip_id, body.title)
+        return await service.patch_trip(user, trip_id, body)
     except AccountError as exc:
         raise account_error(exc) from exc
 

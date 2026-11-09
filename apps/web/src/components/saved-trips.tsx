@@ -1,7 +1,14 @@
 "use client";
 
-import type { SavedTrip, SavedTripBody, TripRefresh } from "@tickets/shared";
+import type {
+  SavedTrip,
+  SavedTripBody,
+  SavedTripPatch,
+  TripRefresh,
+  TripStatus,
+} from "@tickets/shared";
 import {
+  Bell,
   BookmarkCheck,
   BookmarkPlus,
   Copy,
@@ -19,7 +26,7 @@ import {
   createSavedTrip,
   deleteSavedTrip,
   loadSavedTrips,
-  renameSavedTrip,
+  patchSavedTrip,
   updateSavedTrip,
 } from "@/app/actions/saved-trips";
 import { TripCompareToggle } from "@/components/trip-compare";
@@ -29,12 +36,13 @@ import { Input } from "@/components/ui/input";
 import { localTime } from "@/lib/format";
 import {
   MAX_SAVED_TRIPS,
+  TRIP_STATUSES,
   readLocalTrips,
   type SavedTripItem,
   savedBody,
   writeLocalTrips,
 } from "@/lib/saved-trips";
-import { FIELD_CLASS } from "@/lib/styles";
+import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import { toTripParams } from "@/lib/trip-params";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
@@ -47,11 +55,27 @@ type SavedTrips = {
   /** Нова поїздка (і «Створити копію»); повертає id або null. */
   create: (body: SavedTripBody) => Promise<string | null>;
   update: (id: string, body: SavedTripBody) => Promise<boolean>;
-  rename: (id: string, title: string) => Promise<void>;
+  /** Назва чи статус — без зміни конфігурації й знімка. */
+  patch: (id: string, patch: SavedTripPatch) => Promise<void>;
   remove: (id: string) => Promise<void>;
 };
 
 const SavedTripsContext = createContext<SavedTrips | null>(null);
+
+/**
+ * Зберегти поїздку поза сторінкою «Мої поїздки» (з чату, модуль 9a): з акаунтом — у профіль,
+ * інакше в цьому браузері. false — не вдалося (ліміт чи помилка).
+ */
+export async function saveTripNow(body: SavedTripBody): Promise<boolean> {
+  const state = await createSavedTrip(body).catch(() => null);
+  if (state?.signedIn) return state.ok;
+  const items = readLocalTrips();
+  if (items.length >= MAX_SAVED_TRIPS) return false;
+  const now = new Date().toISOString();
+  const id = `local-${crypto.randomUUID().replaceAll("-", "")}`;
+  writeLocalTrips([{ id, created_at: now, updated_at: now, ...body }, ...items]);
+  return true;
+}
 
 const fromAccount = (items: SavedTrip[]): SavedTripItem[] =>
   items.map((t) => ({ ...t, query: t.query as SavedTripItem["query"] }));
@@ -131,20 +155,34 @@ export function SavedTripsProvider({ children }: { children: React.ReactNode }) 
     }
     const current = items.find((t) => t.id === id);
     if (!current) return false;
-    const next = { ...current, ...body, updated_at: new Date().toISOString() };
+    // Статус не змінюємо (як і сервер): лише назва, конфігурація й знімок.
+    const next = {
+      ...current,
+      ...body,
+      status: current.status,
+      updated_at: new Date().toISOString(),
+    };
     local([next, ...items.filter((t) => t.id !== id)]);
     return true;
   }
 
-  async function rename(id: string, title: string) {
+  async function patch(id: string, change: SavedTripPatch) {
     if (signedIn) {
-      const state = await renameSavedTrip(id, title);
+      const state = await patchSavedTrip(id, change);
       if (!(state.signedIn && state.ok)) {
         setError("error");
         return;
       }
     }
-    const next = items.map((t) => (t.id === id ? { ...t, title } : t));
+    const next = items.map((t) =>
+      t.id === id
+        ? {
+            ...t,
+            ...(change.title ? { title: change.title } : {}),
+            ...(change.status ? { status: change.status } : {}),
+          }
+        : t,
+    );
     if (signedIn) setItems(next);
     else local(next);
   }
@@ -163,7 +201,7 @@ export function SavedTripsProvider({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <SavedTripsContext.Provider value={{ signedIn, items, error, create, update, rename, remove }}>
+    <SavedTripsContext.Provider value={{ signedIn, items, error, create, update, patch, remove }}>
       {children}
     </SavedTripsContext.Provider>
   );
@@ -267,6 +305,7 @@ export function ShareTripButton({ href }: { href: string }) {
 export function SavedTripsList() {
   const t = useTranslations("savedTrips");
   const { signedIn, items, error } = useSavedTrips();
+  const [filter, setFilter] = useState<"all" | TripStatus>("all");
   if (signedIn === null) {
     return (
       <p className="text-muted-foreground flex items-center gap-2 text-sm" role="status">
@@ -285,6 +324,30 @@ export function SavedTripsList() {
           {t("failed")}
         </p>
       )}
+      {items.length > 0 && (
+        <div role="tablist" aria-label={t("statusFilter")} className="flex flex-wrap gap-1.5">
+          {(["all", ...TRIP_STATUSES] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="tab"
+              aria-selected={filter === f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-sm transition-colors",
+                filter === f
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "hover:border-primary/50",
+              )}
+              data-testid={`trips-filter-${f}`}
+            >
+              {f === "all" ? t("all") : t(`statusPlural.${f}`)} (
+              {f === "all" ? items.length : items.filter((i) => (i.status ?? "draft") === f).length}
+              )
+            </button>
+          ))}
+        </div>
+      )}
       {items.length === 0 ? (
         <p className="bg-card rounded-xl border p-6 text-center text-sm" data-testid="trips-empty">
           {t("empty")}{" "}
@@ -294,11 +357,13 @@ export function SavedTripsList() {
         </p>
       ) : (
         <ul className="grid gap-3" data-testid="saved-trips">
-          {items.map((item) => (
-            <li key={item.id}>
-              <SavedTripCard item={item} />
-            </li>
-          ))}
+          {items
+            .filter((item) => filter === "all" || (item.status ?? "draft") === filter)
+            .map((item) => (
+              <li key={item.id}>
+                <SavedTripCard item={item} />
+              </li>
+            ))}
         </ul>
       )}
     </div>
@@ -315,7 +380,7 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
   const t = useTranslations("savedTrips");
   const tStay = useTranslations("stayCard");
   const format = useFormatter();
-  const { create, rename, remove } = useSavedTrips();
+  const { create, patch, remove } = useSavedTrips();
   const [editing, setEditing] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [refresh, setRefresh] = useState<Refresh>({ state: "idle" });
@@ -367,7 +432,7 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
               onSubmit={async (e) => {
                 e.preventDefault();
                 const title = String(new FormData(e.currentTarget).get("title") ?? "").trim();
-                if (title) await rename(item.id, title.slice(0, 120));
+                if (title) await patch(item.id, { title: title.slice(0, 120) });
                 setEditing(false);
               }}
             >
@@ -411,6 +476,7 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
               ` · ★ ${format.number(s.stay.rating, { maximumFractionDigits: 1 })}`}
             {s.stay.cancellation ? ` · ${tStay(`cancellation.${s.stay.cancellation}`)}` : ""}
           </p>
+          <StatusControl item={item} />
         </div>
         <div className="text-right">
           <p className="text-xl font-bold tabular-nums" data-testid="saved-trip-total">
@@ -452,6 +518,15 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
           )}
           {t("refresh")}
         </Button>
+        {item.query.return_date && (
+          // Підписка — на сторінці поїздки, тим самим компонентом, що й з результатів.
+          <Button asChild size="sm" variant="outline">
+            <Link href={`${href}#price-alert`} data-testid="saved-trip-watch">
+              <Bell className="size-3.5" aria-hidden />
+              {t("watch")}
+            </Link>
+          </Button>
+        )}
         <ShareTripButton href={href} />
         <Button
           type="button"
@@ -502,12 +577,43 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
   );
 }
 
+/**
+ * Статус поїздки (модуль 10a): чернетка / запланована / архівна. «Заброньованої» немає —
+ * бронювання SkyPack не бачить. Минула поїздка — підказка перенести в архів.
+ */
+function StatusControl({ item }: { item: SavedTripItem }) {
+  const t = useTranslations("savedTrips");
+  const { patch } = useSavedTrips();
+  const status = item.status ?? "draft";
+  const past = item.snapshot.check_out < new Date().toISOString().slice(0, 10);
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <label className="flex items-center gap-1.5">
+        <span className="text-muted-foreground">{t("statusLabel")}</span>
+        <select
+          value={status}
+          onChange={(e) => patch(item.id, { status: e.target.value as TripStatus })}
+          className={cn(SELECT_CLASS, "h-7 w-auto py-0 text-xs")}
+          data-testid="saved-trip-status"
+        >
+          {TRIP_STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {t(`status.${s}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {past && status !== "archived" && <span className="text-warning">{t("pastHint")}</span>}
+    </div>
+  );
+}
+
 function RefreshNote({ result, money }: { result: TripRefresh; money: (value: number) => string }) {
   const t = useTranslations("savedTrips");
   if (!result.current) {
     return (
       <p
-        className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs"
+        className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs"
         role="status"
       >
         {t("refreshNone")}
@@ -523,9 +629,7 @@ function RefreshNote({ result, money }: { result: TripRefresh; money: (value: nu
     <div
       className={cn(
         "grid gap-1 rounded-lg border px-3 py-2 text-xs",
-        notes.length
-          ? "border-amber-500/40 bg-amber-500/10"
-          : "border-emerald-500/40 bg-emerald-500/5",
+        notes.length ? "border-warning/40 bg-warning/10" : "border-success/40 bg-success/5",
       )}
       role="status"
       data-testid="saved-trip-refreshed"
@@ -533,14 +637,7 @@ function RefreshNote({ result, money }: { result: TripRefresh; money: (value: nu
       <p className="text-sm">
         {t("nowTotal", { total: money(result.current.money_total) })}{" "}
         <span
-          className={cn(
-            "font-medium",
-            diff < 0
-              ? "text-emerald-700 dark:text-emerald-400"
-              : diff > 0
-                ? "text-amber-700 dark:text-amber-400"
-                : "",
-          )}
+          className={cn("font-medium", diff < 0 ? "text-success" : diff > 0 ? "text-warning" : "")}
         >
           {diff === 0
             ? t("same")

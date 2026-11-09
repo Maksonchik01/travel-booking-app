@@ -19,6 +19,7 @@ import structlog
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from tickets_api.domain.flights import FlightQuery, Leg, Offer
+from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.llm.prompts import system_prompt
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message
 from tickets_api.repositories.price_history import PriceStats
@@ -114,8 +115,10 @@ class FlightExplainer:
         *,
         now: datetime,
         price_stats: PriceStats | None = None,
+        locale: UiLocale = DEFAULT_AI_LOCALE,
     ) -> ExplainResult:
         payload = advisor_input(query, result, now=now, price_stats=price_stats)
+        payload["locale"] = locale  # мова текстів для користувача (rules.md, п. 5)
         if not payload["options"]:
             return ExplainResult(status="no_options")
         allowed = allowed_numbers(payload)

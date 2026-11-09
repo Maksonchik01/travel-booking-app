@@ -1,9 +1,17 @@
-import type { AlertCreate, AlertCreated, FlightQuery } from "@tickets/shared";
+import type {
+  AlertCreate,
+  AlertCreated,
+  ChannelStatus,
+  FlightQuery,
+  StayQuery,
+} from "@tickets/shared";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import messages from "../../messages/uk.json";
+import { flightTarget, stayTarget } from "@/lib/alerts";
+
 import { PriceAlert } from "./price-alert";
 
 const QUERY: FlightQuery = {
@@ -23,12 +31,23 @@ const QUERY: FlightQuery = {
   filters: {},
 };
 
-const CHANNELS = { telegram: "live", email: "mock", bot_username: "flyandbookbot" } as const;
+const CHANNELS = {
+  telegram: "live",
+  email: "mock",
+  bot_username: "flyandbookbot",
+  kinds: ["flight", "flex"],
+  max_active_per_owner: 20,
+} as const satisfies ChannelStatus;
 
 function renderAlert(create: (body: AlertCreate) => Promise<AlertCreated | null>) {
   return render(
     <NextIntlClientProvider locale="uk" messages={messages}>
-      <PriceAlert query={QUERY} bestPrice={88.5} channels={CHANNELS} create={create} />
+      <PriceAlert
+        target={flightTarget(QUERY)!}
+        bestPrice={88.5}
+        channels={CHANNELS}
+        create={create}
+      />
     </NextIntlClientProvider>,
   );
 }
@@ -43,6 +62,7 @@ describe("PriceAlert", () => {
       channel: "telegram" as const,
       manage_token: "tok-1234567890abcdef",
       telegram_link: "https://t.me/flyandbookbot?start=tok-1234567890abcdef",
+      existing: false,
     }));
     const view = renderAlert(create);
 
@@ -54,9 +74,11 @@ describe("PriceAlert", () => {
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
+        kind: "flight",
         origin: "WAW",
         destination: "LIS",
         return_date: "2026-12-12",
+        baggage: "none",
         adults: 2,
         condition: "below_price",
         threshold: 79,
@@ -100,5 +122,99 @@ describe("PriceAlert", () => {
       }),
     );
     expect(screen.getByRole("alert")).toHaveTextContent("Не вдалося створити підписку");
+  });
+
+  it("гнучкі дати: вихідні й зниження на відсоток; багаж — чесна примітка", async () => {
+    const create = vi.fn(async () => null);
+    const flex: FlightQuery = {
+      ...QUERY,
+      departure_date: "2026-12-01",
+      departure_until: "2026-12-31",
+      return_date: "2026-12-02",
+      min_nights: 1,
+      max_nights: 3,
+      baggage: "carry_on",
+    };
+    render(
+      <NextIntlClientProvider locale="uk" messages={messages}>
+        <PriceAlert
+          target={flightTarget(flex)!}
+          bestPrice={120}
+          channels={CHANNELS}
+          create={create}
+        />
+      </NextIntlClientProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Стежити за ціною" }));
+    expect(
+      screen.getByText(/Гнучкі дати: виліт 2026-12-01 – 2026-12-31, 1–3 ноч\./),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/ціна без багажу/)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/нижча за типову/)).toBeNull(); // лише для точних дат
+    fireEvent.click(screen.getByLabelText(/Лише вихідні/));
+    // Умови: поріг, зниження на суму, на відсоток (третя).
+    fireEvent.click(screen.getAllByRole("radio", { name: /Ціна/ })[2]);
+    fireEvent.change(screen.getByLabelText("Відсоток зниження"), { target: { value: "15" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Підписатися" }));
+    });
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "flex",
+        departure_until: "2026-12-31",
+        min_nights: 1,
+        max_nights: 3,
+        weekends: true,
+        baggage: "carry_on",
+        condition: "drop_percent",
+        percent: 15,
+        threshold: null,
+      }),
+    );
+  });
+
+  it("житло без реального джерела й діти — неактивно з поясненням", () => {
+    expect(
+      flightTarget({ ...QUERY, passengers: { ...QUERY.passengers!, children: 1 } }),
+    ).toBeNull();
+    render(
+      <NextIntlClientProvider locale="uk" messages={messages}>
+        <PriceAlert
+          target={stayTarget({
+            city: "LIS",
+            check_in: "2026-12-05",
+            check_out: "2026-12-08",
+          } as StayQuery)}
+          bestPrice={300}
+          channels={CHANNELS}
+        />
+      </NextIntlClientProvider>,
+    );
+    expect(screen.getByRole("button", { name: "Стежити за ціною" })).toBeDisabled();
+    expect(screen.getByTestId("alert-unavailable")).toHaveTextContent(
+      "реальне джерело цін на житло",
+    );
+  });
+});
+
+describe("PriceAlert — така сама підписка вже є", () => {
+  it("каже, що вже стежите, і не просить підтверджувати знову", async () => {
+    const create = vi.fn(async () => ({
+      id: "a1",
+      status: "active",
+      channel: "telegram" as const,
+      manage_token: "tok-existing-1234567890",
+      telegram_link: null,
+      existing: true,
+    }));
+    renderAlert(create);
+
+    fireEvent.click(screen.getByRole("button", { name: "Стежити за ціною" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Підписатися" }));
+    });
+
+    expect(screen.getByText("Така підписка у вас уже є — нову не створюємо.")).toBeInTheDocument();
+    expect(screen.queryByText(/Відкрити @/)).not.toBeInTheDocument();
   });
 });

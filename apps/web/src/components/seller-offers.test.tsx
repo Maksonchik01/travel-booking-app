@@ -65,8 +65,8 @@ describe("SellerOffers", () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent("Kiwi.com");
     expect(rows[0]).toHaveTextContent("кешована ціна, орієнтовна");
-    expect(rows[0].className).not.toContain("emerald"); // дешевша, але не підтверджена
-    expect(rows[1].className).toContain("emerald");
+    expect(rows[0].className).not.toContain("success"); // дешевша, але не підтверджена
+    expect(rows[1].className).toContain("success");
     expect(within(rows[0]).getByRole("link", { name: /Переглянути пропозицію/ })).toHaveAttribute(
       "href",
       expect.stringMatching(/^\/out\?url=/),

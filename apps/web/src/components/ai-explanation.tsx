@@ -48,14 +48,10 @@ export function AIExplanation({ result }: { result: ExplainResult }) {
             >
               <p className="font-medium">{label(option.id)}</p>
               {option.one_liner && <p>{option.one_liner}</p>}
-              <Points
-                items={option.pros}
-                sign="+"
-                className="text-emerald-700 dark:text-emerald-400"
-              />
+              <Points items={option.pros} sign="+" className="text-success" />
               <Points items={option.cons} sign="−" className="text-muted-foreground" />
               {option.risks && option.risks.length > 0 && (
-                <ul className="grid gap-0.5 text-amber-700 dark:text-amber-400">
+                <ul className="grid gap-0.5 text-warning">
                   {option.risks.map((risk, i) => (
                     <li key={i} className="flex gap-1">
                       <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden />

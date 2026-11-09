@@ -113,6 +113,9 @@ class AirportDirectory:
             )
         return None
 
+    def country_codes(self) -> list[str]:
+        return sorted(self._countries)
+
     def knows(self, code: str) -> bool:
         """Код є в довіднику як аеропорт або як місто з аеропортами."""
         code = code.upper()
@@ -335,3 +338,7 @@ def _distance_km(a: tuple[float, float], b: tuple[float, float]) -> float:
 @lru_cache
 def default_airport_directory() -> AirportDirectory:
     return AirportDirectory.from_files()
+
+
+def default_country_codes() -> list[str]:
+    return default_airport_directory().country_codes()

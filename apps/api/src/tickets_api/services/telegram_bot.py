@@ -36,6 +36,7 @@ from tickets_api.services.alerts import (
     alert_keyboard,
     condition_text,
     links_html,
+    party_text,
     route_text,
 )
 
@@ -271,7 +272,7 @@ class TelegramBotService:
             await self._save_dialog(chat_id, Dialog(step="edit_threshold", alert_id=alert.id))
             await self._send(
                 chat_id,
-                f"Новий поріг для {esc(route_text(alert))} — ціна за дорослого в "
+                f"Новий поріг для {esc(route_text(alert))} — ціна {party_text(alert)} в "
                 f"{esc(alert.currency)}, наприклад <code>90</code>.",
                 [[Button("📉 Нижче типової", data="typ"), Button("✖️ Скасувати", data="cancel")]],
             )
@@ -440,7 +441,8 @@ class TelegramBotService:
         if alert is None:
             return
         price = (
-            f"\nЗараз від <b>{esc(_money(alert.last_price, alert.currency))}</b> за дорослого."
+            f"\nЗараз від <b>{esc(_money(alert.last_price, alert.currency))}</b> "
+            f"{party_text(alert)}."
             if alert.last_price is not None
             else "\nЦін на ці дати в історії пошуків поки немає — "
             "перевірятиму кілька разів на добу."
@@ -562,7 +564,7 @@ def _money(value: Decimal | None, currency: str) -> str:
 MAIN_MENU = [[Button("➕ Нова підписка", data="new"), Button("📋 Мої підписки", data="list")]]
 CANCEL = [[Button("✖️ Скасувати", data="cancel")]]
 WELCOME_HTML = (
-    "👋 <b>Привіт! Я бот Tickets.</b>\n"
+    "👋 <b>Привіт! Я бот SkyPack.</b>\n"
     "Стежу за цінами на авіаквитки й пишу, щойно ціна опускається нижче вашого порогу "
     "або нижче звичної для маршруту.\n\n"
     "• /new — нова підписка (звідки, куди, дата, поріг)\n"

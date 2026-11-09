@@ -83,6 +83,10 @@ class Settings(BaseSettings):
     )
     alert_check_interval_hours: int = Field(default=6, ge=1, le=24)
     alert_min_hours_between_notifications: int = Field(default=24, ge=1, le=168)
+    alert_max_searches_per_run: int = Field(default=300, ge=1, le=10_000)
+    """Скільки різних пошуків робить одна перевірка (ТЗ 11.4); решта — наступного разу."""
+    alert_max_active_per_owner: int = Field(default=20, ge=1, le=1000)
+    """Ліміт підписок (крім вимкнених) на акаунт, email чи Telegram-чат."""
     public_web_url: str = "http://localhost:3000"
     """Адреса сайту для посилань у сповіщеннях (керування підпискою, результати пошуку)."""
     telegram_bot_token: SecretStr | None = None
@@ -118,6 +122,10 @@ class Settings(BaseSettings):
     scoring_config_path: Path | None = None
     """None — вбудований tickets_api/scoring/config.toml."""
     provider_cache_ttl_s: int = 1800
+    price_live_fresh_min: int = Field(default=30, ge=1, le=1440)
+    """Жива ціна молодша за це — «щойно перевірена»; старша — «варто перевірити» (17.3)."""
+    price_cached_stale_days: int = Field(default=3, ge=1, le=60)
+    """Кешована ціна, знайдена давніше, — «варто перевірити»."""
 
     @field_validator(
         "cors_origins",

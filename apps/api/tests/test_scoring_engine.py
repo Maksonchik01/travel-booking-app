@@ -148,7 +148,9 @@ def test_invalid_config_is_rejected(tmp_path: Path) -> None:
     path.write_text(
         'currency = "EUR"\n[profiles.budget]\nlambda_time_per_hour = 5\nlambda_stop = 10\n'
         "[penalties]\nshort_layover = 1\novernight_layover = 1\nself_transfer = 1\n"
-        "night_departure = 1\n[thresholds]\nshort_layover_min = 60\nlong_layover_min = 480\n"
+        "night_departure = 1\nnight_arrival = 1\nairport_change = 1\n"
+        "[preferences]\nairline = 1\ndeparture_time = 1\n"
+        "[thresholds]\nshort_layover_min = 60\nlong_layover_min = 480\n"
         "night_start_hour = 0\nnight_end_hour = 6\n"
     )
 

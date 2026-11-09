@@ -1,10 +1,11 @@
-import type { Offer, OfferScore, Pick, ScoringResult } from "@tickets/shared";
+import type { Offer, OfferScore, Pick, Reason, ScoringResult } from "@tickets/shared";
 import { AlertTriangle, ChevronRight, Info, Scale, Timer, Wallet } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { AirlineLogo, legCarriers } from "@/components/airline-logo";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useDurationText, WhyList } from "@/components/why-list";
 import { splitDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -157,6 +158,44 @@ function PickCard({ pick, offer, score }: { pick: Pick; offer: Offer; score?: Of
   );
 }
 
+/**
+ * «Чому цей варіант?» (модуль 14.5): конкретні причини з даних пошуку — що виграв і чим
+ * відрізняється від найдешевшого й найшвидшого у грошах, годинах і пересадках. Рахує API.
+ */
+export function WhyReasons({
+  reasons,
+  money,
+}: {
+  reasons: Reason[];
+  money: (v: number) => string;
+}) {
+  const t = useTranslations("picks");
+  const duration = useDurationText();
+  const text = (r: Reason) => {
+    const amount = money(r.amount ?? 0);
+    const minutes = duration(r.minutes ?? 0);
+    switch (r.code) {
+      case "pricier_but_faster":
+        return r.amount
+          ? t("reason.pricier_but_faster", { amount, duration: minutes })
+          : t("reason.same_price_faster", { duration: minutes });
+      case "cheaper_but_slower":
+        return t("reason.cheaper_but_slower", { amount, duration: minutes });
+      case "best_balance":
+        return t("reason.best_balance", { total: amount });
+      case "avoids_risk":
+        return t("reason.avoids_risk", { risk: r.risk ? t(`riskName.${r.risk}`) : "—" });
+      case "cheapest":
+      case "fastest":
+      case "fewer_stops":
+        return t(`reason.${r.code}`, { count: r.count ?? 0 });
+      default:
+        return t(`reason.${r.code}`);
+    }
+  };
+  return <WhyList items={reasons.map(text)} testId="why-reasons" />;
+}
+
 /** Розбивка оцінки: ціна + штрафи = оцінка, плюс попередження. Спільна для карток. */
 export function ScoreDetails({
   score,
@@ -171,10 +210,17 @@ export function ScoreDetails({
     value == null ? t("breakdown.unknown") : value === 0 ? money(0) : `+${money(value)}`;
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-3">
+      <WhyReasons reasons={score.reasons ?? []} money={money} />
       <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-xs" data-testid="breakdown">
         <dt className="text-muted-foreground">{t("breakdown.price")}</dt>
         <dd className="text-right tabular-nums">{money(b.price)}</dd>
+        {b.baggage_extra != null && (
+          <>
+            <dt className="text-muted-foreground">{t("breakdown.baggage")}</dt>
+            <dd className="text-right tabular-nums">{plus(b.baggage_extra)}</dd>
+          </>
+        )}
         <dt className="text-muted-foreground">{t("breakdown.time")}</dt>
         <dd className="text-right tabular-nums">{plus(b.time_penalty ?? null)}</dd>
         <dt className="text-muted-foreground">{t("breakdown.stops")}</dt>
@@ -191,6 +237,15 @@ export function ScoreDetails({
             </dd>
           </div>
         ))}
+        {(b.preference_misses ?? []).length > 0 && (
+          <>
+            <dt className="text-muted-foreground">
+              {t("breakdown.preferences")}:{" "}
+              {(b.preference_misses ?? []).map((m) => t(`miss.${m}`)).join(", ")}
+            </dt>
+            <dd className="text-right tabular-nums">{plus(b.preference_penalty ?? 0)}</dd>
+          </>
+        )}
         <dt className="border-t pt-1 font-medium">{t("breakdown.total")}</dt>
         <dd className="border-t pt-1 text-right font-medium tabular-nums" data-testid="total">
           {b.total != null ? money(b.total) : t("breakdown.unknown")}
@@ -203,10 +258,7 @@ export function ScoreDetails({
         <ul className="flex flex-wrap gap-1.5">
           {score.warnings.map((w, i) => (
             <li key={i}>
-              <Badge
-                variant="outline"
-                className="border-amber-500/50 text-amber-700 dark:text-amber-400"
-              >
+              <Badge variant="outline" className="border-warning/50 text-warning">
                 <AlertTriangle className="size-3" />
                 {t(`warning.${w.code}`, { airport: w.airport ?? "—" })}
               </Badge>

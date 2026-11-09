@@ -1,4 +1,11 @@
-import type { Stay, StayPickLabel, StayQuery, StayScore } from "@tickets/shared";
+import type {
+  PriceFreshness,
+  Stay,
+  StayPickLabel,
+  StayQuery,
+  StayReason,
+  StayScore,
+} from "@tickets/shared";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -31,11 +38,14 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FreshnessBadge } from "@/components/price-freshness";
 import { Card } from "@/components/ui/card";
+import { WhyList } from "@/components/why-list";
 import { StayCardActions } from "@/components/stay-card-actions";
 import { favoriteSnapshot } from "@/lib/favorites";
 import { hoursAgo } from "@/lib/format";
 import { outboundHref } from "@/lib/outbound";
+import { tripFromStay } from "@/lib/trip-params";
 import { cn } from "@/lib/utils";
 
 const KIND_ICON = {
@@ -65,20 +75,6 @@ const KNOWN_SOURCES = new Set(["mock"]);
 /** Фото лише від джерела й лише https; немає — не підставляємо стокових. */
 const photoUrl = (stay: Stay) => (stay.image_url?.startsWith("https://") ? stay.image_url : null);
 
-/** «Додати до поїздки»: планувальник з цим містом, датами, гостями й житлом (модуль 7). */
-export function tripHref(stay: Stay, query: StayQuery): string {
-  const guests = query.guests ?? {};
-  const params = new URLSearchParams({
-    to: query.city,
-    depart: query.check_in,
-    return: query.check_out,
-    stay: `${stay.source}:${stay.id}`,
-  });
-  if ((guests.adults ?? 2) !== 2) params.set("adults", String(guests.adults));
-  if (guests.children) params.set("children", String(guests.children));
-  return `/trip?${params}`;
-}
-
 export function StayCard({
   stay,
   now,
@@ -87,9 +83,12 @@ export function StayCard({
   actions,
   query,
   searchParams,
+  freshness,
 }: {
   stay: Stay;
   now: Date;
+  /** Свіжість ціни від API (модуль 17.3). */
+  freshness?: PriceFreshness;
   pickLabel?: StayPickLabel;
   score?: StayScore;
   /** Клієнтські дії картки (напр. «На карті») — у колонці ціни. */
@@ -132,6 +131,7 @@ export function StayCard({
           src={photo}
           alt=""
           loading="lazy"
+          decoding="async"
           referrerPolicy="no-referrer"
           className="hidden h-full min-h-32 w-full object-cover sm:block"
           data-testid="stay-photo"
@@ -156,6 +156,7 @@ export function StayCard({
             {stay.stars != null && (
               <span
                 className="flex items-center gap-0.5"
+                role="img"
                 aria-label={t("stars", { count: stay.stars })}
               >
                 {Array.from({ length: stay.stars }, (_, i) => (
@@ -217,7 +218,7 @@ export function StayCard({
               </span>
             </summary>
             <div className="bg-muted/50 mt-2 max-w-sm rounded-lg p-3">
-              <StayScoreDetails score={score} money={(v) => money(v, 2)} />
+              <StayScoreDetails score={score} money={(v) => money(v, v % 1 === 0 ? 0 : 2)} />
             </div>
           </details>
         )}
@@ -244,6 +245,7 @@ export function StayCard({
           <p className="text-muted-foreground text-[11px]">{t("withTaxes")}</p>
         </div>
         <div className="grid w-full gap-2 text-xs sm:w-auto">
+          <FreshnessBadge value={freshness} />
           <p className="text-muted-foreground">
             {t("foundAgo", { hours: hoursAgo(stay.found_at ?? stay.collected_at, now) })}
           </p>
@@ -285,7 +287,7 @@ export function StayCard({
           stay={stay}
           query={query}
           favorite={favoriteSnapshot(stay, query, searchParams ?? "")}
-          tripHref={tripHref(stay, query)}
+          tripHref={tripFromStay(stay, query)}
           now={now.toISOString()}
           details={<StayDetails stay={stay} now={now} />}
         />
@@ -393,20 +395,14 @@ function CancellationBadge({ value }: { value: Stay["cancellation"] }) {
   const t = useTranslations("stayCard");
   if (value === "free") {
     return (
-      <Badge
-        variant="outline"
-        className="border-emerald-500/40 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400"
-      >
+      <Badge variant="outline" className="border-success/40 bg-success/5 text-success">
         <ShieldCheck className="size-3" /> {t("cancellation.free")}
       </Badge>
     );
   }
   if (value === "partial" || value === "non_refundable") {
     return (
-      <Badge
-        variant="outline"
-        className="border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400"
-      >
+      <Badge variant="outline" className="border-warning/40 bg-warning/5 text-warning">
         <ShieldOff className="size-3" /> {t(`cancellation.${value}`)}
       </Badge>
     );
@@ -416,6 +412,49 @@ function CancellationBadge({ value }: { value: Stay["cancellation"] }) {
       <ShieldQuestion className="size-3" /> {t("cancellation.unknown")}
     </Badge>
   );
+}
+
+/**
+ * «Чому цей варіант?» житла (модуль 14.5): порівняння з найдешевшим і найкраще оціненим —
+ * гроші за все проживання, кілометри, бали рейтингу. Числа рахує API.
+ */
+function StayWhyReasons({
+  reasons,
+  money,
+}: {
+  reasons: StayReason[];
+  money: (v: number) => string;
+}) {
+  const t = useTranslations("stayPicks.reason");
+  const format = useFormatter();
+  const num = (v: number | null | undefined) => format.number(v ?? 0, { maximumFractionDigits: 1 });
+  const text = (r: StayReason) => {
+    const amount = money(r.amount ?? 0);
+    switch (r.code) {
+      case "pricier_but_closer":
+        return r.amount
+          ? t("pricier_but_closer", { amount, km: num(r.km) })
+          : t("same_price_closer", { km: num(r.km) });
+      case "pricier_but_better_rated":
+        return r.amount
+          ? t("pricier_but_better_rated", { amount, rating: num(r.rating) })
+          : t("same_price_better_rated", { rating: num(r.rating) });
+      case "cheaper_than_top_rated":
+        return r.rating != null
+          ? t("cheaper_than_top_rated_rating", { amount, rating: num(r.rating) })
+          : t("cheaper_than_top_rated", { amount });
+      case "best_balance":
+        return t("best_balance", { total: amount });
+      case "within_budget":
+        return t("within_budget", { amount });
+      case "cheapest":
+      case "top_rated":
+        return t(r.code, { count: r.count ?? 0 });
+      default:
+        return t(r.code);
+    }
+  };
+  return <WhyList items={reasons.map(text)} testId="stay-why-reasons" />;
 }
 
 /** Розбивка value-score: ціна за ніч + «ціна» незручностей = оцінка. */
@@ -428,12 +467,15 @@ export function StayScoreDetails({
 }) {
   const t = useTranslations("stayPicks.breakdown");
   const tWarn = useTranslations("stayPicks.warning");
+  const tCard = useTranslations("stayCard");
   const format = useFormatter();
   const b = score.breakdown;
   const plus = (value: number) => (value === 0 ? money(0) : `+${money(value)}`);
+  const missing = b.missing_amenities ?? [];
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-3">
+      <StayWhyReasons reasons={score.reasons ?? []} money={money} />
       <dl
         className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-xs"
         data-testid="stay-breakdown"
@@ -456,6 +498,16 @@ export function StayScoreDetails({
         <dd className="text-right tabular-nums">{plus(b.rating_penalty)}</dd>
         <dt className="text-muted-foreground">{t("cancellation")}</dt>
         <dd className="text-right tabular-nums">{plus(b.cancellation_penalty)}</dd>
+        {missing.length > 0 && (
+          <>
+            <dt className="text-muted-foreground">
+              {t("amenities", {
+                list: format.list(missing.map((a) => tCard(`amenity.${a}`))),
+              })}
+            </dt>
+            <dd className="text-right tabular-nums">{plus(b.amenity_penalty ?? 0)}</dd>
+          </>
+        )}
         <dt className="border-t pt-1 font-medium">{t("total")}</dt>
         <dd
           className="border-t pt-1 text-right font-medium tabular-nums"
@@ -468,10 +520,7 @@ export function StayScoreDetails({
         <ul className="flex flex-wrap gap-1.5">
           {score.warnings.map((w) => (
             <li key={w.code}>
-              <Badge
-                variant="outline"
-                className="border-amber-500/50 text-amber-700 dark:text-amber-400"
-              >
+              <Badge variant="outline" className="border-warning/50 text-warning">
                 <AlertTriangle className="size-3" />
                 {tWarn(w.code)}
               </Badge>
@@ -501,7 +550,7 @@ function ConditionBadges({ stay }: { stay: Stay }) {
       {items.map((text) => (
         <span
           key={text}
-          className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-800 dark:text-emerald-300"
+          className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] text-success"
           data-testid="stay-condition"
         >
           {text}

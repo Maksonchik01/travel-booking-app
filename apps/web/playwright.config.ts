@@ -11,7 +11,26 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: `http://localhost:${PORT}`, trace: "on-first-retry" },
+  use: {
+    baseURL: `http://localhost:${PORT}`,
+    trace: "on-first-retry",
+    // Сценарії написані для українського інтерфейсу; мова за замовчуванням — англійська.
+    storageState: {
+      cookies: [
+        {
+          name: "NEXT_LOCALE",
+          value: "uk",
+          domain: "localhost",
+          path: "/",
+          expires: -1,
+          httpOnly: false,
+          secure: false,
+          sameSite: "Lax",
+        },
+      ],
+      origins: [],
+    },
+  },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {

@@ -7,6 +7,7 @@ import type {
   Offer,
   OfferScore,
   PickLabel,
+  PriceFreshness,
 } from "@tickets/shared";
 import {
   AlertTriangle,
@@ -22,6 +23,7 @@ import {
 import { useFormatter, useTranslations } from "next-intl";
 
 import { AirlineLogo, legCarriers } from "@/components/airline-logo";
+import { FreshnessBadge } from "@/components/price-freshness";
 import { ScoreDetails } from "@/components/top-picks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,9 +55,12 @@ export function OfferCard({
   pickAlso = [],
   sellerCount = 1,
   compare,
+  freshness,
 }: {
   offer: Offer;
   now: Date;
+  /** Свіжість ціни від API (модуль 17.3). */
+  freshness?: PriceFreshness;
   /** Вартість з багажем, який обрав користувач (рахує API, ADR 0014); немає — багаж не потрібен. */
   baggageCost?: BaggageCost;
   /** Багаж, який обрав користувач: картка показує умови саме цих місць. */
@@ -154,9 +159,12 @@ export function OfferCard({
           <p className="text-muted-foreground text-xs">
             {travellers > 1 ? t("forPassengers", { count: travellers }) : t("perAdult")}
           </p>
-          <p className="text-muted-foreground mt-1 text-xs" data-testid="price-age">
-            {age}
-          </p>
+          <div className="mt-1 grid gap-0.5">
+            <FreshnessBadge value={freshness} />
+            <p className="text-muted-foreground text-xs" data-testid="price-age">
+              {age}
+            </p>
+          </div>
           {offer.total_duration_min != null && (
             <p
               className="text-muted-foreground mt-1 flex items-center gap-1 text-xs"
@@ -280,9 +288,7 @@ function LegRow({
           <span
             className={cn(
               "text-xs",
-              leg.stops === 0
-                ? "font-medium text-emerald-700 dark:text-emerald-400"
-                : "text-muted-foreground",
+              leg.stops === 0 ? "font-medium text-success" : "text-muted-foreground",
             )}
           >
             {leg.stops === 0 ? t("direct") : t("stops", { count: leg.stops })}
@@ -319,11 +325,7 @@ function Endpoint({
         <>
           <p className="text-xl font-semibold tracking-tight tabular-nums">
             {time}
-            {shift > 0 && (
-              <sup className="ml-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-                +{shift}
-              </sup>
-            )}
+            {shift > 0 && <sup className="ml-0.5 text-xs font-medium text-warning">+{shift}</sup>}
           </p>
           <p className="text-muted-foreground text-xs font-medium">{airport}</p>
         </>
@@ -340,10 +342,7 @@ function Layovers({ leg }: { leg: Leg }) {
 
   if (leg.layovers == null) {
     return (
-      <Badge
-        variant="outline"
-        className="w-fit border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400"
-      >
+      <Badge variant="outline" className="w-fit border-warning/40 bg-warning/5 text-warning">
         <AlertTriangle className="size-3" /> {t("detailsUnknown")}
       </Badge>
     );
@@ -367,7 +366,7 @@ function Layovers({ leg }: { leg: Leg }) {
                 <Badge
                   key={risk}
                   variant="outline"
-                  className="border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400"
+                  className="border-warning/40 bg-warning/5 text-warning"
                 >
                   <Icon className="size-3" /> {t(`risk.${risk}`)}
                 </Badge>
@@ -417,7 +416,7 @@ function BaggageDetails({
           key={row}
           className={cn(
             "flex items-start gap-1.5",
-            baggage?.[row]?.status === "included" && "text-emerald-700 dark:text-emerald-400",
+            baggage?.[row]?.status === "included" && "text-success",
           )}
         >
           <Briefcase className="mt-px size-3.5 shrink-0" aria-hidden />
@@ -443,10 +442,7 @@ function BaggageTotal({ cost, money }: { cost: BaggageCost; money: (value: numbe
     );
   }
   return (
-    <p
-      className="flex items-start gap-1.5 text-amber-700 dark:text-amber-400"
-      data-testid="baggage-total"
-    >
+    <p className="flex items-start gap-1.5 text-warning" data-testid="baggage-total">
       <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden />
       {cost.status === "not_available" ? t("baggageNotAvailable") : t("baggageCostUnknown")}
     </p>
@@ -465,7 +461,7 @@ function BaggageNote({ included }: { included: boolean | null }) {
     <p
       className={cn(
         "flex items-center gap-1.5",
-        included === true ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground",
+        included === true ? "text-success" : "text-muted-foreground",
       )}
     >
       <Briefcase className="size-3.5" aria-hidden /> {text}
@@ -511,15 +507,12 @@ function OfferBadges({
         </Badge>
       ))}
       {direct && (
-        <Badge
-          variant="outline"
-          className="border-emerald-500/40 text-emerald-700 dark:text-emerald-400"
-        >
+        <Badge variant="outline" className="border-success/40 text-success">
           {t("badge.direct")}
         </Badge>
       )}
       {selfTransfer && (
-        <Badge variant="outline" className="border-amber-500/40 text-amber-700 dark:text-amber-400">
+        <Badge variant="outline" className="border-warning/40 text-warning">
           {t("badge.selfTransfer")}
         </Badge>
       )}
@@ -593,7 +586,7 @@ function RouteDetails({ offer, names }: { offer: Offer; names?: Record<string, s
                             })}
                           </p>
                           {airportChange && (
-                            <p className="font-medium text-amber-700 dark:text-amber-400">
+                            <p className="font-medium text-warning">
                               {t("airportChange", { from: seg.destination, to: next.origin })}
                             </p>
                           )}
@@ -605,7 +598,7 @@ function RouteDetails({ offer, names }: { offer: Offer; names?: Record<string, s
                                 : t("recheckUnknown")}
                           </p>
                           {layover && layoverRisks(layover).length > 0 && (
-                            <p className="text-amber-700 dark:text-amber-400">
+                            <p className="text-warning">
                               {layoverRisks(layover)
                                 .map((risk) => t(`risk.${risk}`))
                                 .join(" · ")}

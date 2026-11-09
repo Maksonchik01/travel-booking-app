@@ -15,6 +15,8 @@ from tickets_api.domain.stays import Cancellation, StayKind
 from tickets_api.domain.trips import TripQuery
 
 MAX_SAVED_TRIPS = 50
+TripStatus = Literal["draft", "planned", "archived"]
+"""Чернетка / запланована / архівна. «Заброньованої» немає: бронювання SkyPack не бачить."""
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
 
 
@@ -67,6 +69,14 @@ class SavedTripBody(_StrictInput):
     query: TripQuery
     """З `flight` і `stay` — «Відкрити» показує саме цю конфігурацію."""
     snapshot: TripSnapshot
+    status: TripStatus = "draft"
+
+
+class SavedTripPatch(_StrictInput):
+    """Назва та/або статус (без зміни конфігурації й знімка)."""
+
+    title: Title | None = None
+    status: TripStatus | None = None
 
 
 class SavedTripsImport(_StrictInput):
@@ -78,6 +88,7 @@ class SavedTripsImport(_StrictInput):
 class SavedTripOut(BaseModel):
     id: str
     title: str
+    status: TripStatus = "draft"
     query: TripQuery
     snapshot: TripSnapshot
     created_at: datetime

@@ -1,6 +1,6 @@
 # Tickets — інструкції для ШІ-асистента
 
-Веб-застосунок для пошуку подорожей з ШІ-аналізом: авіаквитки з кількох провайдерів,
+SkyPack — веб-застосунок для пошуку подорожей з ШІ-аналізом (у коді — `tickets_*`): авіаквитки з кількох провайдерів,
 житло, детермінований скоринг вигідності, пояснення людською мовою.
 Повне ТЗ і порядок етапів: [promt.md](promt.md).
 
@@ -48,8 +48,13 @@
 - **Багаж** ([ADR 0014](docs/adr/0014-baggage-final-price.md)): `FlightQuery.baggage` (не в запит
   джерела), `Offer.baggage` (None — невідомо), `scoring/baggage.py` → `FlightSearchResult.baggage`;
   «найдешевший» — серед відомих кінцевих вартостей, якщо такі є.
-- **Скоринг** ([ADR 0005](docs/adr/0005-scoring-engine.md)): багаж не входить у вартість,
-  невідомі деталі пересадок — лише попередження, без штрафу. Ваги змінюються в
+- **Скоринг** ([ADR 0005](docs/adr/0005-scoring-engine.md), [ADR 0031](docs/adr/0031-filter-then-rank.md)):
+  спершу обов'язкові вимоги (`requirement_violations`: фільтри, `direct_only`, багаж `not_available`
+  → `excluded`), потім ранжування; в оцінці — відома доплата за обраний багаж, нічний приліт, зміна
+  аеропорту (з сегментів), м'які уподобання профілю (`FlightQuery.preferences`, не фільтр);
+  невідоме — лише попередження, без штрафу. «Чому цей варіант?» — `reasons` (код, не LLM) у
+  `OfferScore`, `StayScore` (бажані зручності — `StayQuery.preferences`) і `TripCombo` (там же
+  `full_nights`, `travel_min`, `waiting_min`); веб — `why-list.tsx`. Ваги змінюються в
   `scoring/config.toml`; після зміни ваг свідомо перераховуй еталони в
   `apps/api/tests/fixtures/scoring/`.
 - **Джерела** ([ADR 0006](docs/adr/0006-live-prices-serpapi.md)): пошук — SerpApi Google
@@ -95,21 +100,53 @@
   запит + знімок з історичними цінами: гість — localStorage, акаунт — таблиця `saved_trips`
   (`/account/trips`), сторінка `/trips`; редагування — `saved=` в URL; «Оновити ціни» — `POST /trips/refresh`.
   Суми рахує код; чат «Уся поїздка» має інструмент `plan_trip`.
+- **Запити до джерел** ([ADR 0034](docs/adr/0034-provider-resilience-and-freshness.md)): HTTP — лише через
+  `providers/gate.py` `ProviderGate` (ліміт одночасних, повтор 502–504/обриву з паузою; 429/4xx —
+  ні; SerpApi тайм-аут не повторює). Однакові запити — один виклик (`CachedFlightProvider`: у процесі
+  й замок Redis між процесами); ключ — `search_cache_payload` (поле лише для видачі — у
+  `CACHE_EXCLUDED`). Свіжість ціни — `domain/freshness.py` → `freshness` у відповідях пошуку
+  (live / cached / approximate / needs_recheck), UI — `price-freshness.tsx`. Логи маскує
+  `redact_secrets`; клієнтський код — без серверних модулів (`server-boundary.test.ts`).
 - **Кожна отримана ціна пишеться в історію цін** (маршрут, дата, ціна, валюта, джерело, час збору).
 - **Алерти** ([ADR 0010](docs/adr/0010-price-alerts.md)): `services/alerts.py` + воркер
   (`check_alerts` раз на `ALERT_CHECK_INTERVAL_HOURS`, `poll_telegram` щохвилини). Ціни для
   перевірок — `ALERT_PROVIDERS` (travelpayouts/mock), **ніколи serpapi** (квота). Без акаунтів:
   підтвердження `/start <код>` у боті чи листом, керування — `/alerts?token=`. Без ключів
   Telegram/SMTP — mock (лише лог). Сповіщення — лише нижча ціна й не частіше за 24 год.
+  Підписки акаунта ще й за `users.notify_prefs` (канали, частота, мін. зниження, тихі години,
+  категорії — `domain/notify.py`, причина затримки — подія `held`; [ADR 0025](docs/adr/0025-notifications-and-sessions.md)).
+  Типи (`alerts.kind`, [ADR 0026](docs/adr/0026-alert-kinds-and-conditions.md)): flight / flex (період,
+  ночі, вихідні) / stay / trip — житло й поїздка лише з реальним джерелом житла (`channels.kinds`);
+  умови below_price / drop_amount / drop_percent (від `baseline_price`) / below_typical,
+  повтор — лише при новій істотній зміні (`triggered`). Лише дорослі в економі, ціна — за всіх.
+  Керування ([ADR 0027](docs/adr/0027-alert-management-and-limits.md)): за токеном — пауза /
+  відновлення / редагування / вимкнення / видалення / історія (`alert-manage.tsx`, і в кабінеті);
+  перевірка — замок у Redis, однакові пошуки — один запит, `ALERT_MAX_SEARCHES_PER_RUN`,
+  `ALERT_MAX_ACTIVE_PER_OWNER`, дати ≤ року, журнал `checked` — 30 днів.
+- **Синхронізація модулів** ([ADR 0032](docs/adr/0032-module-sync.md)): стан — URL; переходи «→ поїздка»
+  лише через `lib/trip-params.ts` (`tripFromStay`, `tripFromFlight` → `flight=`/`stay=`), без логіки в
+  компонентах. Збережена поїздка → `/trip?…#price-alert`. Кабінет → нові пошуки: `tripDefaults`,
+  уподобання (`*Preferences`), а чат — через `/api/ai/chat` (аеропорт, валюта, уподобання з акаунта;
+  уподобання моделі не передаються).
+- **Кабінет** ([ADR 0023](docs/adr/0023-cabinet-sections.md)): розділи — окремі сторінки `/account`
+  (огляд), `/account/{favorites,trips,history,alerts,settings,security}` в оболонці
+  `components/account-shell.tsx`. Обране — три категорії (`favorites.kind`: stay / flight / trip,
+  `lib/favorites.ts`); поїздки — статуси draft / planned / archived (лише `PATCH`, «заброньованої»
+  немає).
 - **Акаунти й бот** ([ADR 0011](docs/adr/0011-accounts-and-bot.md)): `services/accounts.py`,
   роутери `api/auth.py`, `api/account.py`; сесія — httpOnly-cookie `tickets_session`, у БД лише
   SHA-256 токена; паролі — scrypt; Google — OAuth + PKCE. Web: server actions
   `src/app/actions/account.ts`, кабінет `/account`. Бот — `services/telegram_bot.py`
   (команди, кнопки, діалог `/new` у Redis), прив'язка чату — `/start link_<код>`.
+  Сесії: `device` («браузер · ОС» з `X-Client-Device`, без IP) і `last_seen_at`; список і
+  завершення — `/account/sessions` (ADR 0025).
 - **Продакшн:** Vercel (web) + Render (API, воркер, Redis) + Supabase Postgres
   ([deploy.md](docs/deploy.md), [ADR 0012](docs/adr/0012-supabase-postgres.md)). Кожна таблиця —
   з RLS (Supabase Data API): нова таблиця вмикає його у своїй міграції, інакше падає
-  `test_row_level_security`.
+  `test_row_level_security`. Цілісність ([ADR 0033](docs/adr/0033-database-integrity.md)): `user_id` —
+  ключ до `users` з каскадом (`_user_fk()`), переліки — CHECK з тих самих Literal (`one_of`), видалення
+  акаунта — лише `users` (решту прибирає БД); перевіряє `test_db_integrity`. Прострочені сесії й токени
+  чистить воркер (`prune_database`); у Data API ролей `anon`/`authenticated` прав на таблиці немає.
 - **Без бронювання:** лише редірект з партнерським посиланням і дисклеймером. «Забронювати» веде
   на веб-маршрут `/out` (`src/app/out/route.ts`): редирект лише на префікси з
   `src/lib/outbound.ts` (новий провайдер з посиланнями — новий префікс), клік пишеться після
@@ -138,8 +175,16 @@
   поточні пошуки з URL надсилає клієнт; числа у відповіді звіряються з результатами
   інструментів. Три окремі режими (`mode`: flights / stays / trip) — свої промпти
   (`ai/prompts/*-Assistant.md`) й інструменти; перше питання «Що шукаємо?» — UI.
-  Історія розмов — лише в браузері (localStorage, `src/lib/chat-history.ts`): список,
-  повернення до будь-якої, видалення; на сервері розмов немає.
+  Уточнення — патчем (`refine_flights`/`refine_stays`, `ai/refine.py`): модель дає лише зміни,
+  код накладає й рахує відносні; команди поїздки (`change_trip`, `undo_trip`, `compare_trips`,
+  `save_trip`) працюють з `current_trip`/`previous_trip` від вебу, вибір рейсу/житла — кодом
+  (`pick_flight`/`pick_stay`) ([ADR 0022](docs/adr/0022-assistant-refine-and-trip-commands.md)).
+  Картки результатів у чаті — `ChatReply.cards` (`ai/cards.py`, будує код; веб — `chat-cards.tsx`):
+  «Відкрити в планувальнику» несе запит з вибором; «Оптимізувати з ШІ» — подія `ai:open`
+  (`lib/ai-events.ts`), обробники звіряють `usePathname()` (приховані сторінки змонтовані).
+  Історія розмов — у браузері (localStorage, `src/lib/chat-history.ts`): список, повернення,
+  перейменування, видалення; в акаунті — ЛИШЕ за згодою (`users.chat_sync`, таблиця
+  `chat_conversations`, `/account/chats`; вимкнення видаляє з сервера; ADR 0022).
   Змінив промпт/контракт парсера — `uv run python scripts/eval_parser.py --record`
   (30 кейсів, ≈ $0.01) і перевір, що pytest на записаних відповідях зелений.
 
@@ -198,6 +243,10 @@ make migrate        alembic upgrade head
 - **Web:** Next.js 16 має breaking changes проти старих версій. Перед кодом читай
   `node_modules/next/dist/docs/` (див. [apps/web/AGENTS.md](apps/web/AGENTS.md)).
   З `cacheComponents` динамічні дані (fetch без кешу) рендеряться всередині `<Suspense>`.
+- **Режими пошуку** ([ADR 0028](docs/adr/0028-home-and-search-modes.md)): `search-modes.tsx` над карткою
+  `/`, `/stays`, `/trip` — Авіаквитки / Житло / Поїздка / ШІ-пошук; спільне (куди, дати, люди) —
+  `lib/search-modes.ts` з поточної форми (`form[data-search-form]`), неповне — чернетка у формі.
+  Бренд у UI — SkyPack (внутрішні імена `tickets_*` / `tickets.*` не змінюємо).
 - **Web-поїздка:** `/trip?from=&to=&depart=&return=&adults=&children=&prio=&budget=&direct=`
   — `src/lib/trip-params.ts`. Перельоти: перемикач «туди й назад / в один бік»
   (`trip=ow` без JS ігнорує повернення).
@@ -214,10 +263,27 @@ make migrate        alembic upgrade head
   (`PUT /account/flight-filters`, лише ключі фільтрів); новий пошук додає їх з позначкою у формі,
   розбір і серіалізація — `src/lib/search-params.ts`. Сторінка серверна, API викликається
   з сервера (`src/lib/api.ts`), форма — `next/form` (працює й без JS).
+- **Профіль** (ADR 0024): `PUT /account/preferences` (мова, валюта, країна, аеропорти — коди з
+  довідника), фото — власне (`user_avatars`, ≤ 300 КБ, PNG/JPEG/WebP за сигнатурою, віддає
+  `/api/account/avatar`) → Google (`google_picture`) → ініціали (`user-avatar.tsx`). Налаштування
+  пошуку `users.search_prefs` (`lib/search-prefs.ts`) — початкові значення НОВОГО пошуку й
+  фільтри з позначкою (`params-toggle.tsx`); профіль від зміни у формі не змінюється.
 - **Логотипи авіакомпаній:** `Offer.airline_logos` (код → URL) заповнює лише SerpApi з
   `flights[].airline_logo`, приймаємо тільки `https://www.gstatic.com/flights/airline_logos/`.
   UI показує їх через `next/image` (`images.remotePatterns` у `next.config.ts`): браузер не
   ходить до Google. Немає логотипа — кружечок з кодом (`airline-logo.tsx`).
+- **Стани й фільтри** ([ADR 0029](docs/adr/0029-ui-states-filters-mobile.md)): запити браузера — через
+  `lib/client-fetch.ts` (тайм-аут), помилка — `RetryNotice` / `PageNotice` з повтором; фільтри —
+  `filter-shell.tsx` (панель ≥ lg, вікно на телефоні). Нова сторінка — додай її в `e2e/mobile.spec.ts`.
+- **Доступність** ([ADR 0030](docs/adr/0030-accessibility-and-design-tokens.md)): `e2e/a11y.spec.ts` (axe, WCAG 2.1
+  AA, світла й темна тема, телефон) — нова сторінка йде в його `PAGES`; статуси — токени `success` /
+  `warning` (`text-success`, `bg-warning/10`), не сирі `emerald-*` / `amber-*`; іконка без тексту —
+  з `aria-label`; `main` — `id="main"` для «Перейти до вмісту».
+- **Продуктивність** ([ADR 0035](docs/adr/0035-frontend-performance.md)): у браузер — лише клієнтські
+  переклади (`lib/client-messages.ts`, новий розділ — у `CLIENT_NAMESPACES`, перевіряє тест);
+  Sentry у браузері — ліниво (`lib/sentry-client.ts`, `reportError`); важке для одного режиму —
+  через `next/dynamic` (`stay-map-lazy.tsx`); повторні серверні виклики в одному рендері —
+  `cache()` (`fetchAIStatus`, `currentAccount`).
 - **Дизайн:** синя тема й ефекти — у `globals.css` (`.lift`, `.shimmer`, фокус для всіх
   інтерактивних елементів, `prefers-reduced-motion`); вигляд полів — `src/lib/styles.ts`.
 - **Картка рейсу** (`offer-card.tsx`): позначки лише з реальних параметрів (вибір скорингу, «Прямий
@@ -226,7 +292,11 @@ make migrate        alembic upgrade head
   порівняння до 3 — `compare.tsx` (sessionStorage вкладки).
 - **Час рейсів** показуємо в поясі аеропорту з ISO-рядка провайдера, без перерахунку
   (`src/lib/format.ts`). Підписи ризиків пересадок — `src/lib/risks.ts` (факти, не скоринг).
-- **i18n:** весь UI-текст у `apps/web/messages/uk.json`, жодних рядків у JSX.
+- **i18n** ([ADR 0024](docs/adr/0024-i18n-and-profile.md)): мови en (за замовчуванням) / uk / ru,
+  весь UI-текст у `apps/web/messages/{en,uk,ru}.json` (однакові ключі), жодних рядків у JSX.
+  Сторінки — у `app/[locale]/` (кореневий параметр, `next/root-params`); `src/proxy.ts` переписує
+  шлях за cookie `NEXT_LOCALE` без префікса в URL; перемикач — `language-switcher.tsx`
+  (з акаунтом пише й `users.locale`, після входу cookie — з профілю). Новий текст — у всі три файли.
   Компоненти UI з shadcn лежать у `src/components/ui` (prettier їх не чіпає).
 - **Залежності:** версії закріплені точно (`save-exact`). Нова залежність має бути
   опублікована щонайменше 2 тижні тому, якщо це не безпекове виправлення.

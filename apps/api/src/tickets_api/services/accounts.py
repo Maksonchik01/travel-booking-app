@@ -32,12 +32,13 @@ from tickets_api.auth.google import GoogleAuthError, GoogleOAuth, GoogleProfile,
 from tickets_api.auth.passwords import hash_password, verify_password
 from tickets_api.db.models import (
     Alert,
-    AlertEvent,
     AuthToken,
+    ChatConversation,
     Favorite,
     SavedTrip,
     SearchEntry,
     User,
+    UserAvatar,
     UserSession,
 )
 from tickets_api.domain.accounts import (
@@ -47,23 +48,38 @@ from tickets_api.domain.accounts import (
     RegisterBody,
     SearchEntryBody,
     SearchEntryOut,
+    SessionInfo,
     SessionOut,
     clean_flight_filters,
+)
+from tickets_api.domain.chats import (
+    MAX_SYNCED_CONVERSATIONS,
+    ChatConversationBody,
+    ChatConversationOut,
+    ChatSyncState,
+    conversation_out,
 )
 from tickets_api.domain.favorites import (
     MAX_FAVORITES,
     FavoriteBody,
+    FavoriteFlight,
     FavoriteOut,
     FavoriteStay,
+    FavoriteTrip,
 )
+from tickets_api.domain.locale import UiLocale
+from tickets_api.domain.notify import NotifyPrefs, notify_prefs
+from tickets_api.domain.profile import PreferencesBody, SearchPrefs
 from tickets_api.domain.saved_trips import (
     MAX_SAVED_TRIPS,
     SavedTripBody,
     SavedTripOut,
+    SavedTripPatch,
     TripSnapshot,
 )
 from tickets_api.domain.trips import TripQuery
 from tickets_api.notifications.mail import Mailer, MailError
+from tickets_api.reference.airports import default_airport_directory
 
 log = structlog.get_logger(__name__)
 
@@ -90,7 +106,40 @@ AccountErrorCode = Literal[
     "limit_reached",
     "not_found",
     "telegram_unavailable",
+    "unknown_place",
+    "invalid_image",
+    "image_too_large",
 ]
+
+
+SEEN_EVERY = timedelta(minutes=15)
+SESSION_ID_LENGTH = 16
+MAX_AVATAR_BYTES = 300 * 1024
+"""Веб зменшує фото до 256×256 перед завантаженням — цього з запасом досить."""
+
+
+def image_type(data: bytes) -> str | None:
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if data.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+def locale_or_none(value: str | None) -> UiLocale | None:
+    return value if value in ("en", "uk", "ru") else None  # type: ignore[return-value]
+
+
+def _search_prefs(raw: str | None) -> SearchPrefs:
+    """Збережене колись іншою версією й тепер невалідне — просто «не задано»."""
+    if not raw:
+        return SearchPrefs()
+    try:
+        return SearchPrefs.model_validate_json(raw)
+    except ValueError:
+        return SearchPrefs()
 
 
 class AccountError(Exception):
@@ -145,7 +194,7 @@ class AccountService:
 
     # --- реєстрація й вхід ------------------------------------------------------------
 
-    async def register(self, body: RegisterBody) -> SessionOut:
+    async def register(self, body: RegisterBody, device: str | None = None) -> SessionOut:
         user = User(
             id=uuid.uuid4().hex,
             username=body.username,
@@ -158,9 +207,9 @@ class AccountService:
                 session.add(user)
         except IntegrityError as exc:
             raise AccountError("username_taken") from exc
-        return await self._new_session(user.id)
+        return await self._new_session(user.id, device)
 
-    async def login(self, login: str, password: str) -> SessionOut:
+    async def login(self, login: str, password: str, device: str | None = None) -> SessionOut:
         key = f"auth:fail:{login.strip().lower()}"
         if await self._failures(key) >= self._settings.login_max_failures:
             raise AccountError("too_many_attempts")
@@ -175,13 +224,18 @@ class AccountService:
             await self._fail(key)
             raise AccountError("invalid_credentials")
         await self._clear(key)
-        return await self._new_session(user.id)
+        return await self._new_session(user.id, device)
 
     async def user_for_session(self, token: str) -> User | None:
+        now = self._clock()
         async with self._sessionmaker() as session:
             row = await session.get(UserSession, _hash(token))
-            if row is None or _aware(row.expires_at) <= self._clock():
+            if row is None or _aware(row.expires_at) <= now:
                 return None
+            # Остання активність для списку сесій — без запису на кожен запит.
+            if row.last_seen_at is None or now - _aware(row.last_seen_at) >= SEEN_EVERY:
+                row.last_seen_at = now
+                await session.commit()
             return await session.get(User, row.user_id)
 
     async def user_by_id(self, user_id: str) -> User:
@@ -220,7 +274,9 @@ class AccountService:
         )
         return GoogleStart(url=url, state=state)
 
-    async def google_callback(self, code: str, state: str) -> tuple[SessionOut | None, str]:
+    async def google_callback(
+        self, code: str, state: str, device: str | None = None
+    ) -> tuple[SessionOut | None, str]:
         """(нова сесія або None — якщо це прив'язка до вже відкритої сесії, режим)."""
         if self._google is None:
             raise AccountError("google_unavailable")
@@ -242,7 +298,7 @@ class AccountService:
             await self._link_google(saved["user_id"], profile)
             return None, "link"
         user_id = await self._google_user(profile)
-        return await self._new_session(user_id), "login"
+        return await self._new_session(user_id, device), "login"
 
     async def _link_google(self, user_id: str, profile: GoogleProfile) -> None:
         async with self._sessionmaker() as session, session.begin():
@@ -253,6 +309,7 @@ class AccountService:
             if user is None:
                 raise AccountError("not_found")
             user.google_sub = profile.sub
+            user.google_picture = profile.picture
             if user.email is None and profile.email and profile.email_verified:
                 taken = await session.scalar(select(User.id).where(User.email == profile.email))
                 if taken is None:
@@ -262,12 +319,14 @@ class AccountService:
         async with self._sessionmaker() as session, session.begin():
             user = await session.scalar(select(User).where(User.google_sub == profile.sub))
             if user is not None:
+                user.google_picture = profile.picture
                 return user.id
             # Той самий ПІДТВЕРДЖЕНИЙ email (і в Google, і в нас) — це той самий власник.
             if profile.email and profile.email_verified:
                 user = await session.scalar(select(User).where(User.email == profile.email))
                 if user is not None:
                     user.google_sub = profile.sub
+                    user.google_picture = profile.picture
                     return user.id
             user = User(
                 id=uuid.uuid4().hex,
@@ -276,6 +335,7 @@ class AccountService:
                 last_name=profile.family_name,
                 email=profile.email if profile.email and profile.email_verified else None,
                 google_sub=profile.sub,
+                google_picture=profile.picture,
             )
             session.add(user)
             return user.id
@@ -311,7 +371,9 @@ class AccountService:
         if user.password_hash is None:
             raise AccountError("last_login_method")
         async with self._sessionmaker() as session, session.begin():
-            await session.execute(update(User).where(User.id == user.id).values(google_sub=None))
+            await session.execute(
+                update(User).where(User.id == user.id).values(google_sub=None, google_picture=None)
+            )
 
     def _google_redirect(self) -> str:
         return f"{self._settings.public_web_url}/api/auth/google/callback"
@@ -342,6 +404,16 @@ class AccountService:
             google_linked=user.google_sub is not None,
             telegram_linked=user.telegram_chat_id is not None,
             flight_filters=user.flight_filters,
+            chat_sync=user.chat_sync,
+            locale=locale_or_none(user.locale),
+            currency=user.currency,
+            country=user.country,
+            home_airport=user.home_airport,
+            favorite_airports=user.favorite_airports.split(",") if user.favorite_airports else [],
+            search_prefs=_search_prefs(user.search_prefs),
+            notify_prefs=notify_prefs(user.notify_prefs),
+            google_picture=user.google_picture,
+            avatar_version=await self.avatar_version(user.id),
             created_at=user.created_at,
         )
 
@@ -359,6 +431,141 @@ class AccountService:
             await session.execute(
                 update(User).where(User.id == user.id).values(first_name=first, last_name=last)
             )
+
+    async def update_preferences(self, user: User, body: PreferencesBody) -> None:
+        """Аеропорти — лише відомі довіднику коди (аеропорт або місто)."""
+        directory = default_airport_directory()
+        codes = [c for c in (body.home_airport, *body.favorite_airports) if c]
+        if any(not directory.knows(code) for code in codes):
+            raise AccountError("unknown_place")
+        favorites = [c for c in body.favorite_airports if c != body.home_airport]
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                update(User)
+                .where(User.id == user.id)
+                .values(
+                    locale=body.locale,
+                    currency=body.currency,
+                    country=body.country,
+                    home_airport=body.home_airport,
+                    favorite_airports=",".join(favorites) or None,
+                )
+            )
+
+    async def set_locale(self, user: User, locale: UiLocale) -> None:
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(update(User).where(User.id == user.id).values(locale=locale))
+
+    async def save_search_prefs(self, user: User, prefs: SearchPrefs) -> None:
+        stored = None if prefs == SearchPrefs() else prefs.model_dump_json(exclude_defaults=True)
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                update(User).where(User.id == user.id).values(search_prefs=stored)
+            )
+
+    async def save_notify_prefs(self, user: User, prefs: NotifyPrefs) -> None:
+        stored = None if prefs == NotifyPrefs() else prefs.model_dump_json(exclude_defaults=True)
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                update(User).where(User.id == user.id).values(notify_prefs=stored)
+            )
+
+    # --- сесії (модуль 10c) -----------------------------------------------------------
+
+    async def sessions(self, user: User, current: str | None) -> list[SessionInfo]:
+        """Активні сесії, найсвіжіші першими; `id` — початок хешу (сам токен не розкриваємо)."""
+        current_hash = _hash(current) if current else None
+        async with self._sessionmaker() as session:
+            rows = (
+                await session.scalars(
+                    select(UserSession)
+                    .where(UserSession.user_id == user.id, UserSession.expires_at > self._clock())
+                    .order_by(UserSession.created_at.desc())
+                )
+            ).all()
+        infos = [
+            SessionInfo(
+                id=row.token_hash[:SESSION_ID_LENGTH],
+                device=row.device,
+                created_at=row.created_at,
+                last_seen_at=row.last_seen_at,
+                expires_at=row.expires_at,
+                current=row.token_hash == current_hash,
+            )
+            for row in rows
+        ]
+        return sorted(
+            infos, key=lambda i: (not i.current, -(i.last_seen_at or i.created_at).timestamp())
+        )
+
+    async def end_session(self, user: User, session_id: str) -> None:
+        """Завершити одну сесію власника (поточну теж — це вихід)."""
+        if len(session_id) != SESSION_ID_LENGTH:
+            raise AccountError("not_found")
+        async with self._sessionmaker() as session, session.begin():
+            result = await session.execute(
+                delete(UserSession).where(
+                    UserSession.user_id == user.id,
+                    UserSession.token_hash.startswith(session_id, autoescape=True),
+                )
+            )
+        if not getattr(result, "rowcount", 0):
+            raise AccountError("not_found")
+
+    async def end_other_sessions(self, user: User, keep: str) -> int:
+        async with self._sessionmaker() as session, session.begin():
+            result = await session.execute(
+                delete(UserSession).where(
+                    UserSession.user_id == user.id, UserSession.token_hash != _hash(keep)
+                )
+            )
+        return int(getattr(result, "rowcount", 0) or 0)
+
+    async def clear_chats(self, user: User) -> None:
+        """Очистити розмови на сервері; згода на синхронізацію лишається як була."""
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                delete(ChatConversation).where(ChatConversation.user_id == user.id)
+            )
+
+    async def avatar_version(self, user_id: str) -> int | None:
+        async with self._sessionmaker() as session:
+            at = await session.scalar(
+                select(UserAvatar.updated_at).where(UserAvatar.user_id == user_id)
+            )
+        return int(at.timestamp()) if at else None
+
+    async def avatar(self, user_id: str) -> tuple[str, bytes] | None:
+        async with self._sessionmaker() as session:
+            row = await session.get(UserAvatar, user_id)
+        return (row.content_type, row.data) if row else None
+
+    async def set_avatar(self, user: User, data: bytes) -> None:
+        """Власне фото: PNG, JPEG чи WebP (за сигнатурою, а не за заголовком) до 300 КБ."""
+        if len(data) > MAX_AVATAR_BYTES:
+            raise AccountError("image_too_large")
+        content_type = image_type(data)
+        if content_type is None:
+            raise AccountError("invalid_image")
+        async with self._sessionmaker() as session, session.begin():
+            row = await session.get(UserAvatar, user.id)
+            if row is None:
+                session.add(
+                    UserAvatar(
+                        user_id=user.id,
+                        content_type=content_type,
+                        data=data,
+                        updated_at=self._clock(),
+                    )
+                )
+            else:
+                row.content_type = content_type
+                row.data = data
+                row.updated_at = self._clock()
+
+    async def delete_avatar(self, user: User) -> None:
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(delete(UserAvatar).where(UserAvatar.user_id == user.id))
 
     async def request_email(self, user: User, email: str) -> None:
         """Нова адреса стане основною лише після переходу за посиланням з листа на неї."""
@@ -386,7 +593,7 @@ class AccountService:
         await self._send(
             email,
             "Підтвердіть адресу пошти",
-            "Щоб прив'язати цю адресу до акаунта Tickets, відкрийте посилання:\n"
+            "Щоб прив'язати цю адресу до акаунта SkyPack, відкрийте посилання:\n"
             f"{link}\n\nПосилання діє 24 години. Якщо це були не ви — проігноруйте лист.",
         )
 
@@ -442,7 +649,7 @@ class AccountService:
             "Якщо ви не просили відновлення — проігноруйте лист, пароль не зміниться.",
         )
 
-    async def reset_password(self, token: str, new: str) -> SessionOut:
+    async def reset_password(self, token: str, new: str, device: str | None = None) -> SessionOut:
         new_hash = await hash_password(new)
         async with self._sessionmaker() as session, session.begin():
             row = await self._take_token(session, token, "reset_password")
@@ -452,7 +659,7 @@ class AccountService:
             # Скидання пароля — привід завершити всі старі сесії.
             await session.execute(delete(UserSession).where(UserSession.user_id == row.user_id))
             user_id = row.user_id
-        return await self._new_session(user_id)
+        return await self._new_session(user_id, device)
 
     async def delete_account(self, user: User, confirm: str) -> None:
         if user.password_hash is not None:
@@ -460,14 +667,9 @@ class AccountService:
                 raise AccountError("wrong_password")
         elif confirm.strip().lower() != user.username:
             raise AccountError("wrong_password")
+        # Усе інше (сесії, токени, історія, обране, поїздки, розмови, фото, підписки з їхнім
+        # журналом) видаляє сама БД: зовнішні ключі ON DELETE CASCADE (міграція 0020).
         async with self._sessionmaker() as session, session.begin():
-            alert_ids = (
-                await session.scalars(select(Alert.id).where(Alert.user_id == user.id))
-            ).all()
-            await session.execute(delete(AlertEvent).where(AlertEvent.alert_id.in_(alert_ids)))
-            await session.execute(delete(Alert).where(Alert.user_id == user.id))
-            for model in (SearchEntry, Favorite, SavedTrip, AuthToken, UserSession):
-                await session.execute(delete(model).where(model.user_id == user.id))
             await session.execute(delete(User).where(User.id == user.id))
         log.info("account.deleted")
 
@@ -590,7 +792,7 @@ class AccountService:
             }
             fresh: dict[tuple[str, str], FavoriteBody] = {}
             for item in items:
-                pair = (item.kind, item.stay.item_key)
+                pair = (item.kind, item.item.item_key)
                 if pair not in existing:
                     fresh.setdefault(pair, item)
             if len(existing) + len(fresh) > MAX_FAVORITES:
@@ -602,7 +804,7 @@ class AccountService:
                         user_id=user.id,
                         kind=kind,
                         item_key=key,
-                        data=item.stay.model_dump_json(),
+                        data=item.item.model_dump_json(),
                         created_at=now,
                     )
                 )
@@ -612,6 +814,81 @@ class AccountService:
         async with self._sessionmaker() as session, session.begin():
             await session.execute(
                 delete(Favorite).where(Favorite.user_id == user.id, Favorite.item_key == item_key)
+            )
+
+    # --- розмови з помічником (модуль 9c, лише за згодою) -----------------------------
+
+    async def chats(self, user: User) -> ChatSyncState:
+        if not user.chat_sync:
+            return ChatSyncState(enabled=False)
+        async with self._sessionmaker() as session:
+            rows = (
+                await session.scalars(
+                    select(ChatConversation)
+                    .where(ChatConversation.user_id == user.id)
+                    .order_by(ChatConversation.updated_at.desc())
+                    .limit(MAX_SYNCED_CONVERSATIONS)
+                )
+            ).all()
+        return ChatSyncState(
+            enabled=True, conversations=[conversation_out(r.id, r.data) for r in rows]
+        )
+
+    async def set_chat_sync(self, user: User, enabled: bool) -> ChatSyncState:
+        """Вимкнення — відкликання згоди: розмови з сервера видаляємо (у браузері лишаються)."""
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(update(User).where(User.id == user.id).values(chat_sync=enabled))
+            if not enabled:
+                await session.execute(
+                    delete(ChatConversation).where(ChatConversation.user_id == user.id)
+                )
+        user.chat_sync = enabled
+        return await self.chats(user)
+
+    async def save_chat(
+        self, user: User, conversation_id: str, body: ChatConversationBody
+    ) -> ChatConversationOut:
+        """Нова чи оновлена розмова; старіша за збережену — не перезаписує (інший пристрій
+        уже зберіг новішу). Понад ліміт — найстаріші видаляються."""
+        if not user.chat_sync:
+            raise AccountError("not_found")
+        changed = datetime.fromtimestamp(body.updated_at / 1000, tz=UTC)
+        async with self._sessionmaker() as session, session.begin():
+            row = await session.get(ChatConversation, (user.id, conversation_id))
+            if row is None:
+                session.add(
+                    ChatConversation(
+                        user_id=user.id,
+                        id=conversation_id,
+                        data=body.model_dump_json(),
+                        updated_at=changed,
+                    )
+                )
+            elif _aware(row.updated_at) <= changed:
+                row.data = body.model_dump_json()
+                row.updated_at = changed
+            else:
+                return conversation_out(row.id, row.data)
+            await session.flush()
+            keep = (
+                select(ChatConversation.id)
+                .where(ChatConversation.user_id == user.id)
+                .order_by(ChatConversation.updated_at.desc())
+                .limit(MAX_SYNCED_CONVERSATIONS)
+            )
+            await session.execute(
+                delete(ChatConversation).where(
+                    ChatConversation.user_id == user.id, ChatConversation.id.not_in(keep)
+                )
+            )
+        return ChatConversationOut(id=conversation_id, **body.model_dump())
+
+    async def delete_chat(self, user: User, conversation_id: str) -> None:
+        async with self._sessionmaker() as session, session.begin():
+            await session.execute(
+                delete(ChatConversation).where(
+                    ChatConversation.user_id == user.id, ChatConversation.id == conversation_id
+                )
             )
 
     # --- збережені поїздки (модуль 8c) ---------------------------------------------------
@@ -643,6 +920,7 @@ class AccountService:
                     title=item.title,
                     query=item.query.model_dump_json(),
                     snapshot=item.snapshot.model_dump_json(),
+                    status=item.status,
                     created_at=now,
                     updated_at=now,
                 )
@@ -652,7 +930,8 @@ class AccountService:
         return [_trip_out(r) for r in rows]
 
     async def update_trip(self, user: User, trip_id: str, body: SavedTripBody) -> SavedTripOut:
-        """«Редагувати»: нова назва, конфігурація й знімок тієї самої поїздки."""
+        """«Редагувати»: нова назва, конфігурація й знімок тієї самої поїздки (статус — окремо,
+        `patch_trip`)."""
         async with self._sessionmaker() as session, session.begin():
             row = await session.get(SavedTrip, trip_id)
             if row is None or row.user_id != user.id:
@@ -660,15 +939,20 @@ class AccountService:
             row.title = body.title
             row.query = body.query.model_dump_json()
             row.snapshot = body.snapshot.model_dump_json()
+            # Статус не чіпаємо: «Зберегти зміни» з планувальника не скидає «Заплановану».
             row.updated_at = self._clock()
             return _trip_out(row)
 
-    async def rename_trip(self, user: User, trip_id: str, title: str) -> SavedTripOut:
+    async def patch_trip(self, user: User, trip_id: str, patch: SavedTripPatch) -> SavedTripOut:
+        """Назва чи статус (чернетка / запланована / архівна) — без зміни конфігурації."""
         async with self._sessionmaker() as session, session.begin():
             row = await session.get(SavedTrip, trip_id)
             if row is None or row.user_id != user.id:
                 raise AccountError("not_found")
-            row.title = title
+            if patch.title is not None:
+                row.title = patch.title
+            if patch.status is not None:
+                row.status = patch.status
             row.updated_at = self._clock()
             return _trip_out(row)
 
@@ -692,11 +976,21 @@ class AccountService:
 
     # --- внутрішнє --------------------------------------------------------------------
 
-    async def _new_session(self, user_id: str) -> SessionOut:
+    async def _new_session(self, user_id: str, device: str | None = None) -> SessionOut:
         token = secrets.token_urlsafe(32)
-        expires = self._clock() + timedelta(days=self._settings.session_ttl_days)
+        now = self._clock()
+        expires = now + timedelta(days=self._settings.session_ttl_days)
         async with self._sessionmaker() as session, session.begin():
-            session.add(UserSession(token_hash=_hash(token), user_id=user_id, expires_at=expires))
+            session.add(
+                UserSession(
+                    token_hash=_hash(token),
+                    user_id=user_id,
+                    created_at=now,
+                    expires_at=expires,
+                    device=device,
+                    last_seen_at=now,
+                )
+            )
         return SessionOut(token=token, expires_at=expires)
 
     async def _take_token(self, session: AsyncSession, token: str, purpose: str) -> AuthToken:
@@ -772,6 +1066,7 @@ def _trip_out(row: SavedTrip) -> SavedTripOut:
     return SavedTripOut(
         id=row.id,
         title=row.title,
+        status=row.status if row.status in ("draft", "planned", "archived") else "draft",
         query=TripQuery.model_validate_json(row.query),
         snapshot=TripSnapshot.model_validate_json(row.snapshot),
         created_at=_aware(row.created_at),
@@ -780,12 +1075,22 @@ def _trip_out(row: SavedTrip) -> SavedTripOut:
 
 
 def _favorite_out(row: Favorite) -> FavoriteOut:
-    return FavoriteOut(
-        id=row.id,
-        kind="stay",
-        item_key=row.item_key,
-        stay=FavoriteStay.model_validate_json(row.data),
-        created_at=_aware(row.created_at),
+    item: FavoriteStay | FavoriteFlight | FavoriteTrip
+    if row.kind == "flight":
+        item = FavoriteFlight.model_validate_json(row.data)
+    elif row.kind == "trip":
+        item = FavoriteTrip.model_validate_json(row.data)
+    else:
+        item = FavoriteStay.model_validate_json(row.data)
+    kind = row.kind if row.kind in ("flight", "trip") else "stay"
+    return FavoriteOut.model_validate(
+        {
+            "id": row.id,
+            "kind": kind,
+            "item_key": row.item_key,
+            kind: item,
+            "created_at": _aware(row.created_at),
+        }
     )
 
 

@@ -195,15 +195,17 @@ class OfferFilters(_StrictInput):
                 return False
         return True
 
-    def matches(self, offer: "Offer", *, passengers: int = 1) -> bool:
-        """`passengers` — скільки людей у ціні пропозиції (вона за весь склад, ADR 0013)."""
+    def violations(self, offer: "Offer", *, passengers: int = 1) -> list["FilterCode"]:
+        """Які фільтри пропозиція порушує (порожньо — проходить). `passengers` — скільки людей
+        у ціні пропозиції (вона за весь склад, ADR 0013)."""
         legs = [offer.outbound, *([offer.inbound] if offer.inbound else [])]
+        failed: list[FilterCode] = []
         if self.max_stops is not None and any(leg.stops > self.max_stops for leg in legs):
-            return False
-        if self.airlines and offer.airlines and not set(offer.airlines) <= set(self.airlines):
-            return False
-        if set(offer.airlines) & set(self.excluded_airlines):
-            return False
+            failed.append("stops")
+        if (self.airlines and offer.airlines and not set(offer.airlines) <= set(self.airlines)) or (
+            set(offer.airlines) & set(self.excluded_airlines)
+        ):
+            failed.append("airlines")
         out, back = offer.outbound, offer.inbound
         times = [
             (out.departure_at, self.departure_periods, self.departure_hours),
@@ -215,18 +217,34 @@ class OfferFilters(_StrictInput):
                 (back.arrival_at, self.return_arrival_periods, self.return_arrival_hours),
             ]
         if not all(_time_ok(at, periods, hours) for at, periods, hours in times):
-            return False
+            failed.append("times")
         if not all(self._layovers_ok(leg) for leg in legs):
-            return False
-        if self.max_price is not None and offer.price > self.max_price * passengers:
-            return False
-        if self.max_total_price is not None and offer.price > self.max_total_price:
-            return False
+            failed.append("layovers")
+        if (self.max_price is not None and offer.price > self.max_price * passengers) or (
+            self.max_total_price is not None and offer.price > self.max_total_price
+        ):
+            failed.append("price")
         if self.max_duration_hours is not None:
             limit = self.max_duration_hours * 60
             if any(leg.duration_min is not None and leg.duration_min > limit for leg in legs):
-                return False
-        return True
+                failed.append("duration")
+        return failed
+
+    def matches(self, offer: "Offer", *, passengers: int = 1) -> bool:
+        return not self.violations(offer, passengers=passengers)
+
+
+FilterCode = Literal["stops", "airlines", "times", "layovers", "price", "duration"]
+
+
+class FlightPreferences(_StrictInput):
+    """Особисті уподобання з профілю (модуль 14.2) — М'ЯКІ: не відсікають пропозицію, а лише
+    додають «ціну» невідповідності в скоринг. Обов'язкові вимоги — у `filters` і `direct_only`."""
+
+    airlines: list[AirlineCode] = Field(default_factory=list, max_length=10)
+    """Бажані перевізники: штраф, якщо жоден перевізник маршруту не з цього списку."""
+    departure_periods: list[DeparturePeriod] = Field(default_factory=list, max_length=4)
+    """Бажана частина доби вильоту ТУДИ."""
 
 
 class FlightQuery(_StrictInput):
@@ -259,6 +277,8 @@ class FlightQuery(_StrictInput):
     destination_radius_km: int = Field(default=0, ge=0, le=MAX_NEARBY_RADIUS_KM)
     filters: OfferFilters = OfferFilters()
     """Як і `profile`, впливає лише на видачу, не на запит до провайдерів."""
+    preferences: FlightPreferences | None = None
+    """М'які уподобання з профілю — лише в скоринг (не в запит і не у фільтр). None — немає."""
 
     @model_validator(mode="after")
     def _check_route_and_dates(self) -> Self:

@@ -4,6 +4,8 @@ import type { RateOffer, RoomOffers, StayQuery, StayRatesResult } from "@tickets
 import { ArrowUpRight, BadgeCheck, Loader2, Store } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 
+import { RetryNotice } from "@/components/retry";
+import { fetchWithTimeout } from "@/lib/client-fetch";
 import { outboundHref } from "@/lib/outbound";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +18,7 @@ export async function requestStayRates(
   stayId: string,
 ): Promise<StayRatesResult> {
   try {
-    const response = await fetch("/api/stays/rates", {
+    const response = await fetchWithTimeout("/api/stays/rates", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ query, source, stay_id: stayId }),
@@ -36,9 +38,12 @@ export function StayRates({
   check,
   now,
   source,
+  onRetry,
 }: {
   check: RatesCheck;
   now: Date;
+  /** Помилка джерела — повторити перевірку (модуль 13.2). */
+  onRetry?: () => void;
   /** Джерело об'єкта — для обліку переходу (`/out`). */
   source: string;
 }) {
@@ -60,6 +65,7 @@ export function StayRates({
         : result.status === "error"
           ? "failed"
           : "unsupported";
+    if (key === "failed") return <RetryNotice message={t(key)} onRetry={onRetry} />;
     return (
       <p className="text-muted-foreground text-xs" role="status" data-testid="stay-rates-status">
         {t(key)}
@@ -72,7 +78,7 @@ export function StayRates({
   return (
     <div className="grid gap-3" data-testid="stay-rates">
       <p className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs">
-        <BadgeCheck className="size-3.5 text-emerald-600" aria-hidden />
+        <BadgeCheck className="size-3.5 text-success" aria-hidden />
         {minutes != null && minutes > 1 ? t("checkedMinutes", { minutes }) : t("checkedNow")}
         <span>· {t("sameConditions", { nights: result.nights ?? 0 })}</span>
       </p>
@@ -144,7 +150,7 @@ function RateRow({ offer, source }: { offer: RateOffer; source: string }) {
     <li
       className={cn(
         "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-3 py-2 text-sm",
-        offer.cheapest && "border-emerald-500/50 bg-emerald-500/5",
+        offer.cheapest && "border-success/50 bg-success/5",
       )}
       data-testid="stay-rate"
     >
@@ -174,11 +180,7 @@ function RateRow({ offer, source }: { offer: RateOffer; source: string }) {
           .filter(Boolean)
           .join(" · ")}
       </span>
-      {offer.cheapest && (
-        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-          {t("cheapest")}
-        </span>
-      )}
+      {offer.cheapest && <span className="text-xs font-medium text-success">{t("cheapest")}</span>}
       {rate.deep_link && (
         <a
           href={outboundHref(rate.deep_link, "stay", source)}

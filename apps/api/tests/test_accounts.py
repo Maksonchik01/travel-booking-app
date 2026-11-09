@@ -10,11 +10,23 @@ from flight_fakes import FakeRedis
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from tickets_api.auth.google import GoogleProfile
-from tickets_api.db.models import AuthToken, Favorite, SavedTrip, SearchEntry, User, UserSession
+from tickets_api.db.models import (
+    AuthToken,
+    ChatConversation,
+    Favorite,
+    SavedTrip,
+    SearchEntry,
+    User,
+    UserAvatar,
+    UserSession,
+)
 from tickets_api.db.session import create_engine, create_sessionmaker
 from tickets_api.domain.accounts import RegisterBody, SearchEntryBody
+from tickets_api.domain.chats import ChatConversationBody
 from tickets_api.domain.favorites import FavoriteBody
-from tickets_api.domain.saved_trips import SavedTripBody
+from tickets_api.domain.notify import NotifyPrefs
+from tickets_api.domain.profile import PreferencesBody, SearchPrefs
+from tickets_api.domain.saved_trips import SavedTripBody, SavedTripPatch
 from tickets_api.notifications.mail import MockMailer
 from tickets_api.services.accounts import (
     AccountError,
@@ -31,7 +43,9 @@ PREFIX = "ittest_"
 
 class FakeGoogle:
     def __init__(self) -> None:
-        self.profile_result = GoogleProfile("g-1", "it@example.com", True, "Іван", "Тест")
+        self.profile_result = GoogleProfile(
+            "g-1", "it@example.com", True, "Іван", "Тест", "https://lh3.googleusercontent.com/a/1"
+        )
 
     def authorization_url(self, *, state: str, challenge: str, redirect_uri: str) -> str:
         return f"https://accounts.google.com/o/oauth2/v2/auth?state={state}"
@@ -83,7 +97,15 @@ async def _cleanup(sessionmaker: async_sessionmaker[AsyncSession]) -> None:
                 )
             )
         ).all()
-        for model in (SearchEntry, Favorite, SavedTrip, AuthToken, UserSession):
+        for model in (
+            SearchEntry,
+            Favorite,
+            SavedTrip,
+            ChatConversation,
+            UserAvatar,
+            AuthToken,
+            UserSession,
+        ):
             await session.execute(delete(model).where(model.user_id.in_(ids)))
         await session.execute(delete(User).where(User.id.in_(ids)))
 
@@ -182,6 +204,9 @@ async def test_google_login_creates_account_then_reuses_it(env: Env) -> None:
     assert (user.email, user.first_name, user.google_sub) == ("it@example.com", "Іван", "g-1")
     assert user.password_hash is None
     assert user.username == "ituser"  # з email; закороткий логін доповнено
+    assert (
+        await env.service.account(user)
+    ).google_picture == "https://lh3.googleusercontent.com/a/1"
     with pytest.raises(AccountError, match="invalid_token"):
         await env.service.google_callback("code", start.state)  # state одноразовий
 
@@ -328,8 +353,13 @@ async def test_favorites_dedupe_import_and_delete_with_account(env: Env) -> None
     again = await env.service.add_favorites(user, [favorite(), favorite("mock-lis-4")])
 
     assert len(first) == 1
-    assert [f.stay.stay_id for f in again] == ["mock-lis-3", "mock-lis-4"] or len(again) == 2
-    assert again[-1].stay.total_price == first[0].stay.total_price  # знімок, не перерахунок
+    assert len(again) == 2
+    stays = [f.stay for f in [*again, *first]]
+    assert all(s is not None for s in stays)
+    assert {s.total_price for s in stays if s} == {
+        first[0].stay.total_price if first[0].stay else 0
+    }
+    # ↑ знімок, не перерахунок: ціна та, що збережена
     # Ті самі об'єкт і дати — один запис; інші дати — окремий.
     other = await env.service.add_favorites(user, [favorite(check_in="2026-12-06")])
     assert len(other) == 3
@@ -408,8 +438,14 @@ async def test_saved_trips_copy_edit_rename_delete(env: Env) -> None:
     )
     updated = await env.service.update_trip(user, first.id, edited)
     assert updated.query.stay == "mock:mock-lis-5"
-    renamed = await env.service.rename_trip(user, copy.id, "Інший варіант")
+    env.now = NOW + timedelta(minutes=10)
+    renamed = await env.service.patch_trip(user, copy.id, SavedTripPatch(title="Інший варіант"))
     assert renamed.title == "Інший варіант"
+    assert renamed.status == "draft"  # за замовчуванням — чернетка
+    planned = await env.service.patch_trip(user, copy.id, SavedTripPatch(status="planned"))
+    assert (planned.title, planned.status) == ("Інший варіант", "planned")
+    kept = await env.service.update_trip(user, copy.id, saved_trip("Інший варіант"))
+    assert kept.status == "planned"  # «Зберегти зміни» не скидає статус
     trips = await env.service.saved_trips(user)
     assert [t.id for t in trips] == [copy.id, first.id]  # останні зміни — першими
 
@@ -422,3 +458,223 @@ async def test_saved_trips_copy_edit_rename_delete(env: Env) -> None:
     async with env.sessionmaker() as s:
         left = await s.scalar(select(SavedTrip.id).where(SavedTrip.user_id == user.id))
     assert left is None
+
+
+def chat(updated_at: int, text: str = "Хочу в Лісабон") -> ChatConversationBody:
+    return ChatConversationBody(
+        mode="trip",
+        title="Лісабон",
+        created_at=1,
+        updated_at=updated_at,
+        turns=[{"role": "user", "text": text}],
+    )
+
+
+async def test_chat_sync_only_with_consent_newer_wins_and_withdrawal_deletes(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+
+    assert (await env.service.chats(user)).enabled is False
+    with pytest.raises(AccountError, match="not_found"):
+        await env.service.save_chat(user, "conv-0001", chat(1000))  # без згоди — нічого
+
+    await env.service.set_chat_sync(user, True)
+    user = await env.user(session.token)
+    await env.service.save_chat(user, "conv-0001", chat(2000, "нова"))
+    stale = await env.service.save_chat(user, "conv-0001", chat(1500, "стара"))
+    assert stale.turns[0].text == "нова"  # старіша копія з іншого пристрою не перезаписує
+    state = await env.service.chats(user)
+    assert [c.id for c in state.conversations] == ["conv-0001"]
+
+    await env.service.delete_chat(user, "conv-0001")
+    await env.service.save_chat(user, "conv-0002", chat(3000))
+    off = await env.service.set_chat_sync(user, False)  # відкликання згоди
+    assert off.enabled is False
+    async with env.sessionmaker() as s:
+        left = await s.scalar(
+            select(ChatConversation.id).where(ChatConversation.user_id == user.id)
+        )
+    assert left is None
+
+    await env.service.set_chat_sync(user, True)
+    user = await env.user(session.token)
+    await env.service.save_chat(user, "conv-0003", chat(4000))
+    await env.service.delete_account(user, "password1")
+    async with env.sessionmaker() as s:
+        left = await s.scalar(
+            select(ChatConversation.id).where(ChatConversation.user_id == user.id)
+        )
+    assert left is None
+
+
+async def test_favorites_three_kinds_keep_params_and_price_time(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+    flight = FavoriteBody.model_validate(
+        {
+            "kind": "flight",
+            "flight": {
+                "source": "mock",
+                "offer_id": "abc123",
+                "origin": "WAW",
+                "destination": "LIS",
+                "departure_at": "2026-12-05T06:10:00+01:00",
+                "return_departure_at": "2026-12-08T10:00:00+00:00",
+                "stops": 0,
+                "airlines": ["LO"],
+                "passengers": 2,
+                "price": 230,
+                "currency": "EUR",
+                "price_status": "cached",
+                "price_at": "2026-11-07T10:00:00Z",
+                "params": "from=WAW&to=LIS&depart=2026-12-05",
+            },
+        }
+    )
+    trip = FavoriteBody.model_validate(
+        {
+            "kind": "trip",
+            "trip": {
+                "title": "Лісабон",
+                "query": saved_trip().query.model_dump(mode="json"),
+                "snapshot": saved_trip().snapshot.model_dump(mode="json"),
+            },
+        }
+    )
+
+    items = await env.service.add_favorites(user, [favorite(), flight, trip])
+
+    kinds = {f.kind: f for f in items}
+    assert set(kinds) == {"stay", "flight", "trip"}
+    assert kinds["flight"].item_key == "mock:abc123"
+    assert kinds["flight"].flight is not None
+    assert kinds["flight"].flight.params.startswith("from=WAW")
+    assert kinds["trip"].trip is not None
+    assert kinds["trip"].trip.query.flight == "mock:abc123"
+    stay = favorite().stay
+    assert stay is not None
+    with pytest.raises(ValueError, match="категорії"):
+        FavoriteBody.model_validate({"kind": "flight", "stay": stay.model_dump()})
+
+
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+
+
+async def test_preferences_validate_airports_and_dedupe_home(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+    account = await env.service.account(user)
+    assert (account.locale, account.favorite_airports, account.avatar_version) == (None, [], None)
+
+    body = PreferencesBody(
+        locale="ru",
+        currency="PLN",
+        country="pl",
+        home_airport="waw",
+        favorite_airports=["KRK", "WAW", "LON", "KRK"],
+    )
+    await env.service.update_preferences(user, body)
+    account = await env.service.account(await env.user(session.token))
+    assert (account.locale, account.currency, account.country) == ("ru", "PLN", "PL")
+    assert account.home_airport == "WAW"
+    assert account.favorite_airports == ["KRK", "LON"]  # без дублів і без домашнього
+
+    with pytest.raises(AccountError, match="unknown_place"):
+        await env.service.update_preferences(user, PreferencesBody(home_airport="QQQ"))
+    await env.service.set_locale(user, "en")
+    assert (await env.service.account(await env.user(session.token))).locale == "en"
+
+
+async def test_search_prefs_roundtrip_and_reset(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+    prefs = SearchPrefs.model_validate(
+        {
+            "flights": {"cabin": "business", "max_stops": 1, "airlines": ["lo", "LO", "LH"]},
+            "stays": {"kinds": ["hotel"], "min_rating": 8, "free_cancellation": True},
+        }
+    )
+    await env.service.save_search_prefs(user, prefs)
+    saved = (await env.service.account(await env.user(session.token))).search_prefs
+    assert saved.flights.airlines == ["LO", "LH"]
+    assert (saved.flights.cabin, saved.stays.min_rating) == ("business", 8)
+
+    await env.service.save_search_prefs(user, SearchPrefs())
+    async with env.sessionmaker() as db:
+        assert await db.scalar(select(User.search_prefs).where(User.id == user.id)) is None
+
+
+async def test_avatar_checks_signature_size_and_goes_with_account(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+    with pytest.raises(AccountError, match="invalid_image"):
+        await env.service.set_avatar(user, b"<svg onload=alert(1)>")
+    with pytest.raises(AccountError, match="image_too_large"):
+        await env.service.set_avatar(user, PNG + b"\x00" * 300 * 1024)
+
+    await env.service.set_avatar(user, PNG)
+    assert await env.service.avatar(user.id) == ("image/png", PNG)
+    first = (await env.service.account(user)).avatar_version
+    env.now += timedelta(minutes=1)
+    await env.service.set_avatar(user, b"\xff\xd8\xff" + b"\x00" * 8)
+    assert (await env.service.account(user)).avatar_version != first
+    await env.service.delete_avatar(user)
+    assert await env.service.avatar(user.id) is None
+
+    await env.service.set_avatar(user, PNG)
+    await env.service.delete_account(user, "password1")
+    async with env.sessionmaker() as db:
+        assert await db.get(UserAvatar, user.id) is None
+
+
+async def test_sessions_list_devices_end_one_and_others(env: Env) -> None:
+    first = await env.service.register(
+        RegisterBody(username=PREFIX + "max", password="password1"),  # noqa: S106
+        "Chrome · macOS",
+    )
+    user = await env.user(first.token)
+    env.now += timedelta(minutes=1)
+    second = await env.service.login(PREFIX + "max", "password1", "Safari · iOS")
+    env.now += timedelta(minutes=1)
+    third = await env.service.login(PREFIX + "max", "password1")
+
+    listed = await env.service.sessions(user, second.token)
+    assert [s.current for s in listed] == [True, False, False]
+    assert {s.device for s in listed} == {"Chrome · macOS", "Safari · iOS", None}
+    assert all(len(s.id) == 16 for s in listed)
+
+    # Остання активність оновлюється не частіше, ніж раз на 15 хв.
+    env.now += timedelta(minutes=20)
+    await env.user(first.token)
+    listed = await env.service.sessions(user, second.token)
+    assert listed[1].device == "Chrome · macOS"
+
+    await env.service.end_session(user, listed[1].id)
+    assert await env.service.user_for_session(first.token) is None
+    with pytest.raises(AccountError, match="not_found"):
+        await env.service.end_session(user, listed[1].id)
+    with pytest.raises(AccountError, match="not_found"):
+        await env.service.end_session(user, "short")
+
+    assert await env.service.end_other_sessions(user, second.token) == 1
+    assert await env.service.user_for_session(third.token) is None
+    assert await env.service.user_for_session(second.token) is not None
+
+
+async def test_notify_prefs_saved_and_chats_cleared(env: Env) -> None:
+    session = await env.register()
+    user = await env.user(session.token)
+    await env.service.save_notify_prefs(
+        user, NotifyPrefs(email=False, quiet_start=22, quiet_end=8, timezone="Europe/Kyiv")
+    )
+    prefs = (await env.service.account(await env.user(session.token))).notify_prefs
+    assert (prefs.email, prefs.quiet_start, prefs.timezone) == (False, 22, "Europe/Kyiv")
+    await env.service.save_notify_prefs(user, NotifyPrefs())
+    async with env.sessionmaker() as db:
+        assert await db.scalar(select(User.notify_prefs).where(User.id == user.id)) is None
+
+    await env.service.set_chat_sync(user, True)
+    await env.service.save_chat(user, "conv-0009", chat(1000))
+    await env.service.clear_chats(user)
+    state = await env.service.chats(user)
+    assert (state.enabled, state.conversations) == (True, [])

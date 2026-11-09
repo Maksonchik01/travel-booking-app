@@ -1,0 +1,1736 @@
+{
+  "meta": {
+    "title": "SkyPack — flights, stays and trips within budget",
+    "description": "Flights and stays search with AI value analysis"
+  },
+  "home": {
+    "title": "Travel without extra tabs: <accent>flights, stays and a plan</accent> in one place",
+    "subtitle": "We search available offers, weigh price against travel time and help you put a trip together within your budget.",
+    "emptyHint": "Enter a route and a date to see options and the price calendar.",
+    "examples": "Try:",
+    "features": {
+      "search": {
+        "title": "Search available offers",
+        "text": "Live Google Flights prices and cached Travelpayouts prices. We always show how fresh a price is — the seller confirms the final one."
+      },
+      "compare": {
+        "title": "Compare options",
+        "text": "Price together with travel time, stops and baggage. Up to three options side by side — and you see what the score is made of."
+      },
+      "budget": {
+        "title": "Plan within budget",
+        "text": "Flight and stay together: three scenarios, the total, and what in it is exact versus estimated."
+      }
+    },
+    "points": {
+      "flights": "Good-value flights",
+      "compare": "Offer comparison",
+      "stays": "Stays for the same dates",
+      "trip": "Trips within budget",
+      "time": "Less time searching"
+    },
+    "featuresLabel": "What SkyPack does",
+    "resultsHeading": "Flight search results"
+  },
+  "status": {
+    "title": "Service status",
+    "loading": "Checking…",
+    "ok": "Operational",
+    "degraded": "Partially unavailable",
+    "unreachable": "API unreachable",
+    "checks": {
+      "database": "Database",
+      "redis": "Cache (Redis)"
+    },
+    "checkOk": "Operational · {ms} ms",
+    "checkError": "Unavailable"
+  },
+  "nav": {
+    "brand": "SkyPack",
+    "flights": "Flights",
+    "stays": "Stays",
+    "themeDark": "Switch to dark theme",
+    "themeLight": "Switch to light theme",
+    "trip": "Trip",
+    "signIn": "Sign in",
+    "account": "My account",
+    "favorites": "Favorites",
+    "trips": "My trips",
+    "language": "Interface language",
+    "skipToContent": "Skip to content",
+    "sectionsLabel": "Site sections"
+  },
+  "search": {
+    "from": "From",
+    "to": "To",
+    "fromPlaceholder": "City or airport",
+    "toPlaceholder": "City or airport",
+    "iataHint": "Start typing a city or airport name, or enter an IATA code (3 letters)",
+    "pickPlace": "Pick a city or airport from the list or enter a 3-letter IATA code",
+    "suggestions": "Cities and airports",
+    "allAirports": "all airports",
+    "nearby": "+ nearby airports (up to {km} km)",
+    "depart": "Departure",
+    "return": "Return",
+    "flex": "Date flexibility",
+    "flexExact": "Exact dates",
+    "flexDays": "± {days, plural, one {# day} other {# days}}",
+    "adults": "Adults",
+    "directOnly": "Direct flights only",
+    "submit": "Search",
+    "swap": "Swap",
+    "invalid": "Check the airport codes and the departure date.",
+    "profile": "What matters more",
+    "profiles": {
+      "budget": "Price",
+      "balanced": "Balance",
+      "time_is_money": "Time"
+    },
+    "searching": "Searching…",
+    "adultsCount": "{count, plural, one {# adult} other {# adults}}",
+    "edit": "Edit",
+    "collapse": "Collapse",
+    "tripType": "Trip type",
+    "roundTrip": "Round trip",
+    "oneWay": "One way",
+    "childrenCount": "{count, plural, one {# child} other {# children}}",
+    "passengers": "Passengers, class and baggage",
+    "passengersSummary": "{count, plural, one {# passenger} other {# passengers}}",
+    "pax": {
+      "adults": "Adults",
+      "children": "Children",
+      "lap": "Infants on lap",
+      "seat": "Infants in seat"
+    },
+    "paxHint": {
+      "adults": "12 years and older",
+      "children": "2–11 years",
+      "lap": "under 2, no seat",
+      "seat": "under 2, own seat"
+    },
+    "paxRules": "Up to 9 passengers. One lap infant per adult. The seller prices the whole party: we never multiply the adult fare for children.",
+    "cabin": "Class",
+    "cabins": {
+      "economy": "Economy",
+      "premium_economy": "Premium economy",
+      "business": "Business",
+      "first": "First"
+    },
+    "baggage": "Baggage",
+    "baggageHint": "per passenger",
+    "bags": {
+      "none": "No baggage",
+      "personal_item": "Personal item",
+      "carry_on": "Carry-on",
+      "checked": "Checked bag",
+      "checked_extra": "2 checked bags"
+    },
+    "bagsShort": {
+      "personal_item": "personal item",
+      "carry_on": "carry-on",
+      "checked": "suitcase",
+      "checked_extra": "2 suitcases"
+    },
+    "currency": "Currency",
+    "useSavedFilters": "Apply saved filters ({count})",
+    "flexMonth": "Whole month",
+    "flexRange": "Cheapest within a period…",
+    "flexUntil": "Depart no later than",
+    "nights": "Nights at the destination",
+    "nightsFrom": "Nights from",
+    "nightsTo": "Nights to",
+    "nightsCount": "{count, plural, one {# night} other {# nights}}",
+    "tripBudget": "Total budget, up to {currency}",
+    "anyBudget": "Any",
+    "placesEmpty": "Nothing found. Check the name or enter an airport code (3 letters, e.g. WAW).",
+    "placesError": "Suggestions are unavailable right now — enter an airport code (3 letters, e.g. WAW)."
+  },
+  "results": {
+    "title": "{from} → {to}",
+    "count": "{count, plural, one {# option} other {# options}}",
+    "withNearby": "including nearby airports",
+    "sortBy": "Sort:",
+    "sortPrice": "Cheapest",
+    "sortDuration": "Fastest",
+    "empty": "Nothing found. Try other dates, flexibility or flights with stops.",
+    "loading": "Fetching live prices — this can take up to 15 seconds…",
+    "unreachable": "The search service is unavailable right now. Please try again a bit later.",
+    "error": "The search failed. Check the request parameters.",
+    "providerFailed": "Source “{provider}” did not respond ({reason}) — showing what we could get.",
+    "cachedNote": "Prices come from the search cache and may differ on the seller's site. Seat availability is not guaranteed.",
+    "liveNote": "Prices were just fetched from Google Flights. The final price is confirmed by the seller at checkout.",
+    "sortScore": "Best value",
+    "filteredEmpty": "None of the {total, plural, one {# option} other {# options}} matches the filters.",
+    "resetFilters": "Reset filters",
+    "countFiltered": "{count, plural, one {# option} other {# options}} of {total}",
+    "providerQuota": "The request limit for “{provider}” is used up for this month. Searches from the last 30 minutes are still available from the cache; new ones — once the limit renews.",
+    "reasonTimeout": "did not respond in time",
+    "provider": {
+      "serpapi": "Google Flights",
+      "travelpayouts": "Aviasales",
+      "mock": "Test data"
+    },
+    "showMore": "Show {count} more {total, plural, one {(# option left)} other {(# options left)}}",
+    "rateLimited": "Too many requests this hour. Please try again a bit later.",
+    "providerNoParty": "{provider} only knows adult prices — we don't show its options for children and infants so we don't guess their fare.",
+    "providerNoCabin": "{provider} only knows economy prices — we don't show its options for this class.",
+    "excluded": "{count, plural, one {# option} other {# options}} hidden for breaking your requirements: {reasons}",
+    "excludedReason": {
+      "direct": "{count} with stops (“direct only”)",
+      "baggage": "{count} can't take the selected baggage",
+      "stops": "{count} too many stops",
+      "airlines": "{count} other airlines",
+      "times": "{count} other departure or arrival time",
+      "layovers": "{count} layovers out of range",
+      "price": "{count} over the price limit",
+      "duration": "{count} too long"
+    }
+  },
+  "offer": {
+    "perAdult": "per adult",
+    "foundAgo": "price found {hours, plural, =0 {less than an hour ago} one {# h ago} other {# h ago}}",
+    "collectedAgo": "fetched {hours, plural, =0 {just now} one {# h ago} other {# h ago}}, time found unknown",
+    "outbound": "Outbound",
+    "inbound": "Return",
+    "direct": "Direct",
+    "stops": "{count, plural, one {# stop} other {# stops}}",
+    "duration": "{hours} h {minutes} min",
+    "durationUnknown": "duration unknown",
+    "layoverIn": "{airport} · {duration}",
+    "detailsUnknown": "Layover details unknown",
+    "risk": {
+      "short": "short",
+      "long": "long",
+      "overnight": "overnight",
+      "selfTransfer": "separate tickets"
+    },
+    "baggageIncluded": "Baggage included",
+    "baggageNotIncluded": "No baggage",
+    "baggageUnknown": "Baggage terms unknown",
+    "book": "Go to seller",
+    "source": "Source: {source}",
+    "flight": "Flight {number}",
+    "durationShort": "{minutes} min",
+    "foundOnAgo": "price found {days, plural, =0 {today} =1 {yesterday} one {# day ago} other {# days ago}}",
+    "seller": "Seller: {seller}",
+    "openGoogleFlights": "Google Flights",
+    "whyScore": "Why this option?",
+    "via": "via {service}",
+    "partnerNote": "Booking and payment happen on the partner's site; price and terms may change. We may earn a commission — the price for you is the same.",
+    "forPassengers": "total for {count, plural, one {# passenger} other {# passengers}}",
+    "bag": {
+      "personal_item": "Personal item",
+      "carry_on": "Carry-on",
+      "checked": "Checked bag",
+      "checked_extra": "Second suitcase",
+      "included": "included in fare",
+      "fee": "for a fee · {fee}",
+      "feeUnknown": "for a fee",
+      "notAvailable": "not available",
+      "unknown": "unknown"
+    },
+    "withBaggage": "With baggage: {total}",
+    "withBaggageIncluded": "Selected baggage is included in the fare",
+    "baggageCostUnknown": "Cost of the selected baggage is unknown — check with the seller",
+    "baggageNotAvailable": "This fare doesn't allow such baggage",
+    "badge": {
+      "cheapest": "Cheapest",
+      "fastest": "Fastest",
+      "balanced": "Optimal",
+      "direct": "Direct flight",
+      "selfTransfer": "Self-transfer"
+    },
+    "totalDuration": "Total travel time {duration}",
+    "sellerCount": "{count, plural, one {# seller} other {# sellers}}",
+    "routeDetails": "Route details",
+    "connectionWait": "Connection in {airport}: wait {duration}",
+    "airportChange": "Airport change: {from} → {to} — transfer is on you",
+    "recheckYes": "Separate tickets: you must collect and re-check your baggage",
+    "recheckNo": "One ticket: baggage usually goes through",
+    "recheckUnknown": "Whether baggage must be re-checked is unknown — check with the seller",
+    "noSegments": "The source doesn't provide segment data — details on the seller's site.",
+    "addToTrip": "Add to trip"
+  },
+  "calendar": {
+    "title": "Price calendar — {month}",
+    "cheapest": "cheapest",
+    "noData": "no data",
+    "hint": "Approximate one-way prices from the search cache (may differ from prices in the list). Click a day to check it live.",
+    "unavailable": "The price calendar is unavailable right now.",
+    "months": "Calendar months",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "empty": "No cached prices for this month yet.",
+    "foundHours": "{hours, plural, =0 {just now} one {# h ago} other {# h ago}}",
+    "foundDays": "{days, plural, =0 {today} =1 {yesterday} one {# day ago} other {# days ago}}",
+    "foundUnknown": "age unknown",
+    "cachedAge": "cached price, found {age}",
+    "verified": "checked live",
+    "verifiedPrice": "live now: {price}",
+    "legendCheap": "cheapest days",
+    "legendVerified": "price just checked live",
+    "legendCached": "The rest are approximate cached one-way prices; the difference is relative to the selected day."
+  },
+  "footer": {
+    "disclaimer": "We don't sell tickets: booking happens on the seller's site. Prices are indicative.",
+    "links": {
+      "terms": "Terms of use",
+      "privacy": "Privacy",
+      "howItWorks": "How we calculate",
+      "favorites": "Favorites",
+      "trips": "My trips"
+    }
+  },
+  "picks": {
+    "title": "Our pick",
+    "formula": "Score = price + fee for the selected baggage + cost of extra travel time + stops + risks + mismatch with your settings. Profile “{profile}”. The lower, the better value. Options that break your requirements are removed first.",
+    "label": {
+      "cheapest": "Cheapest",
+      "fastest": "Fastest",
+      "balanced": "Balanced"
+    },
+    "also": "also {labels}",
+    "alsoLabel": {
+      "cheapest": "cheapest",
+      "fastest": "fastest",
+      "balanced": "balanced"
+    },
+    "breakdown": {
+      "price": "Price",
+      "time": "Extra travel time",
+      "stops": "Stops",
+      "risks": "Risks",
+      "total": "Score",
+      "unknown": "unknown",
+      "totalUnknown": "Can't calculate: duration unknown",
+      "baggage": "Fee for the selected baggage",
+      "preferences": "Not matching your settings"
+    },
+    "risk": {
+      "short_layover": "Short layover in {airport}",
+      "overnight_layover": "Overnight layover in {airport}",
+      "self_transfer": "Separate tickets in {airport}",
+      "night_departure": "Night departure from {airport}",
+      "night_arrival": "Night arrival in {airport}",
+      "airport_change": "Airport change {airport}"
+    },
+    "warning": {
+      "layover_details_unknown": "Layover details unknown",
+      "long_layover": "Long layover in {airport}",
+      "baggage_not_included": "Baggage not included",
+      "baggage_unknown": "Baggage terms unknown",
+      "duration_unknown": "Duration unknown"
+    },
+    "details": "To details ↓",
+    "unscored": "Some options in another currency were not scored.",
+    "cheapestWithBaggage": "“Cheapest” is by the price with the selected baggage, among options where it is known.",
+    "miss": {
+      "airline": "different airline",
+      "departure_time": "different departure time"
+    },
+    "riskName": {
+      "short_layover": "short layover",
+      "overnight_layover": "overnight layover",
+      "self_transfer": "separate tickets",
+      "night_departure": "night departure",
+      "night_arrival": "night arrival",
+      "airport_change": "airport change"
+    },
+    "reason": {
+      "only_option": "The only option that meets your requirements",
+      "cheapest": "Lowest price among {count} options",
+      "fastest": "Shortest travel time among {count} options",
+      "best_balance": "Best mix of price, time and comfort: score {total} is the lowest",
+      "pricier_but_faster": "{amount} more than the cheapest, but saves {duration} of travel",
+      "same_price_faster": "Same price as the cheapest, but {duration} faster",
+      "cheaper_but_slower": "{amount} cheaper than the fastest, {duration} longer on the way",
+      "fewer_stops": "{count, plural, one {# stop} other {# stops}} fewer than the cheapest",
+      "avoids_risk": "Avoids a risk the cheapest has: {risk}",
+      "baggage_included": "Selected baggage is included in the fare",
+      "preferred_airline": "Preferred airline from your settings",
+      "preferred_time": "Departs at your preferred time of day"
+    },
+    "hours": "{hours} h",
+    "hoursMinutes": "{hours} h {minutes} min",
+    "minutes": "{minutes} min"
+  },
+  "filters": {
+    "title": "Filters",
+    "stops": "Stops (one way)",
+    "anyStops": "Any number",
+    "maxStops": "{count, plural, =0 {Direct only} one {Up to # stop} other {Up to # stops}}",
+    "departure": "Outbound departure",
+    "period": {
+      "night": "Night · 22–05",
+      "morning": "Morning · 05–12",
+      "afternoon": "Afternoon · 12–17",
+      "evening": "Evening · 17–22"
+    },
+    "maxDuration": "Travel time (one way)",
+    "anyDuration": "Any",
+    "upToHours": "Up to {hours} h",
+    "airlines": "Airlines",
+    "airlinesHint": "Nothing selected — any. The number is how many options include this carrier.",
+    "apply": "Apply",
+    "reset": "Reset all",
+    "updating": "Updating results…",
+    "maxPrice": "Price per passenger, up to {currency}",
+    "anyPrice": "Any",
+    "arrival": "Outbound arrival",
+    "returnDeparture": "Return departure",
+    "returnArrival": "Return arrival",
+    "customHours": "Or from",
+    "hoursFrom": "{legend}: from hour",
+    "hoursTo": "{legend}: to hour",
+    "maxLayover": "One layover, no longer than",
+    "minLayover": "Layover, no shorter than",
+    "minSelfTransfer": "Separate tickets, no shorter than",
+    "minSelfTransferHint": "Connection on separate tickets: baggage and the connection are on you, you need a time buffer.",
+    "fromMinutes": "From {minutes} min",
+    "fromHours": "From {hours} h",
+    "maxTotalPrice": "Total for everyone, up to {currency}",
+    "excludeAirlines": "Except airlines",
+    "excludeAirlinesHint": "Options with these carriers are hidden.",
+    "advanced": "Advanced filters",
+    "save": "Save settings",
+    "savedAccount": "Saved to your profile: we'll apply them to new searches.",
+    "savedBrowser": "Saved in this browser: we'll apply them to new searches.",
+    "activeCount": "{count} active",
+    "none": "none",
+    "close": "Close filters"
+  },
+  "ai": {
+    "label": "Ask the AI assistant",
+    "placeholder": {
+      "flights": "E.g.: Warsaw to Lisbon for a week in December, up to €300",
+      "stays": "E.g.: Lisbon, 5–8 December, two adults, close to the center",
+      "trip": "E.g.: Warsaw to Lisbon 5–12 December, flight and hotel"
+    },
+    "submit": "Send",
+    "thinking": "Searching and thinking…",
+    "newChat": "New chat",
+    "conversation": "Conversation with the assistant",
+    "you": "You",
+    "assistant": "Assistant",
+    "privacy": "Messages are processed by the DeepSeek AI model. Chat history is stored in this browser, and in your account only if you turn on sync; you can delete it. Don't share personal data.",
+    "error": "The assistant isn't responding right now. Try again or use the form below.",
+    "fallback": "Couldn't put together an answer. Please clarify what we're looking for and on which dates.",
+    "fallbackFound": "Here's what we found — see the options and scores in the results.",
+    "explaining": "The AI is preparing an explanation of the results…",
+    "explanationTitle": "What to choose and why",
+    "recommended": "We recommend: {label}.",
+    "explanationDisclaimer": "This explanation was generated by an AI model based on our scoring; all numbers were checked against the search results. The final price is confirmed by the seller.",
+    "greeting": "Hi! I'll help with your trip. What are we looking for?",
+    "mode": {
+      "flights": "Flights",
+      "stays": "Stays",
+      "trip": "Whole trip"
+    },
+    "modeHint": {
+      "flights": "Flights: I'll find them and explain the choice",
+      "stays": "Hotels, apartments, hostels",
+      "trip": "Flight and stay with the total price"
+    },
+    "intro": {
+      "flights": "From where, to where and when are we flying? One sentence is fine.",
+      "stays": "Which city and which dates are we looking for? How many guests?",
+      "trip": "From where, to where and on which dates? I'll put together a trip: flight, stay and the total."
+    },
+    "openFlights": "Flights",
+    "openStays": "Stays",
+    "history": "History ({count})",
+    "historyTitle": "Chat history",
+    "backToChat": "Back to chat",
+    "deleteChat": "Delete chat “{title}”",
+    "modeChat": "Chat: {mode}",
+    "openTrip": "Trip",
+    "rateLimited": "Too many messages this hour. Try again a bit later or use the form below.",
+    "saveFailed": "Couldn't save the trip (limit or error). Try the “Save trip” button.",
+    "renameChat": "Rename chat “{title}”",
+    "renameLabel": "Chat name",
+    "renameSave": "Done",
+    "syncLabel": "Sync chats across devices",
+    "syncOffHint": "Off: chats stay only in this browser. Turn it on and we'll store them in your account.",
+    "syncOnHint": "Chats are stored in your account. Turn it off and we'll delete them from your account (they stay in the browser).",
+    "syncGuest": "Chats are stored only in this browser. Sign in to sync them across devices."
+  },
+  "staysHome": {
+    "title": "Places to stay that are <accent>truly convenient</accent>",
+    "subtitle": "We compare the price with taxes, distance to the center, a rating that accounts for the number of reviews, and cancellation terms.",
+    "emptyHint": "Choose a city and dates to see places to stay.",
+    "try": "Try:",
+    "examples": {
+      "LIS": "Lisbon",
+      "BCN": "Barcelona",
+      "KRK": "Kraków"
+    },
+    "features": {
+      "value": {
+        "title": "Price together with location",
+        "text": "A cheap hotel outside the city can cost more: we factor in the trip to the center and to transit."
+      },
+      "cancellation": {
+        "title": "Honest about terms",
+        "text": "Free cancellation, taxes and fees in the price — you see them right away, before the seller's site."
+      },
+      "ai": {
+        "title": "Reviews in brief",
+        "text": "The AI summarizes reviews of our pick: pros, cons and red flags — no made-up facts."
+      }
+    },
+    "resultsHeading": "Stay search results"
+  },
+  "stays": {
+    "city": "City",
+    "cityPlaceholder": "Where are you going?",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "adults": "Adults",
+    "children": "Children",
+    "priority": "What matters more",
+    "priorities": {
+      "budget": "Price",
+      "balanced": "Balance",
+      "center": "Center"
+    },
+    "submit": "Search stays",
+    "searching": "Searching…",
+    "rooms": "Rooms",
+    "childrenAges": "Children's ages (on the check-in date)",
+    "childAge": "Child {n}",
+    "age": "{count, plural, =0 {under 1 year} one {# year} other {# years}}",
+    "childrenAgesHint": "The rate depends on age: infants often stay free.",
+    "usePrefs": "{count, plural, one {My search preferences (# filter)} other {My search preferences (# filters)}}"
+  },
+  "stayResults": {
+    "invalid": "Check the city and dates: check-out must be after check-in, 30 nights at most.",
+    "unreachable": "The search service is unavailable right now. Please try again a bit later.",
+    "error": "The search failed. Check the request parameters.",
+    "loading": "Searching for places to stay…",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "guests": "{count, plural, one {# guest} other {# guests}}",
+    "count": "{count, plural, one {# option} other {# options}}",
+    "countFiltered": "{count, plural, one {# option} other {# options}} of {total}",
+    "sortPrice": "Cheapest",
+    "sortRating": "Rating",
+    "sortScore": "Best value",
+    "note": "Prices include taxes and fees, for the whole room. The final price and availability are confirmed by the seller.",
+    "empty": "Nothing found. Try other dates or another city.",
+    "filteredEmpty": "None of the {total, plural, one {# option} other {# options}} matches the filters.",
+    "resetFilters": "Reset filters",
+    "rateLimited": "Too many requests this hour. Please try again a bit later.",
+    "areaFilter": "Showing only options in the selected map area.",
+    "clearArea": "All results"
+  },
+  "stayCard": {
+    "kind": {
+      "hotel": "Hotel",
+      "apartment": "Apartment",
+      "guesthouse": "Guesthouse",
+      "hostel": "Hostel",
+      "other": "Other (villa, house)"
+    },
+    "stars": "{count} stars",
+    "toCenter": "{km} km to the center",
+    "centerUnknown": "Distance to the center unknown",
+    "toTransit": "{m} m to transit",
+    "transitUnknown": "Transit nearby — unknown",
+    "perNight": "per night",
+    "total": "{total} for {nights, plural, one {# night} other {# nights}}",
+    "withTaxes": "with taxes, for the whole room",
+    "foundAgo": "price fetched {hours, plural, =0 {just now} one {# h ago} other {# h ago}}",
+    "seller": "Seller: {seller}",
+    "via": "via {service}",
+    "book": "Go to seller",
+    "partnerNote": "Booking and payment happen on the partner's site; price and terms may change. We may earn a commission — the price for you is the same.",
+    "whyScore": "Why this option?",
+    "noRating": "No ratings yet",
+    "reviews": "{count, plural, one {# review} other {# reviews}}",
+    "ratingWord": {
+      "excellent": "Excellent",
+      "veryGood": "Very good",
+      "good": "Good",
+      "fair": "Fair"
+    },
+    "cancellation": {
+      "free": "Free cancellation",
+      "partial": "Partial refund",
+      "non_refundable": "Non-refundable",
+      "unknown": "Cancellation terms unknown"
+    },
+    "amenity": {
+      "wifi": "Wi-Fi",
+      "breakfast": "Breakfast",
+      "parking": "Parking",
+      "pool": "Pool",
+      "gym": "Gym",
+      "kitchen": "Kitchen",
+      "air_conditioning": "Air conditioning",
+      "spa": "Spa",
+      "pets": "Pets allowed",
+      "airport_shuttle": "Airport shuttle",
+      "balcony": "Balcony / terrace"
+    },
+    "condition": {
+      "breakfast": "Breakfast included",
+      "noPrepayment": "No prepayment",
+      "payAtProperty": "Pay at the property",
+      "beds": "{count, plural, one {# bed} other {# beds}}",
+      "rooms": "{count, plural, one {# room} other {# rooms}}"
+    },
+    "details": "Details",
+    "comparePrices": "Compare prices",
+    "addToTrip": "Add to trip",
+    "sellers": "{count, plural, one {# seller} other {# sellers}}",
+    "unknown": "unknown",
+    "yes": "yes",
+    "no": "no",
+    "detail": {
+      "address": "Address / district",
+      "center": "To the center",
+      "transit": "To transit",
+      "cancellation": "Cancellation",
+      "until": "free until {date}",
+      "prepayment": "Prepayment",
+      "noPrepayment": "not required",
+      "prepaymentRequired": "required",
+      "payAtProperty": "Pay at the property",
+      "breakfast": "Breakfast included",
+      "beds": "Beds",
+      "amenities": "Amenities",
+      "updated": "Offer"
+    }
+  },
+  "stayPicks": {
+    "title": "Our pick",
+    "formula": "Score = price per night + distance to the centre and transit + rating adjustment + cancellation terms + missing preferred amenities. Priority “{priority}”. The lower, the better value. Options that fail your filters are removed before scoring.",
+    "label": {
+      "cheapest": "Cheapest",
+      "balanced": "Balanced",
+      "top_rated": "Top rated"
+    },
+    "also": "also {labels}",
+    "alsoLabel": {
+      "cheapest": "cheapest",
+      "balanced": "balanced",
+      "top_rated": "top rated"
+    },
+    "details": "To the option ↓",
+    "breakdown": {
+      "price": "Price per night",
+      "distance": "Trip to the center",
+      "transit": "Far from transit",
+      "rating": "Rating adjustment",
+      "adjusted": "accounting for reviews {rating}",
+      "cancellation": "Cancellation terms",
+      "total": "Score",
+      "amenities": "Missing preferred: {list}"
+    },
+    "warning": {
+      "few_reviews": "Few reviews — the rating is unreliable",
+      "no_rating": "No ratings yet",
+      "distance_unknown": "Distance to the center unknown",
+      "transit_unknown": "Transit nearby — unknown",
+      "cancellation_unknown": "Cancellation terms unknown"
+    },
+    "reason": {
+      "only_option": "The only option that meets your requirements",
+      "cheapest": "Lowest price among {count} options",
+      "top_rated": "Highest review-adjusted rating among {count} options",
+      "best_balance": "Best mix of price, location and rating: score {total} per night is the lowest",
+      "pricier_but_closer": "{amount} more than the cheapest, but {km} km closer to the centre",
+      "same_price_closer": "Same price as the cheapest, but {km} km closer to the centre",
+      "pricier_but_better_rated": "{amount} more than the cheapest, but rated {rating} higher",
+      "same_price_better_rated": "Same price as the cheapest, but rated {rating} higher",
+      "cheaper_than_top_rated": "{amount} cheaper than the top-rated",
+      "cheaper_than_top_rated_rating": "{amount} cheaper than the top-rated, rating only {rating} lower",
+      "free_cancellation": "Free cancellation — the cheapest doesn't have it",
+      "preferred_amenities": "Has all preferred amenities from your settings",
+      "within_budget": "Within budget, {amount} to spare"
+    }
+  },
+  "stayFilters": {
+    "maxPrice": "Per night, up to {currency}",
+    "rating": "Rating",
+    "anyRating": "Any",
+    "ratingFrom": "From {rating}",
+    "freeCancellation": "Free cancellation",
+    "kind": "Property type",
+    "kindHint": "Nothing selected — any. The number is how many options.",
+    "minPrice": "Per night, from {currency}",
+    "minTotal": "Total, from {currency}",
+    "maxTotal": "Total, up to {currency}",
+    "conditions": "Terms",
+    "conditionsHint": "Only where the seller has confirmed it.",
+    "breakfast": "Breakfast included",
+    "noPrepayment": "No prepayment",
+    "payAtProperty": "Pay at the property",
+    "amenities": "Amenities",
+    "amenitiesHint": "The property must have all selected. The number is how many options.",
+    "beds": "Beds, at least",
+    "bedsFrom": "{count, plural, one {From # bed} other {From # beds}}",
+    "distance": "To the center, no farther",
+    "upToKm": "Up to {km} km",
+    "district": "District",
+    "nearAirport": "Near the airport",
+    "radius": "Radius from the point",
+    "any": "Any"
+  },
+  "stayAnalysis": {
+    "title": "What reviews say",
+    "hint": "The AI will summarize reviews of “Our pick”: pros, cons, red flags.",
+    "run": "Summarize reviews",
+    "running": "Reading reviews…",
+    "error": "Couldn't summarize the reviews right now. Please try again.",
+    "topPick": "We recommend: {name}.",
+    "bestFor": "Best for:",
+    "reliability": {
+      "high": "Reliable score",
+      "medium": "Indicative score",
+      "low": "Few reviews — unreliable score"
+    },
+    "disclaimer": "The summary was generated by an AI model from guest reviews; numbers were checked against the search data. We don't verify review texts."
+  },
+  "tripHome": {
+    "title": "The whole trip — <accent>in one calculation</accent>",
+    "subtitle": "A round-trip flight and a place to stay for exactly the flight dates: we show the total, what it's made of, and the three best options.",
+    "emptyHint": "Enter a route and dates — we'll put together a trip with a place to stay.",
+    "try": "Try:",
+    "aiHint": "Or describe the trip in your own words in the “AI assistant” tab → “Whole trip”.",
+    "features": {
+      "total": {
+        "title": "Total price",
+        "text": "Flights for all travelers + the stay for all nights with taxes — one number, with a breakdown."
+      },
+      "dates": {
+        "title": "A stay exactly for the flight dates",
+        "text": "Check-in on the arrival day, check-out on the return day. A night arrival is flagged separately."
+      },
+      "value": {
+        "title": "Not just the cheapest",
+        "text": "We factor in travel time, stops, distance to the center and terms — and suggest the best value."
+      }
+    },
+    "resultsHeading": "Trip planning results"
+  },
+  "tripForm": {
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "adults": "Adults",
+    "children": "Children",
+    "budget": "Total budget, €",
+    "anyBudget": "No limit",
+    "priority": "What matters more",
+    "priorities": {
+      "budget": "Price",
+      "balanced": "Balance",
+      "comfort": "Comfort"
+    },
+    "submit": "Plan the trip",
+    "searching": "Planning…",
+    "pinnedStay": "Stay of your choice",
+    "pinnedHint": "The planner will use it for the flight dates if it's available. Uncheck to pick a stay automatically.",
+    "more": "Flexible dates, preferences and your own costs",
+    "returnHint": "or set the duration",
+    "until": "Depart by (flexible)",
+    "nightsFrom": "Nights from",
+    "nightsTo": "to",
+    "nightsHint": "Duration replaces the return date; nights are counted from the arrival day.",
+    "any": "any",
+    "flightWishes": "Flight",
+    "stayWishes": "Stay",
+    "baggage": "Baggage",
+    "cabin": "Class",
+    "rating": "Rating from",
+    "distance": "To the center, up to",
+    "km": "{km} km",
+    "freeCancellation": "Free cancellation",
+    "breakfast": "Breakfast included",
+    "extras": "Your own costs (indicative)",
+    "extraLabel": "Name",
+    "extraAmount": "Amount, €",
+    "extrasHint": "E.g. excursions, insurance. They count toward the budget as indicative.",
+    "pinnedFlight": "Keep the selected flight",
+    "pinnedFlightHint": "If you change the dates, the flight may not exist on them — then we'll pick another."
+  },
+  "tripResults": {
+    "title": "Trip {from} → {to}",
+    "invalid": "Check the route and dates: return after departure (up to 30 nights) or set the trip duration.",
+    "unreachable": "The search service is unavailable right now. Please try again a bit later.",
+    "error": "Couldn't plan the trip. Check the request parameters.",
+    "loading": "Searching for flights and stays for their dates…",
+    "travelers": "{adults, plural, one {# adult} other {# adults}}{children, plural, =0 {} one { and # child} other { and # children}}",
+    "checked": "checked {combos, plural, one {# combination} other {# combinations}} from {flights, plural, one {# flight} other {# flights}}",
+    "picksTitle": "Three trip scenarios",
+    "formula": "Total = tickets for everyone + baggage + stay for all nights with taxes + your costs. Confirmed (source prices for these dates) and indicative (cached prices, your costs) are shown separately; unknown items aren't included. The stay runs from the arrival date to the return departure date.",
+    "note": "Flight prices are for all travelers, each at their own fare. Stays are test data. Transfers aren't included: there's no reliable data. Final prices and availability are confirmed by the sellers.",
+    "othersTitle": "Other combinations ({count})",
+    "empty": "No round-trip flights found for these dates. Try other dates or flexibility.",
+    "noStays": "There are flights, but no stays for their dates. Try other dates.",
+    "withinBudget": "{count, plural, one {# option fits} other {# options fit}} the budget of {budget}.",
+    "overBudget": "No trip fits the budget of {budget}: the cheapest one is {shortfall} more.",
+    "rateLimited": "Too many requests this hour. Please try again a bit later.",
+    "pickOrigin": "Enter the departure city — and we'll pick flights to the selected stay.",
+    "pinned": {
+      "used": "Every option uses the stay of your choice.",
+      "partly": "The stay of your choice is available only for some of the flight dates; for the others — our pick.",
+      "unavailable": "The selected stay isn't available for the flight dates — showing other options."
+    },
+    "fewPicks": "{count, plural, one {Only one distinct option was found — it's Economy, Optimal and Comfort at once.} other {Only # distinct options were found — matching scenarios are marked “also”.}}",
+    "nights": "{min}–{max} nights at the destination"
+  },
+  "tripPicks": {
+    "label": {
+      "cheapest": "Economy",
+      "best_value": "Optimal",
+      "comfort": "Comfort"
+    },
+    "also": "also {labels}",
+    "alsoLabel": {
+      "cheapest": "Economy",
+      "best_value": "Optimal",
+      "comfort": "Comfort"
+    },
+    "hint": {
+      "cheapest": "The lowest total among options that meet your conditions",
+      "best_value": "The best balance of price, travel time, stops, the stay's location and rating, and convenient times",
+      "comfort": "Fewest stops and least travel time, then the stay's rating and proximity"
+    },
+    "reason": {
+      "only_option": "The only combination that meets your conditions",
+      "cheapest": "Lowest total among {count} combinations",
+      "best_value": "Best mix of price, travel time and stay among {count} combinations",
+      "comfort": "Fewest stops and least travel time among {count} combinations",
+      "pricier_but_faster": "{amount} more than “Budget”, but {duration} less on the way",
+      "same_price_faster": "Same total as “Budget”, but {duration} less on the way",
+      "better_rated_stay": "Stay rated {rating} higher than in “Budget”",
+      "closer_stay": "Stay {km} km closer to the centre than in “Budget”",
+      "more_full_nights": "{count, plural, one {# more full night} other {# more full nights}} than “Budget”",
+      "fewer_stops": "{count, plural, one {# stop} other {# stops}} fewer than “Budget”",
+      "cheaper_than_comfort": "{amount} cheaper than “Comfort”",
+      "cheaper_than_comfort_slower": "{amount} cheaper than “Comfort”, {duration} longer on the way",
+      "all_nights_full": "All nights are full: convenient arrival and return",
+      "within_budget": "Within budget, {amount} to spare",
+      "over_budget": "Over budget by {amount}"
+    }
+  },
+  "tripCard": {
+    "forTrip": "known costs for {nights, plural, one {# night} other {# nights}}, {travelers}",
+    "flight": "Flight",
+    "stay": "Stay, {nights, plural, one {# night} other {# nights}}",
+    "total": "Total (known)",
+    "outbound": "Outbound",
+    "inbound": "Return",
+    "stayDates": "Check-in {from}, check-out {to}",
+    "toCenter": "{km} km to the center",
+    "value": "“Optimal” score (price + inconveniences): {value}",
+    "openFlight": "Flight",
+    "openStay": "Stay",
+    "warning": {
+      "night_arrival": "Night arrival: check-in is usually from 14:00, the night before arrival isn't paid",
+      "late_arrival": "Late arrival — let the property know about check-in",
+      "early_return": "Early return flight — check out at night",
+      "late_return": "Late return flight — a day with luggage after check-out",
+      "value_unknown": "Can't calculate the “Optimal” score",
+      "costs_unknown": "Some costs are unknown — check with the seller"
+    },
+    "plusUnknown": "+ {count, plural, one {# item} other {# items}} with an unknown amount",
+    "overBudget": "Over budget — no option fits the budget",
+    "cost": {
+      "tickets": "SkyPack",
+      "baggage": "Baggage",
+      "stay": "Stay, {nights, plural, one {# night} other {# nights}}",
+      "extra": "Other"
+    },
+    "status": {
+      "confirmed": "Confirmed",
+      "approximate": "Indicative",
+      "unknown": "Unknown"
+    },
+    "unknownAmount": "unknown",
+    "included": "in the fare",
+    "arrivalLabel": "Arrival and check-in",
+    "returnLabel": "Return flight and check-out",
+    "arrival": "Arrival {at} → check-in {date}",
+    "arrivalUnknown": "Arrival time unknown → check-in {date}",
+    "return": "Return flight {at} → check-out {date}",
+    "choose": "Choose and edit",
+    "why": "Why this option?",
+    "nightsFull": "{full} of {nights} nights are full",
+    "travel": "{duration} travelling",
+    "waiting": "incl. {duration} waiting"
+  },
+  "alerts": {
+    "watch": "Track price",
+    "watching": "You're tracking this route · Manage",
+    "title": "Track price {from} → {to}",
+    "hint": "We'll let you know as soon as the price drops. We check several times a day — no spam.",
+    "close": "Close",
+    "condition": "When to notify",
+    "belowPrice": "Price up to",
+    "threshold": "Price threshold, {currency}",
+    "belowTypical": "Price noticeably below typical for the route (10% below the median)",
+    "channel": "Where to write",
+    "channels": {
+      "telegram": "Telegram",
+      "email": "Email"
+    },
+    "mock": "(test mode)",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "privacy": "We store only the route, the condition and the Telegram chat or email. Unsubscribe in one click from any notification.",
+    "submit": "Subscribe",
+    "error": "Couldn't create the subscription. Check the threshold and email and try again.",
+    "telegramNext": "Almost done: open the bot and press “Start” — the subscription will be confirmed.",
+    "openTelegram": "Open @{bot}",
+    "emailNext": "Almost done: we've sent an email with a confirmation link. There will be no notifications without confirmation.",
+    "manage": "Manage subscription",
+    "titleStay": "Watch the stay price: {city}",
+    "forAll": "{currency} for everyone",
+    "dropAmount": "Price drops by",
+    "dropAmountLabel": "Drop amount, {currency}",
+    "dropPercent": "Price drops by",
+    "dropPercentLabel": "Drop percentage",
+    "dropHint": "Drops are counted from the price at the first check. We write again only after a new noticeable change.",
+    "flexSummary": "Flexible dates: departure {from} – {until}, {min}–{max} nights",
+    "weekends": "Weekends only (depart Thu–Sat, return Sat–Mon)",
+    "baggageNote": "We check cached prices: the source doesn't know baggage terms, so the notification will say “price without baggage”.",
+    "unavailable": {
+      "stay": "Stay alerts will appear once we connect a real source of stay prices.",
+      "trip": "Whole-trip alerts will appear once we connect a real source of stay prices.",
+      "party": "Alerts are for adults in economy for now: the checking source has no prices for children or other cabins.",
+      "flight": "Alerts are unavailable.",
+      "flex": "Alerts are unavailable."
+    },
+    "existing": "You already have this alert — we didn't create a new one."
+  },
+  "alertPage": {
+    "title": "Price subscription",
+    "notFound": "Subscription not found",
+    "notFoundHint": "The link is outdated or incomplete. Create a new subscription on the search results page.",
+    "adults": "{count, plural, one {# adult} other {# adults}}",
+    "status": "Status",
+    "statuses": {
+      "pending": "Awaiting confirmation",
+      "active": "Active",
+      "stopped": "Turned off",
+      "expired": "Dates have passed",
+      "paused": "Paused"
+    },
+    "condition": "Condition",
+    "belowPrice": "price up to {price} for everyone",
+    "belowTypical": "price 10% below typical",
+    "channel": "Channel",
+    "channels": {
+      "telegram": "Telegram",
+      "email": "Email"
+    },
+    "lastCheck": "Last check",
+    "lastCheckValue": "{when} · from {price}",
+    "notChecked": "not checked yet",
+    "lastNotified": "Last notification",
+    "telegramPending": "To confirm the subscription, open the bot and press “Start”.",
+    "openTelegram": "Open the bot",
+    "openSearch": "View tickets",
+    "confirm": "Confirm subscription",
+    "stop": "Turn off subscription",
+    "privacy": "The link to this page is the key to the subscription: don't forward it to others.",
+    "done": {
+      "confirm": "Subscription confirmed. We'll write as soon as the price drops.",
+      "stop": "Subscription turned off. No more notifications.",
+      "failed": "Couldn't complete the action. Please try again.",
+      "pause": "Subscription paused. No checks or emails until you resume it.",
+      "resume": "Subscription resumed.",
+      "delete": "Subscription deleted",
+      "edit": "Changes saved.",
+      "editFailed": "Couldn't save the changes: check the dates and condition."
+    },
+    "stayTitle": "Stay: {city}",
+    "flexDates": "departure {from} – {until}, {min}–{max} nights",
+    "weekends": "weekends only",
+    "dropAmount": "Price drops by at least {amount}",
+    "dropPercent": "Price drops by at least {percent}%",
+    "baseline": "from {price} at the start",
+    "kinds": {
+      "flight": "Route on dates",
+      "flex": "Flexible dates",
+      "stay": "Stay",
+      "trip": "Trip"
+    },
+    "baggage": {
+      "none": "no baggage",
+      "personal_item": "personal item",
+      "carry_on": "carry-on",
+      "checked": "checked bag",
+      "checked_extra": "2 checked bags"
+    },
+    "openStays": "View stays",
+    "pause": "Pause",
+    "resume": "Resume",
+    "delete": "Delete",
+    "edit": "Edit",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "periodFrom": "Departure from",
+    "periodUntil": "Departure until",
+    "departure": "Departure",
+    "returnDate": "Return (optional)",
+    "nightsFrom": "Nights from",
+    "nightsTo": "Nights to",
+    "adultsLabel": "Adults",
+    "baggageLabel": "Baggage",
+    "weekendsLabel": "Weekends only (depart Thu–Sat, return Sat–Mon)",
+    "editBelowPrice": "Price up to",
+    "editDropAmount": "Drop by",
+    "editDropPercent": "Drop by",
+    "thresholdLabel": "Price threshold, {currency}",
+    "dropAmountLabel": "Drop amount, {currency}",
+    "percentLabel": "Drop percentage",
+    "editHint": "Changed dates, travellers or baggage — we start tracking the price anew; changed the condition — we check right away.",
+    "saveEdit": "Save changes",
+    "history": "{count, plural, =0 {History} one {History · # notification} other {History · # notifications}}",
+    "historyEmpty": "No events yet.",
+    "events": {
+      "created": "Created",
+      "confirmed": "Confirmed",
+      "checked": "Checked",
+      "notified": "Notification sent",
+      "held": "Notification held",
+      "paused": "Paused",
+      "resumed": "Resumed",
+      "edited": "Edited",
+      "stopped": "Turned off",
+      "expired": "Dates passed",
+      "snoozed": "Snoozed in Telegram",
+      "threshold": "New threshold from Telegram"
+    },
+    "held": {
+      "channel_off": "channel turned off in settings",
+      "category_off": "category turned off",
+      "quiet_hours": "quiet hours",
+      "too_soon": "too soon for the chosen frequency",
+      "small_drop": "drop below the chosen minimum"
+    },
+    "deletedHint": "The subscription and its history were deleted. You can create a new one from the search results page."
+  },
+  "auth": {
+    "title": "Sign in to SkyPack",
+    "subtitle": "Search history, saved items and price alerts — in one account.",
+    "tabs": "Sign in or sign up",
+    "signIn": "Sign in",
+    "signUp": "Sign up",
+    "or": "or",
+    "google": "Sign in with Google",
+    "linkGoogle": "Link Google",
+    "googleDisabled": "Google sign-in isn't set up yet",
+    "loginField": "Username or email",
+    "password": "Password",
+    "passwordRepeat": "Repeat password",
+    "passwordHint": "At least 8 characters.",
+    "newPassword": "New password",
+    "username": "Username",
+    "usernameHint": "Latin letters, digits, “_” and “.”, 3–30 characters.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "privacy": "We store only your username, name and email if you add it. You can delete your account any time in your account settings.",
+    "forgot": "Forgot password?",
+    "forgotTitle": "Password recovery",
+    "forgotSubtitle": "Enter the email linked to your account — we'll send a link.",
+    "sendLink": "Send link",
+    "forgotSent": "If we have this address, an email with a link is on its way. The link is valid for 1 hour.",
+    "backToLogin": "Back to sign in",
+    "resetTitle": "New password",
+    "savePassword": "Save password",
+    "verifyTitle": "Email confirmation",
+    "verifySubtitle": "Press the button to link the address to your account.",
+    "confirmEmail": "Confirm address",
+    "emailVerified": "Address confirmed — you can now sign in with it and recover your password.",
+    "toAccount": "To my account"
+  },
+  "authErrors": {
+    "default": "Something went wrong. Please try again.",
+    "unreachable": "The service is unavailable right now. Please try again a bit later.",
+    "invalid_credentials": "Wrong username or password.",
+    "too_many_attempts": "Too many attempts. Wait 15 minutes or recover your password.",
+    "username_taken": "This username is already taken.",
+    "invalid_registration": "Check the username (Latin letters, digits, “_” and “.”, 3–30 characters) and the password (8+ characters).",
+    "passwords_differ": "Passwords don't match.",
+    "weak_password": "The password must be at least 8 characters.",
+    "invalid_token": "The link is outdated or already used. Request a new one.",
+    "email_taken": "This address is already linked to another account.",
+    "invalid_email": "Check the email address.",
+    "wrong_password": "Wrong password.",
+    "last_login_method": "Set a password first — otherwise there's no way to sign in.",
+    "google_unavailable": "Google sign-in is unavailable right now.",
+    "google_failed": "Couldn't sign in with Google. Please try again.",
+    "google_cancelled": "Google sign-in was cancelled.",
+    "google_taken": "This Google account is already linked to another SkyPack account.",
+    "telegram_unavailable": "The Telegram bot isn't set up right now.",
+    "limit_reached": "The limit of saved searches (100) has been reached.",
+    "invalid_input": "Check the entered data.",
+    "rate_limited": "Too many requests this hour. Please try again a bit later.",
+    "unknown_place": "We don't know this airport or city — pick one from the list.",
+    "invalid_image": "This doesn't look like a PNG, JPEG or WebP image.",
+    "image_too_large": "The photo is too large (300 KB max). Shrink it or enable JavaScript — the site will shrink it for you.",
+    "alert_failed": "Couldn't update the subscription. Please try again.",
+    "alert_editFailed": "Couldn't save the subscription changes: check the dates and condition."
+  },
+  "account": {
+    "sections": "Account sections",
+    "nav": {
+      "profile": "Profile",
+      "security": "Security",
+      "saved": "Saved",
+      "history": "Search history",
+      "alerts": "Notifications",
+      "danger": "Delete account",
+      "overview": "Overview",
+      "favorites": "Favorites",
+      "trips": "My trips",
+      "settings": "Settings"
+    },
+    "since": "With us since {date}",
+    "logout": "Sign out",
+    "logoutEverywhere": "Sign out on all devices",
+    "profileHint": "How we should address you.",
+    "save": "Save",
+    "saved": "Saved.",
+    "emailTitle": "Email",
+    "emailCurrent": "Confirmed address:",
+    "emailNone": "No email linked: without it you can't recover your password.",
+    "emailPending": "Awaiting confirmation: {email} — follow the link in the email.",
+    "mailMock": "Email isn't set up on the server yet: the link email is written to the log for now.",
+    "email": "Email",
+    "newEmail": "New address",
+    "sendConfirmation": "Send confirmation",
+    "emailSent": "An email with a link was sent to the new address. It becomes primary after confirmation.",
+    "passwordTitle": "Password",
+    "setPasswordTitle": "Set a password",
+    "noPassword": "You sign in with Google. A password lets you sign in with your username too.",
+    "currentPassword": "Current password",
+    "changePassword": "Change password",
+    "setPassword": "Set password",
+    "passwordNote": "After changing the password, other devices will be signed out.",
+    "passwordSaved": "Password saved.",
+    "loginMethods": "Sign-in methods",
+    "methodPassword": "Username and password (@{username})",
+    "linked": "linked",
+    "notLinked": "not linked",
+    "unlink": "Unlink Google",
+    "linkTelegram": "Link Telegram",
+    "unlinkTelegram": "Unlink Telegram",
+    "telegramHint": "The bot will open: press “Start” — and subscriptions from this chat will appear here.",
+    "savedHint": "Searches you want to come back to. Save one with the ☆ button on the results page.",
+    "savedEmpty": "Nothing saved yet.",
+    "historyHint": "Recent searches while you're signed in. Stored only here, up to 200.",
+    "historyEmpty": "History is empty — find your first flight.",
+    "clearHistory": "Clear",
+    "rename": "Rename",
+    "title": "Name",
+    "deleteEntry": "Delete “{title}”",
+    "kind": {
+      "flights": "Flights",
+      "stays": "Stays",
+      "trip": "Trip"
+    },
+    "alertsHint": "Subscriptions created while you're signed in.",
+    "alertsEmpty": "No subscriptions. Press “Track price” on the flight results.",
+    "alertStatus": {
+      "pending": "awaiting confirmation",
+      "active": "active",
+      "stopped": "turned off",
+      "expired": "dates have passed",
+      "paused": "paused"
+    },
+    "deleteHint": "Your account, history, saved items and subscriptions will be deleted permanently.",
+    "deleteConfirmPassword": "Password to confirm",
+    "deleteConfirmUsername": "Enter your username ({username}) to confirm",
+    "deleteAccount": "Delete account",
+    "done": {
+      "google_login": "You've signed in with Google.",
+      "google_linked": "Google is linked — you can now sign in with it.",
+      "password": "Password changed, you're signed in.",
+      "alert_confirm": "Subscription confirmed.",
+      "alert_stop": "Subscription turned off.",
+      "alert_pause": "Subscription paused.",
+      "alert_resume": "Subscription resumed.",
+      "alert_delete": "Subscription deleted.",
+      "alert_edit": "Changes saved."
+    },
+    "profile": {
+      "title": "Language & region",
+      "hint": "Site language, default price currency and your airports.",
+      "language": "Interface language",
+      "currency": "Currency",
+      "currencyDefault": "Search default (EUR)",
+      "country": "Country of residence",
+      "notSet": "Not set",
+      "homeAirport": "Home airport",
+      "homeAirportHint": "Used as “From” for new searches.",
+      "favoriteAirports": "Favourite airports (up to {max})",
+      "removeAirport": "Remove airport {n}",
+      "addAirport": "Add airport",
+      "save": "Save",
+      "upload": "Upload photo",
+      "uploadSubmit": "Send photo",
+      "removePhoto": "Remove photo",
+      "photoCustom": "Your photo. PNG, JPEG or WebP.",
+      "photoGoogle": "Photo from Google. You can replace it with your own.",
+      "photoInitials": "Initials for now. You can upload a photo (PNG, JPEG or WebP)."
+    },
+    "prefs": {
+      "title": "Search preferences",
+      "hint": "Defaults for new searches.",
+      "flights": "Flights",
+      "stays": "Stays",
+      "notSet": "Not set",
+      "airlines": "Preferred airlines",
+      "airlinesHint": "IATA codes separated by commas, e.g. LO, LH. Empty — any.",
+      "departure": "Preferred departure time",
+      "howApplied": "Applied to every new search; you can change or untick them in the form for a specific trip — nothing changes here.",
+      "save": "Save preferences",
+      "reset": "Reset all"
+    },
+    "saveEntry": "Save “{title}”",
+    "params": {
+      "show": "Parameters",
+      "route": "Route",
+      "dates": "Dates",
+      "people": "Travellers",
+      "rooms": "{count, plural, one {# room} other {# rooms}}",
+      "budget": "Budget",
+      "filters": "Filters",
+      "moreFilters": "{count, plural, one {# more filter} other {# more filters}}"
+    },
+    "notify": {
+      "title": "Notification settings",
+      "hint": "How and when to tell you about price drops.",
+      "channels": "Channels",
+      "email": "Email",
+      "telegram": "Telegram",
+      "telegramNotLinked": "Telegram isn't linked to the account — subscriptions in the bot still work.",
+      "categories": "What to send",
+      "belowPrice": "Price below my threshold",
+      "belowTypical": "Price below the usual one for the route",
+      "frequency": "Frequency",
+      "interval": {
+        "24": "At most once a day",
+        "72": "At most once every 3 days",
+        "168": "At most once a week"
+      },
+      "minDrop": "Minimum drop",
+      "anyDrop": "Any drop",
+      "dropPercent": "At least {percent}% below the previous one",
+      "quiet": "Quiet hours",
+      "quietFrom": "From",
+      "quietTo": "To",
+      "quietHint": "Your local time ({zone}). During quiet hours a notification waits for the next check after them.",
+      "scope": "Applies to subscriptions created while signed in. A disabled channel or category — we still check the price but don't write.",
+      "save": "Save",
+      "saved": "Saved."
+    },
+    "sessions": {
+      "title": "Sessions",
+      "unknownDevice": "Unknown device",
+      "current": "This session",
+      "since": "Signed in {date}",
+      "seen": "active {date}",
+      "end": "End",
+      "signOut": "Sign out",
+      "endOthers": "Sign out on other devices",
+      "endedOthers": "Other sessions ended."
+    },
+    "clear": {
+      "title": "Clear personal history",
+      "hint": "Your account stays; only what you choose disappears.",
+      "what": "What to clear",
+      "chats": "Assistant conversations",
+      "chatsDone": "Conversations deleted from the account and this browser.",
+      "browser": "Data in this browser",
+      "browserDone": "SkyPack data in this browser cleared.",
+      "note": "Browser data — chat history, favorites and trips saved without signing in, the alerts list, comparisons, saved filters (the theme stays). Account favorites and saved trips are managed in their sections."
+    },
+    "alertsLimit": "Open subscriptions: {open} of {max} — so tracking doesn't run forever."
+  },
+  "saveSearch": {
+    "save": "Save search",
+    "saved": "Saved",
+    "error": "Couldn't save",
+    "limit": "Limit of 100 saved"
+  },
+  "legal": {
+    "updated": "Updated: {date}",
+    "contact": "Questions and data requests: {contact}.",
+    "terms": {
+      "title": "Terms of use",
+      "intro": "SkyPack is a free service for searching and comparing travel. By using the site, you agree to these terms.",
+      "sections": [
+        {
+          "h": "We don't sell tickets or stays",
+          "p": [
+            "We are not a carrier, travel agent or hotel and don't accept payments. The “Go to seller” button opens a partner's site; booking, payment, changes and refunds follow that site's rules.",
+            "Some links are affiliate links: if you buy a ticket after following one, we may earn a commission. Your price doesn't change because of it."
+          ]
+        },
+        {
+          "h": "Prices are indicative",
+          "p": [
+            "Prices come from third-party sources. Some are cached (found earlier) — we always show when a price was found. The seller shows the final price, baggage and fare terms before payment.",
+            "If layover or baggage details are unknown, we say so — it doesn't mean there are none."
+          ]
+        },
+        {
+          "h": "AI scores and advice",
+          "p": [
+            "“Our pick” and the scores are calculated by code using an open formula (see “How we calculate”). The AI assistant only parses the request and explains the finished result; it can make mistakes — double-check what matters before buying."
+          ]
+        },
+        {
+          "h": "Price notifications",
+          "p": [
+            "Notifications are a free convenience with no guarantees: the price may change between the check and your visit, and a check may be delayed. You can unsubscribe at any time from the email, the bot or your account."
+          ]
+        },
+        {
+          "h": "Fair use",
+          "p": [
+            "Don't use the service for automated data collection or load: the number of requests is limited. We may change or discontinue features without notice."
+          ]
+        },
+        {
+          "h": "Liability",
+          "p": [
+            "The service is provided “as is”. We are not responsible for the actions of carriers, hotels and sellers, for changes in prices or schedules, or for decisions made solely on the basis of our scores."
+          ]
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy",
+      "intro": "We collect the minimum data needed for features to work and don't sell it. Search works without an account.",
+      "sections": [
+        {
+          "h": "What we store",
+          "p": [
+            "Account (if you create one): username, name, optional email, password hash (scrypt — we don't know the password itself), Google or Telegram ID if you sign in with them. Search history and saved searches (up to the last 200), favorites — flights, stays and ready-made trips (up to 200: offer parameters, dates, price and when it was obtained), saved trips (up to 50: route, dates, chosen flight and stay, prices at the time of saving). Chats with the AI assistant — only if you turned on chat sync (up to 30 chats); turning it off deletes them from the account. Optional profile: interface language, currency, country of residence, home and favourite airports, search preferences, your own photo (up to 300 KB, visible only to you); if you sign in with Google — the address of your Google photo (shown through our server, your browser does not contact Google). Sign-in sessions: sign-in date, last activity and a coarse device description (browser and OS, e.g. “Chrome · macOS”) — no IP; notification settings (channels, frequency, quiet hours and your time zone).",
+            "Price alerts: the route (or stay city), dates or period and trip length, number of adults, required baggage, the condition (threshold or drop) and the contact for notifications — email or a Telegram chat; a log of checks and sent notifications (prices, no email texts). The log of routine checks is kept for 30 days; you can delete a subscription with its history at any time.",
+            "Price history and visits to partner sites are stored without being tied to a person: route, price, source, partner domain — without IP or account."
+          ]
+        },
+        {
+          "h": "Cookies and browser storage",
+          "p": [
+            "Only necessary ones: the sign-in session cookie (httpOnly, up to 30 days), a temporary cookie during Google sign-in, and the interface language cookie (NEXT_LOCALE, one year — only the chosen language). There are no advertising or analytics cookies. After sign-in we set the language cookie from your profile.",
+            "Your browser (localStorage / sessionStorage) keeps: the theme, AI chat history, the list of your notifications, the last search tab, and without an account — favorites and saved trips too (after sign-in they move to your account); in the tab — the trips selected for comparison and the “Undo last choice” steps. Chat history doesn't reach the server unless you turned on “Sync chats across devices” yourself (account only); you can delete it in the chat."
+          ]
+        },
+        {
+          "h": "Who receives data",
+          "p": [
+            "Search parameters (cities, dates, number of people) — price providers: SerpApi (Google Flights) and Travelpayouts.",
+            "The text of your requests to the AI assistant and the search results — DeepSeek, for parsing and explanation. We don't log this text; chats are stored in your account only if you turned on chat sync. Don't put personal data in the chat. If you're signed in, the assistant searches with your profile settings: your home airport and currency are part of the conversation context, while preferred airlines and amenities are applied only by our scoring code and are not sent to the model.",
+            "Infrastructure: Vercel (site), Render (server), Supabase (database, EU — Frankfurt), Sentry (error reports without personal data). Notifications — via Telegram or email.",
+            "Stays map: your browser loads map tiles directly from OpenFreeMap (tiles.openfreemap.org, OpenStreetMap data) — that service sees your IP address and the part of the map you're viewing. The map loads only in “Map” mode."
+          ]
+        },
+        {
+          "h": "How long we keep it",
+          "p": [
+            "Account data — until you delete the account. A session lasts up to 30 days, email links — from 1 to 24 hours. Search history in the account — up to the last 200 entries."
+          ]
+        },
+        {
+          "h": "Your rights",
+          "p": [
+            "In your account you can change your data, clear the search history, unlink Google or Telegram and delete the account completely — together with notifications, history, favorites, saved trips and assistant chats and profile photo. You can also request a copy of your data or its correction."
+          ]
+        }
+      ]
+    },
+    "howItWorks": {
+      "title": "How we calculate prices and scores",
+      "intro": "All numbers on the site are calculated by code using fixed rules. The AI doesn't make up prices or choose the “best” option — it only explains the result.",
+      "sections": [
+        {
+          "h": "Where prices come from",
+          "p": [
+            "Flight search — live Google Flights prices via SerpApi at the time of the request. The price calendar and the backup search — Travelpayouts: these are prices someone found earlier, so we show when exactly.",
+            "The flight price is shown for the whole party of the search (for one adult — for that adult): children and infants are at their own fare, we don't guess it. The stay price is for the whole room with taxes.",
+            "Every price shows how fresh it is: “just checked” (live source, up to 30 min), “cached” (found earlier, up to 3 days), “approximate” (unknown when found) or “worth re-checking” (older). Identical searches made at the same time go to the source only once."
+          ]
+        },
+        {
+          "h": "Flight score",
+          "p": [
+            "First we remove options that break your mandatory requirements (filters, “direct only”, baggage the fare doesn't allow): they are never recommended, however cheap, and above the list we say how many were hidden and why. The rest are ranked: score = price + known fee for the selected baggage + cost of extra travel time + stop penalty + risks (short or overnight layover, separate tickets, airport change, night departure or arrival) + mismatch with your settings (preferred airlines and departure time). The lower, the better value. The weight of time depends on “What matters more”: price, balance or time.",
+            "An unknown baggage fee and unknown layover details only add a warning, not a penalty. “Why this option?” shows concrete reasons from the same data: for example, how much more an option costs than the cheapest and how many hours of travel it saves."
+          ]
+        },
+        {
+          "h": "Stay score",
+          "p": [
+            "First we remove stays that fail your filters. The rest are scored: score = price per night + distance to the centre and transit + rating adjustment + cancellation terms + preferred amenities from your settings that are missing. Ratings with few reviews are pulled towards the average, so a single perfect score doesn't beat hundreds of reviews. “Why this option?” compares it with the cheapest and the top-rated in money for the whole stay, kilometres and rating points."
+          ]
+        },
+        {
+          "h": "The whole trip",
+          "p": [
+            "Trip total = tickets for everyone + baggage fees + the stay for all nights with taxes + costs you added yourself. Confirmed (source prices for these dates), indicative (cached prices, your costs) and unknown items are shown separately; unknown items aren't included in the total, and transfers without reliable data aren't added. The stay runs from the arrival date to the return departure date in local time: a night flight won't get you a hotel on the wrong dates. Scenarios: “Economy” — the lowest total with your conditions; “Optimal” — the price plus the “cost” of travel time, stops, the stay's location and rating, and inconvenient arrival or departure times; “Comfort” — the fewest stops and least travel time, then the stay's rating and proximity. The choice is within the budget, and if none fits — marked as over budget. Identical scenarios aren't duplicated. “Find a cheaper option” checks other dates (±3 days, the same number of nights), nearby airports, other flights and stays of the same type without changing your conditions, and shows how many options were checked: this is part of the market, not a guarantee of the lowest price.",
+            "For each combination we show how many nights are full (a late arrival from 23:00 or an early return before 07:00 “eats” a night you paid for), the total travel time and how much of it is waiting at layovers. “Why this option?” compares it with “Budget” and “Comfort”: how much more or less it costs, how many hours of travel, full nights and stops it saves, how much better the stay is and whether it fits the budget."
+          ]
+        },
+        {
+          "h": "What the AI does",
+          "p": [
+            "It parses a plain-language request into search parameters (airport codes and dates are checked by code) and explains the result. Every number in the explanation is checked against the search results."
+          ]
+        }
+      ]
+    }
+  },
+  "dateOptions": {
+    "title": "Alternative dates",
+    "hint": "The best price for each pair of dates. Cached prices are indicative — we checked the cheapest live. Click to search for these dates.",
+    "verified": "checked live",
+    "cached": "cached · {age}",
+    "foundHours": "{hours, plural, =0 {just now} one {# h ago} other {# h ago}}",
+    "foundDays": "{days, plural, =0 {today} =1 {yesterday} one {# day ago} other {# days ago}}",
+    "foundUnknown": "age unknown",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "nightsApprox": "≈ {count, plural, one {# night} other {# nights}}"
+  },
+  "matrix": {
+    "title": "Round-trip price matrix",
+    "hint": "Departure across, return down. The total round-trip price for 1 adult from the search cache is indicative; click to check it live.",
+    "corner": "Return ↓ / departure →",
+    "cellTitle": "Departure {from}, return {to}"
+  },
+  "sellers": {
+    "title": "Seller offers",
+    "titleOne": "Seller",
+    "bagIncluded": "baggage in the fare",
+    "bagNotIncluded": "no checked baggage",
+    "bagUnknown": "baggage terms unknown",
+    "live": "price from a live search {hours, plural, =0 {just now} one {# h ago} other {# h ago}}",
+    "cached": "cached price, indicative",
+    "view": "View the offer",
+    "compare": "Compare sellers and check the price",
+    "compareHint": "We'll ask this flight's sellers for their price right now.",
+    "checking": "Checking sellers and price…",
+    "checkedNow": "Checked just now",
+    "checkedMinutes": "Checked {minutes} min ago",
+    "priceChanged": "The price changed: {before} in the search, now from {now}.",
+    "airline": "airline",
+    "includedUnknown": "what's included — on the seller's site",
+    "finalAtSeller": "Can't be checked in advance — the final cost is confirmed by the seller.",
+    "checkFailed": "Couldn't check right now — the final cost is confirmed by the seller.",
+    "rateLimited": "Too many checks this hour — try later; the final cost is confirmed by the seller."
+  },
+  "compare": {
+    "add": "Compare",
+    "added": "In comparison",
+    "full": "You can compare up to {max} options",
+    "selected": "Selected for comparison: {count} of {max}",
+    "open": "Compare",
+    "clear": "Clear",
+    "title": "Option comparison",
+    "close": "Close",
+    "remove": "Remove from comparison",
+    "price": "Price",
+    "duration": "Duration",
+    "stops": "Stops",
+    "baggage": "Baggage",
+    "airline": "Airline",
+    "departure": "Departure",
+    "arrival": "Arrival",
+    "fare": "Fare terms",
+    "unknown": "unknown",
+    "live": "live price",
+    "cached": "cached price",
+    "cabin": {
+      "economy": "Economy",
+      "premium_economy": "Premium economy",
+      "business": "Business",
+      "first": "First"
+    }
+  },
+  "stayMap": {
+    "title": "Stays map",
+    "marker": "{name}: {price} per night",
+    "perNight": "per night",
+    "details": "Details",
+    "close": "Close",
+    "searchHere": "Search this area",
+    "failed": "The map is unavailable right now — use the list.",
+    "withoutCoordinates": "{count, plural, one {# option without exact coordinates isn't shown} other {# options without exact coordinates aren't shown}} on the map — it's in the list.",
+    "showOnMap": "On the map",
+    "list": "List",
+    "map": "Map",
+    "areaFilter": "Showing only options in the selected map area.",
+    "clearArea": "All results",
+    "noCoordinates": "No exact coordinates"
+  },
+  "stayRates": {
+    "checking": "Requesting seller rates…",
+    "checkedNow": "Rates checked just now",
+    "checkedMinutes": "Rates checked {minutes} min ago",
+    "sameConditions": "the same dates ({nights, plural, one {# night} other {# nights}}) and guests for all sellers",
+    "oneSeller": "There are no other sellers — comparing only this seller's rooms and rates.",
+    "note": "We compare only identical conditions: room, beds, meals and cancellation. The final total is the price plus taxes and mandatory fees; if the seller didn't state them, the seller confirms the final amount.",
+    "bed": {
+      "double": "one double bed",
+      "twin": "two separate beds",
+      "single": "single bed",
+      "bunk": "bed in a shared dorm",
+      "sofa_bed": "sofa bed"
+    },
+    "bedUnknown": "beds unknown",
+    "meal": {
+      "room_only": "room only",
+      "breakfast": "with breakfast",
+      "half_board": "half board",
+      "full_board": "full board",
+      "all_inclusive": "all inclusive"
+    },
+    "mealUnknown": "meals unknown",
+    "cancellation": {
+      "free": "free cancellation",
+      "partial": "cancellation with a fee",
+      "non_refundable": "non-refundable",
+      "unknown": "cancellation terms unknown"
+    },
+    "taxesIncluded": "taxes included",
+    "taxesExtra": "+ taxes {amount}",
+    "taxesExtraUnknown": "taxes on top, amount unknown",
+    "taxesUnknown": "whether taxes are included is unknown",
+    "fees": "+ fees at the property {amount}",
+    "noFees": "no fees at the property",
+    "feesUnknown": "mandatory fees unknown",
+    "property": "property's site",
+    "final": "final total",
+    "finalUnknown": "seller's price, the seller confirms the final one",
+    "sellerPrice": "seller's price {amount}",
+    "cheapest": "Cheapest",
+    "view": "Go",
+    "unsupported": "This source doesn't provide other sellers' rates — the seller confirms the price and terms.",
+    "failed": "Couldn't fetch rates. Please try later.",
+    "rateLimited": "Too many requests. Try again in a few minutes."
+  },
+  "favorites": {
+    "title": "Favorites",
+    "subtitle": "Flights, stays and trips you've saved. Prices are as of saving; a new search shows the current ones.",
+    "add": "Add to favorites",
+    "saved": "In favorites",
+    "limit": "No more than {max} items in favorites.",
+    "failed": "Couldn't save the changes. Please try again.",
+    "loading": "Loading favorites…",
+    "whereAccount": "Stored in your account.",
+    "whereBrowser": "Stored only in this browser. Sign in — and your favorites move to your account.",
+    "empty": "Nothing here yet.",
+    "findStays": "Find a stay",
+    "priceAt": "price as of {date}, may have changed",
+    "refresh": "Search again",
+    "remove": "Remove",
+    "categories": "Favorites categories",
+    "category": {
+      "all": "All",
+      "flight": "Flights",
+      "stay": "Stays",
+      "trip": "Trips"
+    },
+    "find": {
+      "all": "Find flights",
+      "flight": "Find flights",
+      "stay": "Find a stay",
+      "trip": "Plan a trip"
+    },
+    "back": "return",
+    "passengers": "{count, plural, one {# passenger} other {# passengers}}",
+    "toPlanner": "To the planner",
+    "openInPlanner": "Open in the planner"
+  },
+  "tripBuilder": {
+    "title": "Your trip",
+    "hint": "Replace the flight or the stay — the other is kept if it fits the new dates. Totals are recalculated after every change.",
+    "undo": "Undo last choice",
+    "reset": "Reset choice",
+    "flightUnavailable": "The selected flight is no longer in this search (other dates or the price changed) — showing the best option.",
+    "stayReplaced": "The selected stay isn't available for this flight's dates — we picked the best value for these dates.",
+    "cheaper": "Find a cheaper option",
+    "cheaperSearching": "Looking for cheaper…",
+    "cheaperHint": "We'll check other dates (±3 days, the same number of nights), nearby airports, other flights and stays with the same conditions: travelers, class, direct flights, baggage, stay type and preferences stay unchanged.",
+    "cheaperFailed": "Couldn't check. Please try later.",
+    "rateLimited": "Too many requests this hour. Please try again a bit later.",
+    "checked": "Checked {flights, plural, one {# flight} other {# flights}} and {combos, plural, one {# combination} other {# combinations}} — this is part of the market, not every possible price.",
+    "notFound": "No cheaper option was found for your conditions.",
+    "saving": "{amount} cheaper",
+    "change": {
+      "dates": "Other dates: {from} – {to}",
+      "flight": "Another flight: {route}, departs {out}",
+      "stay": "Another stay: {name}",
+      "origin_airport": "Another departure airport",
+      "destination_airport": "Another arrival airport"
+    },
+    "apply": "Apply",
+    "replaceFlight": "Replace the flight",
+    "replaceFlightHint": "The difference is relative to the current tickets. We'll check the stay for the new dates.",
+    "replaceStay": "Replace the stay for these {nights, plural, one {# night} other {# nights}}",
+    "replaceStayHint": "The difference is relative to the current stay for all nights with taxes.",
+    "noFlights": "There are no other flights in this search.",
+    "noStays": "No other stays for these dates match your preferences.",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "same": "same",
+    "direct": "direct",
+    "stops": "{count, plural, one {# stop} other {# stops}}",
+    "km": "{km} km to the center",
+    "baggageUnknown": "baggage fee unknown",
+    "saveHint": "We'll save the selected flight and stay with today's prices — you can refresh them later. “Share” gives a link to this exact configuration; whoever opens it sees current prices.",
+    "optimize": "Optimize with AI",
+    "optimizeDraft": "Optimize this trip: what can be made cheaper or more convenient without changing my conditions?"
+  },
+  "savedTrips": {
+    "pageTitle": "My trips",
+    "subtitle": "Saved configurations: flight, stay and prices at the time of saving. Current ones — after “Refresh prices”.",
+    "save": "Save trip",
+    "saveChanges": "Save changes",
+    "saved": "Saved",
+    "myTrips": "My trips",
+    "share": "Share",
+    "copied": "Link copied",
+    "limit": "No more than {max} saved trips.",
+    "failed": "Couldn't save the changes. Please try again.",
+    "loading": "Loading your trips…",
+    "whereAccount": "Stored in your account.",
+    "whereBrowser": "Stored only in this browser. Sign in — and your trips move to your account.",
+    "empty": "No saved trips yet.",
+    "plan": "Plan a trip",
+    "title": "Name",
+    "ok": "Done",
+    "rename": "Rename",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "flightLine": "Departs {out}, returns {back} · {stops, plural, =0 {direct} one {# stop} other {# stops}}",
+    "pricedAt": "total as of {date} — may have changed",
+    "unknown": "{count, plural, one {# item unknown} other {# items unknown}}",
+    "edit": "Open and edit",
+    "refresh": "Refresh prices",
+    "refreshFailed": "Couldn't refresh prices. Please try later.",
+    "refreshNone": "Nothing is available for these conditions right now — try opening it and changing the dates.",
+    "nowTotal": "Now: {total}",
+    "same": "unchanged",
+    "cheaper": "{amount} cheaper",
+    "pricier": "{amount} more",
+    "flightGone": "The selected flight is gone — the total is for the best alternative.",
+    "stayGone": "The selected stay isn't available for these dates — the total uses another stay.",
+    "copy": "Make a copy",
+    "copyTitle": "{title} (copy)",
+    "delete": "Delete",
+    "confirmDelete": "Delete this trip?",
+    "yes": "Yes",
+    "no": "No",
+    "status": {
+      "draft": "Draft",
+      "planned": "Planned",
+      "archived": "Archived"
+    },
+    "statusPlural": {
+      "draft": "Drafts",
+      "planned": "Planned",
+      "archived": "Archive"
+    },
+    "statusLabel": "Status:",
+    "statusFilter": "Filter by status",
+    "all": "All",
+    "pastHint": "The dates have passed — you can move it to the archive.",
+    "watch": "Watch the price"
+  },
+  "tripCompare": {
+    "add": "Compare",
+    "added": "In comparison",
+    "full": "You can compare up to {max} trips",
+    "selected": "Trips selected: {count} of {max}",
+    "clear": "Clear",
+    "open": "Compare trips",
+    "title": "Trip comparison",
+    "close": "Close",
+    "remove": "Remove from comparison",
+    "note": "Prices are as of when the trip was added to the comparison; a new search gives current ones. Green marks the best value in each row.",
+    "total": "Total budget (known)",
+    "plusUnknown": "+ {count, plural, one {# item} other {# items}} unknown",
+    "flights": "Flights",
+    "stay": "Stay",
+    "tripLength": "Trip length",
+    "days": "{days, plural, one {# day} other {# days}}, {nights, plural, one {# night} other {# nights}}",
+    "flightTime": "Time in the air",
+    "duration": "{hours} h {minutes} min",
+    "stops": "Stops",
+    "direct": "direct",
+    "stopsCount": "{count, plural, one {# stop} other {# stops}}",
+    "times": "Departure out / back",
+    "rating": "Stay rating",
+    "location": "Location",
+    "km": "{km} km to the center",
+    "cancellation": "Stay cancellation",
+    "pricedAt": "Prices as of",
+    "unknown": "unknown"
+  },
+  "chatCards": {
+    "view": "View",
+    "planWithFlight": "Plan a trip with this flight",
+    "addToTrip": "Add to trip",
+    "openInPlanner": "Open in the planner",
+    "forAll": "for all passengers",
+    "live": "live price",
+    "cached": "cached price · {hours} h ago",
+    "airlineUnknown": "airline unknown",
+    "km": "{km} km to the center",
+    "locationUnknown": "location unknown",
+    "perNight": "per night · {total} total for {nights, plural, one {# night} other {# nights}}",
+    "tripTotal": "known costs for {nights, plural, one {# night} other {# nights}}",
+    "unknownParts": "+ {count, plural, one {# item} other {# items}} unknown"
+  },
+  "cabinet": {
+    "hello": "Welcome, {name}!",
+    "helloHint": "Your trips, notifications and searches — in one place.",
+    "action": {
+      "newSearch": "New search",
+      "planTrip": "Plan a trip",
+      "myTrips": "My trips",
+      "newAlert": "Create a notification"
+    },
+    "all": "All",
+    "trips": "Saved trips",
+    "tripsEmpty": "No saved trips yet.",
+    "alerts": "Active notifications",
+    "alertsEmpty": "No active notifications.",
+    "recent": "Recent searches",
+    "recentEmpty": "No searches yet.",
+    "routes": "Favorite routes",
+    "routesHint": "Favorite flights and saved flight searches — search again with current prices.",
+    "routesEmpty": "Add a flight to favorites or save a search — the route will appear here.",
+    "alertHow": "To create a notification, find a flight and press “Track price” on the results page."
+  },
+  "modes": {
+    "label": "What are we searching for",
+    "flights": "Flights",
+    "stays": "Stays",
+    "trip": "Trip",
+    "ai": "AI search"
+  },
+  "common": {
+    "retry": "Try again",
+    "timeout": "The response is taking too long. Please try again."
+  },
+  "freshness": {
+    "live": "Price just checked",
+    "cached": "Cached price",
+    "approximate": "Approximate price",
+    "needs_recheck": "Worth re-checking the price",
+    "hint": {
+      "live": "A live source returned this price just now.",
+      "cached": "Someone found this price earlier; it may change.",
+      "approximate": "When this price was found is unknown: treat it as a guide.",
+      "needs_recheck": "The price is old — check it with the seller before booking."
+    }
+  }
+}

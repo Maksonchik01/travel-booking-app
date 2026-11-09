@@ -1,10 +1,14 @@
 // Лише для сервера: next/headers недоступний у клієнтському коді.
-import type { SessionOut } from "@tickets/shared";
-import { cookies } from "next/headers";
+import type { Account, Me, SessionOut } from "@tickets/shared";
+import { cookies, headers } from "next/headers";
+import { cache } from "react";
 
+import { isLocale, LOCALE_COOKIE } from "@/i18n/config";
 import { clientIpHeaders } from "@/lib/client-ip";
+import { deviceLabel } from "@/lib/device";
 
-const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const API_URL =
+  process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TIMEOUT_MS = 15_000;
 /** Токен сесії — лише в httpOnly-cookie: JavaScript сторінки його не бачить. */
 export const SESSION_COOKIE = "tickets_session";
@@ -27,6 +31,7 @@ export async function call<T = null>(
       signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: {
         ...(await clientIpHeaders()),
+        ...(await deviceHeader()),
         ...(body !== undefined ? { "content-type": "application/json" } : {}),
         ...(auth ? { authorization: `Bearer ${auth}` } : {}),
       },
@@ -45,19 +50,46 @@ export async function call<T = null>(
   }
 }
 
+/** Браузер і ОС відвідувача — API пише їх у нову сесію (список сесій у «Безпеці»). */
+async function deviceHeader(): Promise<Record<string, string>> {
+  try {
+    const label = deviceLabel((await headers()).get("user-agent"));
+    return label ? { "x-client-device": label } : {};
+  } catch {
+    return {}; // поза запитом (напр. after) — без пристрою
+  }
+}
+
 export async function sessionToken(): Promise<string | null> {
   return (await cookies()).get(SESSION_COOKIE)?.value ?? null;
 }
 
 /** Лише в Server Functions і Route Handlers (там можна змінювати cookie). */
 export async function setSession(session: SessionOut): Promise<void> {
-  (await cookies()).set(SESSION_COOKIE, session.token, {
+  const jar = await cookies();
+  jar.set(SESSION_COOKIE, session.token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     expires: new Date(session.expires_at),
   });
+  const locale = await profileLocale(session.token);
+  if (locale)
+    jar.set(LOCALE_COOKIE, locale, { path: "/", maxAge: LOCALE_MAX_AGE, sameSite: "lax" });
+}
+
+const LOCALE_MAX_AGE = 365 * 24 * 3600;
+
+/** Мова з профілю (вибрана на іншому пристрої) — після входу сайт відкривається нею. */
+export async function profileLocale(token: string): Promise<string | null> {
+  const me = await call<Me>("GET", "/auth/me", undefined, token);
+  return me.ok && isLocale(me.data.locale) ? me.data.locale : null;
+}
+
+/** Cookie мови заголовком — для Route Handlers з власним Response (вхід через Google). */
+export function localeCookieHeader(locale: string): string {
+  return `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=${LOCALE_MAX_AGE}; SameSite=Lax`;
 }
 
 /** Той самий cookie заголовком — для Route Handlers, що повертають власний Response. */
@@ -71,8 +103,6 @@ export async function clearSession(): Promise<void> {
   (await cookies()).delete(SESSION_COOKIE);
 }
 
-export type Me = { username: string; first_name: string };
-
 /** Хто увійшов (для шапки й сторінок); null — гість або сесія закінчилась. */
 export async function currentUser(): Promise<Me | null> {
   const token = await sessionToken();
@@ -81,18 +111,14 @@ export async function currentUser(): Promise<Me | null> {
   return result.ok ? result.data : null;
 }
 
-/** Збережені в профілі фільтри перельотів (для нового пошуку); гість чи помилка — null. */
-export async function savedFlightFilters(): Promise<string | null> {
+/** Профіль для значень за замовчуванням нового пошуку; гість чи помилка — null. */
+/** Один запит на рендер: форма й видача на тій самій сторінці беруть той самий акаунт. */
+export const currentAccount = cache(async (): Promise<Account | null> => {
   const token = await sessionToken();
   if (!token) return null;
-  const result = await call<{ flight_filters?: string | null }>(
-    "GET",
-    "/account",
-    undefined,
-    token,
-  );
-  return result.ok ? (result.data.flight_filters ?? null) : null;
-}
+  const result = await call<Account>("GET", "/account", undefined, token);
+  return result.ok ? result.data : null;
+});
 
 /**
  * Запис пошуку в історію кабінету — після відповіді (next/server `after`), щоб не

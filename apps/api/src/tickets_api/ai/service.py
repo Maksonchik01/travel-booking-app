@@ -20,6 +20,7 @@ from tickets_api.ai.explainer import ExplainResult, FlightExplainer
 from tickets_api.ai.parser import ParseContext, ParseResult, QueryParser, Turn
 from tickets_api.ai.stay_analyst import StayAnalysisResult, StayAnalyst
 from tickets_api.domain.flights import DEFAULT_CURRENCY, FlightQuery
+from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.domain.stays import StayQuery
 from tickets_api.llm.metered import MeteredLLM, RecordUsage
 from tickets_api.llm.pricing import Pricing
@@ -100,7 +101,9 @@ class AIService:
             await self._write(key, result)
         return result
 
-    async def explain(self, query: FlightQuery) -> ExplainResult:
+    async def explain(
+        self, query: FlightQuery, locale: UiLocale = DEFAULT_AI_LOCALE
+    ) -> ExplainResult:
         # Пошук іде з кешу провайдерів (сторінка результатів щойно зробила той самий).
         result = await self._search.search(query)
         picks = {p.offer_key for p in result.scoring.picks}
@@ -109,13 +112,22 @@ class AIService:
             return ExplainResult(status="no_options")
         fingerprint = [(o.source, o.id, str(o.price), o.collected_at.isoformat()) for o in offers]
         key = self._key(
-            "explain", self._explainer.version, query.model_dump_json(), json.dumps(fingerprint)
+            "explain",
+            self._explainer.version,
+            locale,
+            query.model_dump_json(),
+            json.dumps(fingerprint),
         )
         if (cached := await self._read(key, ExplainResult)) is not None:
             return cached
         stats = await self._stats(query, min(o.price for o in result.offers))
         explained = await self._explainer.explain(
-            query, result, self._metered("explain"), now=self._clock(), price_stats=stats
+            query,
+            result,
+            self._metered("explain"),
+            now=self._clock(),
+            price_stats=stats,
+            locale=locale,
         )
         if explained.status in ("ok", "rejected"):
             await self._write(key, explained)
@@ -130,7 +142,9 @@ class AIService:
         llm = self._metered(f"chat_{mode}", self._chat_max_calls)
         return await self._assistant.reply(turns, context, llm, mode)
 
-    async def analyze_stays(self, query: StayQuery, keys: Sequence[str]) -> StayAnalysisResult:
+    async def analyze_stays(
+        self, query: StayQuery, keys: Sequence[str], locale: UiLocale = DEFAULT_AI_LOCALE
+    ) -> StayAnalysisResult:
         """Резюме відгуків для вибраних користувачем об'єктів (1–3). Кешується."""
         if self._stay_search is None or self._stay_analyst is None:
             return StayAnalysisResult(status="unavailable")
@@ -142,7 +156,11 @@ class AIService:
         reviews = {s.id: await self._stay_search.reviews(s.source, s.id) for s in stays}
         fingerprint = [(s.source, s.id, str(s.price_per_night), len(reviews[s.id])) for s in stays]
         key = self._key(
-            "stays", self._stay_analyst.version, query.model_dump_json(), json.dumps(fingerprint)
+            "stays",
+            self._stay_analyst.version,
+            locale,
+            query.model_dump_json(),
+            json.dumps(fingerprint),
         )
         if (cached := await self._read(key, StayAnalysisResult)) is not None:
             return cached
@@ -150,7 +168,13 @@ class AIService:
             by_key[sc.stay_key].id: sc for sc in result.scoring.scores if sc.stay_key in by_key
         }
         analysis = await self._stay_analyst.analyze(
-            query, stays, scores, reviews, self._metered("stay_analysis", 2), now=self._clock()
+            query,
+            stays,
+            scores,
+            reviews,
+            self._metered("stay_analysis", 2),
+            now=self._clock(),
+            locale=locale,
         )
         if analysis.status in ("ok", "rejected"):
             await self._write(key, analysis)

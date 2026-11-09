@@ -10,7 +10,7 @@ from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
 from tickets_api.services.alerts_factory import build_alert_service, build_bot_service
 
-from tickets_worker.tasks import check_alerts, ping, poll_telegram
+from tickets_worker.tasks import check_alerts, ping, poll_telegram, prune_database
 
 _settings = get_settings()
 # Перевірка підписок — кожні ALERT_CHECK_INTERVAL_HOURS годин (о :00); бот — щохвилини.
@@ -26,6 +26,7 @@ async def startup(ctx: dict[str, Any]) -> None:
         _settings.redis_url, socket_timeout=2.0, socket_connect_timeout=2.0
     )
     sessionmaker = create_sessionmaker(ctx["engine"])
+    ctx["sessionmaker"] = sessionmaker
     ctx["alerts"] = build_alert_service(
         _settings, http=ctx["http"], redis=ctx["redis_client"], sessionmaker=sessionmaker
     )
@@ -44,11 +45,12 @@ async def shutdown(ctx: dict[str, Any]) -> None:
 class WorkerSettings:
     """Точка входу ARQ: `arq tickets_worker.settings.WorkerSettings`."""
 
-    functions: ClassVar[list[Any]] = [ping, check_alerts, poll_telegram]
+    functions: ClassVar[list[Any]] = [ping, check_alerts, poll_telegram, prune_database]
     cron_jobs: ClassVar[list[Any]] = [
         cron(check_alerts, hour=_CHECK_HOURS, minute={0}, run_at_startup=True),
         # Опитування бота замість webhook: публічна адреса не потрібна.
         cron(poll_telegram, second={0}, unique=True),
+        cron(prune_database, hour={3}, minute={30}, unique=True),
     ]
     on_startup = startup
     on_shutdown = shutdown

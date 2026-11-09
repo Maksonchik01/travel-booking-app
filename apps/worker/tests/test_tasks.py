@@ -1,7 +1,7 @@
 from typing import Any
 
 from tickets_worker.settings import WorkerSettings
-from tickets_worker.tasks import check_alerts, ping, poll_telegram
+from tickets_worker.tasks import check_alerts, ping, poll_telegram, prune_database
 
 
 class FakeAlerts:
@@ -25,6 +25,6 @@ async def test_alert_tasks_use_service_from_context() -> None:
 
 
 def test_tasks_and_schedule_are_registered() -> None:
-    assert {ping, check_alerts, poll_telegram} <= set(WorkerSettings.functions)
+    assert {ping, check_alerts, poll_telegram, prune_database} <= set(WorkerSettings.functions)
     scheduled = {job.coroutine for job in WorkerSettings.cron_jobs}
-    assert scheduled == {check_alerts, poll_telegram}
+    assert scheduled == {check_alerts, poll_telegram, prune_database}

@@ -17,11 +17,12 @@ from tickets_api.domain.flights import (
     BaggageNeed,
     Cabin,
     Currency,
+    FlightPreferences,
     Iata,
     Money,
     _StrictInput,
 )
-from tickets_api.domain.stays import MAX_NIGHTS, StayFilters, StayProfile
+from tickets_api.domain.stays import MAX_NIGHTS, StayFilters, StayPreferences, StayProfile
 from tickets_api.scoring.config import Profile
 
 TripProfile = Literal["budget", "balanced", "comfort"]
@@ -52,6 +53,13 @@ class TripExtra(_StrictInput):
 
     label: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
     amount: Money = Field(ge=0, le=Decimal(100_000))
+
+
+class TripPreferences(_StrictInput):
+    """Уподобання з профілю (модуль 14.4): м'які — лише в оцінку перельоту й житла."""
+
+    flights: FlightPreferences | None = None
+    stays: StayPreferences | None = None
 
 
 class TripQuery(_StrictInput):
@@ -88,6 +96,8 @@ class TripQuery(_StrictInput):
     flight: OfferKey | None = None
     """Обраний рейс (заміна перельоту, модуль 8b): якщо пошук його знову дав — це «Ваша
     поїздка», житло перевіряється на його дати; немає — чесно кажемо й підбираємо самі."""
+    preferences: TripPreferences | None = None
+    """М'які уподобання з профілю; не обов'язкові, як `stay_filters`."""
 
     @model_validator(mode="after")
     def _route_and_dates(self) -> Self:

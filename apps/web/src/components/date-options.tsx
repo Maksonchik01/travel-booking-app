@@ -71,7 +71,7 @@ export function DateOptions({
                 data-testid="date-option"
                 className={cn(
                   "hover:border-primary/50 lift grid gap-1 rounded-lg border p-3 text-sm transition-colors",
-                  o.price === cheapest && "border-emerald-500/50 bg-emerald-500/5",
+                  o.price === cheapest && "border-success/50 bg-success/5",
                 )}
               >
                 <span className="font-medium">
@@ -92,7 +92,7 @@ export function DateOptions({
                   })}
                 </span>
                 {o.verified ? (
-                  <span className="flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400">
+                  <span className="flex items-center gap-1 text-xs text-success">
                     <BadgeCheck className="size-3.5" aria-hidden />
                     {t("verified")}
                   </span>

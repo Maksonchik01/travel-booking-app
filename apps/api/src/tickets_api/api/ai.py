@@ -23,8 +23,10 @@ from tickets_api.ai.parser import (
 from tickets_api.ai.service import AIService
 from tickets_api.ai.stay_analyst import StayAnalysisResult
 from tickets_api.core.rate_limit import rate_limit
-from tickets_api.domain.flights import FlightQuery, Iata
+from tickets_api.domain.flights import DEFAULT_CURRENCY, Currency, FlightQuery, Iata
+from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.domain.stays import StayQuery
+from tickets_api.domain.trips import TripPreferences, TripQuery
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -79,7 +81,17 @@ class ChatBody(BaseModel):
     """Пошук перельотів, результати якого відкриті на сторінці (з URL)."""
     current_stay_search: StayQuery | None = None
     """Те саме для житла."""
+    current_trip: TripQuery | None = None
+    """Поїздка, відкрита в планувальнику (з вибором рейсу й житла) — для команд «змінити»."""
+    previous_trip: TripQuery | None = None
+    """Попередній крок поїздки з історії вкладки — «поверни», «порівняй з попереднім»."""
     home_airport: Iata | None = None
+    currency: Currency = DEFAULT_CURRENCY
+    """Валюта профілю (веб підставляє з акаунта)."""
+    preferences: TripPreferences | None = None
+    """М'які уподобання профілю — лише в оцінку пошуків помічника."""
+    locale: UiLocale = DEFAULT_AI_LOCALE
+    """Мова інтерфейсу — нею відповідає помічник."""
 
     @model_validator(mode="after")
     def _last_is_user(self) -> Self:
@@ -100,6 +112,11 @@ async def chat(body: ChatBody, request: Request) -> ChatReply:
         home_airport=body.home_airport,
         current_search=body.current_search,
         current_stay_search=body.current_stay_search,
+        current_trip=body.current_trip,
+        previous_trip=body.previous_trip,
+        currency=body.currency,
+        preferences=body.preferences,
+        locale=body.locale,
     )
     return await service.chat(body.messages, context, body.mode)
 
@@ -110,6 +127,7 @@ class StayAnalysisBody(BaseModel):
     query: StayQuery
     stay_keys: list[str] = Field(min_length=1, max_length=3)
     """`source:id` об'єктів з результатів пошуку — не більше трьох за раз."""
+    locale: UiLocale = DEFAULT_AI_LOCALE
 
 
 @router.post(
@@ -117,10 +135,13 @@ class StayAnalysisBody(BaseModel):
 )
 async def analyze_stays(body: StayAnalysisBody, request: Request) -> StayAnalysisResult:
     """Резюме відгуків і порівняння вибраних об'єктів. Value-score — з коду, не з моделі."""
-    return await _service(request).analyze_stays(body.query, body.stay_keys)
+    return await _service(request).analyze_stays(body.query, body.stay_keys, body.locale)
 
 
 @router.post("/explain", response_model=ExplainResult, dependencies=[Depends(rate_limit("ai"))])
-async def explain_results(query: FlightQuery, request: Request) -> ExplainResult:
-    """Пояснення найкращих варіантів пошуку. Числа — лише з результатів скорингу."""
-    return await _service(request).explain(query)
+async def explain_results(
+    query: FlightQuery, request: Request, locale: UiLocale = DEFAULT_AI_LOCALE
+) -> ExplainResult:
+    """Пояснення найкращих варіантів пошуку мовою інтерфейсу. Числа — лише з результатів
+    скорингу."""
+    return await _service(request).explain(query, locale)

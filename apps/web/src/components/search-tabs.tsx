@@ -1,19 +1,22 @@
 "use client";
 
-import { Search, Sparkles } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { type KeyboardEvent, type ReactNode, useId, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
+import { OPEN_CHAT_EVENT } from "@/lib/ai-events";
 import { readStore } from "@/lib/chat-history";
 import { useHydrated } from "@/lib/use-hydrated";
-import { cn } from "@/lib/utils";
 
-type Tab = "form" | "chat";
-const TABS: readonly Tab[] = ["form", "chat"];
+export type SearchTab = "form" | "chat";
 const TAB_STORAGE_KEY = "tickets.searchTab";
+/** Перемикач режимів (`search-modes.tsx`) просить вкладку — подія на спільному контейнері. */
+export const SELECT_TAB_EVENT = "search:select-tab";
+/** Вкладка змінилась — перемикач підсвічує «ШІ-пошук» чи режим форми. */
+export const TAB_CHANGED_EVENT = "search:tab-changed";
+export const SEARCH_AREA_ATTR = "data-search-area";
 
 /** Вкладка з sessionStorage; якщо не обирали — чат, коли є відкрита розмова. */
-function restoreTab(): Tab {
+function restoreTab(): SearchTab {
   try {
     const saved = sessionStorage.getItem(TAB_STORAGE_KEY);
     if (saved === "form" || saved === "chat") return saved;
@@ -25,7 +28,8 @@ function restoreTab(): Tab {
 
 /**
  * Два способи шукати в одній картці: форма (за замовчуванням, працює без JS) і ШІ-помічник.
- * Обидві панелі лишаються змонтованими — перемикання не губить введене.
+ * Обидві панелі лишаються змонтованими — перемикання не губить введене. Вибирає вкладку
+ * перемикач режимів над карткою (модуль 12.2) — подіями на спільному контейнері сторінки.
  */
 export function SearchTabs(props: { form: ReactNode; chat: ReactNode }) {
   const hydrated = useHydrated();
@@ -33,79 +37,50 @@ export function SearchTabs(props: { form: ReactNode; chat: ReactNode }) {
 }
 
 function Tabs({ form, chat, restored }: { form: ReactNode; chat: ReactNode; restored: boolean }) {
-  const t = useTranslations("tabs");
-  const id = useId();
-  const [tab, setTab] = useState<Tab>(() => (restored ? restoreTab() : "form"));
-  const refs = useRef<Record<Tab, HTMLButtonElement | null>>({ form: null, chat: null });
+  const [tab, setTab] = useState<SearchTab>(() => (restored ? restoreTab() : "form"));
+  const root = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
-  function select(next: Tab, focus = false) {
-    setTab(next);
-    try {
-      sessionStorage.setItem(TAB_STORAGE_KEY, next);
-    } catch {
-      // без сховища вкладка просто не запам'ятовується
-    }
-    if (focus) refs.current[next]?.focus();
-  }
+  // Повідомити перемикач про поточну вкладку (і після відновлення з sessionStorage).
+  useEffect(() => {
+    root.current
+      ?.closest(`[${SEARCH_AREA_ATTR}]`)
+      ?.dispatchEvent(new CustomEvent<SearchTab>(TAB_CHANGED_EVENT, { detail: tab }));
+  }, [tab]);
 
-  // Стрілки перемикають вкладки (ARIA tabs pattern).
-  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
-    event.preventDefault();
-    const index = TABS.indexOf(tab);
-    const step = event.key === "ArrowRight" ? 1 : -1;
-    select(TABS[(index + step + TABS.length) % TABS.length]!, true);
-  }
+  useEffect(() => {
+    const area = root.current?.closest(`[${SEARCH_AREA_ATTR}]`);
+    const select = (next: SearchTab) => {
+      setTab(next);
+      try {
+        sessionStorage.setItem(TAB_STORAGE_KEY, next);
+      } catch {
+        // без сховища вкладка просто не запам'ятовується
+      }
+    };
+    const onSelect = (event: Event) => select((event as CustomEvent<SearchTab>).detail);
+    // «Оптимізувати з ШІ» з планувальника — на вкладку помічника й до неї прокрутити.
+    const onOpen = () => {
+      if (pathname !== window.location.pathname) return; // прихована попередня сторінка
+      select("chat");
+      root.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    area?.addEventListener(SELECT_TAB_EVENT, onSelect);
+    window.addEventListener(OPEN_CHAT_EVENT, onOpen);
+    return () => {
+      area?.removeEventListener(SELECT_TAB_EVENT, onSelect);
+      window.removeEventListener(OPEN_CHAT_EVENT, onOpen);
+    };
+  }, [pathname]);
 
-  const icons = { form: Search, chat: Sparkles } as const;
   return (
-    <div className="grid gap-5">
-      <div
-        role="tablist"
-        aria-label={t("label")}
-        onKeyDown={onKeyDown}
-        className="bg-muted inline-flex w-full rounded-xl p-1 sm:w-fit"
-      >
-        {TABS.map((name) => {
-          const Icon = icons[name];
-          const selected = tab === name;
-          return (
-            <button
-              key={name}
-              ref={(el) => {
-                refs.current[name] = el;
-              }}
-              type="button"
-              role="tab"
-              id={`${id}-${name}-tab`}
-              aria-selected={selected}
-              aria-controls={`${id}-${name}`}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => select(name)}
-              className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all sm:flex-none",
-                selected
-                  ? "bg-card text-primary shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-card/50",
-              )}
-            >
-              <Icon className="size-4" aria-hidden />
-              {t(name)}
-            </button>
-          );
-        })}
+    <div ref={root} className="grid scroll-mt-20 gap-5">
+      <div hidden={tab !== "form"} data-testid="search-panel-form">
+        {form}
       </div>
-      {TABS.map((name) => (
-        <div
-          key={name}
-          role="tabpanel"
-          id={`${id}-${name}`}
-          aria-labelledby={`${id}-${name}-tab`}
-          hidden={tab !== name}
-        >
-          {name === "form" ? form : chat}
-        </div>
-      ))}
+      <div hidden={tab !== "chat"} data-testid="search-panel-chat">
+        {chat}
+      </div>
     </div>
   );
 }

@@ -84,7 +84,7 @@ export async function resetPassword(_: FormState, form: FormData): Promise<FormS
 export async function verifyEmail(_: FormState, form: FormData): Promise<FormState> {
   const result = await call("POST", "/auth/email/verify", { token: text(form, "token") }, null);
   if (!result.ok) return fail(result.code);
-  revalidatePath("/account");
+  revalidatePath("/account", "layout");
   return { status: "ok" };
 }
 
@@ -102,7 +102,7 @@ async function authed<T>(
     if (result.status === 401) redirect("/login?next=/account");
     return fail(result.status === 422 ? "invalid_input" : result.code);
   }
-  revalidatePath("/account");
+  revalidatePath("/account", "layout");
   return { status: "ok", data: result.data };
 }
 
@@ -170,6 +170,15 @@ export async function renameSearch(_: FormState, form: FormData): Promise<FormSt
     { title: text(form, "title") },
   );
   return { status, code };
+}
+
+/** «Зберегти» запис історії — у збережені пошуки (той самий рядок параметрів і назва). */
+export async function saveHistoryEntry(form: FormData): Promise<void> {
+  await authed<SearchEntry>("POST", "/account/saved", {
+    kind: text(form, "kind"),
+    params: raw(form, "params"),
+    title: text(form, "title"),
+  });
 }
 
 /** «Зберегти пошук» з результатів. Гість — на вхід з поверненням на ці результати. */

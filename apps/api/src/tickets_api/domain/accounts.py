@@ -9,6 +9,9 @@ from pydantic import AfterValidator, BaseModel, BeforeValidator, Field, StringCo
 
 from tickets_api.domain.alerts import AlertView, Email
 from tickets_api.domain.flights import _StrictInput
+from tickets_api.domain.locale import UiLocale
+from tickets_api.domain.notify import NotifyPrefs
+from tickets_api.domain.profile import SearchPrefs
 
 
 def _normalize_login(value: object) -> object:
@@ -122,6 +125,17 @@ class DeleteAccountBody(_StrictInput):
     """Пароль (якщо є) або власний логін — щоб видалення не сталося випадково."""
 
 
+class Me(BaseModel):
+    """Шапка сайту: хто увійшов і як його показати."""
+
+    username: str
+    first_name: str
+    last_name: str = ""
+    google_picture: str | None = None
+    avatar_version: int | None = None
+    locale: UiLocale | None = None
+
+
 class Account(BaseModel):
     id: str
     username: str
@@ -136,7 +150,31 @@ class Account(BaseModel):
     telegram_linked: bool
     flight_filters: str | None = None
     """Збережені фільтри пошуку перельотів (рядок URL); веб додає їх до нового пошуку."""
+    chat_sync: bool = False
+    """Згода зберігати розмови з помічником в акаунті (синхронізація між пристроями)."""
+    locale: UiLocale | None = None
+    currency: str | None = None
+    country: str | None = None
+    home_airport: str | None = None
+    favorite_airports: list[str] = []
+    search_prefs: SearchPrefs = SearchPrefs()
+    notify_prefs: NotifyPrefs = NotifyPrefs()
+    google_picture: str | None = None
+    """Фото з Google (за замовчуванням в аватарі, якщо немає власного)."""
+    avatar_version: int | None = None
+    """Є власне фото (GET /account/avatar); число змінюється з кожним новим — для кешу браузера."""
     created_at: datetime
+
+
+class SessionInfo(BaseModel):
+    """Сесія входу в кабінеті «Безпека»: пристрій грубо, без IP."""
+
+    id: str
+    device: str | None
+    created_at: datetime
+    last_seen_at: datetime | None
+    expires_at: datetime
+    current: bool
 
 
 class SearchEntryBody(_StrictInput):

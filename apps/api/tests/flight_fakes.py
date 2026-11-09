@@ -19,18 +19,24 @@ class FakeRedis:
             raise RedisConnectionError("down")
         return self.store.get(key)
 
-    async def set(self, key: str, value: bytes | str | int, ex: int | None = None) -> None:
+    async def set(
+        self, key: str, value: bytes | str | int, ex: int | None = None, nx: bool = False
+    ) -> bool | None:
         if self.broken:
             raise RedisConnectionError("down")
+        if nx and key in self.store:
+            return None
         self.store[key] = value if isinstance(value, bytes) else str(value).encode()
         if ex is not None:
             self.ttl[key] = ex
+        return True
 
     async def getdel(self, key: str) -> bytes | None:
         return self.store.pop(key, None)
 
     async def delete(self, key: str) -> None:
         self.store.pop(key, None)
+        self.ttl.pop(key, None)
 
     async def incr(self, key: str) -> int:
         value = int(self.store.get(key, b"0")) + 1

@@ -1,5 +1,6 @@
-import type { TripProfile, TripQuery } from "@tickets/shared";
+import type { FlightQuery, Offer, Stay, StayQuery, TripProfile, TripQuery } from "@tickets/shared";
 
+import { localDate } from "@/lib/format";
 import { BAGGAGE_NEEDS, CABINS, MAX_PERIOD_DAYS, type RawSearchParams } from "@/lib/search-params";
 import { MAX_NIGHTS } from "@/lib/stay-params";
 
@@ -181,6 +182,54 @@ export function toTripParams(query: TripQuery): URLSearchParams {
   if (query.stay) params.set("stay", query.stay);
   if (query.flight) params.set("flight", query.flight);
   return params;
+}
+
+/*
+ * Переходи «→ поїздка» (модуль 15) — в одному місці: з результатів перельотів, житла й ШІ
+ * планувальник відкривається тим самим `toTripParams`, а вибір закріплюють `flight=` / `stay=`.
+ */
+
+/** «Додати до поїздки» з житла: місто, дати, гості й саме це житло (модуль 7). */
+export function tripFromStay(stay: Stay, query: StayQuery): string {
+  const guests = query.guests ?? {};
+  const params = new URLSearchParams({
+    to: query.city,
+    depart: query.check_in,
+    return: query.check_out,
+    stay: `${stay.source}:${stay.id}`,
+  });
+  if ((guests.adults ?? 2) !== 2) params.set("adults", String(guests.adults));
+  if (guests.children) params.set("children", String(guests.children));
+  return `/trip?${params}`;
+}
+
+/**
+ * «Додати до поїздки» з рейсу: маршрут і умови пошуку, дати — фактичні дати рейсу (і в гнучкому
+ * пошуку), рейс закріплено (`flight=`, модуль 8b) — планувальник підбирає житло на його дати.
+ * Лише туди-назад і без немовлят (поїздка рахує дорослих і дітей) — інакше null.
+ */
+export function tripFromFlight(offer: Offer, search: FlightQuery): string | null {
+  const back = offer.inbound;
+  const people = search.passengers;
+  if (!back || people?.infants || people?.infants_in_seat) return null;
+  // toTripParams пише лише задане — решта полів запиту тут за замовчуванням.
+  const draft: Partial<TripQuery> = {
+    origin: search.origin,
+    destination: search.destination,
+    departure_date: localDate(offer.outbound.departure_at),
+    return_date: localDate(back.departure_at),
+    adults: people?.adults ?? 1,
+    children: people?.children ?? 0,
+    direct_only: search.direct_only,
+    nearby: Boolean(search.origin_radius_km || search.destination_radius_km),
+    baggage: search.baggage,
+    cabin: search.cabin,
+    flight: `${offer.source}:${offer.id}`,
+  };
+  const params = toTripParams(draft as TripQuery);
+  // Дорослих у пошуку перельотів за замовчуванням 1, у поїздці — 2: кількість пишемо завжди.
+  params.set("adults", String(people?.adults ?? 1));
+  return `/trip?${params}`;
 }
 
 /** Id збереженої поїздки, яку редагують (`saved=`): лише літери, цифри, «-». */

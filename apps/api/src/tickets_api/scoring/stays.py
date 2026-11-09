@@ -1,7 +1,9 @@
 """Детермінований value-score житла і вибірка трьох варіантів. Чистий код: без I/O і без LLM.
 
 Формула і ваги — у stays.toml (ADR 0008). Менша оцінка — вигідніше, як і для перельотів:
-це ціна за ніч плюс «ціна» незручностей (далеко, без повернення коштів, слабкий рейтинг).
+це ціна за ніч плюс «ціна» незручностей (далеко, без повернення коштів, слабкий рейтинг,
+бракує бажаних зручностей). «Чому цей варіант?» — `reasons`: порівняння з найдешевшим і
+найкраще оціненим у грошах за все проживання, кілометрах і балах рейтингу (ADR 0031).
 """
 
 import tomllib
@@ -14,7 +16,7 @@ from typing import Literal, Self, get_args
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from tickets_api.domain.flights import Money
-from tickets_api.domain.stays import Number, Stay, StayProfile
+from tickets_api.domain.stays import Amenity, Number, Stay, StayPreferences, StayProfile
 
 DEFAULT_STAY_CONFIG_PATH = Path(__file__).with_name("stays.toml")
 CENT = Decimal("0.01")
@@ -27,6 +29,21 @@ StayWarningCode = Literal[
     "transit_unknown",
     "cancellation_unknown",
 ]
+StayReasonCode = Literal[
+    "only_option",
+    "cheapest",
+    "top_rated",
+    "best_balance",
+    "pricier_but_closer",
+    "pricier_but_better_rated",
+    "cheaper_than_top_rated",
+    "free_cancellation",
+    "preferred_amenities",
+    "within_budget",
+]
+# Меншу різницю не називаємо перевагою — це шум даних.
+MIN_DISTANCE_GAIN_KM = Decimal("0.5")
+MIN_RATING_GAIN = Decimal("0.3")
 LABEL_PRECEDENCE: tuple[StayPickLabel, ...] = ("balanced", "cheapest", "top_rated")
 DISPLAY_ORDER: tuple[StayPickLabel, ...] = ("cheapest", "balanced", "top_rated")
 
@@ -44,6 +61,7 @@ class StayPenalties(_Strict):
     transit_far: Decimal = Field(ge=0)
     non_refundable: Decimal = Field(ge=0)
     partial_refund: Decimal = Field(ge=0)
+    missing_amenity: Decimal = Field(ge=0)
 
 
 class StayThresholds(_Strict):
@@ -86,9 +104,23 @@ class StayScoreBreakdown(BaseModel):
     transit_penalty: Money
     rating_penalty: Money
     cancellation_penalty: Money
+    amenity_penalty: Money = Decimal(0)
+    missing_amenities: list[Amenity] = []
+    """Бажані зручності з профілю, яких у об'єкта немає."""
     adjusted_rating: Number | None
     """Рейтинг з поправкою на кількість відгуків; None — оцінок немає."""
     total: Money
+
+
+class StayReason(BaseModel):
+    """Причина «Чому цей варіант?» — факт з даних пошуку. Гроші — за все проживання."""
+
+    code: StayReasonCode
+    vs: StayPickLabel | None = None
+    amount: Money | None = None
+    km: Number | None = None
+    rating: Number | None = None
+    count: int | None = None
 
 
 class StayWarning(BaseModel):
@@ -100,6 +132,7 @@ class StayScore(BaseModel):
     breakdown: StayScoreBreakdown
     warnings: list[StayWarning]
     pareto_optimal: bool
+    reasons: list[StayReason] = []
 
 
 class StayPick(BaseModel):
@@ -135,7 +168,12 @@ def adjusted_rating(stay: Stay, config: StayScoringConfig) -> Decimal | None:
     return ((n * stay.rating + m * t.prior_rating) / (n + m)).quantize(Decimal("0.01"))
 
 
-def score_stay(stay: Stay, profile: StayProfile, config: StayScoringConfig) -> StayScore:
+def score_stay(
+    stay: Stay,
+    profile: StayProfile,
+    config: StayScoringConfig,
+    preferences: StayPreferences | None = None,
+) -> StayScore:
     weights = config.profiles[profile]
     t, p = config.thresholds, config.penalties
     warnings: list[StayWarning] = []
@@ -176,8 +214,20 @@ def score_stay(stay: Stay, profile: StayProfile, config: StayScoringConfig) -> S
     elif stay.cancellation == "partial":
         cancellation_penalty = p.partial_refund
 
+    # Порожній список зручностей — джерело їх не дало: невідомо, не «немає» (ADR 0004).
+    wanted = preferences.amenities if preferences else []
+    missing = [a for a in wanted if stay.amenities and a not in stay.amenities]
+    amenity_penalty = p.missing_amenity * len(missing)
+
     price = _money(stay.price_per_night)
-    total = price + distance_penalty + transit_penalty + rating_penalty + cancellation_penalty
+    total = (
+        price
+        + distance_penalty
+        + transit_penalty
+        + rating_penalty
+        + cancellation_penalty
+        + amenity_penalty
+    )
     return StayScore(
         stay_key=stay_key(stay),
         breakdown=StayScoreBreakdown(
@@ -186,6 +236,8 @@ def score_stay(stay: Stay, profile: StayProfile, config: StayScoringConfig) -> S
             transit_penalty=_money(transit_penalty),
             rating_penalty=_money(rating_penalty),
             cancellation_penalty=_money(cancellation_penalty),
+            amenity_penalty=_money(amenity_penalty),
+            missing_amenities=missing,
             adjusted_rating=rating,
             total=_money(total),
         ),
@@ -195,18 +247,26 @@ def score_stay(stay: Stay, profile: StayProfile, config: StayScoringConfig) -> S
 
 
 def score_stays(
-    stays: Sequence[Stay], profile: StayProfile, config: StayScoringConfig
+    stays: Sequence[Stay],
+    profile: StayProfile,
+    config: StayScoringConfig,
+    *,
+    preferences: StayPreferences | None = None,
+    budget: Decimal | None = None,
 ) -> StayScoringResult:
+    """`budget` — ліміт на все проживання з фільтрів (уже застосованих): лише для причини
+    «у межах бюджету, запас N»."""
     comparable = [s for s in stays if s.currency == config.currency]
     unscored = [stay_key(s) for s in stays if s.currency != config.currency]
-    scores = [score_stay(s, profile, config) for s in comparable]
+    scores = [score_stay(s, profile, config, preferences) for s in comparable]
     by_key = {stay_key(s): s for s in comparable}
     scores = _mark_pareto(scores, by_key)
+    picks = _picks(scores)
     return StayScoringResult(
         profile=profile,
         currency=config.currency,
-        scores=scores,
-        picks=_picks(scores),
+        scores=_with_reasons(scores, picks, by_key, preferences, budget),
+        picks=picks,
         unscored_stay_keys=unscored,
     )
 
@@ -258,3 +318,76 @@ def _picks(scores: list[StayScore]) -> list[StayPick]:
             picks[key] = StayPick(label=label, stay_key=key)
     order = {label: i for i, label in enumerate(DISPLAY_ORDER)}
     return sorted(picks.values(), key=lambda p: order[p.label])
+
+
+def _with_reasons(
+    scores: list[StayScore],
+    picks: list[StayPick],
+    by_key: dict[str, Stay],
+    preferences: StayPreferences | None,
+    budget: Decimal | None,
+) -> list[StayScore]:
+    """«Чому цей варіант?»: що виграв і чим відрізняється від найдешевшого (дорожче, але
+    ближче / краще оцінений) та найкраще оціненого (дешевше) — з тих самих даних."""
+    winners = {label: p.stay_key for p in picks for label in (p.label, *p.also)}
+    rated = {s.stay_key: s.breakdown.adjusted_rating for s in scores}
+    cheapest = by_key.get(winners.get("cheapest", ""))
+    top = by_key.get(winners.get("top_rated", ""))
+    wanted = preferences.amenities if preferences else []
+    result = []
+    for score in scores:
+        key = score.stay_key
+        stay = by_key[key]
+        reasons: list[StayReason] = []
+        if len(scores) == 1:
+            reasons.append(StayReason(code="only_option"))
+        else:
+            if winners.get("cheapest") == key:
+                reasons.append(StayReason(code="cheapest", count=len(scores)))
+            if winners.get("top_rated") == key:
+                reasons.append(StayReason(code="top_rated", count=len(scores)))
+            if winners.get("balanced") == key:
+                reasons.append(StayReason(code="best_balance", amount=score.breakdown.total))
+        mine = rated[key]
+        if cheapest is not None and cheapest is not stay:
+            extra = _money(max(stay.total_price - cheapest.total_price, Decimal(0)))
+            near, far = stay.distance_to_center_km, cheapest.distance_to_center_km
+            if near is not None and far is not None and far - near >= MIN_DISTANCE_GAIN_KM:
+                reasons.append(
+                    StayReason(
+                        code="pricier_but_closer", vs="cheapest", amount=extra, km=far - near
+                    )
+                )
+            base = rated[stay_key(cheapest)]
+            if mine is not None and base is not None and mine - base >= MIN_RATING_GAIN:
+                reasons.append(
+                    StayReason(
+                        code="pricier_but_better_rated",
+                        vs="cheapest",
+                        amount=extra,
+                        rating=mine - base,
+                    )
+                )
+            if stay.cancellation == "free" and cheapest.cancellation in (
+                "non_refundable",
+                "partial",
+            ):
+                reasons.append(StayReason(code="free_cancellation", vs="cheapest"))
+        if top is not None and top is not stay and stay.total_price < top.total_price:
+            best = rated[stay_key(top)]
+            reasons.append(
+                StayReason(
+                    code="cheaper_than_top_rated",
+                    vs="top_rated",
+                    amount=_money(top.total_price - stay.total_price),
+                    rating=best - mine if best is not None and mine is not None else None,
+                )
+            )
+        if wanted and stay.amenities and all(a in stay.amenities for a in wanted):
+            reasons.append(StayReason(code="preferred_amenities", count=len(wanted)))
+        if budget is not None and stay.total_price <= budget:
+            reasons.append(
+                StayReason(code="within_budget", amount=_money(budget - stay.total_price))
+            )
+        result.append(score.model_copy(update={"reasons": reasons}))
+    return result

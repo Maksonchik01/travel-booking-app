@@ -21,6 +21,8 @@ const nextConfig: NextConfig = {
         pathname: "/flights/airline_logos/**",
         search: "",
       },
+      // Фото профілю Google (модуль 10b): теж через оптимізатор — браузер не ходить до Google.
+      { protocol: "https", hostname: "*.googleusercontent.com", port: "", pathname: "/**" },
     ],
     qualities: [75],
     minimumCacheTTL: 7 * 24 * 60 * 60,

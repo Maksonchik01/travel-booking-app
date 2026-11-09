@@ -124,7 +124,7 @@ function PickCard({ pick, stay, score }: { pick: StayPick; stay: Stay; score?: S
               {tCard("whyScore")}
             </summary>
             <div className="mt-2">
-              <StayScoreDetails score={score} money={(v) => money(v, 2)} />
+              <StayScoreDetails score={score} money={(v) => money(v, v % 1 === 0 ? 0 : 2)} />
             </div>
           </details>
         )}

@@ -1,13 +1,25 @@
-import type { ChatReply, FlightQuery, StayQuery } from "@tickets/shared";
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import type { ChatReply, FlightQuery, StayQuery, TripQuery } from "@tickets/shared";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import messages from "../../messages/uk.json";
+import { openChat } from "@/lib/ai-events";
+
 import { AIChat, type ChatBodyInput } from "./ai-chat";
 
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+const chats = vi.hoisted(() => ({
+  loadChatSync: vi.fn(),
+  setChatSync: vi.fn(),
+  saveChat: vi.fn(),
+  deleteChat: vi.fn(),
+}));
+vi.mock("@/app/actions/chats", () => chats);
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push }),
+  usePathname: () => window.location.pathname,
+}));
 
 const SEARCH: FlightQuery = {
   origin: "WAW",
@@ -43,13 +55,17 @@ const STAY: StayQuery = {
 
 type Send = (body: ChatBodyInput) => Promise<ChatReply | "rate_limited" | null>;
 
-function renderChat(send: Send, current?: { flights?: FlightQuery; stays?: StayQuery }) {
+function renderChat(
+  send: Send,
+  current?: { flights?: FlightQuery; stays?: StayQuery; trip?: TripQuery },
+) {
   return render(
     <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
       <AIChat
         send={send}
         currentSearch={current?.flights}
         currentStaySearch={current?.stays}
+        currentTrip={current?.trip}
         homeAirport={current?.flights?.origin}
       />
     </NextIntlClientProvider>,
@@ -84,10 +100,14 @@ const ok = (reply: string, extra: Partial<ChatReply> = {}): ChatReply => ({
   status: "ok",
   reply,
   search: null,
+  compare: [],
+  cards: [],
   ...extra,
 });
 
 beforeEach(() => {
+  chats.loadChatSync.mockResolvedValue({ signedIn: false });
+  chats.saveChat.mockResolvedValue(true);
   localStorage.clear();
   sessionStorage.clear();
   push.mockClear();
@@ -126,7 +146,10 @@ describe("AIChat", () => {
       mode: "flights",
       current_search: null,
       current_stay_search: null,
+      current_trip: null,
+      previous_trip: null,
       home_airport: null,
+      locale: "uk",
     });
     expect(bubbles().slice(0, 3)).toEqual([
       "Ви: Хочу в Лісабон 10 грудня",
@@ -213,5 +236,172 @@ describe("AIChat", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Забагато повідомлень за годину");
     expect(screen.getByLabelText("Запитайте ШІ-помічника")).toHaveValue("Лісабон у грудні");
+  });
+
+  it("команди готової поїздки змінюють стан сторінки: нова конфігурація, назад, порівняння, збереження", async () => {
+    const trip = {
+      origin: "WAW",
+      destination: "LIS",
+      departure_date: "2026-12-05",
+      return_date: "2026-12-08",
+    } as TripQuery;
+    // Історія вкладки: попередній крок і поточний.
+    sessionStorage.setItem(
+      "tickets.tripHistory.v1",
+      JSON.stringify([
+        "from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08",
+        "from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&flight=mock%3Aa&stay=mock%3Ab",
+      ]),
+    );
+    const changed = { ...trip, flight: "mock:a", stay: "mock:c" } as TripQuery;
+    const send = vi
+      .fn<Send>()
+      .mockResolvedValueOnce(
+        ok("Знайшов дешевше житло.", { trip_search: changed as ChatReply["trip_search"] }),
+      )
+      .mockResolvedValueOnce(ok("Повернув.", { trip_action: "undo" }));
+    renderChat(send, { trip });
+    choose("Уся поїздка");
+
+    await say("знайди дешевший готель, квитки не змінюй");
+
+    const body = send.mock.calls[0][0];
+    expect(body.current_trip).toEqual(trip);
+    expect(body.previous_trip).toMatchObject({ origin: "WAW", flight: null, stay: null });
+    expect(push).toHaveBeenLastCalledWith(
+      "/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&stay=mock%3Ac&flight=mock%3Aa",
+      { scroll: false },
+    );
+
+    await say("поверни попередній варіант");
+    expect(push).toHaveBeenLastCalledWith(
+      "/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08",
+      {
+        scroll: false,
+      },
+    );
+  });
+
+  it("картки результатів: переглянути, перенести в планувальник, вік ціни", async () => {
+    const leg = {
+      origin: "WAW",
+      destination: "LIS",
+      departure_at: "2026-12-10T06:10:00+01:00",
+      arrival_at: "2026-12-10T09:30:00+00:00",
+      stops: 0,
+    };
+    const flight = {
+      kind: "flight" as const,
+      key: "mock:abc",
+      label: "Найдешевший",
+      airlines: ["LOT"],
+      outbound: leg,
+      inbound: {
+        ...leg,
+        origin: "LIS",
+        destination: "WAW",
+        departure_at: "2026-12-14T10:00:00+00:00",
+      },
+      duration_min: 400,
+      stops: 0,
+      price: 230,
+      currency: "EUR",
+      price_status: "cached" as const,
+      found_at: "2020-01-01T00:00:00Z",
+    };
+    const send = vi
+      .fn<Send>()
+      .mockResolvedValueOnce(ok("Ось варіанти.", { search: SEARCH, cards: [flight] }));
+    renderChat(send);
+    choose("Квитки");
+
+    await say("Варшава — Лісабон 10 грудня");
+
+    const card = screen.getByTestId("chat-card-flight");
+    expect(card).toHaveTextContent("Найдешевший");
+    expect(card).toHaveTextContent("WAW → LIS");
+    expect(card).toHaveTextContent("LOT");
+    expect(card).toHaveTextContent(/230\s€/);
+    expect(screen.getByTestId("chat-card-age").className).toContain("warning"); // застаріла
+    const links = within(card).getAllByRole("link");
+    expect(links[0].getAttribute("href")).toContain("#offer-mock-abc");
+    const plan = new URLSearchParams(links[1].getAttribute("href")!.split("?")[1]);
+    expect(Object.fromEntries(plan)).toMatchObject({
+      from: "WAW",
+      to: "LIS",
+      depart: "2026-12-10",
+      return: "2026-12-14",
+      flight: "mock:abc",
+    });
+  });
+
+  it("«Оптимізувати з ШІ» з планувальника відкриває нову розмову «Уся поїздка» з чернеткою", async () => {
+    renderChat(vi.fn<Send>());
+    act(() => openChat({ mode: "trip", draft: "Оптимізуй цю поїздку" }));
+
+    expect(screen.getByText("Розмова: Уся поїздка")).toBeInTheDocument();
+    expect(screen.getByLabelText("Запитайте ШІ-помічника")).toHaveValue("Оптимізуй цю поїздку");
+  });
+
+  it("історія: перейменування; синхронізація лише за згодою — злиття, вивантаження, видалення", async () => {
+    chats.loadChatSync.mockResolvedValue({
+      signedIn: true,
+      enabled: true,
+      conversations: [
+        {
+          id: "remote-conv-1",
+          mode: "stays",
+          title: "З іншого пристрою",
+          created_at: 1,
+          updated_at: 5,
+          turns: [{ role: "user", text: "Житло в Римі" }],
+        },
+      ],
+    });
+    const send = vi.fn<Send>().mockResolvedValueOnce(ok("Звідки летите?"));
+    renderChat(send);
+    await act(async () => {});
+    choose("Квитки");
+    await say("Хочу в Лісабон");
+
+    // Нова розмова пішла в акаунт; розмова з іншого пристрою — в історії.
+    expect(chats.saveChat).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ mode: "flights", title: "Хочу в Лісабон" }),
+    );
+    click(/Історія/);
+    expect(screen.getByText("З іншого пристрою")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Перейменувати розмову «Хочу в Лісабон»" }));
+    fireEvent.change(screen.getByLabelText("Назва розмови"), {
+      target: { value: "Лісабон у грудні" },
+    });
+    click("Готово");
+    expect(screen.getByText("Лісабон у грудні")).toBeInTheDocument();
+    expect(chats.saveChat).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({ title: "Лісабон у грудні" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Видалити розмову «З іншого пристрою»" }));
+    expect(chats.deleteChat).toHaveBeenCalledWith("remote-conv-1");
+
+    chats.setChatSync.mockResolvedValue({ signedIn: true, enabled: false, conversations: [] });
+    await act(async () =>
+      fireEvent.click(screen.getByRole("checkbox", { name: /Синхронізувати/ })),
+    );
+    expect(chats.setChatSync).toHaveBeenCalledWith(false);
+    expect(screen.getByTestId("chat-sync")).toHaveTextContent("Вимкнено");
+  });
+
+  it("гість: розмови лише в браузері, на сервер нічого", async () => {
+    renderChat(vi.fn<Send>().mockResolvedValueOnce(ok("Звідки летите?")));
+    await act(async () => {});
+    choose("Квитки");
+    await say("Хочу в Лісабон");
+    click(/Історія/);
+
+    expect(chats.saveChat).not.toHaveBeenCalled();
+    expect(screen.getByText(/Увійдіть, щоб синхронізувати/)).toBeInTheDocument();
   });
 });

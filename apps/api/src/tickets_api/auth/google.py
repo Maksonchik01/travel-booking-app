@@ -10,7 +10,7 @@ import base64
 import hashlib
 import secrets
 from dataclasses import dataclass
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 import httpx
 
@@ -31,6 +31,8 @@ class GoogleProfile:
     email_verified: bool
     given_name: str | None
     family_name: str | None
+    picture: str | None = None
+    """Фото профілю Google (https://…googleusercontent.com/…) — за замовчуванням в аватарі."""
 
 
 def new_pkce() -> tuple[str, str]:
@@ -96,8 +98,19 @@ class GoogleOAuth:
             email_verified=data.get("email_verified") is True,
             given_name=_text(data.get("given_name")),
             family_name=_text(data.get("family_name")),
+            picture=_picture(data.get("picture")),
         )
 
 
 def _text(value: object) -> str | None:
     return value.strip()[:60] or None if isinstance(value, str) else None
+
+
+def _picture(value: object) -> str | None:
+    """Лише https-адреси Google (інші хости в <img> не підставляємо)."""
+    if not isinstance(value, str) or len(value) > 500:
+        return None
+    url = urlsplit(value)
+    host = url.hostname or ""
+    google = host == "googleusercontent.com" or host.endswith(".googleusercontent.com")
+    return value if url.scheme == "https" and google else None
