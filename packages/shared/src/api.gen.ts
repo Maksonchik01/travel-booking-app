@@ -1281,7 +1281,7 @@ export interface paths {
         put?: never;
         /**
          * Import Trips
-         * @description Поїздки гостя з браузера — до акаунта після входу.
+         * @description Поїздки гостя з браузера — до акаунта (етап 7: на згоду, без дублікатів конфігурацій).
          */
         post: operations["import_trips_account_trips_import_post"];
         delete?: never;
@@ -1310,6 +1310,46 @@ export interface paths {
          * @description Назва чи статус поїздки (чернетка / запланована / архівна).
          */
         patch: operations["patch_trip_account_trips__trip_id__patch"];
+        trace?: never;
+    };
+    "/account/trips/{trip_id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Trip Checklist
+         * @description Чекліст поїздки (етап 7): документи, багаж, реєстрація, трансфер, заселення + власні.
+         */
+        put: operations["trip_checklist_account_trips__trip_id__checklist_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/saved/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Saved
+         * @description Збережені пошуки гостя з браузера (етап 7) — без повторів, у межах ліміту.
+         */
+        post: operations["import_saved_account_saved_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/account/trips/{trip_id}/share": {
@@ -2346,6 +2386,28 @@ export interface components {
             /** Error */
             error?: string | null;
         };
+        /** ChecklistBody */
+        ChecklistBody: {
+            /** Items */
+            items: components["schemas"]["ChecklistItem"][];
+        };
+        /**
+         * ChecklistItem
+         * @description Пункт чекліста поїздки: стандартний (`key`) або власний (`text`).
+         */
+        ChecklistItem: {
+            /** Id */
+            id: string;
+            /** Key */
+            key?: ("documents" | "baggage" | "checkin" | "transfer" | "hotel") | null;
+            /** Text */
+            text?: string | null;
+            /**
+             * Done
+             * @default false
+             */
+            done: boolean;
+        };
         /**
          * ClickIn
          * @description Клік «Забронювати». Посилання перевіряє й редиректить веб; сюди — лише облік.
@@ -2717,10 +2779,95 @@ export interface components {
              * @default stay
              * @enum {string}
              */
-            kind: "stay" | "flight" | "trip";
+            kind: "stay" | "flight" | "trip" | "destination";
             stay?: components["schemas"]["FavoriteStay-Input"] | null;
             flight?: components["schemas"]["FavoriteFlight-Input"] | null;
             trip?: components["schemas"]["FavoriteTrip-Input"] | null;
+            destination?: components["schemas"]["FavoriteDestination-Input"] | null;
+        };
+        /**
+         * FavoriteDestination
+         * @description Напрямок з Explore (етап 7, ADR 0051): місто, дати, ціна перельоту з часом отримання.
+         */
+        "FavoriteDestination-Input": {
+            /** Code */
+            code: string;
+            /** City */
+            city: string;
+            /** Country */
+            country?: string | null;
+            /**
+             * Depart
+             * Format: date
+             */
+            depart: string;
+            /**
+             * Back
+             * Format: date
+             */
+            back: string;
+            /** Nights */
+            nights: number;
+            /** Price */
+            price: number | string;
+            /**
+             * With Stay
+             * @default false
+             */
+            with_stay: boolean;
+            /** Currency */
+            currency: string;
+            /**
+             * Price At
+             * Format: date-time
+             */
+            price_at: string;
+            /** Photo Url */
+            photo_url?: string | null;
+            /** Params */
+            params: string;
+        };
+        /**
+         * FavoriteDestination
+         * @description Напрямок з Explore (етап 7, ADR 0051): місто, дати, ціна перельоту з часом отримання.
+         */
+        "FavoriteDestination-Output": {
+            /** Code */
+            code: string;
+            /** City */
+            city: string;
+            /** Country */
+            country?: string | null;
+            /**
+             * Depart
+             * Format: date
+             */
+            depart: string;
+            /**
+             * Back
+             * Format: date
+             */
+            back: string;
+            /** Nights */
+            nights: number;
+            /** Price */
+            price: number;
+            /**
+             * With Stay
+             * @default false
+             */
+            with_stay: boolean;
+            /** Currency */
+            currency: string;
+            /**
+             * Price At
+             * Format: date-time
+             */
+            price_at: string;
+            /** Photo Url */
+            photo_url?: string | null;
+            /** Params */
+            params: string;
         };
         /**
          * FavoriteFlight
@@ -2834,12 +2981,13 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "stay" | "flight" | "trip";
+            kind: "stay" | "flight" | "trip" | "destination";
             /** Item Key */
             item_key: string;
             stay?: components["schemas"]["FavoriteStay-Output"] | null;
             flight?: components["schemas"]["FavoriteFlight-Output"] | null;
             trip?: components["schemas"]["FavoriteTrip-Output"] | null;
+            destination?: components["schemas"]["FavoriteDestination-Output"] | null;
             /**
              * Created At
              * Format: date-time
@@ -3914,6 +4062,8 @@ export interface components {
              * @enum {string}
              */
             status: "draft" | "planned" | "archived";
+            /** Checklist */
+            checklist?: components["schemas"]["ChecklistItem"][];
         };
         /** SavedTripBody */
         "SavedTripBody-Output": {
@@ -3927,6 +4077,8 @@ export interface components {
              * @enum {string}
              */
             status: "draft" | "planned" | "archived";
+            /** Checklist */
+            checklist?: components["schemas"]["ChecklistItem"][];
         };
         /** SavedTripOut */
         SavedTripOut: {
@@ -3952,6 +4104,11 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /**
+             * Checklist
+             * @default []
+             */
+            checklist: components["schemas"]["ChecklistItem"][];
             /** Share Token */
             share_token?: string | null;
         };
@@ -4070,13 +4227,21 @@ export interface components {
                 [key: string]: components["schemas"]["SourceStats"];
             };
         };
+        /**
+         * SearchEntriesImport
+         * @description Збережені пошуки гостя з браузера (етап 7) — до акаунта, без повторів.
+         */
+        SearchEntriesImport: {
+            /** Items */
+            items: components["schemas"]["SearchEntryBody"][];
+        };
         /** SearchEntryBody */
         SearchEntryBody: {
             /**
              * Kind
              * @enum {string}
              */
-            kind: "flights" | "stays" | "trip";
+            kind: "flights" | "stays" | "trip" | "explore";
             /** Params */
             params: string;
             /** Title */
@@ -4090,7 +4255,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "flights" | "stays" | "trip";
+            kind: "flights" | "stays" | "trip" | "explore";
             /** Params */
             params: string;
             /** Title */
@@ -8219,6 +8384,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SavedTripOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trip_checklist_account_trips__trip_id__checklist_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                trip_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedTripOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_saved_account_saved_import_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SearchEntriesImport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
                 };
             };
             /** @description Validation Error */

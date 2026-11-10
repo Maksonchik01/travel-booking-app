@@ -294,6 +294,41 @@ test("етап 6: історія цін на ці дати й підписка �
   ).toBeVisible();
 });
 
+test("етап 7: гість зберігає напрямок і пошук, після входу — перенесення на згоду, чекліст", async ({
+  page,
+}) => {
+  const explore = "/explore?from=WAW&depart=2026-12-01&until=2026-12-31&nmin=2&nmax=4";
+  await page.goto(explore);
+  const card = page.getByTestId("explore-card").first();
+  await card.getByRole("button", { name: /В обране/ }).click();
+  await page.getByRole("button", { name: "Зберегти пошук" }).click();
+  await expect(page.getByTestId("save-search-local")).toBeVisible();
+
+  await page.goto("/favorites");
+  await page.getByTestId("favorites-tab-destination").click();
+  await expect(page.getByTestId("favorite-item")).toHaveAttribute("data-kind", "destination");
+  await expect(page.getByTestId("guest-searches")).toBeVisible();
+
+  // Вхід — без мовчазного перенесення: спершу пропозиція.
+  const username = `e2e_guest_${Date.now()}`;
+  await page.goto("/login?mode=register");
+  await page.getByLabel("Логін", { exact: true }).fill(username);
+  await page.getByLabel("Пароль", { exact: true }).fill("password123");
+  await page.getByLabel("Пароль ще раз").fill("password123");
+  await page.getByRole("button", { name: "Зареєструватися" }).click();
+  await expect(page).toHaveURL(/\/account/);
+  const prompt = page.getByTestId("guest-import");
+  await expect(prompt).toContainText("обраного — 1");
+  await expect(prompt).toContainText("пошуків — 1");
+  await prompt.getByTestId("guest-import-move").click();
+  await expect(page.getByTestId("guest-import")).toHaveCount(0);
+
+  await page.goto("/favorites");
+  await expect(page.getByText("Зберігається у вашому акаунті.")).toBeVisible();
+  await page.getByTestId("favorites-tab-destination").click();
+  await expect(page.getByTestId("favorite-item")).toHaveCount(1);
+});
+
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
   // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).

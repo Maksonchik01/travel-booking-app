@@ -26,7 +26,7 @@ Username = Annotated[
 """Латиниця, цифри, _ і . — 3–30 символів; зберігаємо в нижньому регістрі."""
 Password = Annotated[str, StringConstraints(min_length=8, max_length=128)]
 Name = Annotated[str, StringConstraints(strip_whitespace=True, max_length=60)]
-SearchKind = Literal["flights", "stays", "trip"]
+SearchKind = Literal["flights", "stays", "trip", "explore"]
 
 
 def _blank_to_none(value: str | None) -> str | None:
@@ -186,6 +186,12 @@ class SearchEntryBody(_StrictInput):
     ]
     """Рядок URL сторінки результатів (from=WAW&to=LIS&…)."""
     title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+
+
+class SearchEntriesImport(_StrictInput):
+    """Збережені пошуки гостя з браузера (етап 7) — до акаунта, без повторів."""
+
+    items: list[SearchEntryBody] = Field(max_length=50)
 
 
 class SearchEntryRename(_StrictInput):

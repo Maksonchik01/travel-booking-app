@@ -1336,7 +1336,8 @@
     "save": "Save search",
     "saved": "Saved",
     "error": "Couldn't save",
-    "limit": "Limit of 100 saved"
+    "limit": "Limit of 100 saved",
+    "savedLocal": "Saved in browser"
   },
   "legal": {
     "updated": "Updated: {date}",
@@ -1403,7 +1404,7 @@
           "h": "Cookies and browser storage",
           "p": [
             "Only necessary ones: the sign-in session cookie (httpOnly, up to 30 days), a temporary cookie during Google sign-in, and the interface language cookie (NEXT_LOCALE, one year — only the chosen language). There are no advertising or analytics cookies. After sign-in we set the language cookie from your profile.",
-            "Your browser (localStorage / sessionStorage) keeps: the theme, AI chat history, the list of your notifications, the last search tab, and without an account — favorites and saved trips too (after sign-in they move to your account); in the tab — the trips selected for comparison and the “Undo last choice” steps. Chat history doesn't reach the server unless you turned on “Sync chats across devices” yourself (account only); you can delete it in the chat.",
+            "Your browser (localStorage / sessionStorage) keeps: the theme, AI chat history, the list of your notifications, the last search tab, and without an account — favorites and saved trips too (after sign-in they move to your account); in the tab — the trips selected for comparison and the “Undo last choice” steps. Chat history doesn't reach the server unless you turned on “Sync chats across devices” yourself (account only); you can delete it in the chat. Searches, destinations and trip checklists saved without signing in also stay only in this browser until you agree to move them to your account after signing in.",
             "Recent searches (up to 6: route, dates, people and filters — as in the page address) are also kept only in this browser; you can remove them with “Clear”."
           ]
         },
@@ -1635,18 +1636,22 @@
       "all": "All",
       "flight": "Flights",
       "stay": "Stays",
-      "trip": "Trips"
+      "trip": "Trips",
+      "destination": "Destinations"
     },
     "find": {
       "all": "Find flights",
       "flight": "Find flights",
       "stay": "Find a stay",
-      "trip": "Plan a trip"
+      "trip": "Plan a trip",
+      "destination": "Find a destination"
     },
     "back": "return",
     "passengers": "{count, plural, one {# passenger} other {# passengers}}",
     "toPlanner": "To the planner",
-    "openInPlanner": "Open in the planner"
+    "openInPlanner": "Open in the planner",
+    "destinationWithStay": "flights + stay",
+    "destinationFlight": "round-trip flights"
   },
   "tripBuilder": {
     "title": "Your trip",
@@ -2144,5 +2149,34 @@
     "few": "Not much history yet: {count, plural, one {# day} other {# days}} observed. The chart appears from 3.",
     "none": "No price history for these dates yet.",
     "flat": "{price} · {days, plural, one {# day} other {# days}} observed"
+  },
+  "checklist": {
+    "title": "Trip checklist · {done} of {total}",
+    "item": {
+      "documents": "Documents (passport, visa, insurance)",
+      "baggage": "Baggage",
+      "checkin": "Flight check-in",
+      "transfer": "Airport transfer",
+      "hotel": "Hotel check-in"
+    },
+    "edit": "Edit “{item}”",
+    "remove": "Delete “{item}”",
+    "editLabel": "Item text",
+    "save": "Save",
+    "add": "Add",
+    "addLabel": "New checklist item",
+    "addPlaceholder": "Your own item, e.g. “Plug adapter”"
+  },
+  "guestImport": {
+    "title": "Move your saved items to the account?",
+    "body": "Saved in this browser without signing in: favourites — {favorites}, trips — {trips}, searches — {searches}. We'll move them to your profile so they're on all devices.",
+    "move": "Move to account",
+    "later": "Not now",
+    "failed": "Couldn't move them. Your items are still in the browser — please try again.",
+    "hint": "No duplicates: anything already in the account is skipped.",
+    "searchesTitle": "Saved searches",
+    "searchesHint": "Saved in this browser without signing in. After you sign in, we'll offer to move them to your account.",
+    "removeSearch": "Delete “{title}”",
+    "close": "Close"
   }
 }

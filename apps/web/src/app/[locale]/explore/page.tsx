@@ -10,6 +10,8 @@ import { CollapsibleSearch } from "@/components/collapsible-search";
 import { ExploreCard } from "@/components/explore-card";
 import { ExploreCompareBar, ExploreCompareProvider } from "@/components/explore-compare";
 import { ExploreForm } from "@/components/explore-form";
+import { FavoritesProvider } from "@/components/favorites";
+import { SaveSearch } from "@/components/save-search";
 import { ExploreMapLazy } from "@/components/explore-map-lazy";
 import type { MapDestination } from "@/components/explore-map";
 import { InfoHint } from "@/components/info-hint";
@@ -28,12 +30,14 @@ import {
   flightsHref,
   parseExploreDraft,
   parseExploreParams,
+  toExploreParams,
   toggleCategory,
   tripHref,
   withMode,
 } from "@/lib/explore-params";
 import type { RawSearchParams } from "@/lib/search-params";
 import { searchEvents } from "@/lib/server-analytics";
+import { recordHistory, sessionToken } from "@/lib/session";
 import { dateRange } from "@/lib/summary";
 import { currentAccount } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -67,12 +71,14 @@ export default function ExplorePage({ searchParams }: PageProps<"/[locale]/explo
         </section>
 
         <div className="mx-auto w-full max-w-6xl px-4 py-8">
-          <ExploreCompareProvider>
-            <Suspense fallback={<ResultsSkeleton />}>
-              <Results searchParams={searchParams} />
-            </Suspense>
-            <ExploreCompareBar />
-          </ExploreCompareProvider>
+          <FavoritesProvider>
+            <ExploreCompareProvider>
+              <Suspense fallback={<ResultsSkeleton />}>
+                <Results searchParams={searchParams} />
+              </Suspense>
+              <ExploreCompareBar />
+            </ExploreCompareProvider>
+          </FavoritesProvider>
         </div>
       </main>
       <SiteFooter />
@@ -198,7 +204,24 @@ async function Results({ searchParams }: { searchParams: Params }) {
     );
   }
   const view = raw.view === "map" ? "map" : "list";
-  return <ResultsView query={query} data={result.data} view={view} locale={locale} />;
+  // Історія пошуків кабінету (етап 7): Explore — окремий вид.
+  const params = toExploreParams(query).toString();
+  const { where, details } = await summary(query);
+  const title =
+    `${t("summaryTitle", { from: query.origins.join(", "), to: where })} · ${details}`.slice(
+      0,
+      120,
+    );
+  after(recordHistory(await sessionToken(), { kind: "explore", params, title }));
+  return (
+    <ResultsView
+      query={query}
+      data={result.data}
+      view={view}
+      locale={locale}
+      save={<SaveSearch kind="explore" params={params} title={title} back={`/explore?${params}`} />}
+    />
+  );
 }
 
 function ResultsView({
@@ -206,11 +229,13 @@ function ResultsView({
   data,
   view,
   locale,
+  save,
 }: {
   query: ExploreQuery;
   data: ExploreResult;
   view: "list" | "map";
   locale: string;
+  save?: React.ReactNode;
 }) {
   const t = useTranslations("explore");
   const format = useFormatter();
@@ -256,6 +281,7 @@ function ResultsView({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {save}
           <nav aria-label={t("modeLabel")} className="bg-muted flex gap-1 rounded-lg p-1">
             {(["flights", "trip"] as const).map((mode) => (
               <Link

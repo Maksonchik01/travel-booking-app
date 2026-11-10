@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { ExploreCompareToggle, type ExploreCompareItem } from "@/components/explore-compare";
+import { FavoriteToggle } from "@/components/favorites";
+import { destinationFavorite } from "@/lib/favorites";
 import { FreshnessBadge } from "@/components/price-freshness";
 import { Button } from "@/components/ui/button";
-import { flightsHref, tripHref } from "@/lib/explore-params";
+import { flightsHref, toExploreParams, tripHref } from "@/lib/explore-params";
 import { fractionDigits } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +48,7 @@ export function ExploreCard({
   const adults = query.adults ?? 1;
   const trip = query.mode === "trip";
   const flights = flightsHref(d, query);
+  const params = toExploreParams(query).toString();
   const tripLink = tripHref(d, query);
   const minutes =
     offer.outbound.duration_min != null && offer.inbound?.duration_min != null
@@ -176,6 +179,7 @@ export function ExploreCard({
             </Link>
           </Button>
           <ExploreCompareToggle item={compare} />
+          <FavoriteToggle body={destinationFavorite(d, query, params)} compact />
         </div>
       </div>
     </article>

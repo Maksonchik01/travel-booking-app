@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import { FavoritesList, FavoritesProvider } from "@/components/favorites";
+import { GuestSearches } from "@/components/guest-searches";
 import { SiteFooter } from "@/components/page-chrome";
 import { SiteHeader } from "@/components/site-header";
 
@@ -33,6 +34,7 @@ export default function FavoritesPage() {
         <FavoritesProvider>
           <FavoritesList />
         </FavoritesProvider>
+        <GuestSearches />
       </main>
       <SiteFooter />
     </div>

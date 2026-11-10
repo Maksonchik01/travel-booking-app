@@ -4,6 +4,7 @@ import { track } from "@/lib/analytics";
 import type { FavoriteBody, FavoriteKind, FavoriteOut } from "@tickets/shared";
 import {
   BedDouble,
+  Compass,
   Heart,
   Loader2,
   Luggage,
@@ -25,7 +26,6 @@ import {
   MAX_FAVORITES,
   bodyKey,
   readLocalFavorites,
-  toBody,
   writeLocalFavorites,
 } from "@/lib/favorites";
 import { localDate, localTime } from "@/lib/format";
@@ -54,6 +54,7 @@ const fromAccount = (items: FavoriteOut[]): FavoriteItem[] =>
     stay: f.stay,
     flight: f.flight,
     trip: f.trip as FavoriteItem["trip"],
+    destination: f.destination as FavoriteItem["destination"],
   }));
 
 /**
@@ -68,7 +69,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const local = readLocalFavorites();
     let cancelled = false;
-    loadFavorites(local.map(toBody))
+    // Перенесення локального в акаунт — лише на згоду (`GuestImportPrompt`, етап 7).
+    loadFavorites([])
       .then((state) => {
         if (cancelled) return;
         if (!state.signedIn) {
@@ -134,6 +136,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       stay: body.stay,
       flight: body.flight,
       trip: body.trip,
+      destination: body.destination,
     };
     const next = [item, ...items];
     writeLocalFavorites(next);
@@ -203,9 +206,27 @@ export function FavoriteToggle({
   );
 }
 
-const CATEGORIES: readonly ("all" | FavoriteKind)[] = ["all", "flight", "stay", "trip"];
-const CATEGORY_ICON = { all: Heart, flight: Plane, stay: BedDouble, trip: Luggage } as const;
-const FIND_HREF = { all: "/", flight: "/", stay: "/stays", trip: "/trip" } as const;
+const CATEGORIES: readonly ("all" | FavoriteKind)[] = [
+  "all",
+  "flight",
+  "stay",
+  "trip",
+  "destination",
+];
+const CATEGORY_ICON = {
+  all: Heart,
+  flight: Plane,
+  stay: BedDouble,
+  trip: Luggage,
+  destination: Compass,
+} as const;
+const FIND_HREF = {
+  all: "/",
+  flight: "/",
+  stay: "/stays",
+  trip: "/trip",
+  destination: "/explore",
+} as const;
 
 /**
  * Список обраного за категоріями: ціна знімка з датою (історична), «Повторити пошук» з
@@ -365,6 +386,31 @@ function FavoriteCard({ item, onRemove }: { item: FavoriteItem; onRemove: () => 
               },
             ]
           : []),
+      ],
+    };
+  } else if (item.kind === "destination" && item.destination) {
+    const d = item.destination;
+    view = {
+      kindLabel: `${t("category.destination")}${d.country ? ` · ${d.country}` : ""}`,
+      title: d.city,
+      details: (
+        <p className="text-sm">
+          {day(d.depart)} – {day(d.back)}
+          <span className="text-muted-foreground">
+            {" · "}
+            {d.with_stay ? t("destinationWithStay") : t("destinationFlight")}
+          </span>
+        </p>
+      ),
+      total: money(d.price, d.currency),
+      at: priceAt(d.price_at),
+      actions: [
+        { href: `/explore?${d.params}`, label: t("refresh"), icon: Search },
+        {
+          href: `/trip?${new URLSearchParams({ to: d.code, depart: d.depart, return: d.back })}`,
+          label: t("toPlanner"),
+          icon: Sparkles,
+        },
       ],
     };
   } else if (item.kind === "trip" && item.trip) {

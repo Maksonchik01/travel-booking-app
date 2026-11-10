@@ -1,6 +1,6 @@
 "use server";
 
-import type { SavedTrip, SavedTripBody, SavedTripPatch } from "@tickets/shared";
+import type { ChecklistItem, SavedTrip, SavedTripBody, SavedTripPatch } from "@tickets/shared";
 
 import { call, sessionToken } from "@/lib/session";
 
@@ -50,6 +50,11 @@ export async function updateSavedTrip(id: string, body: SavedTripBody): Promise<
 /** Назва та/або статус (чернетка / запланована / архівна). */
 export async function patchSavedTrip(id: string, patch: SavedTripPatch): Promise<One> {
   return one("PATCH", `/account/trips/${encodeURIComponent(id)}`, patch);
+}
+
+/** Чекліст поїздки (етап 7): увесь список разом. */
+export async function setTripChecklist(id: string, items: ChecklistItem[]): Promise<One> {
+  return one("PUT", `/account/trips/${encodeURIComponent(id)}/checklist`, { items });
 }
 
 /** Публічне посилання на поїздку (модуль 20.2): увімкнути чи вимкнути — лише власник. */

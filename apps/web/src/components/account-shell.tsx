@@ -1,6 +1,7 @@
-import type { Account, SearchEntry, SearchKind } from "@tickets/shared";
+import type { Account, SearchEntry } from "@tickets/shared";
 import {
   BedDouble,
+  Compass,
   Bell,
   Bookmark,
   CheckCircle2,
@@ -31,6 +32,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { type EntryDetails, entryDetails } from "@/lib/entry-details";
 import type { RawSearchParams } from "@/lib/search-params";
 import { call, sessionToken } from "@/lib/session";
+import { KIND_PATH } from "@/lib/search-kinds";
 import { cn } from "@/lib/utils";
 
 /** Розділи кабінету (модуль 10a) — окремі сторінки з однаковою навігацією. */
@@ -45,12 +47,13 @@ export const ACCOUNT_SECTIONS = [
 ] as const;
 export type AccountSection = (typeof ACCOUNT_SECTIONS)[number]["id"];
 
-export const KIND_ICON = { flights: Plane, stays: BedDouble, trip: Luggage } as const;
-export const KIND_PATH: Record<SearchKind, string> = {
-  flights: "/",
-  stays: "/stays",
-  trip: "/trip",
-};
+export const KIND_ICON = {
+  flights: Plane,
+  stays: BedDouble,
+  trip: Luggage,
+  explore: Compass,
+} as const;
+export { KIND_PATH };
 
 /** Акаунт для сторінки кабінету; без входу — на вхід з поверненням у цей розділ. */
 export async function requireAccount(section: AccountSection): Promise<{

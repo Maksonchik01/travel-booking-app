@@ -22,6 +22,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 import structlog
+from pydantic import TypeAdapter
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
 from sqlalchemy import delete, func, or_, select, update
@@ -62,6 +63,7 @@ from tickets_api.domain.chats import (
 from tickets_api.domain.favorites import (
     MAX_FAVORITES,
     FavoriteBody,
+    FavoriteDestination,
     FavoriteFlight,
     FavoriteOut,
     FavoriteStay,
@@ -72,6 +74,7 @@ from tickets_api.domain.notify import NotifyPrefs, notify_prefs
 from tickets_api.domain.profile import PreferencesBody, SearchPrefs
 from tickets_api.domain.saved_trips import (
     MAX_SAVED_TRIPS,
+    ChecklistItem,
     SavedTripBody,
     SavedTripOut,
     SavedTripPatch,
@@ -725,6 +728,26 @@ class AccountService:
             session.add(entry)
         return _entry_out(entry)
 
+    async def import_saved(self, user: User, items: list[SearchEntryBody]) -> int:
+        """Збережені пошуки гостя з браузера (етап 7): ті самі (вид + параметри) — пропускаємо,
+        понад ліміт — решту не переносимо. Повертає, скільки додано."""
+        added = 0
+        for item in items:
+            try:
+                before = await self._saved_count(user)
+                await self.save_search(user, item)
+            except AccountError:
+                break  # ліміт — далі немає сенсу
+            added += int(await self._saved_count(user) > before)
+        return added
+
+    async def _saved_count(self, user: User) -> int:
+        async with self._sessionmaker() as session:
+            count = await session.scalar(
+                select(func.count()).where(SearchEntry.user_id == user.id, SearchEntry.saved)
+            )
+        return count or 0
+
     async def entries(self, user: User, *, saved: bool, limit: int = 50) -> list[SearchEntryOut]:
         async with self._sessionmaker() as session:
             rows = (
@@ -920,6 +943,9 @@ class AccountService:
                     query=item.query.model_dump_json(),
                     snapshot=item.snapshot.model_dump_json(),
                     status=item.status,
+                    checklist=_CHECKLIST.dump_json(item.checklist).decode()
+                    if item.checklist
+                    else None,
                     created_at=now,
                     updated_at=now,
                 )
@@ -927,6 +953,36 @@ class AccountService:
             ]
             session.add_all(rows)
         return [_trip_out(r) for r in rows]
+
+    async def import_trips(self, user: User, items: list[SavedTripBody]) -> list[SavedTripOut]:
+        """Поїздки гостя з браузера (етап 7): та сама конфігурація (запит з вибором) — пропускаємо,
+        щоб повторне перенесення не створювало дублікатів."""
+        async with self._sessionmaker() as session:
+            existing = set(
+                (
+                    await session.scalars(
+                        select(SavedTrip.query).where(SavedTrip.user_id == user.id)
+                    )
+                ).all()
+            )
+        fresh: dict[str, SavedTripBody] = {}
+        for item in items:
+            key = item.query.model_dump_json()
+            if key not in existing:
+                fresh.setdefault(key, item)
+        return await self.save_trips(user, list(fresh.values())) if fresh else []
+
+    async def set_checklist(
+        self, user: User, trip_id: str, items: list[ChecklistItem]
+    ) -> SavedTripOut:
+        """Чекліст збереженої поїздки (етап 7): увесь список разом (додати, змінити, видалити)."""
+        async with self._sessionmaker() as session, session.begin():
+            row = await session.get(SavedTrip, trip_id)
+            if row is None or row.user_id != user.id:
+                raise AccountError("not_found")
+            row.checklist = _CHECKLIST.dump_json(items).decode() if items else None
+            row.updated_at = self._clock()
+            return _trip_out(row)
 
     async def update_trip(self, user: User, trip_id: str, body: SavedTripBody) -> SavedTripOut:
         """«Редагувати»: нова назва, конфігурація й знімок тієї самої поїздки (статус — окремо,
@@ -1082,6 +1138,9 @@ def _entry_out(entry: SearchEntry) -> SearchEntryOut:
     return SearchEntryOut.model_validate(entry, from_attributes=True)
 
 
+_CHECKLIST = TypeAdapter(list[ChecklistItem])
+
+
 def _trip_out(row: SavedTrip) -> SavedTripOut:
     return SavedTripOut(
         id=row.id,
@@ -1092,18 +1151,21 @@ def _trip_out(row: SavedTrip) -> SavedTripOut:
         created_at=_aware(row.created_at),
         updated_at=_aware(row.updated_at),
         share_token=row.share_token,
+        checklist=_CHECKLIST.validate_json(row.checklist) if row.checklist else [],
     )
 
 
 def _favorite_out(row: Favorite) -> FavoriteOut:
-    item: FavoriteStay | FavoriteFlight | FavoriteTrip
+    item: FavoriteStay | FavoriteFlight | FavoriteTrip | FavoriteDestination
     if row.kind == "flight":
         item = FavoriteFlight.model_validate_json(row.data)
     elif row.kind == "trip":
         item = FavoriteTrip.model_validate_json(row.data)
+    elif row.kind == "destination":
+        item = FavoriteDestination.model_validate_json(row.data)
     else:
         item = FavoriteStay.model_validate_json(row.data)
-    kind = row.kind if row.kind in ("flight", "trip") else "stay"
+    kind = row.kind if row.kind in ("flight", "trip", "destination") else "stay"
     return FavoriteOut.model_validate(
         {
             "id": row.id,

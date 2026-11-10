@@ -8,6 +8,13 @@ import messages from "../../messages/uk.json";
 import { ExploreCard } from "./explore-card";
 import { ExploreCompareBar, ExploreCompareProvider } from "./explore-compare";
 import { ExploreForm } from "./explore-form";
+import { FavoritesProvider } from "./favorites";
+
+vi.mock("@/app/actions/favorites", () => ({
+  loadFavorites: vi.fn().mockResolvedValue({ signedIn: false }),
+  addFavorite: vi.fn(),
+  removeFavorite: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -89,7 +96,7 @@ const LONDON = destination("LON", "Лондон");
 function wrap(ui: React.ReactNode) {
   return render(
     <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
-      {ui}
+      <FavoritesProvider>{ui}</FavoritesProvider>
     </NextIntlClientProvider>,
   );
 }

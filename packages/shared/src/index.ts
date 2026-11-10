@@ -175,3 +175,9 @@ export type GeocodeResult = Schemas["GeocodeResult"];
 // Історія цін (етап 6, ADR 0050).
 export type PriceSeries = Schemas["PriceSeries"];
 export type PricePoint = Schemas["PricePoint"];
+
+// Збереження гостя й чекліст поїздки (етап 7, ADR 0051).
+export type ChecklistItem = Schemas["ChecklistItem"];
+export type ChecklistKey = NonNullable<ChecklistItem["key"]>;
+export type FavoriteDestination = Schemas["FavoriteDestination-Output"];
+export type FavoriteDestinationInput = Schemas["FavoriteDestination-Input"];

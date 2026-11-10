@@ -10,6 +10,7 @@ from tickets_api.domain.accounts import (
     FlightFiltersBody,
     PasswordChangeBody,
     ProfileBody,
+    SearchEntriesImport,
     SearchEntryBody,
     SearchEntryOut,
     SearchEntryRename,
@@ -26,6 +27,7 @@ from tickets_api.domain.favorites import FavoriteBody, FavoriteOut, FavoritesImp
 from tickets_api.domain.notify import NotifyPrefs
 from tickets_api.domain.profile import LocaleBody, PreferencesBody, SearchPrefs
 from tickets_api.domain.saved_trips import (
+    ChecklistBody,
     SavedTripBody,
     SavedTripOut,
     SavedTripPatch,
@@ -340,9 +342,9 @@ async def save_trip(body: SavedTripBody, user: CurrentUser, service: Service) ->
 async def import_trips(
     body: SavedTripsImport, user: CurrentUser, service: Service
 ) -> list[SavedTripOut]:
-    """Поїздки гостя з браузера — до акаунта після входу."""
+    """Поїздки гостя з браузера — до акаунта (етап 7: на згоду, без дублікатів конфігурацій)."""
     try:
-        await service.save_trips(user, body.items)
+        await service.import_trips(user, body.items)
     except AccountError as exc:
         raise account_error(exc) from exc
     return await service.saved_trips(user)
@@ -356,6 +358,25 @@ async def update_trip(
         return await service.update_trip(user, trip_id, body)
     except AccountError as exc:
         raise account_error(exc) from exc
+
+
+@router.put("/trips/{trip_id}/checklist", response_model=SavedTripOut)
+async def trip_checklist(
+    trip_id: str, body: ChecklistBody, user: CurrentUser, service: Service
+) -> SavedTripOut:
+    """Чекліст поїздки (етап 7): документи, багаж, реєстрація, трансфер, заселення + власні."""
+    try:
+        return await service.set_checklist(user, trip_id, body.items)
+    except AccountError as exc:
+        raise account_error(exc) from exc
+
+
+@router.post("/saved/import", response_model=dict[str, int])
+async def import_saved(
+    body: SearchEntriesImport, user: CurrentUser, service: Service
+) -> dict[str, int]:
+    """Збережені пошуки гостя з браузера (етап 7) — без повторів, у межах ліміту."""
+    return {"added": await service.import_saved(user, body.items)}
 
 
 @router.patch("/trips/{trip_id}", response_model=SavedTripOut)

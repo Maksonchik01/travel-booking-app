@@ -2,6 +2,8 @@
 
 import { track } from "@/lib/analytics";
 import type {
+  ChecklistItem,
+  ChecklistKey,
   SavedTrip,
   SavedTripBody,
   SavedTripPatch,
@@ -15,8 +17,10 @@ import {
   BookmarkCheck,
   BookmarkPlus,
   Copy,
+  ListChecks,
   Loader2,
   Pencil,
+  Plus,
   RefreshCw,
   Trash2,
 } from "lucide-react";
@@ -29,6 +33,7 @@ import {
   deleteSavedTrip,
   loadSavedTrips,
   patchSavedTrip,
+  setTripChecklist,
   setTripSharing,
   updateSavedTrip,
 } from "@/app/actions/saved-trips";
@@ -65,6 +70,8 @@ type SavedTrips = {
   /** Назва чи статус — без зміни конфігурації й знімка. */
   patch: (id: string, patch: SavedTripPatch) => Promise<void>;
   remove: (id: string) => Promise<void>;
+  /** Чекліст поїздки (етап 7): акаунт — у профіль, гість — у цьому браузері. */
+  checklist: (id: string, items: ChecklistItem[]) => Promise<boolean>;
 };
 
 const SavedTripsContext = createContext<SavedTrips | null>(null);
@@ -96,7 +103,8 @@ export function SavedTripsProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const local = readLocalTrips();
     let cancelled = false;
-    loadSavedTrips(local.map(savedBody))
+    // Перенесення локального в акаунт — лише на згоду (`GuestImportPrompt`, етап 7).
+    loadSavedTrips([])
       .then((state) => {
         if (cancelled) return;
         if (!state.signedIn) {
@@ -194,6 +202,21 @@ export function SavedTripsProvider({ children }: { children: React.ReactNode }) 
     else local(next);
   }
 
+  async function checklist(id: string, list: ChecklistItem[]): Promise<boolean> {
+    setError(null);
+    if (signedIn) {
+      const state = await setTripChecklist(id, list);
+      if (!(state.signedIn && state.ok)) {
+        setError("error");
+        return false;
+      }
+    }
+    const next = items.map((t) => (t.id === id ? { ...t, checklist: list } : t));
+    if (signedIn) setItems(next);
+    else local(next);
+    return true;
+  }
+
   /** Публічне посилання (модуль 20.2) — лише для поїздок акаунта. */
   async function share(id: string, enabled: boolean) {
     if (!signedIn) return;
@@ -221,7 +244,7 @@ export function SavedTripsProvider({ children }: { children: React.ReactNode }) 
 
   return (
     <SavedTripsContext.Provider
-      value={{ signedIn, items, error, create, update, patch, remove, share }}
+      value={{ signedIn, items, error, create, update, patch, remove, share, checklist }}
     >
       {children}
     </SavedTripsContext.Provider>
@@ -533,6 +556,7 @@ function SavedTripCard({ item }: { item: SavedTripItem }) {
             {s.stay.cancellation ? ` · ${tStay(`cancellation.${s.stay.cancellation}`)}` : ""}
           </p>
           <StatusControl item={item} />
+          <TripChecklist item={item} />
         </div>
         <div className="text-right">
           <p className="text-xl font-bold tabular-nums" data-testid="saved-trip-total">
@@ -707,5 +731,154 @@ function RefreshNote({ result, money }: { result: TripRefresh; money: (value: nu
         <p key={n}>{n}</p>
       ))}
     </div>
+  );
+}
+
+/** Стандартні пункти чекліста (етап 7): текст — мовою інтерфейсу. */
+export const CHECKLIST_DEFAULTS: readonly ChecklistKey[] = [
+  "documents",
+  "baggage",
+  "checkin",
+  "transfer",
+  "hotel",
+];
+const MAX_CHECKLIST = 40;
+
+function defaults(): ChecklistItem[] {
+  return CHECKLIST_DEFAULTS.map((key) => ({ id: key, key, text: null, done: false }));
+}
+
+function newId(): string {
+  return `c${crypto.randomUUID().replaceAll("-", "").slice(0, 12)}`;
+}
+
+/**
+ * Чекліст поїздки (етап 7, ADR 0051): документи, багаж, реєстрація на рейс, трансфер, заселення
+ * й власні пункти — додати, змінити, виконати, видалити. Акаунт — у профіль, гість — у браузер.
+ */
+export function TripChecklist({ item }: { item: SavedTripItem }) {
+  const t = useTranslations("checklist");
+  const { checklist } = useSavedTrips();
+  const saved = item.checklist ?? [];
+  const list = saved.length ? saved : defaults();
+  const [draft, setDraft] = useState("");
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const done = list.filter((i) => i.done).length;
+
+  const label = (i: ChecklistItem) => (i.key ? t(`item.${i.key}`) : (i.text ?? ""));
+  const save = (next: ChecklistItem[]) => void checklist(item.id, next);
+
+  return (
+    <details
+      className="group mt-1 rounded-lg border px-3 py-2 text-sm"
+      data-testid="trip-checklist"
+    >
+      <summary className="text-muted-foreground hover:text-primary flex cursor-pointer items-center gap-2 text-xs font-medium select-none">
+        <ListChecks className="size-3.5" aria-hidden />
+        {t("title", { done, total: list.length })}
+      </summary>
+      <ul className="mt-2 grid gap-1">
+        {list.map((i) => (
+          <li key={i.id} className="flex items-center gap-2" data-testid="checklist-item">
+            <input
+              type="checkbox"
+              checked={i.done}
+              onChange={() => save(list.map((x) => (x.id === i.id ? { ...x, done: !x.done } : x)))}
+              aria-label={label(i)}
+              className="accent-primary size-4 shrink-0"
+            />
+            {editing === i.id ? (
+              <form
+                className="flex min-w-0 flex-1 gap-1"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const text = editText.trim();
+                  if (text) {
+                    save(list.map((x) => (x.id === i.id ? { ...x, key: null, text } : x)));
+                  }
+                  setEditing(null);
+                }}
+              >
+                <Input
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  maxLength={120}
+                  aria-label={t("editLabel")}
+                  className={cn(FIELD_CLASS, "h-8 text-sm")}
+                  autoFocus
+                />
+                <Button type="submit" size="sm" variant="outline" className="h-8">
+                  {t("save")}
+                </Button>
+              </form>
+            ) : (
+              <span
+                className={cn(
+                  "min-w-0 flex-1 truncate",
+                  i.done && "text-muted-foreground line-through",
+                )}
+              >
+                {label(i)}
+              </span>
+            )}
+            {editing !== i.id && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing(i.id);
+                    setEditText(label(i));
+                  }}
+                  aria-label={t("edit", { item: label(i) })}
+                  className="text-muted-foreground hover:text-foreground grid size-7 place-items-center rounded"
+                >
+                  <Pencil className="size-3.5" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => save(list.filter((x) => x.id !== i.id))}
+                  aria-label={t("remove", { item: label(i) })}
+                  className="text-muted-foreground hover:text-foreground grid size-7 place-items-center rounded"
+                >
+                  <Trash2 className="size-3.5" aria-hidden />
+                </button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+      {list.length < MAX_CHECKLIST && (
+        <form
+          className="mt-2 flex gap-1"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const text = draft.trim();
+            if (!text) return;
+            save([...list, { id: newId(), key: null, text, done: false }]);
+            setDraft("");
+          }}
+        >
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            maxLength={120}
+            placeholder={t("addPlaceholder")}
+            aria-label={t("addLabel")}
+            className={cn(FIELD_CLASS, "h-8 text-sm")}
+          />
+          <Button
+            type="submit"
+            size="sm"
+            variant="outline"
+            className="h-8"
+            disabled={!draft.trim()}
+          >
+            <Plus className="size-3.5" aria-hidden />
+            {t("add")}
+          </Button>
+        </form>
+      )}
+    </details>
   );
 }

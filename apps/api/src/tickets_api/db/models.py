@@ -405,6 +405,8 @@ class SavedTrip(Base):
     status: Mapped[str] = mapped_column(String(16), server_default="draft")
     """draft / planned / archived (модуль 10a); «заброньованої» немає."""
     share_token: Mapped[str | None] = mapped_column(String(32), unique=True)
+    checklist: Mapped[str | None] = mapped_column(Text)
+    """Чекліст поїздки (етап 7): JSON списку пунктів; NULL — ще не заповнювали."""
     """Публічне посилання (модуль 20.2): за замовчуванням None — поїздка приватна."""
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

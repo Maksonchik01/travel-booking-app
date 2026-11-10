@@ -16,7 +16,8 @@ from tickets_api.domain.saved_trips import TripSnapshot
 from tickets_api.domain.stays import MAX_NIGHTS, StayKind
 from tickets_api.domain.trips import TripQuery
 
-FavoriteKind = Literal["stay", "flight", "trip"]
+FavoriteKind = Literal["stay", "flight", "trip", "destination"]
+PHOTO_HOST = "https://upload.wikimedia.org/"
 MAX_FAVORITES = 200
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
 
@@ -96,11 +97,45 @@ class FavoriteTrip(_StrictInput):
         return f"trip|{self.query.flight}|{self.query.stay}|{self.snapshot.check_in}"
 
 
+class FavoriteDestination(_StrictInput):
+    """Напрямок з Explore (етап 7, ADR 0051): місто, дати, ціна перельоту з часом отримання."""
+
+    code: Iata
+    city: Text
+    country: Annotated[str, StringConstraints(pattern=r"^[A-Z]{2}$")] | None = None
+    depart: date
+    back: date
+    nights: int = Field(ge=0, le=MAX_NIGHTS)
+    price: Money = Field(gt=0)
+    """Переліт (або переліт + житло, якщо `with_stay`) — кешована ціна."""
+    with_stay: bool = False
+    currency: Currency
+    price_at: AwareDatetime
+    photo_url: Annotated[str, StringConstraints(max_length=500)] | None = None
+    params: Annotated[
+        str, StringConstraints(min_length=1, max_length=500, pattern=r"^[\w%=&.,+:-]+$")
+    ]
+    """Рядок URL пошуку Explore — «Повторити пошук»."""
+
+    @model_validator(mode="after")
+    def _check(self) -> Self:
+        if self.back < self.depart:
+            raise ValueError("некоректні дати")
+        if self.photo_url is not None and not self.photo_url.startswith(PHOTO_HOST):
+            raise ValueError("фото — лише з довідника напрямків")
+        return self
+
+    @property
+    def item_key(self) -> str:
+        return f"dest|{self.code}|{self.depart}|{self.back}"
+
+
 class FavoriteBody(_StrictInput):
     kind: FavoriteKind = "stay"
     stay: FavoriteStay | None = None
     flight: FavoriteFlight | None = None
     trip: FavoriteTrip | None = None
+    destination: FavoriteDestination | None = None
 
     @model_validator(mode="after")
     def _one(self) -> Self:
@@ -109,8 +144,13 @@ class FavoriteBody(_StrictInput):
         return self
 
     @property
-    def item(self) -> "FavoriteStay | FavoriteFlight | FavoriteTrip":
-        value = {"stay": self.stay, "flight": self.flight, "trip": self.trip}[self.kind]
+    def item(self) -> "FavoriteStay | FavoriteFlight | FavoriteTrip | FavoriteDestination":
+        value = {
+            "stay": self.stay,
+            "flight": self.flight,
+            "trip": self.trip,
+            "destination": self.destination,
+        }[self.kind]
         if value is None:  # валідатор уже не пропустить — для типів
             raise ValueError("дані обраного — для його категорії")
         return value
@@ -129,4 +169,5 @@ class FavoriteOut(BaseModel):
     stay: FavoriteStay | None = None
     flight: FavoriteFlight | None = None
     trip: FavoriteTrip | None = None
+    destination: FavoriteDestination | None = None
     created_at: datetime

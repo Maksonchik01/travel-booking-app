@@ -244,7 +244,7 @@ describe("обране", () => {
     expect(localStorage.getItem("tickets.favorites.v1")).toBeNull();
   });
 
-  it("з акаунтом: локальне переноситься в профіль, список — з акаунта", async () => {
+  it("з акаунтом: список — з акаунта; локальне не переноситься без згоди (етап 7)", async () => {
     const stay = {
       source: "mock",
       stay_id: "mock-lis-1",
@@ -276,7 +276,6 @@ describe("обране", () => {
       signedIn: true,
       ok: true,
       items: [item],
-      imported: true,
     });
     actions.removeFavorite.mockResolvedValue({ signedIn: true, ok: true, items: [] });
 
@@ -289,10 +288,9 @@ describe("обране", () => {
     );
 
     const card = await screen.findByTestId("favorite-item");
-    expect(actions.loadFavorites).toHaveBeenCalledWith([
-      expect.objectContaining({ kind: "stay", stay }),
-    ]);
-    expect(localStorage.getItem("tickets.favorites.v1")).toBeNull();
+    // Перенесення — лише на згоду (`GuestImportPrompt`): провайдер локальне не надсилає й не стирає.
+    expect(actions.loadFavorites).toHaveBeenCalledWith([]);
+    expect(localStorage.getItem("tickets.favorites.v1")).not.toBeNull();
     expect(card).toHaveTextContent("Hotel Meridian");
     expect(card).toHaveTextContent("ціна на 6 лист.");
     expect(screen.getByText("Зберігається у вашому акаунті.")).toBeInTheDocument();

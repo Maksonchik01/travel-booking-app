@@ -1,5 +1,5 @@
 // Лише для сервера: next/headers недоступний у клієнтському коді.
-import type { Account, Me, SessionOut } from "@tickets/shared";
+import type { Account, Me, SearchKind, SessionOut } from "@tickets/shared";
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
 
@@ -127,7 +127,7 @@ export const currentAccount = cache(async (): Promise<Account | null> => {
  */
 export function recordHistory(
   token: string | null,
-  entry: { kind: "flights" | "stays" | "trip"; params: string; title: string },
+  entry: { kind: SearchKind; params: string; title: string },
 ): () => Promise<void> {
   return async () => {
     if (!token) return;

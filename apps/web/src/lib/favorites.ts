@@ -1,5 +1,8 @@
 import type {
+  ExploreDestination,
+  ExploreQuery,
   FavoriteBody,
+  FavoriteDestinationInput,
   FavoriteFlightInput,
   FavoriteKind,
   FavoriteStayInput,
@@ -26,6 +29,7 @@ export type FavoriteItem = {
   stay?: FavoriteStayInput | null;
   flight?: FavoriteFlightInput | null;
   trip?: FavoriteTripInput | null;
+  destination?: FavoriteDestinationInput | null;
 };
 
 export function favoriteKey(
@@ -37,6 +41,10 @@ export function favoriteKey(
 /** Ключ запису будь-якої категорії — як `item_key` в API. */
 export function bodyKey(body: FavoriteBody): string {
   if (body.kind === "flight" && body.flight) return `${body.flight.source}:${body.flight.offer_id}`;
+  if (body.kind === "destination" && body.destination) {
+    const d = body.destination;
+    return `dest|${d.code}|${d.depart}|${d.back}`;
+  }
   if (body.kind === "trip" && body.trip) {
     const { query, snapshot } = body.trip;
     return `trip|${query.flight ?? null}|${query.stay ?? null}|${snapshot.check_in}`;
@@ -45,7 +53,13 @@ export function bodyKey(body: FavoriteBody): string {
 }
 
 export function toBody(item: FavoriteItem): FavoriteBody {
-  return { kind: item.kind, stay: item.stay, flight: item.flight, trip: item.trip };
+  return {
+    kind: item.kind,
+    stay: item.stay,
+    flight: item.flight,
+    trip: item.trip,
+    destination: item.destination,
+  };
 }
 
 /** Знімок житла для збереження: лише поля картки, без посилань продавців. */
@@ -99,13 +113,40 @@ export function flightFavorite(offer: Offer, query: FlightQuery, params: string)
   };
 }
 
+/** Напрямок з Explore (етап 7): місто, дати, ціна з часом отримання й рядок пошуку Explore. */
+export function destinationFavorite(
+  destination: ExploreDestination,
+  query: ExploreQuery,
+  params: string,
+): FavoriteBody {
+  const offer = destination.offer;
+  const withStay = query.mode === "trip" && destination.total != null;
+  return {
+    kind: "destination",
+    destination: {
+      code: destination.code,
+      city: destination.city_name,
+      country: destination.country || null,
+      depart: offer.outbound.departure_at.slice(0, 10),
+      back: (offer.inbound?.departure_at ?? offer.outbound.departure_at).slice(0, 10),
+      nights: destination.nights,
+      price: withStay ? destination.total! : offer.price,
+      with_stay: withStay,
+      currency: offer.currency,
+      price_at: offer.found_at ?? offer.collected_at,
+      photo_url: destination.photo?.url ?? null,
+      params,
+    },
+  };
+}
+
 function isItem(value: unknown): value is FavoriteItem {
   if (!value || typeof value !== "object") return false;
   const item = value as FavoriteItem;
   return (
     typeof item.item_key === "string" &&
     typeof item.created_at === "string" &&
-    !!(item.stay || item.flight || item.trip)
+    !!(item.stay || item.flight || item.trip || item.destination)
   );
 }
 

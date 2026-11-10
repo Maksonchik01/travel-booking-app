@@ -1,4 +1,5 @@
 import type {
+  ChecklistItem,
   Offer,
   SavedTrip,
   SavedTripBody,
@@ -24,6 +25,8 @@ export type SavedTripItem = Pick<SavedTrip, "id" | "title" | "created_at" | "upd
   status?: TripStatus;
   /** Публічне посилання ввімкнено (модуль 20.2; лише поїздки акаунта). */
   share_token?: string | null;
+  /** Чекліст (етап 7); порожньо — показуємо стандартні пункти. */
+  checklist?: ChecklistItem[];
 };
 
 export const TRIP_STATUSES: readonly TripStatus[] = ["draft", "planned", "archived"];
@@ -82,6 +85,7 @@ export function savedBody(item: SavedTripItem): SavedTripBody {
     query: item.query,
     snapshot: item.snapshot,
     status: item.status ?? "draft",
+    checklist: item.checklist ?? [],
   };
 }
 

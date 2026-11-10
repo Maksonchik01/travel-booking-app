@@ -6,9 +6,9 @@
 """
 
 from datetime import date, datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import AwareDatetime, BaseModel, Field, StringConstraints
+from pydantic import AwareDatetime, BaseModel, Field, StringConstraints, model_validator
 
 from tickets_api.domain.flights import Currency, Iata, Money, _StrictInput
 from tickets_api.domain.stays import Cancellation, StayKind
@@ -64,12 +64,44 @@ class TripSnapshot(_StrictInput):
     """Коли отримано ціни (рендер сторінки поїздки)."""
 
 
+ChecklistKey = Literal["documents", "baggage", "checkin", "transfer", "hotel"]
+"""Стандартні пункти чекліста (етап 7): текст — мовою інтерфейсу, тому зберігаємо ключ."""
+MAX_CHECKLIST = 40
+ChecklistText = Annotated[
+    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)
+]
+
+
+class ChecklistItem(_StrictInput):
+    """Пункт чекліста поїздки: стандартний (`key`) або власний (`text`)."""
+
+    id: Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9_-]{1,24}$")]
+    key: ChecklistKey | None = None
+    text: (
+        Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+        | None
+    ) = None
+    done: bool = False
+
+    @model_validator(mode="after")
+    def _label(self) -> Self:
+        if (self.key is None) == (self.text is None):
+            raise ValueError("пункт — або стандартний, або власний текст")
+        return self
+
+
+class ChecklistBody(_StrictInput):
+    items: list[ChecklistItem] = Field(max_length=MAX_CHECKLIST)
+
+
 class SavedTripBody(_StrictInput):
     title: Title
     query: TripQuery
     """З `flight` і `stay` — «Відкрити» показує саме цю конфігурацію."""
     snapshot: TripSnapshot
     status: TripStatus = "draft"
+    checklist: list[ChecklistItem] = Field(default_factory=list, max_length=MAX_CHECKLIST)
+    """Чекліст гостя з браузера — переноситься разом із поїздкою."""
 
 
 class SavedTripPatch(_StrictInput):
@@ -93,6 +125,8 @@ class SavedTripOut(BaseModel):
     snapshot: TripSnapshot
     created_at: datetime
     updated_at: datetime
+    checklist: list[ChecklistItem] = []
+    """Чекліст поїздки (етап 7); порожньо — UI пропонує стандартні пункти."""
     share_token: str | None = None
     """Публічне посилання ввімкнено (модуль 20.2) — `/shared/trip/<token>`; None — приватна."""
 

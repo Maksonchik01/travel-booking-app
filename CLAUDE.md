@@ -183,6 +183,10 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `components/account-shell.tsx`. Обране — три категорії (`favorites.kind`: stay / flight / trip,
   `lib/favorites.ts`); поїздки — статуси draft / planned / archived (лише `PATCH`, «заброньованої»
   немає).
+  Збереження гостя ([ADR 0051](docs/adr/0051-guest-saves-and-checklist.md)): обране `destination`, пошуки `explore`,
+  збережені пошуки гостя — `lib/guest-searches.ts`; після входу — лише на згоду (`GuestImportPrompt`, імпорт без
+  дублікатів), провайдери самі не переносять. Чекліст поїздки — `saved_trips.checklist`, `PUT /account/trips/{id}/checklist`,
+  `TripChecklist` (стандартні ключі + власні пункти).
 - **Акаунти й бот** ([ADR 0011](docs/adr/0011-accounts-and-bot.md)): `services/accounts.py`,
   роутери `api/auth.py`, `api/account.py`; сесія — httpOnly-cookie `tickets_session`, у БД лише
   SHA-256 токена; паролі — scrypt; Google — OAuth + PKCE. Web: server actions

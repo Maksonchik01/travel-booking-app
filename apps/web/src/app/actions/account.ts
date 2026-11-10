@@ -9,7 +9,7 @@ import { isLocale, type Locale, LOCALE_COOKIE } from "@/i18n/config";
 import { call, clearSession, sessionToken, setSession } from "@/lib/session";
 
 /** Стан форми для useActionState: код помилки з API перекладає UI (messages → authErrors). */
-export type FormState = { status: "idle" | "ok" | "error"; code?: string };
+export type FormState = { status: "idle" | "ok" | "error" | "guest"; code?: string };
 
 const text = (form: FormData, key: string) => String(form.get(key) ?? "").trim();
 const raw = (form: FormData, key: string) => String(form.get(key) ?? "");
@@ -192,9 +192,9 @@ export async function saveHistoryEntry(form: FormData): Promise<void> {
 }
 
 /** «Зберегти пошук» з результатів. Гість — на вхід з поверненням на ці результати. */
+/** «Зберегти пошук»: з акаунтом — у профіль; гостю — `guest` (етап 7: зберігає браузер). */
 export async function saveSearch(_: FormState, form: FormData): Promise<FormState> {
-  const back = raw(form, "back");
-  if (!(await sessionToken())) redirect(`/login?next=${encodeURIComponent(back)}`);
+  if (!(await sessionToken())) return { status: "guest" };
   const { status, code } = await authed<SearchEntry>("POST", "/account/saved", {
     kind: text(form, "kind"),
     params: raw(form, "params"),

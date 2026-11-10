@@ -3917,7 +3917,7 @@
           "account"
         ],
         "summary": "Import Trips",
-        "description": "Поїздки гостя з браузера — до акаунта після входу.",
+        "description": "Поїздки гостя з браузера — до акаунта (етап 7: на згоду, без дублікатів конфігурацій).",
         "operationId": "import_trips_account_trips_import_post",
         "parameters": [
           {
@@ -4145,6 +4145,139 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/trips/{trip_id}/checklist": {
+      "put": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Trip Checklist",
+        "description": "Чекліст поїздки (етап 7): документи, багаж, реєстрація, трансфер, заселення + власні.",
+        "operationId": "trip_checklist_account_trips__trip_id__checklist_put",
+        "parameters": [
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trip Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedTripOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/saved/import": {
+      "post": {
+        "tags": [
+          "account"
+        ],
+        "summary": "Import Saved",
+        "description": "Збережені пошуки гостя з браузера (етап 7) — без повторів, у межах ліміту.",
+        "operationId": "import_saved_account_saved_import_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchEntriesImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Import Saved Account Saved Import Post"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -6993,6 +7126,76 @@
         ],
         "title": "CheckResult"
       },
+      "ChecklistBody": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ChecklistBody"
+      },
+      "ChecklistItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,24}$",
+            "title": "Id"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "documents",
+                  "baggage",
+                  "checkin",
+                  "transfer",
+                  "hotel"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ChecklistItem",
+        "description": "Пункт чекліста поїздки: стандартний (`key`) або власний (`text`)."
+      },
       "ClickIn": {
         "properties": {
           "kind": {
@@ -7974,7 +8177,8 @@
             "enum": [
               "stay",
               "flight",
-              "trip"
+              "trip",
+              "destination"
             ],
             "title": "Kind",
             "default": "stay"
@@ -8008,11 +8212,221 @@
                 "type": "null"
               }
             ]
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteDestination-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "FavoriteBody"
+      },
+      "FavoriteDestination-Input": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Code"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "depart": {
+            "type": "string",
+            "format": "date",
+            "title": "Depart"
+          },
+          "back": {
+            "type": "string",
+            "format": "date",
+            "title": "Back"
+          },
+          "nights": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Nights"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Price"
+          },
+          "with_stay": {
+            "type": "boolean",
+            "title": "With Stay",
+            "default": false
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "price_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Price At"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          },
+          "params": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[\\w%=&.,+:-]+$",
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "city",
+          "depart",
+          "back",
+          "nights",
+          "price",
+          "currency",
+          "price_at",
+          "params"
+        ],
+        "title": "FavoriteDestination",
+        "description": "Напрямок з Explore (етап 7, ADR 0051): місто, дати, ціна перельоту з часом отримання."
+      },
+      "FavoriteDestination-Output": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Code"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "City"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "depart": {
+            "type": "string",
+            "format": "date",
+            "title": "Depart"
+          },
+          "back": {
+            "type": "string",
+            "format": "date",
+            "title": "Back"
+          },
+          "nights": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 0.0,
+            "title": "Nights"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "with_stay": {
+            "type": "boolean",
+            "title": "With Stay",
+            "default": false
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency"
+          },
+          "price_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Price At"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          },
+          "params": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[\\w%=&.,+:-]+$",
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "city",
+          "depart",
+          "back",
+          "nights",
+          "price",
+          "currency",
+          "price_at",
+          "params"
+        ],
+        "title": "FavoriteDestination",
+        "description": "Напрямок з Explore (етап 7, ADR 0051): місто, дати, ціна перельоту з часом отримання."
       },
       "FavoriteFlight-Input": {
         "properties": {
@@ -8327,7 +8741,8 @@
             "enum": [
               "stay",
               "flight",
-              "trip"
+              "trip",
+              "destination"
             ],
             "title": "Kind"
           },
@@ -8359,6 +8774,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/FavoriteTrip-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FavoriteDestination-Output"
               },
               {
                 "type": "null"
@@ -11584,6 +12009,14 @@
             ],
             "title": "Status",
             "default": "draft"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Checklist"
           }
         },
         "additionalProperties": false,
@@ -11618,6 +12051,14 @@
             ],
             "title": "Status",
             "default": "draft"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "maxItems": 40,
+            "title": "Checklist"
           }
         },
         "additionalProperties": false,
@@ -11664,6 +12105,14 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItem"
+            },
+            "type": "array",
+            "title": "Checklist",
+            "default": []
           },
           "share_token": {
             "anyOf": [
@@ -12008,6 +12457,25 @@
         "title": "SearchCoverageSummary",
         "description": "Охоплення пошуку перельотів за 7 днів (модуль 22.8): як відповідали джерела."
       },
+      "SearchEntriesImport": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SearchEntryBody"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "SearchEntriesImport",
+        "description": "Збережені пошуки гостя з браузера (етап 7) — до акаунта, без повторів."
+      },
       "SearchEntryBody": {
         "properties": {
           "kind": {
@@ -12015,7 +12483,8 @@
             "enum": [
               "flights",
               "stays",
-              "trip"
+              "trip",
+              "explore"
             ],
             "title": "Kind"
           },
@@ -12053,7 +12522,8 @@
             "enum": [
               "flights",
               "stays",
-              "trip"
+              "trip",
+              "explore"
             ],
             "title": "Kind"
           },
