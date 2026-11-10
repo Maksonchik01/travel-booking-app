@@ -10,7 +10,7 @@
 import json
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from tickets_api.ai.cards import (
     ChatCard,
+    destination_cards,
     flight_cards,
     stay_cards,
     trip_card,
@@ -44,6 +45,12 @@ from tickets_api.ai.refine import (
 )
 from tickets_api.ai.stay_payload import stay_options_input
 from tickets_api.ai.trip_payload import combo_facts, trip_input
+from tickets_api.domain.explore import (
+    ExploreCategory,
+    ExploreDestination,
+    ExploreQuery,
+    Region,
+)
 from tickets_api.domain.flights import DEFAULT_CURRENCY, MAX_FLEX_DAYS, FlightQuery
 from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.domain.saved_trips import SavedTripBody, TripSnapshot
@@ -54,6 +61,7 @@ from tickets_api.llm.prompts import RULES, find_prompts_dir
 from tickets_api.llm.types import ChatRequest, LLMClient, LLMError, Message, Tool, ToolCall
 from tickets_api.reference.airports import AirportDirectory
 from tickets_api.scoring.engine import offer_key
+from tickets_api.services.explore import ExploreService
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.stay_search import StaySearchService
 from tickets_api.services.trip_planner import (
@@ -360,14 +368,72 @@ SAVE_TRIP_TOOL = Tool(
     },
 )
 
+EXPLORE_TOOL = Tool(
+    name="explore_destinations",
+    description=(
+        "Find WHERE to go when the destination is open: cheapest round trips from the origin "
+        "to any city (or a region/country/categories), within dates, length and budget. "
+        "Prices are cached (approximate). with_stay=true adds a stay and a total for the 3 "
+        "cheapest cities. To compare named cities (e.g. Rome vs Barcelona), pass them in "
+        "'cities'. Returns cities with dates, nights and prices already calculated."
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "origin": {"type": "string", "description": "IATA code from lookup_airport"},
+            "region": {
+                "type": "string",
+                "enum": [
+                    "europe",
+                    "middle_east",
+                    "africa",
+                    "asia",
+                    "north_america",
+                    "south_america",
+                    "oceania",
+                ],
+            },
+            "country": {"type": "string", "description": "ISO 3166-1 alpha-2, e.g. ES"},
+            "cities": {
+                "type": "array",
+                "items": {"type": "string"},
+                "maxItems": 4,
+                "description": "IATA city codes from lookup_airport — only these (comparison)",
+            },
+            "categories": {
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "enum": ["city", "sea", "mountains", "romance", "culture", "nightlife"],
+                },
+            },
+            "departure_date": {"type": "string", "description": "YYYY-MM-DD (earliest)"},
+            "departure_until": {"type": "string", "description": "YYYY-MM-DD, latest departure"},
+            "return_date": {"type": "string", "description": "YYYY-MM-DD; exact dates only"},
+            "min_nights": {"type": "integer", "minimum": 1, "maximum": 30},
+            "max_nights": {"type": "integer", "minimum": 1, "maximum": 30},
+            "weekends": {
+                "type": "boolean",
+                "description": "Weekend trips only (Thu–Sat → Sat–Mon)",
+            },
+            "adults": {"type": "integer", "minimum": 1, "maximum": 9},
+            "budget": {"type": "integer", "description": "Max for everyone (flights, or + stay)"},
+            "with_stay": {"type": "boolean", "description": "Flights + stay with a total"},
+            "direct_only": {"type": "boolean"},
+        },
+        "required": ["origin", "departure_date"],
+    },
+)
+
 ChatMode = Literal["flights", "stays", "trip"]
 """Окремі чати: квитки, житло, уся поїздка — свої промпт, інструменти й історія."""
 TOOLS_BY_MODE: dict[ChatMode, tuple[Tool, ...]] = {
-    "flights": (LOOKUP_TOOL, SEARCH_TOOL, REFINE_FLIGHTS_TOOL, CALENDAR_TOOL),
+    "flights": (LOOKUP_TOOL, SEARCH_TOOL, REFINE_FLIGHTS_TOOL, CALENDAR_TOOL, EXPLORE_TOOL),
     "stays": (LOOKUP_TOOL, STAY_SEARCH_TOOL, REFINE_STAYS_TOOL),
     "trip": (
         LOOKUP_TOOL,
         PLAN_TRIP_TOOL,
+        EXPLORE_TOOL,
         CHANGE_TRIP_TOOL,
         UNDO_TRIP_TOOL,
         COMPARE_TRIPS_TOOL,
@@ -431,6 +497,8 @@ class ChatReply(BaseModel):
     """Останній успішний пошук житла цієї репліки."""
     trip_search: TripQuery | None = None
     """Останній підбір поїздки цієї репліки — UI відкриває сторінку поїздки."""
+    explore_search: ExploreQuery | None = None
+    """Останній пошук напрямків (етап 8) — UI відкриває Explore з тими самими параметрами."""
     trip_action: Literal["undo"] | None = None
     """«Поверни попередній варіант»: UI повертає сторінку поїздки на крок назад."""
     save_trip: SavedTripBody | None = None
@@ -490,6 +558,26 @@ class _TripArgs(BaseModel):
     stay_kinds: list[Literal["hotel", "apartment", "hostel", "guesthouse", "other"]] = []
 
 
+class _ExploreArgs(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    origin: str
+    region: Region | None = None
+    country: str | None = Field(default=None, pattern=r"^[A-Za-z]{2}$")
+    cities: list[str] = Field(default_factory=list, max_length=4)
+    categories: list[ExploreCategory] = Field(default_factory=list, max_length=6)
+    departure_date: date
+    departure_until: date | None = None
+    return_date: date | None = None
+    min_nights: int | None = Field(default=None, ge=1, le=30)
+    max_nights: int | None = Field(default=None, ge=1, le=30)
+    weekends: bool = False
+    adults: int = Field(default=1, ge=1, le=9)
+    budget: int | None = Field(default=None, ge=1)
+    with_stay: bool = False
+    direct_only: bool = False
+
+
 class _CompareArgs(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -520,6 +608,7 @@ class _TurnState:
     stay_searches: int = 0
     stay_search: StayQuery | None = None
     trip_search: TripQuery | None = None
+    explore_search: ExploreQuery | None = None
     trip_action: Literal["undo"] | None = None
     save_trip: SavedTripBody | None = None
     compare: list[CompareEntry] = field(default_factory=list)
@@ -543,9 +632,11 @@ class TravelAssistant:
         model: str,
         stay_search: StaySearchService | None = None,
         trip_planner: TripPlanner | None = None,
+        explore: ExploreService | None = None,
         prompts_dir: Path | None = None,
         clock: Clock | None = None,
     ) -> None:
+        self._explore = explore
         self._airports = airports
         self._search = search
         self._stay_search = stay_search
@@ -657,6 +748,8 @@ class TravelAssistant:
                 return await self._refine_stays(arguments, state, context)
             if call.name == PLAN_TRIP_TOOL.name:
                 return await self._plan_trip(arguments, state, context)
+            if call.name == EXPLORE_TOOL.name:
+                return await self._explore_destinations(arguments, state, context)
             if call.name == CHANGE_TRIP_TOOL.name:
                 return await self._change_trip(arguments, state, context)
             if call.name == UNDO_TRIP_TOOL.name:
@@ -840,6 +933,70 @@ class TravelAssistant:
         names = self._names(result)
         state.cards = list(trip_cards(query, result, names, dict(TRIP_REF_TITLES)))
         return json.dumps(trip_input(result, names), ensure_ascii=False)
+
+    async def _explore_destinations(
+        self, arguments: dict[str, Any], state: _TurnState, context: ChatContext
+    ) -> str:
+        """Куди полетіти (етап 8): той самий Explore, що й сторінка — кешовані ціни перельотів,
+        житло лише для кількох найдешевших; числа рахує код, модель лише переказує."""
+        if self._explore is None:
+            raise ToolError("destination search is not available")
+        args = _ExploreArgs.model_validate(arguments)
+        if args.departure_date < context.today:
+            raise ToolError("departure_date is in the past")
+        exact = args.return_date is not None and args.departure_until is None
+        nights: dict[str, int] = {}
+        if not exact:
+            low = args.min_nights or (1 if args.weekends else 2)
+            nights = {"min_nights": low, "max_nights": max(low, args.max_nights or low + 5)}
+        cities = [self._city(code) for code in args.cities]
+        query = ExploreQuery.model_validate(
+            {
+                "origins": [self._code(args.origin)],
+                "region": args.region,
+                "country": args.country.upper() if args.country else None,
+                "categories": args.categories,
+                "departure_date": args.departure_date,
+                "departure_until": None
+                if exact
+                else args.departure_until or args.departure_date + timedelta(days=30),
+                "return_date": args.return_date if exact else None,
+                **nights,
+                "weekends": args.weekends and not exact,
+                "adults": args.adults,
+                "budget": args.budget,
+                "mode": "trip" if args.with_stay else "flights",
+                "direct_only": args.direct_only,
+                "currency": context.currency,
+                "lang": "uk" if context.locale == "uk" else "en",
+                "limit": 60 if cities else 10,
+            }
+        )
+        if args.with_stay:
+            self._count_search(state)  # житло — платне джерело: той самий ліміт пошуків
+        result = await self._explore.explore(query)
+        if cities:
+            wanted = set(cities)
+            result = result.model_copy(
+                update={"destinations": [d for d in result.destinations if d.code in wanted]}
+            )
+        state.explore_search = query
+        state.cards = list(destination_cards(result, query))
+        found = {d.code for d in result.destinations}
+        payload = {
+            "found": len(result.destinations),
+            "prices": t("ai.explore.cached"),
+            "destinations": [_destination_facts(d) for d in result.destinations[:8]],
+            "not_found": [c for c in cities if c not in found],
+            "stays_checked": result.stays_checked,
+        }
+        return json.dumps(payload, ensure_ascii=False, default=str)
+
+    def _city(self, code: str) -> str:
+        city = self._airports.city_of(self._code(code))
+        if city is None:
+            raise ToolError(f"unknown city {code}")
+        return city.code
 
     def _count_search(self, state: _TurnState) -> None:
         # Поїздка — це живий пошук перельотів: той самий ліміт, що й для search_flights.
@@ -1093,6 +1250,29 @@ TRIP_REF_TITLES = Labels(
 """Назви поїздок у порівнянні й картках — мовою розмови (модуль 18.1)."""
 
 
+def _destination_facts(d: ExploreDestination) -> dict[str, Any]:
+    offer = d.offer
+    back = offer.inbound.departure_at if offer.inbound else offer.outbound.departure_at
+    facts: dict[str, Any] = {
+        "city": d.city_name,
+        "code": d.code,
+        "country": d.country,
+        "depart": offer.outbound.departure_at.date().isoformat(),
+        "back": back.date().isoformat(),
+        "nights": d.nights,
+        "stops": offer.stops,
+        "flight_price_text": money_text(offer.price, offer.currency),
+        "categories": d.categories,
+    }
+    if d.stay_status is not None:
+        facts["stay_status"] = d.stay_status
+    if d.stay is not None and d.total is not None:
+        facts["stay"] = d.stay.name
+        facts["stay_price_text"] = money_text(d.stay.total_price, offer.currency)
+        facts["total_text"] = money_text(d.total, offer.currency)
+    return facts
+
+
 def _offer_of(result: TripSearchResult, combo: TripCombo) -> Any:
     return next(o for o in result.offers if offer_key(o) == combo.offer_key)
 
@@ -1103,6 +1283,7 @@ def _effects(state: _TurnState) -> dict[str, Any]:
         "search": state.search,
         "stay_search": state.stay_search,
         "trip_search": state.trip_search,
+        "explore_search": state.explore_search,
         "trip_action": state.trip_action,
         "save_trip": state.save_trip,
         "compare": state.compare,

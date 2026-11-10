@@ -26,7 +26,7 @@ export type StoredCard = { card: ChatCard; href?: string; trip?: string };
 
 /** Репліка в браузері: для «усієї поїздки» — ще й посилання на знайдене й картки. */
 export type StoredTurn = ChatTurn & {
-  links?: { flights?: string; stays?: string; trip?: string };
+  links?: { flights?: string; stays?: string; trip?: string; explore?: string };
   cards?: StoredCard[];
 };
 

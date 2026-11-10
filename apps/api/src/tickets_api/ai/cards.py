@@ -14,11 +14,13 @@ from pydantic import BaseModel, Field
 
 from tickets_api.ai.explainer import TITLES
 from tickets_api.ai.stay_payload import STAY_TITLES
+from tickets_api.domain.explore import ExploreQuery
 from tickets_api.domain.flights import FlightQuery, Leg, Money, Offer
 from tickets_api.domain.stays import Stay, StayKind
 from tickets_api.domain.trips import TripQuery
 from tickets_api.scoring.engine import offer_key
 from tickets_api.scoring.stays import stay_key
+from tickets_api.services.explore import ExploreResult
 from tickets_api.services.flight_search import FlightSearchResult
 from tickets_api.services.stay_search import StaySearchResult
 from tickets_api.services.trip_planner import TripCombo, TripSearchResult
@@ -88,7 +90,66 @@ class TripCard(BaseModel):
     """Запит з обраним рейсом і житлом — «Відкрити в планувальнику»."""
 
 
-ChatCard = Annotated[FlightCard | StayCard | TripCard, Field(discriminator="kind")]
+class DestinationCard(BaseModel):
+    """Напрямок з Explore (етап 8): місто, дати, ціна; посилання на рейси й поїздку будує UI."""
+
+    kind: Literal["destination"] = "destination"
+    key: str
+    label: str | None = None
+    code: str
+    city: str
+    country: str
+    photo_url: str | None
+    origin: str
+    """Аеропорт вильоту пропозиції."""
+    depart: date
+    back: date
+    nights: int
+    stops: int
+    flight_price: Money
+    """За всіх дорослих, кешована ціна."""
+    total: Money | None
+    """Переліт + житло, якщо житло рахували."""
+    stay_name: str | None
+    currency: str
+    adults: int
+    budget: int | None
+    found_at: datetime | None
+
+
+ChatCard = Annotated[
+    FlightCard | StayCard | TripCard | DestinationCard, Field(discriminator="kind")
+]
+
+
+def destination_cards(result: ExploreResult, query: ExploreQuery) -> list[DestinationCard]:
+    """Перші напрямки результату Explore (до MAX_CARDS) — у тому самому порядку, що й сторінка."""
+    cards = []
+    for d in result.destinations[:MAX_CARDS]:
+        offer = d.offer
+        back = offer.inbound.departure_at if offer.inbound else offer.outbound.departure_at
+        cards.append(
+            DestinationCard(
+                key=f"{d.code}:{offer.outbound.departure_at.date()}",
+                code=d.code,
+                city=d.city_name,
+                country=d.country,
+                photo_url=d.photo.url if d.photo else None,
+                origin=offer.outbound.origin,
+                depart=offer.outbound.departure_at.date(),
+                back=back.date(),
+                nights=d.nights,
+                stops=offer.stops,
+                flight_price=offer.price,
+                total=d.total,
+                stay_name=d.stay.name if d.stay else None,
+                currency=offer.currency,
+                adults=query.adults,
+                budget=query.budget,
+                found_at=offer.found_at,
+            )
+        )
+    return cards
 
 
 def _leg(leg: Leg) -> LegCard:

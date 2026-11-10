@@ -485,7 +485,8 @@
     "openChat": "ИИ-помощник",
     "closeChat": "Свернуть помощника",
     "more": "Подробнее",
-    "less": "Свернуть"
+    "less": "Свернуть",
+    "openExplore": "Открыть Explore"
   },
   "staysHome": {
     "title": "Жильё, которое <accent>действительно удобно</accent>",
@@ -1795,7 +1796,12 @@
     "tripTotal": "известные расходы за {nights, plural, one {# ночь} few {# ночи} many {# ночей} other {# ночи}}",
     "unknownParts": "+ {count, plural, one {# составляющая} few {# составляющие} many {# составляющих} other {# составляющей}} неизвестно",
     "partFlight": "Перелёт",
-    "partStay": "Жильё"
+    "partStay": "Жильё",
+    "destinationNights": "{count, plural, one {# ночь} few {# ночи} many {# ночей} other {# ночи}}",
+    "destinationTotal": "перелёт + жильё",
+    "destinationFlight": "перелёт, ориентировочно",
+    "destinationFlights": "Рейсы",
+    "destinationTrip": "Поездка"
   },
   "cabinet": {
     "hello": "Добро пожаловать, {name}!",

@@ -45,6 +45,16 @@
 
 Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 
+## ШІ-помічник і Explore (ADR 0052)
+
+| Сценарій | Тест |
+|---|---|
+| «Куди з Амстердама за 400 €» — напрямки, картки, Explore з тими самими умовами | API `test_assistant_explore::test_where_to_fly_on_budget_gives_destinations_cards_and_explore_link` |
+| «В Європу на вихідні, удвох, до 900 € з житлом» — сума від коду | API `test_assistant_explore::test_europe_weekends_and_trip_for_two_with_budget` |
+| «Порівняй Рим і Барселону» — лише ці міста, `not_found` | API `test_assistant_explore::test_compare_two_named_cities` |
+| Минула дата — назад моделі; вигадана сума — відхилено | API `test_assistant_explore::test_invented_total_is_rejected_and_past_date_goes_back` |
+| Помічник на Explore: картки напрямків і перехід | E2E «етап 8: помічник шукає напрямки…» |
+
 ## Збереження гостя й чекліст (ADR 0051)
 
 | Сценарій | Тест |

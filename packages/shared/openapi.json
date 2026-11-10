@@ -6854,6 +6854,16 @@
               }
             ]
           },
+          "explore_search": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExploreQuery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "trip_action": {
             "anyOf": [
               {
@@ -6895,11 +6905,15 @@
                 },
                 {
                   "$ref": "#/components/schemas/TripCard"
+                },
+                {
+                  "$ref": "#/components/schemas/DestinationCard"
                 }
               ],
               "discriminator": {
                 "propertyName": "kind",
                 "mapping": {
+                  "destination": "#/components/schemas/DestinationCard",
                   "flight": "#/components/schemas/FlightCard",
                   "stay": "#/components/schemas/StayCard",
                   "trip": "#/components/schemas/TripCard"
@@ -7527,6 +7541,155 @@
           "confirm"
         ],
         "title": "DeleteAccountBody"
+      },
+      "DestinationCard": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "const": "destination",
+            "title": "Kind",
+            "default": "destination"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "photo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Url"
+          },
+          "origin": {
+            "type": "string",
+            "title": "Origin"
+          },
+          "depart": {
+            "type": "string",
+            "format": "date",
+            "title": "Depart"
+          },
+          "back": {
+            "type": "string",
+            "format": "date",
+            "title": "Back"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          },
+          "stops": {
+            "type": "integer",
+            "title": "Stops"
+          },
+          "flight_price": {
+            "type": "number",
+            "title": "Flight Price"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "stay_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay Name"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "adults": {
+            "type": "integer",
+            "title": "Adults"
+          },
+          "budget": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget"
+          },
+          "found_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Found At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "code",
+          "city",
+          "country",
+          "photo_url",
+          "origin",
+          "depart",
+          "back",
+          "nights",
+          "stops",
+          "flight_price",
+          "total",
+          "stay_name",
+          "currency",
+          "adults",
+          "budget",
+          "found_at"
+        ],
+        "title": "DestinationCard",
+        "description": "Напрямок з Explore (етап 8): місто, дати, ціна; посилання на рейси й поїздку будує UI."
       },
       "DestinationPhoto": {
         "properties": {

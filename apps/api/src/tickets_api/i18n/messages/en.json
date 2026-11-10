@@ -161,6 +161,9 @@
       "rating": "{rating} out of 10",
       "km": "{value} km",
       "meters": "{value} m"
+    },
+    "explore": {
+      "cached": "prices are cached (found recently) and approximate — flight or trip search gives the current one"
     }
   }
 }

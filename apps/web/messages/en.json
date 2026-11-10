@@ -485,7 +485,8 @@
     "openChat": "AI assistant",
     "closeChat": "Collapse the assistant",
     "more": "Read more",
-    "less": "Show less"
+    "less": "Show less",
+    "openExplore": "Open Explore"
   },
   "staysHome": {
     "title": "Places to stay that are <accent>truly convenient</accent>",
@@ -1795,7 +1796,12 @@
     "tripTotal": "known costs for {nights, plural, one {# night} other {# nights}}",
     "unknownParts": "+ {count, plural, one {# item} other {# items}} unknown",
     "partFlight": "Flight",
-    "partStay": "Stay"
+    "partStay": "Stay",
+    "destinationNights": "{count, plural, one {# night} other {# nights}}",
+    "destinationTotal": "flights + stay",
+    "destinationFlight": "flights, approximate",
+    "destinationFlights": "Flights",
+    "destinationTrip": "Trip"
   },
   "cabinet": {
     "hello": "Welcome, {name}!",

@@ -245,6 +245,9 @@ SkyPack — веб-застосунок для пошуку подорожей �
   Історія розмов — у браузері (localStorage, `src/lib/chat-history.ts`): список, повернення,
   перейменування, видалення; в акаунті — ЛИШЕ за згодою (`users.chat_sync`, таблиця
   `chat_conversations`, `/account/chats`; вимкнення видаляє з сервера; ADR 0022).
+  Пошук напрямків ([ADR 0052](docs/adr/0052-assistant-explore.md)): `explore_destinations` у чатах «Квитки» й «Уся
+  поїздка» (той самий `ExploreService`; `cities` — порівняння міст, `with_stay` — сума, у ліміті пошуків), відповідь —
+  `explore_search` + картки `destination` (`chat-cards.tsx`); помічник є й на `/explore`.
   Змінив промпт/контракт парсера — `uv run python scripts/eval_parser.py --record`
   (30 кейсів, ≈ $0.01) і перевір, що pytest на записаних відповідях зелений.
 

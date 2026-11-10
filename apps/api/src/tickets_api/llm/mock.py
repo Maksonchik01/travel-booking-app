@@ -72,6 +72,17 @@ def _assistant_answer(request: ChatRequest, tools: set[str]) -> ChatResponse:
             if not results:
                 return call(*command)
             return text(_command_text(results[-1]))
+    # Етап 8: «куди…» / «будь-куди» — пошук напрямків (сценарій для e2e, не розуміння мови).
+    explored = next((r for r in results if "destinations" in r and "found" in r), None)
+    if mode == "flights" and ("куди" in last or "anywhere" in last or "where" in last):
+        if explored is None:
+            return call(
+                "explore_destinations",
+                {"origin": "WAW", "departure_date": departure.isoformat()},
+            )
+        top = explored["destinations"][:2]
+        names = ", ".join(f"{d['city']} ({d['flight_price_text']})" for d in top)
+        return text(f"Знайшов напрямків: {explored['found']}. Найдешевші: {names}.")
     if mode == "flights" and context.get("current_search") and not results:
         change = _flight_change(last)
         if change:

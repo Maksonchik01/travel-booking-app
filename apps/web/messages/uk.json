@@ -485,7 +485,8 @@
     "openChat": "ШІ-помічник",
     "closeChat": "Згорнути помічника",
     "more": "Докладніше",
-    "less": "Згорнути"
+    "less": "Згорнути",
+    "openExplore": "Відкрити Explore"
   },
   "staysHome": {
     "title": "Житло, яке <accent>справді зручне</accent>",
@@ -1795,7 +1796,12 @@
     "tripTotal": "відомі витрати за {nights, plural, one {# ніч} few {# ночі} many {# ночей} other {# ночі}}",
     "unknownParts": "+ {count, plural, one {# складова} few {# складові} many {# складових} other {# складової}} невідомо",
     "partFlight": "Переліт",
-    "partStay": "Житло"
+    "partStay": "Житло",
+    "destinationNights": "{count, plural, one {# ніч} few {# ночі} many {# ночей} other {# ночі}}",
+    "destinationTotal": "переліт + житло",
+    "destinationFlight": "переліт, орієнтовно",
+    "destinationFlights": "Рейси",
+    "destinationTrip": "Поїздка"
   },
   "cabinet": {
     "hello": "Вітаємо, {name}!",

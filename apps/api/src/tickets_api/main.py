@@ -159,6 +159,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             search=app.state.flight_search,
             stay_search=app.state.stay_search,
             trip_planner=app.state.trip_planner,
+            explore=app.state.explore,
             pricing=llm_pricing,
         )
         try:

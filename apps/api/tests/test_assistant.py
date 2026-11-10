@@ -285,6 +285,7 @@ async def test_trip_chat_plans_whole_trip_with_totals_from_code() -> None:
     assert {t.name for t in client.requests[0].tools} == {
         "lookup_airport",
         "plan_trip",
+        "explore_destinations",
         "change_trip",
         "undo_trip",
         "compare_trips",

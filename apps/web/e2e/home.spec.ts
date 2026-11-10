@@ -329,6 +329,24 @@ test("етап 7: гість зберігає напрямок і пошук, п
   await expect(page.getByTestId("favorite-item")).toHaveCount(1);
 });
 
+test("етап 8: помічник шукає напрямки — картки й перехід в Explore з тими самими умовами", async ({
+  page,
+}) => {
+  await page.goto("/explore");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "ШІ-пошук" }).click();
+  await page.getByRole("button", { name: /^Квитки/ }).click();
+  await page.getByLabel("Запитайте ШІ-помічника").fill("Куди полетіти з Варшави?");
+  await page.getByRole("button", { name: "Надіслати" }).click();
+
+  const conversation = page.getByRole("list", { name: "Розмова з помічником" });
+  await expect(conversation).toContainText("Знайшов напрямків");
+  await expect(page.getByTestId("chat-card-destination").first()).toBeVisible();
+  // Квитки: знайдене відкривається одразу — Explore з тими самими умовами.
+  await expect(page).toHaveURL(/\/explore\?from=WAW&depart=/);
+  await expect(page.getByTestId("explore-card").first()).toBeVisible();
+});
+
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
   // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).

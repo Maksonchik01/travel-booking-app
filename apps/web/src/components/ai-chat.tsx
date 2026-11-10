@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  ExploreQuery,
   ChatMode,
   ChatReply,
   ChatTurn,
@@ -13,6 +14,7 @@ import type {
 import {
   ArrowLeft,
   BedDouble,
+  Compass,
   History,
   Loader2,
   Luggage,
@@ -29,6 +31,7 @@ import { useEffect, useId, useRef, useState, useTransition } from "react";
 
 import { deleteChat, loadChatSync, saveChat, setChatSync } from "@/app/actions/chats";
 import { ChatCards, cardLinks } from "@/components/chat-cards";
+import { exploreHref } from "@/lib/explore-params";
 import { saveTripNow } from "@/components/saved-trips";
 import { addToTripCompare } from "@/components/trip-compare";
 import { previousTripParams, undoTripStep } from "@/components/trip-history";
@@ -282,7 +285,9 @@ function ChatBox({
         setFailed(reply === "rate_limited" ? "rateLimited" : "error");
         return;
       }
-      const found = Boolean(reply.search || reply.stay_search || reply.trip_search);
+      const found = Boolean(
+        reply.search || reply.stay_search || reply.trip_search || reply.explore_search,
+      );
       const answer =
         reply.status === "ok" && reply.reply
           ? reply.reply
@@ -294,8 +299,14 @@ function ChatBox({
         ? `/stays?${toStayParams({ query: reply.stay_search, sort: "price" })}`
         : undefined;
       const tripHref = reply.trip_search ? `/trip?${toTripParams(reply.trip_search)}` : undefined;
+      // Пошук напрямків (етап 8) — Explore з тими самими параметрами.
+      const exploreLink = reply.explore_search
+        ? exploreHref(reply.explore_search as ExploreQuery)
+        : undefined;
       // Посилання на знайдене зберігаємо в репліці: з історії можна повернутися до результатів.
-      const links = found ? { flights: flightsHref, stays: staysHref, trip: tripHref } : undefined;
+      const links = found
+        ? { flights: flightsHref, stays: staysHref, trip: tripHref, explore: exploreLink }
+        : undefined;
       // Картки (модуль 9b) — з готовими посиланнями: переглянути й перенести в планувальник.
       const cards = cardLinks(
         reply.cards,
@@ -308,6 +319,7 @@ function ChatBox({
       ]);
       // Квитки й житло відкриваються одразу; «уся поїздка» — посиланням на сторінку поїздки.
       if (mode === "flights" && flightsHref) router.push(flightsHref);
+      else if (mode === "flights" && exploreLink) router.push(exploreLink);
       if (mode === "stays" && staysHref) router.push(staysHref);
       // Команди готової поїздки (модуль 9a) змінюють реальний стан сторінки планувальника.
       if (mode === "trip") {
@@ -763,6 +775,7 @@ function ResultLinks({ links }: { links: NonNullable<StoredTurn["links"]> }) {
     { href: links.flights, icon: Plane, label: t("openFlights") },
     { href: links.stays, icon: BedDouble, label: t("openStays") },
     { href: links.trip, icon: Luggage, label: t("openTrip") },
+    { href: links.explore, icon: Compass, label: t("openExplore") },
   ].filter((item): item is { href: string; icon: typeof Plane; label: string } => !!item.href);
   return (
     <span className="mt-2 flex flex-wrap gap-2">

@@ -6,7 +6,9 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { after } from "next/server";
 import { Suspense } from "react";
 
+import { AIChat } from "@/components/ai-chat";
 import { CollapsibleSearch } from "@/components/collapsible-search";
+import { SearchTabs } from "@/components/search-tabs";
 import { ExploreCard } from "@/components/explore-card";
 import { ExploreCompareBar, ExploreCompareProvider } from "@/components/explore-compare";
 import { ExploreForm } from "@/components/explore-form";
@@ -21,7 +23,7 @@ import { ProviderAlerts } from "@/components/provider-alerts";
 import { SearchModes } from "@/components/search-modes";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { ERROR_KEY, fetchCountryCodes, searchExplore } from "@/lib/api";
+import { ERROR_KEY, fetchAIStatus, fetchCountryCodes, searchExplore } from "@/lib/api";
 import {
   CATEGORIES,
   EXPLORE_PATH,
@@ -141,9 +143,18 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
     return: (query ?? draft).return_date ?? undefined,
     adults: (query ?? draft).adults,
   };
+  const status = await fetchAIStatus();
+  // ШІ-помічник (етап 8): той самий чат «Квитки», що вміє шукати напрямки (`explore_destinations`).
   const withModes = (inner: React.ReactNode) => (
-    <SearchModes current="explore" common={common} ai={false} drafting={!query}>
-      {inner}
+    <SearchModes current="explore" common={common} ai={status.enabled} drafting={!query}>
+      {status.enabled ? (
+        <SearchTabs
+          form={inner}
+          chat={<AIChat homeAirport={(query ?? draft).origins?.[0] ?? undefined} />}
+        />
+      ) : (
+        inner
+      )}
     </SearchModes>
   );
   if (!query) return withModes(form);

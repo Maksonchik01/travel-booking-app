@@ -2286,6 +2286,7 @@ export interface components {
             search?: components["schemas"]["FlightQuery"] | null;
             stay_search?: components["schemas"]["StayQuery"] | null;
             trip_search?: components["schemas"]["TripQuery-Output"] | null;
+            explore_search?: components["schemas"]["ExploreQuery"] | null;
             /** Trip Action */
             trip_action?: "undo" | null;
             save_trip?: components["schemas"]["SavedTripBody-Output"] | null;
@@ -2298,7 +2299,7 @@ export interface components {
              * Cards
              * @default []
              */
-            cards: (components["schemas"]["FlightCard"] | components["schemas"]["StayCard"] | components["schemas"]["TripCard"])[];
+            cards: (components["schemas"]["FlightCard"] | components["schemas"]["StayCard"] | components["schemas"]["TripCard"] | components["schemas"]["DestinationCard"])[];
         };
         /** ChatSyncBody */
         ChatSyncBody: {
@@ -2542,6 +2543,59 @@ export interface components {
         DeleteAccountBody: {
             /** Confirm */
             confirm: string;
+        };
+        /**
+         * DestinationCard
+         * @description Напрямок з Explore (етап 8): місто, дати, ціна; посилання на рейси й поїздку будує UI.
+         */
+        DestinationCard: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "destination";
+            /** Key */
+            key: string;
+            /** Label */
+            label?: string | null;
+            /** Code */
+            code: string;
+            /** City */
+            city: string;
+            /** Country */
+            country: string;
+            /** Photo Url */
+            photo_url: string | null;
+            /** Origin */
+            origin: string;
+            /**
+             * Depart
+             * Format: date
+             */
+            depart: string;
+            /**
+             * Back
+             * Format: date
+             */
+            back: string;
+            /** Nights */
+            nights: number;
+            /** Stops */
+            stops: number;
+            /** Flight Price */
+            flight_price: number;
+            /** Total */
+            total: number | null;
+            /** Stay Name */
+            stay_name: string | null;
+            /** Currency */
+            currency: string;
+            /** Adults */
+            adults: number;
+            /** Budget */
+            budget: number | null;
+            /** Found At */
+            found_at: string | null;
         };
         /** DestinationPhoto */
         DestinationPhoto: {

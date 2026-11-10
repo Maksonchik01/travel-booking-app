@@ -2,6 +2,7 @@
 
 import type {
   ChatCard,
+  DestinationChatCard,
   FlightChatCard,
   FlightQuery,
   StayChatCard,
@@ -29,6 +30,25 @@ export function cardLinks(
   queries: { flight?: FlightQuery | null; stay?: StayQuery | null },
 ): StoredCard[] {
   return (cards ?? []).map((card) => {
+    if (card.kind === "destination") {
+      // Напрямок Explore (етап 8): рейси — звичайний пошук (живі ціни), поїздка — планувальник.
+      const base = {
+        from: card.origin,
+        to: card.code,
+        depart: card.depart,
+        return: card.back,
+        ...(card.adults > 1 ? { adults: String(card.adults) } : {}),
+      };
+      return {
+        card,
+        href: `/?${new URLSearchParams(base)}`,
+        trip: `/trip?${new URLSearchParams({
+          ...base,
+          adults: String(card.adults),
+          ...(card.budget ? { budget: String(card.budget) } : {}),
+        })}`,
+      };
+    }
     if (card.kind === "trip") {
       // Картка з вибором рейсу й житла — одразу до «Вашої поїздки» (модуль 23b).
       const href = `/trip?${toTripParams(card.query)}`;
@@ -78,6 +98,8 @@ export function ChatCards({ cards, now }: { cards: StoredCard[]; now: Date }) {
             <FlightCardView card={item.card} item={item} now={now} />
           ) : item.card.kind === "stay" ? (
             <StayCardView card={item.card} item={item} now={now} />
+          ) : item.card.kind === "destination" ? (
+            <DestinationCardView card={item.card} item={item} now={now} />
           ) : (
             <TripCardView card={item.card} item={item} now={now} />
           )}
@@ -379,6 +401,92 @@ function TripCardView({ card, item, now }: { card: TripChatCard; item: StoredCar
           <ArrowRight className="size-3.5" aria-hidden />
         </Link>
       )}
+    </div>
+  );
+}
+
+function DestinationCardView({
+  card,
+  item,
+  now,
+}: {
+  card: DestinationChatCard;
+  item: StoredCard;
+  now: Date;
+}) {
+  const t = useTranslations("chatCards");
+  const money = useMoney();
+  const format = useFormatter();
+  const day = (iso: string) =>
+    format.dateTime(new Date(`${iso}T00:00:00Z`), {
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+    });
+  return (
+    <div
+      className="bg-card grid gap-2 overflow-hidden rounded-xl border text-xs shadow-xs"
+      data-testid="chat-card-destination"
+    >
+      {card.photo_url && (
+        // Фото з довідника напрямків (upload.wikimedia.org), без Referer.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={card.photo_url}
+          alt=""
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="aspect-[16/7] w-full object-cover"
+        />
+      )}
+      <div className="grid gap-2 px-3 pb-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">{card.city}</p>
+            <p className="text-muted-foreground">
+              {day(card.depart)} – {day(card.back)} ·{" "}
+              {t("destinationNights", { count: card.nights })}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-base font-bold tabular-nums">
+              {money(card.total ?? card.flight_price, card.currency)}
+            </p>
+            <p className="text-muted-foreground">
+              {card.total != null ? t("destinationTotal") : t("destinationFlight")}
+            </p>
+          </div>
+        </div>
+        {card.stay_name && (
+          <p className="text-muted-foreground flex items-center gap-1">
+            <BedDouble className="size-3.5" aria-hidden />
+            {card.stay_name}
+          </p>
+        )}
+        <PriceAge status="cached" foundAt={card.found_at} now={now} />
+        <div className="flex flex-wrap gap-2">
+          {item.href && (
+            <Link
+              href={item.href}
+              className="bg-accent text-accent-foreground hover:bg-primary hover:text-primary-foreground inline-flex h-8 items-center gap-1 rounded-lg px-3 font-medium"
+            >
+              <Plane className="size-3.5" aria-hidden />
+              {t("destinationFlights")}
+            </Link>
+          )}
+          {item.trip && (
+            <Link
+              href={item.trip}
+              data-track="ai_to_planner"
+              data-track-source="chat"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-8 items-center gap-1 rounded-lg px-3 font-medium"
+            >
+              <Luggage className="size-3.5" aria-hidden />
+              {t("destinationTrip")}
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
