@@ -207,3 +207,20 @@
     background-position: -200% 0;
   }
 }
+
+/* ШІ-помічник (модуль 23a): плаваюча кнопка над нижньою панеллю порівняння, а на широкому
+   екрані відкрита бічна панель звільняє собі місце — результати лишаються видимими. */
+.chat-launcher {
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+body:has([data-bottom-bar]) .chat-launcher {
+  bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 64rem) {
+  html[data-chat-open] body {
+    padding-right: 26rem;
+  }
+  html[data-chat-open] [data-bottom-bar] {
+    right: 26rem;
+  }
+}

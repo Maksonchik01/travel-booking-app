@@ -417,7 +417,7 @@
     "you": "You",
     "assistant": "Assistant",
     "privacy": "Messages are processed by the DeepSeek AI model. Chat history is stored in this browser, and in your account only if you turn on sync; you can delete it. Don't share personal data.",
-    "error": "The assistant isn't responding right now. Try again or use the form below.",
+    "error": "The assistant isn't responding right now. Try again or use the search form.",
     "fallback": "Couldn't put together an answer. Please clarify what we're looking for and on which dates.",
     "fallbackFound": "Here's what we found — see the options and scores in the results.",
     "explaining": "The AI is preparing an explanation of the results…",
@@ -456,7 +456,10 @@
     "syncLabel": "Sync chats across devices",
     "syncOffHint": "Off: chats stay only in this browser. Turn it on and we'll store them in your account.",
     "syncOnHint": "Chats are stored in your account. Turn it off and we'll delete them from your account (they stay in the browser).",
-    "syncGuest": "Chats are stored only in this browser. Sign in to sync them across devices."
+    "syncGuest": "Chats are stored only in this browser. Sign in to sync them across devices.",
+    "panelTitle": "AI assistant",
+    "openChat": "AI assistant",
+    "closeChat": "Collapse the assistant"
   },
   "staysHome": {
     "title": "Places to stay that are <accent>truly convenient</accent>",

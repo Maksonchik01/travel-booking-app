@@ -111,6 +111,7 @@ export function CompareBar({ airlineNames }: { airlineNames: Record<string, stri
         className="bg-card/95 fixed inset-x-0 bottom-0 z-40 border-t shadow-lg backdrop-blur"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         data-testid="compare-bar"
+        data-bottom-bar
       >
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
           <span className="font-medium">

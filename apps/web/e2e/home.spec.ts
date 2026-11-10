@@ -108,9 +108,11 @@ test("розмова з ШІ-помічником: питання → відпо
   const explanation = page.getByTestId("ai-explanation");
   await expect(explanation).toContainText("Радимо:");
 
-  // Після переходу на результати розмова на місці, і її видно після оновлення вкладки
-  // (режим «ШІ-пошук» теж запам'ятовується).
+  // Після оновлення помічник згорнутий (модуль 23a: не заважає результатам) — кнопка
+  // «ШІ-помічник» повертає його з тією самою розмовою.
   await page.reload();
+  await expect(page.getByTestId("search-panel-chat")).toBeHidden();
+  await page.getByTestId("chat-launcher").click();
   await expect(page.getByRole("button", { name: "ШІ-пошук" })).toHaveAttribute(
     "aria-pressed",
     "true",
@@ -164,7 +166,11 @@ test("помічник «уся поїздка»: загальна сума й �
   await expect(page).toHaveURL(/\/trip\?from=WAW&to=LIS/);
   await expect(page.getByTestId("trip-card").first()).toBeVisible();
 
-  // Розмова на місці й після переходу; новий чат «Квитки» — окремий, порожній.
+  // На сторінці поїздки помічник згорнутий (модуль 23a), кнопка повертає ту саму розмову;
+  // новий чат «Квитки» — окремий, порожній.
+  // (попередня сторінка лишається змонтованою прихованою — рахуємо лише видиме).
+  await expect(page.locator('[data-testid="search-panel-chat"]:visible')).toHaveCount(0);
+  await page.locator('[data-testid="chat-launcher"]:visible').click();
   await expect(conversation).toContainText("Поїздка з Варшави до Лісабона");
   await page.getByRole("button", { name: "Новий чат" }).click();
   await page.getByRole("button", { name: /^Квитки/ }).click();

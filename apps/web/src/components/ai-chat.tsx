@@ -20,7 +20,6 @@ import {
   Plane,
   Plus,
   SendHorizontal,
-  Sparkles,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -334,9 +333,9 @@ function ChatBox({
   const pending = pendingId !== null && pendingId === active?.id;
   return (
     <form ref={formRef} onSubmit={submit} className="grid gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <label htmlFor="ai-message" className="flex items-center gap-1.5 text-sm font-medium">
-          <Sparkles className="text-primary size-4" aria-hidden />
+      {/* Заголовок «ШІ-помічник» — у шапці панелі (search-tabs.tsx); тут лише підпис поля. */}
+      <div className="flex flex-wrap items-center justify-end gap-2 empty:hidden">
+        <label htmlFor="ai-message" className="sr-only">
           {t("label")}
         </label>
         <div className="flex items-center gap-1">
@@ -386,7 +385,7 @@ function ChatBox({
       )}
 
       {active && !showHistory && (
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="flex flex-col gap-2 @sm:flex-row">
           <input
             id="ai-message"
             value={draft}
@@ -395,7 +394,8 @@ function ChatBox({
             placeholder={t(`placeholder.${active.mode}`)}
             className={cn(
               FIELD_CLASS,
-              "border-input min-w-0 flex-1 border px-3.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/40",
+              // flex-1 лише в рядку: у стовпчику він стискав поле до нуля по висоті.
+              "border-input min-w-0 border px-3.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/40 @sm:flex-1",
             )}
             autoComplete="off"
           />
@@ -460,7 +460,7 @@ function ModeChooser({ onChoose }: { onChoose: (mode: ChatMode) => void }) {
       <p className="bg-card justify-self-start rounded-2xl rounded-bl-md border px-3.5 py-2 text-sm shadow-xs">
         {t("greeting")}
       </p>
-      <div className="grid gap-2 sm:grid-cols-3">
+      <div className="grid gap-2 @2xl:grid-cols-3">
         {CHAT_MODES.map((mode) => {
           const Icon = MODE_ICON[mode];
           return (
@@ -705,7 +705,7 @@ function Bubble({
       className={cn(
         "animate-in fade-in-0 slide-in-from-bottom-1 rounded-2xl px-3.5 py-2 leading-relaxed whitespace-pre-line duration-200",
         // З картками — на всю ширину, щоб на телефоні картки не стискались.
-        wide ? "w-full max-w-full sm:max-w-[85%]" : "max-w-[85%]",
+        wide ? "w-full max-w-full @2xl:max-w-[85%]" : "max-w-[85%]",
         role === "user"
           ? "bg-primary text-primary-foreground justify-self-end rounded-br-md"
           : "bg-card justify-self-start rounded-bl-md border shadow-xs",
