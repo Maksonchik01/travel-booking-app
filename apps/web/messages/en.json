@@ -187,7 +187,9 @@
     },
     "sortDeparture": "Departure",
     "mixedNote": "Some prices were just checked live, others come from the search cache (marked on each card). The seller confirms the final price at checkout.",
-    "checkedSources": "Lowest price among the sources checked in this search: {sources}. Other sellers may price it differently."
+    "checkedSources": "Lowest price among the sources checked in this search: {sources}. Other sellers may price it differently.",
+    "otherDates": "Prices on other dates",
+    "otherDatesFrom": "from {price}"
   },
   "offer": {
     "perAdult": "per adult",
@@ -273,7 +275,8 @@
     "verifiedPrice": "live now: {price}",
     "legendCheap": "cheapest days",
     "legendVerified": "price just checked live",
-    "legendCached": "The rest are approximate cached one-way prices; the difference is relative to the selected day."
+    "legendCached": "The rest are approximate cached one-way prices; the difference is relative to the selected day.",
+    "how": "How to read it?"
   },
   "footer": {
     "disclaimer": "We don't sell tickets: booking happens on the seller's site. Prices are indicative.",
@@ -356,7 +359,8 @@
     },
     "hours": "{hours} h",
     "hoursMinutes": "{hours} h {minutes} min",
-    "minutes": "{minutes} min"
+    "minutes": "{minutes} min",
+    "how": "How do we rate?"
   },
   "filters": {
     "title": "Filters",
@@ -459,7 +463,9 @@
     "syncGuest": "Chats are stored only in this browser. Sign in to sync them across devices.",
     "panelTitle": "AI assistant",
     "openChat": "AI assistant",
-    "closeChat": "Collapse the assistant"
+    "closeChat": "Collapse the assistant",
+    "more": "Read more",
+    "less": "Show less"
   },
   "staysHome": {
     "title": "Places to stay that are <accent>truly convenient</accent>",
@@ -656,7 +662,8 @@
       "free_cancellation": "Free cancellation — the cheapest doesn't have it",
       "preferred_amenities": "Has all preferred amenities from your settings",
       "within_budget": "Within budget, {amount} to spare"
-    }
+    },
+    "how": "How do we rate?"
   },
   "stayFilters": {
     "maxPrice": "Per night, up to {currency}",
@@ -786,7 +793,8 @@
       "unavailable": "The selected stay isn't available for the flight dates — showing other options."
     },
     "fewPicks": "{count, plural, one {Only one distinct option was found — it's Economy, Optimal and Comfort at once.} other {Only # distinct options were found — matching scenarios are marked “also”.}}",
-    "nights": "{min}–{max} nights at the destination"
+    "nights": "{min}–{max} nights at the destination",
+    "howTitle": "How is the total calculated?"
   },
   "tripPicks": {
     "label": {
@@ -1436,7 +1444,8 @@
     "title": "Round-trip price matrix",
     "hint": "Departure across, return down. The total round-trip price for 1 adult from the search cache is indicative; click to check it live.",
     "corner": "Return ↓ / departure →",
-    "cellTitle": "Departure {from}, return {to}"
+    "cellTitle": "Departure {from}, return {to}",
+    "how": "How to read it?"
   },
   "sellers": {
     "title": "Seller offers",
@@ -1721,7 +1730,9 @@
     "locationUnknown": "location unknown",
     "perNight": "per night · {total} total for {nights, plural, one {# night} other {# nights}}",
     "tripTotal": "known costs for {nights, plural, one {# night} other {# nights}}",
-    "unknownParts": "+ {count, plural, one {# item} other {# items}} unknown"
+    "unknownParts": "+ {count, plural, one {# item} other {# items}} unknown",
+    "partFlight": "Flight",
+    "partStay": "Stay"
   },
   "cabinet": {
     "hello": "Welcome, {name}!",

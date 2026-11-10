@@ -4,6 +4,9 @@ import { Sparkles, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { OPEN_CHAT_EVENT } from "@/lib/ai-events";
 
@@ -79,8 +82,10 @@ export function SearchTabs({ form, chat }: { form: ReactNode; chat: ReactNode })
   // Відкрили — фокус у поле повідомлення; Escape згортає.
   useEffect(() => {
     if (!open) return;
+    // Остання репліка розмови — на виду.
+    panel.current?.querySelector("[data-chat-scroll]")?.scrollTo({ top: Number.MAX_SAFE_INTEGER });
     panel.current
-      ?.querySelector<HTMLElement>("#ai-message, textarea")
+      ?.querySelector<HTMLElement>("[data-chat-input], textarea")
       ?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
@@ -91,68 +96,78 @@ export function SearchTabs({ form, chat }: { form: ReactNode; chat: ReactNode })
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  // Панель і кнопка — у <body> (портал): інакше вони в контексті накладання картки пошуку, і
+  // картки результатів нижче перекривали кнопку «ШІ-помічник». До гідратації — на місці
+  // (сервер не знає document), панель тоді все одно прихована.
+  const hydrated = useHydrated();
+  const layer = (node: ReactNode) => (hydrated ? createPortal(node, document.body) : node);
+
   return (
     <div ref={root} className="grid scroll-mt-20 gap-5">
       <div data-testid="search-panel-form">{form}</div>
 
-      {open && (
-        <div
-          aria-hidden
-          className="animate-in fade-in-0 fixed inset-0 z-40 bg-black/30 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-      <aside
-        ref={panel}
-        hidden={!open}
-        aria-label={t("panelTitle")}
-        data-testid="search-panel-chat"
-        className={
-          "bg-card fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-2xl border-t shadow-2xl " +
-          "animate-in slide-in-from-bottom-4 lg:slide-in-from-right-4 duration-200 " +
-          "lg:inset-y-0 lg:right-0 lg:left-auto lg:max-h-none lg:w-[26rem] lg:rounded-none lg:border-t-0 lg:border-l"
-        }
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-      >
-        <header
-          className="flex items-center justify-between gap-2 border-b px-4 py-3"
-          style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
-        >
-          <h2 className="flex items-center gap-2 text-sm font-semibold">
-            <span className="bg-primary/10 text-primary grid size-7 place-items-center rounded-lg">
-              <Sparkles className="size-4" aria-hidden />
-            </span>
-            {t("panelTitle")}
-          </h2>
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              launcher.current?.focus();
-            }}
-            aria-label={t("closeChat")}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted grid size-9 place-items-center rounded-lg transition-colors"
-            data-testid="chat-close"
+      {layer(
+        <>
+          {open && (
+            <div
+              aria-hidden
+              className="animate-in fade-in-0 fixed inset-0 z-40 bg-black/30 lg:hidden"
+              onClick={() => setOpen(false)}
+            />
+          )}
+          <aside
+            ref={panel}
+            hidden={!open}
+            aria-label={t("panelTitle")}
+            data-testid="search-panel-chat"
+            className={
+              "bg-card fixed inset-x-0 bottom-0 z-50 flex h-[85dvh] flex-col rounded-t-2xl border-t shadow-2xl " +
+              "animate-in slide-in-from-bottom-4 lg:slide-in-from-right-4 duration-200 " +
+              "lg:inset-y-0 lg:right-0 lg:left-auto lg:h-auto lg:w-[26rem] lg:rounded-none lg:border-t-0 lg:border-l"
+            }
+            style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
           >
-            <X className="size-4" aria-hidden />
-          </button>
-        </header>
-        <div className="@container min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-          {chat}
-        </div>
-      </aside>
+            <header
+              className="flex items-center justify-between gap-2 border-b px-4 py-3"
+              style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))" }}
+            >
+              <h2 className="flex items-center gap-2 text-sm font-semibold">
+                <span className="bg-primary/10 text-primary grid size-7 place-items-center rounded-lg">
+                  <Sparkles className="size-4" aria-hidden />
+                </span>
+                {t("panelTitle")}
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  launcher.current?.focus();
+                }}
+                aria-label={t("closeChat")}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted grid size-9 place-items-center rounded-lg transition-colors"
+                data-testid="chat-close"
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            </header>
+            <div className="@container flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
+              {chat}
+            </div>
+          </aside>
 
-      {!open && (
-        <button
-          ref={launcher}
-          type="button"
-          onClick={() => setOpen(true)}
-          className="chat-launcher bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90 fixed right-4 z-40 flex h-12 items-center gap-2 rounded-full px-4 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 sm:right-6"
-          data-testid="chat-launcher"
-        >
-          <Sparkles className="size-4" aria-hidden />
-          {t("openChat")}
-        </button>
+          {!open && (
+            <button
+              ref={launcher}
+              type="button"
+              onClick={() => setOpen(true)}
+              className="chat-launcher bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90 fixed right-4 z-40 flex h-12 items-center gap-2 rounded-full px-4 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 sm:right-6"
+              data-testid="chat-launcher"
+            >
+              <Sparkles className="size-4" aria-hidden />
+              {t("openChat")}
+            </button>
+          )}
+        </>,
       )}
     </div>
   );

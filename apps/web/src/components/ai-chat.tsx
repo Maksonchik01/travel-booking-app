@@ -25,7 +25,7 @@ import {
 import Link from "next/link";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 
 import { deleteChat, loadChatSync, saveChat, setChatSync } from "@/app/actions/chats";
 import { ChatCards, cardLinks } from "@/components/chat-cards";
@@ -331,11 +331,20 @@ function ChatBox({
   }
 
   const pending = pendingId !== null && pendingId === active?.id;
+  // Унікальний id: Next тримає попередні сторінки змонтованими, і з однаковим id підпис поля
+  // вказував би на прихований чат іншої сторінки.
+  const inputId = useId();
   return (
-    <form ref={formRef} onSubmit={submit} className="grid gap-3">
+    // Панель (модуль 23d): розмова займає всю висоту й гортається сама, поле — внизу.
+    <form
+      ref={formRef}
+      onSubmit={submit}
+      className="flex min-h-0 flex-1 flex-col gap-3"
+      data-testid="ai-chat"
+    >
       {/* Заголовок «ШІ-помічник» — у шапці панелі (search-tabs.tsx); тут лише підпис поля. */}
       <div className="flex flex-wrap items-center justify-end gap-2 empty:hidden">
-        <label htmlFor="ai-message" className="sr-only">
+        <label htmlFor={inputId} className="sr-only">
           {t("label")}
         </label>
         <div className="flex items-center gap-1">
@@ -356,38 +365,44 @@ function ChatBox({
         </div>
       </div>
 
-      {showHistory ? (
-        <HistoryList
-          items={history}
-          activeId={store.activeId}
-          onOpen={open}
-          onDelete={(id) => {
-            commit(remove(latest.current, id));
-            if (syncing.current) void deleteChat(id).catch(() => undefined);
-          }}
-          onRename={(id, title) => {
-            const renamed = rename(latest.current, id, title);
-            commit({
-              ...renamed,
-              conversations: renamed.conversations.map((c) =>
-                c.id === id ? { ...c, updatedAt: Date.now() } : c,
-              ),
-            });
-            push(id);
-          }}
-          sync={sync}
-          onToggleSync={toggleSync}
-        />
-      ) : active ? (
-        <ConversationView conversation={active} pending={pending} />
-      ) : (
-        <ModeChooser onChoose={start} />
-      )}
+      <div
+        className="-mx-1 min-h-0 flex-1 overflow-y-auto overscroll-contain px-1"
+        data-chat-scroll
+      >
+        {showHistory ? (
+          <HistoryList
+            items={history}
+            activeId={store.activeId}
+            onOpen={open}
+            onDelete={(id) => {
+              commit(remove(latest.current, id));
+              if (syncing.current) void deleteChat(id).catch(() => undefined);
+            }}
+            onRename={(id, title) => {
+              const renamed = rename(latest.current, id, title);
+              commit({
+                ...renamed,
+                conversations: renamed.conversations.map((c) =>
+                  c.id === id ? { ...c, updatedAt: Date.now() } : c,
+                ),
+              });
+              push(id);
+            }}
+            sync={sync}
+            onToggleSync={toggleSync}
+          />
+        ) : active ? (
+          <ConversationView conversation={active} pending={pending} />
+        ) : (
+          <ModeChooser onChoose={start} />
+        )}
+      </div>
 
       {active && !showHistory && (
         <div className="flex flex-col gap-2 @sm:flex-row">
           <input
-            id="ai-message"
+            id={inputId}
+            data-chat-input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             maxLength={MAX_LENGTH}
@@ -494,17 +509,18 @@ function ConversationView({
 }) {
   const t = useTranslations("ai");
   const Icon = MODE_ICON[conversation.mode];
+  // Нова репліка чи «думаю…» — догортаємо до кінця розмови.
+  const end = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "nearest" });
+  }, [conversation.turns.length, pending]);
   return (
     <div className="grid gap-2">
       <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
         <Icon className="text-primary size-3.5" aria-hidden />
         {t("modeChat", { mode: t(`mode.${conversation.mode}`) })}
       </p>
-      <ol
-        aria-live="polite"
-        aria-label={t("conversation")}
-        className="bg-muted/40 grid max-h-[32rem] gap-2.5 overflow-y-auto rounded-xl border p-3 text-sm"
-      >
+      <ol aria-live="polite" aria-label={t("conversation")} className="grid gap-3 text-sm">
         {/* Підказка режиму — локальна, моделі не надсилається. */}
         <Bubble role="assistant">{t(`intro.${conversation.mode}`)}</Bubble>
         {conversation.turns.map((turn, i) => (
@@ -514,7 +530,8 @@ function ConversationView({
             label={t(turn.role === "user" ? "you" : "assistant")}
             wide={Boolean(turn.cards?.length)}
           >
-            {turn.text}
+            {/* З картками текст — лише короткий супровід (модуль 23d): головне — картки. */}
+            {turn.cards?.length ? <ShortText text={turn.text} /> : turn.text}
             {turn.cards?.length ? <ChatCards cards={turn.cards} now={new Date()} /> : null}
             {turn.links && <ResultLinks links={turn.links} />}
           </Bubble>
@@ -525,8 +542,31 @@ function ConversationView({
             {t("thinking")}
           </li>
         )}
+        <li ref={end} aria-hidden className="h-0" />
       </ol>
     </div>
+  );
+}
+
+const SHORT_TEXT = 180;
+
+/** Довга відповідь над картками — три рядки й «Докладніше». */
+function ShortText({ text }: { text: string }) {
+  const t = useTranslations("ai");
+  const [open, setOpen] = useState(false);
+  if (text.length <= SHORT_TEXT) return <>{text}</>;
+  return (
+    <>
+      <span className={open ? undefined : "line-clamp-3"}>{text}</span>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="text-primary mt-1 block text-xs font-medium hover:underline"
+        aria-expanded={open}
+      >
+        {open ? t("less") : t("more")}
+      </button>
+    </>
   );
 }
 

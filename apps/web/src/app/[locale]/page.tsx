@@ -1,6 +1,8 @@
 import type { Exclusion, FlightSearchResult, Offer, OfferScore, PickLabel } from "@tickets/shared";
 import {
   BedDouble,
+  CalendarDays,
+  ChevronDown,
   Clock,
   Info,
   Luggage,
@@ -12,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { after } from "next/server";
 import { Suspense } from "react";
 
@@ -79,6 +81,7 @@ import { currentAccount, recordHistory, sessionToken } from "@/lib/session";
 import { commonFrom, isDraft } from "@/lib/search-modes";
 import { tripFromFlight } from "@/lib/trip-params";
 import { searchEvents } from "@/lib/server-analytics";
+import { fractionDigits } from "@/lib/money";
 import { sortOffers } from "@/lib/sort";
 import { cn } from "@/lib/utils";
 
@@ -335,6 +338,15 @@ async function Results({ searchParams }: { searchParams: Params }) {
   );
 
   const { scoring, facets } = result.data;
+  const format = await getFormatter();
+  // «від …» у рядку інших дат: туди-назад — з матриці (ціна за поїздку), в один бік — з календаря.
+  const currency = query.currency ?? "EUR";
+  const otherPrices = (
+    matrix?.ok ? matrix.data.cells : calendar.ok && !query.return_date ? calendar.data.days : []
+  )
+    .filter((c) => c.currency === currency)
+    .map((c) => c.price);
+  const otherFrom = otherPrices.length ? Math.min(...otherPrices) : null;
   const scores = new Map<string, OfferScore>(scoring.scores.map((s) => [s.offer_key, s]));
   const offers = sortOffers(result.data.offers, state.sort, scores);
   // Той самий рейс від кількох джерел — одна картка (найдешевша), решта — рядки продавців у ній.
@@ -422,23 +434,54 @@ async function Results({ searchParams }: { searchParams: Params }) {
           {/* 3. Гнучкі дати: найкраща ціна на кожну пару дат (модуль 2a). */}
           <DateOptions options={result.data.date_options ?? []} state={state} now={now} />
 
-          {/* 4. Сусідні дати — підказка, коли дешевше. */}
-          {matrix?.ok && <PriceMatrix matrix={matrix.data} state={state} />}
-          {calendar.ok ? (
-            <PriceCalendar
-              month={month}
-              days={calendar.data.days}
-              state={state}
-              now={now}
-              verified={verifiedDays(query, result.data)}
-            />
-          ) : (
-            !calendar.ok && (
-              <p className="text-muted-foreground text-sm">
-                {(await getTranslations("calendar"))("unavailable")}
-              </p>
-            )
-          )}
+          {/* 4. Сусідні дати (модуль 23e): згорнуто в один рядок з найнижчою ціною — це
+          другорядне, головне нижче — квитки. Гортання місяців календаря (`cal=`) лишає відкритим. */}
+          <details
+            className="bg-card group rounded-xl border shadow-xs"
+            open={raw.cal !== undefined}
+            data-testid="other-dates"
+          >
+            <summary className="hover:bg-muted/40 flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 select-none">
+              <span className="flex items-center gap-2 text-sm font-semibold">
+                <CalendarDays className="text-primary size-4" aria-hidden />
+                {t("otherDates")}
+              </span>
+              <span className="text-muted-foreground flex items-center gap-2 text-sm">
+                {otherFrom != null && (
+                  <span>
+                    {t("otherDatesFrom", {
+                      price: format.number(otherFrom, {
+                        style: "currency",
+                        currency: query.currency ?? "EUR",
+                        currencyDisplay: "narrowSymbol",
+                        ...fractionDigits(otherFrom),
+                      }),
+                    })}
+                  </span>
+                )}
+                <ChevronDown
+                  className="size-4 transition-transform group-open:rotate-180"
+                  aria-hidden
+                />
+              </span>
+            </summary>
+            <div className="grid gap-4 border-t p-3 sm:p-4">
+              {matrix?.ok && <PriceMatrix matrix={matrix.data} state={state} />}
+              {calendar.ok ? (
+                <PriceCalendar
+                  month={month}
+                  days={calendar.data.days}
+                  state={state}
+                  now={now}
+                  verified={verifiedDays(query, result.data)}
+                />
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  {(await getTranslations("calendar"))("unavailable")}
+                </p>
+              )}
+            </div>
+          </details>
 
           {/* 4. Фільтри збоку, справа — вибір, пояснення і весь список. */}
           <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
@@ -514,14 +557,18 @@ async function Results({ searchParams }: { searchParams: Params }) {
                           pickAlso={pickAlso.get(key)}
                           sellerCount={groupRows(key).length}
                           compare={
-                            <>
-                              <CompareToggle offer={offer} />
-                              <FavoriteToggle
-                                compact
-                                body={flightFavorite(offer, state.query, historyParams)}
-                              />
+                            // Другорядні дії (модуль 23e): «Порівняти» й «В обране» — в один рядок,
+                            // «Додати до поїздки» — окремо; головна — «Переглянути пропозицію».
+                            <div className="grid gap-1.5">
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <CompareToggle offer={offer} />
+                                <FavoriteToggle
+                                  compact
+                                  body={flightFavorite(offer, state.query, historyParams)}
+                                />
+                              </div>
                               <AddToTrip href={tripFromFlight(offer, state.query)} />
-                            </>
+                            </div>
                           }
                           score={scores.get(key)}
                           freshness={result.data.freshness?.[key]}

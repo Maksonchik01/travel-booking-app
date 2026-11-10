@@ -3,6 +3,8 @@ import { Grid3x3 } from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
+import { InfoHint } from "@/components/info-hint";
+
 import { type SearchState, toSearchParams } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 import { fractionDigits } from "@/lib/money";
@@ -62,7 +64,9 @@ export function PriceMatrix({ matrix, state }: { matrix: Matrix; state: SearchSt
           <Grid3x3 className="text-primary size-4" aria-hidden />
           {t("title")}
         </h2>
-        <p className="text-muted-foreground text-xs">{t("hint")}</p>
+        <InfoHint label={t("how")}>
+          <p>{t("hint")}</p>
+        </InfoHint>
       </div>
 
       <div className="hidden overflow-x-auto sm:block">

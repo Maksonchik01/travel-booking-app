@@ -1,6 +1,8 @@
 import type { Offer, OfferScore, Pick, Reason, ScoringResult } from "@tickets/shared";
-import { AlertTriangle, ChevronRight, Info, Scale, Timer, Wallet } from "lucide-react";
+import { AlertTriangle, ChevronRight, Scale, Timer, Wallet } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+
+import { InfoHint } from "@/components/info-hint";
 
 import { AirlineLogo, legCarriers } from "@/components/airline-logo";
 import { Badge } from "@/components/ui/badge";
@@ -31,10 +33,9 @@ export function TopPicks({ scoring, offers }: { scoring: ScoringResult; offers: 
         <h2 id="picks-title" className="text-xl font-semibold tracking-tight">
           {t("title")}
         </h2>
-        <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
-          <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          {t("formula", { profile: tProfile(scoring.profile) })}
-        </p>
+        <InfoHint label={t("how")}>
+          <p>{t("formula", { profile: tProfile(scoring.profile) })}</p>
+        </InfoHint>
         {scoring.cheapest_basis === "with_baggage" && (
           <p className="text-muted-foreground text-xs" data-testid="cheapest-basis">
             {t("cheapestWithBaggage")}

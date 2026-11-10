@@ -20,6 +20,7 @@ import { EmptySuggestions } from "@/components/empty-suggestions";
 import { tripSuggestions } from "@/lib/empty-suggestions";
 import { SearchModes } from "@/components/search-modes";
 import { SearchTabs } from "@/components/search-tabs";
+import { ShowMore } from "@/components/show-more";
 import { SiteHeader } from "@/components/site-header";
 import { FavoriteToggle, FavoritesProvider } from "@/components/favorites";
 import { SavedTripsProvider } from "@/components/saved-trips";
@@ -361,14 +362,21 @@ async function Results({ searchParams }: { searchParams: Params }) {
         </div>
       ) : (
         <section className="grid gap-3" aria-labelledby="trip-picks-title">
-          <div className="grid gap-1">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <h2 id="trip-picks-title" className="text-xl font-semibold tracking-tight">
               {t("picksTitle")}
             </h2>
-            <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
-              <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-              {t("formula")}
-            </p>
+            {/* Пояснення — рівень 3 (модуль 23c): коротке посилання, текст під спойлером. */}
+            <details className="group text-xs" data-testid="trip-how">
+              <summary className="text-muted-foreground hover:text-primary flex cursor-pointer list-none items-center gap-1.5 select-none">
+                <Info className="size-3.5" aria-hidden />
+                {t("howTitle")}
+              </summary>
+              <div className="text-muted-foreground mt-2 grid max-w-xl gap-1.5">
+                <p>{t("formula")}</p>
+                <p>{t("note")}</p>
+              </div>
+            </details>
           </div>
           {data.picks.length < 3 && (
             <p className="text-muted-foreground text-xs" data-testid="trip-few-picks">
@@ -383,21 +391,17 @@ async function Results({ searchParams }: { searchParams: Params }) {
         </section>
       )}
 
-      <p className="bg-accent/60 text-accent-foreground flex items-start gap-2 rounded-lg px-3 py-2 text-xs">
-        <Info className="mt-px size-3.5 shrink-0" aria-hidden />
-        {t("note")}
-      </p>
-
       {others.length > 0 && (
         <section className="grid gap-3" aria-labelledby="trip-others-title">
           <h2 id="trip-others-title" className="text-lg font-semibold tracking-tight">
             {t("othersTitle", { count: others.length })}
           </h2>
-          <ol className="grid gap-3 md:grid-cols-[repeat(auto-fill,minmax(18rem,1fr))]">
-            {others.map((combo) => (
-              <li key={combo.key}>{card(combo)}</li>
-            ))}
-          </ol>
+          {/* По 3 за раз (модуль 23c): решта — «Показати ще», без нових запитів. */}
+          <ShowMore
+            page={3}
+            className="grid gap-3 md:grid-cols-[repeat(auto-fill,minmax(18rem,1fr))]"
+            items={others.map((combo) => ({ key: `combo-${combo.key}`, node: card(combo) }))}
+          />
         </section>
       )}
     </div>

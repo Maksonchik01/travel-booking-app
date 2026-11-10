@@ -1,6 +1,8 @@
 import type { Stay, StayPick, StayScore, StayScoringResult } from "@tickets/shared";
-import { ChevronRight, Info, Scale, Star, Wallet } from "lucide-react";
+import { ChevronRight, Scale, Star, Wallet } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+
+import { InfoHint } from "@/components/info-hint";
 
 import { RatingBadge, StayScoreDetails } from "@/components/stay-card";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -37,10 +39,9 @@ export function StayPicks({
         <h2 id="stay-picks-title" className="text-xl font-semibold tracking-tight">
           {t("title")}
         </h2>
-        <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
-          <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          {t("formula", { priority: tPrio(scoring.profile) })}
-        </p>
+        <InfoHint label={t("how")}>
+          <p>{t("formula", { priority: tPrio(scoring.profile) })}</p>
+        </InfoHint>
       </div>
       <ol className="grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(13rem,1fr))]">
         {picks.map((pick) => (

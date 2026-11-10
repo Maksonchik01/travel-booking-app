@@ -217,6 +217,83 @@ describe("AIChat", () => {
     );
   });
 
+  it("модуль 23d: варіант поїздки — картка з окремими цінами перельоту й житла, текст коротко", async () => {
+    const leg = {
+      origin: "WAW",
+      destination: "LIS",
+      departure_at: "2026-12-10T08:00:00+01:00",
+      arrival_at: "2026-12-10T11:30:00+00:00",
+      stops: 0,
+    };
+    const trip = {
+      kind: "trip",
+      key: "t1",
+      label: "Оптимальний",
+      money_total: 654,
+      unknown_parts: 0,
+      currency: "EUR",
+      check_in: "2026-12-10",
+      check_out: "2026-12-13",
+      nights: 3,
+      prices_cached: false,
+      flight: {
+        kind: "flight",
+        key: "f1",
+        airlines: ["TP"],
+        outbound: leg,
+        inbound: null,
+        duration_min: 210,
+        stops: 0,
+        price: 531,
+        currency: "EUR",
+        price_status: "live",
+        found_at: null,
+      },
+      stay: {
+        kind: "stay",
+        key: "s1",
+        name: "Nomad Hostel",
+        stay_kind: "hostel",
+        image_url: null,
+        rating: 8.2,
+        review_count: 120,
+        district: null,
+        distance_to_center_km: 1.2,
+        price_per_night: 41,
+        total_price: 123,
+        nights: 3,
+        currency: "EUR",
+        found_at: null,
+      },
+      query: {
+        origin: "WAW",
+        destination: "LIS",
+        departure_date: "2026-12-10",
+        return_date: "2026-12-13",
+        flight: "mock:f1",
+        stay: "mock:s1",
+      },
+    } as unknown as NonNullable<ChatReply["cards"]>[number];
+    const long = "Оптимальний варіант поєднує прямий рейс і хостел біля центру. ".repeat(5);
+    renderChat(async () => ok(long, { cards: [trip] }));
+    choose("Уся поїздка");
+
+    await say("Варшава Лісабон 10–13 грудня");
+
+    const card = await screen.findByTestId("chat-card-trip");
+    expect(card).toHaveTextContent("Оптимальний");
+    expect(card).toHaveTextContent(/Переліт\s*531\s€/);
+    expect(card).toHaveTextContent(/Житло\s*123\s€/);
+    expect(within(card).getByTestId("chat-card-total")).toHaveTextContent("654 €");
+    expect(within(card).getByRole("link", { name: /Відкрити в планувальнику/ })).toHaveAttribute(
+      "href",
+      expect.stringMatching(/flight=mock%3Af1.*#your-trip$/),
+    );
+    // Довгий супровідний текст згорнутий до трьох рядків — «Докладніше» розгортає.
+    fireEvent.click(screen.getByRole("button", { name: "Докладніше" }));
+    expect(screen.getByRole("button", { name: "Згорнути" })).toBeInTheDocument();
+  });
+
   it("помічник недоступний — повідомлення повертається в поле", async () => {
     renderChat(async () => null);
     choose("Квитки");

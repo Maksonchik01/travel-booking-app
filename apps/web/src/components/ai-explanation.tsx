@@ -39,38 +39,46 @@ export function AIExplanation({ result }: { result: ExplainResult }) {
         {explanation.recommendation_reason}
       </p>
 
-      {explanation.options && explanation.options.length > 0 && (
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {explanation.options.map((option) => (
-            <li
-              key={option.id}
-              className="bg-card grid content-start gap-1.5 rounded-lg border p-3 text-xs shadow-xs"
-            >
-              <p className="font-medium">{label(option.id)}</p>
-              {option.one_liner && <p>{option.one_liner}</p>}
-              <Points items={option.pros} sign="+" className="text-success" />
-              <Points items={option.cons} sign="−" className="text-muted-foreground" />
-              {option.risks && option.risks.length > 0 && (
-                <ul className="grid gap-0.5 text-warning">
-                  {option.risks.map((risk, i) => (
-                    <li key={i} className="flex gap-1">
-                      <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden />
-                      {risk}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Порівняння варіантів і примітки — другорядне (модуль 23e): під «Докладніше». */}
+      <details className="group grid gap-3 text-sm" data-testid="ai-explanation-more">
+        <summary className="text-primary w-fit cursor-pointer list-none text-xs font-medium select-none hover:underline">
+          {t("more")}
+        </summary>
+        <div className="mt-3 grid gap-3">
+          {explanation.options && explanation.options.length > 0 && (
+            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {explanation.options.map((option) => (
+                <li
+                  key={option.id}
+                  className="bg-card grid content-start gap-1.5 rounded-lg border p-3 text-xs shadow-xs"
+                >
+                  <p className="font-medium">{label(option.id)}</p>
+                  {option.one_liner && <p>{option.one_liner}</p>}
+                  <Points items={option.pros} sign="+" className="text-success" />
+                  <Points items={option.cons} sign="−" className="text-muted-foreground" />
+                  {option.risks && option.risks.length > 0 && (
+                    <ul className="grid gap-0.5 text-warning">
+                      {option.risks.map((risk, i) => (
+                        <li key={i} className="flex gap-1">
+                          <AlertTriangle className="mt-0.5 size-3 shrink-0" aria-hidden />
+                          {risk}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
 
-      <div className="text-muted-foreground grid gap-0.5 text-xs">
-        {explanation.price_assessment?.text && <p>{explanation.price_assessment.text}</p>}
-        {explanation.timing_advice?.text && <p>{explanation.timing_advice.text}</p>}
-        {explanation.data_freshness_note && <p>{explanation.data_freshness_note}</p>}
-      </div>
-      <p className="text-muted-foreground text-[11px]">{t("explanationDisclaimer")}</p>
+          <div className="text-muted-foreground grid gap-0.5 text-xs">
+            {explanation.price_assessment?.text && <p>{explanation.price_assessment.text}</p>}
+            {explanation.timing_advice?.text && <p>{explanation.timing_advice.text}</p>}
+            {explanation.data_freshness_note && <p>{explanation.data_freshness_note}</p>}
+          </div>
+          <p className="text-muted-foreground text-[11px]">{t("explanationDisclaimer")}</p>
+        </div>
+      </details>
     </section>
   );
 }

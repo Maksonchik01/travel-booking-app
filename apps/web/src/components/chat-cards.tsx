@@ -320,29 +320,45 @@ function StayCardView({ card, item, now }: { card: StayChatCard; item: StoredCar
   );
 }
 
+/**
+ * Варіант поїздки в чаті (модуль 23d): сценарій і загальна сума зверху, переліт і житло — окремими
+ * блоками зі своєю ціною, одна головна дія — «Відкрити в планувальнику».
+ */
 function TripCardView({ card, item, now }: { card: TripChatCard; item: StoredCard; now: Date }) {
   const t = useTranslations("chatCards");
   const money = useMoney();
   return (
-    <Shell
-      icon={Luggage}
-      label={card.label}
-      testId="chat-card-trip"
-      actions={
-        item.trip && (
-          <Action href={item.trip} track="ai_to_planner">
-            {t("openInPlanner")}
-          </Action>
-        )
-      }
+    <div
+      className="bg-card grid gap-3 rounded-xl border p-3.5 text-xs shadow-xs"
+      data-testid="chat-card-trip"
     >
-      <FlightLines card={card.flight} />
-      <StayLines card={card.stay} />
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-primary flex items-center gap-1.5 pt-0.5 text-sm font-semibold">
+          <Luggage className="size-4" aria-hidden />
+          {card.label}
+        </p>
+        <div className="text-right">
+          <p className="text-lg leading-tight font-bold tabular-nums" data-testid="chat-card-total">
+            {money(card.money_total, card.currency)}
+          </p>
+          <p className="text-muted-foreground">{t("tripTotal", { nights: card.nights })}</p>
+        </div>
+      </div>
+      <TripPart
+        icon={Plane}
+        title={t("partFlight")}
+        price={money(card.flight.price, card.currency)}
+      >
+        <FlightLines card={card.flight} />
+      </TripPart>
+      <TripPart
+        icon={BedDouble}
+        title={t("partStay")}
+        price={money(card.stay.total_price, card.currency)}
+      >
+        <StayLines card={card.stay} />
+      </TripPart>
       <p className="flex flex-wrap items-baseline gap-x-2">
-        <span className="text-base font-bold tabular-nums" data-testid="chat-card-total">
-          {money(card.money_total, card.currency)}
-        </span>
-        <span className="text-muted-foreground">{t("tripTotal", { nights: card.nights })}</span>
         {card.unknown_parts > 0 && (
           <span className="text-warning">{t("unknownParts", { count: card.unknown_parts })}</span>
         )}
@@ -352,6 +368,42 @@ function TripCardView({ card, item, now }: { card: TripChatCard; item: StoredCar
           now={now}
         />
       </p>
-    </Shell>
+      {item.trip && (
+        <Link
+          href={item.trip}
+          data-track="ai_to_planner"
+          data-track-source="chat"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors"
+        >
+          {t("openInPlanner")}
+          <ArrowRight className="size-3.5" aria-hidden />
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function TripPart({
+  icon: Icon,
+  title,
+  price,
+  children,
+}: {
+  icon: typeof Plane;
+  title: string;
+  price: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-muted/40 grid gap-1.5 rounded-lg p-2.5">
+      <p className="flex items-center justify-between gap-2 font-semibold">
+        <span className="flex items-center gap-1.5">
+          <Icon className="text-primary size-3.5" aria-hidden />
+          {title}
+        </span>
+        <span className="tabular-nums">{price}</span>
+      </p>
+      {children}
+    </div>
   );
 }

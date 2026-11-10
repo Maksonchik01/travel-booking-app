@@ -15,10 +15,20 @@ const PAGE = 10;
  * «Показати ще» миттєве і без запитів. Посилання «До деталей» з «Нашого вибору» на
  * прихований квиток спершу розгортає список, потім прокручує до нього.
  */
-export function ShowMore({ items }: { items: { key: string; node: ReactNode }[] }) {
+export function ShowMore({
+  items,
+  page = PAGE,
+  className = "grid gap-3",
+}: {
+  items: { key: string; node: ReactNode }[];
+  /** Скільки показувати за раз (комбінації поїздки — по 3, модуль 23c). */
+  page?: number;
+  /** Розкладка списку (напр. сітка карток). */
+  className?: string;
+}) {
   const t = useTranslations("results");
   const hydrated = useHydrated();
-  const [pageLimit, setLimit] = useState(PAGE);
+  const [pageLimit, setLimit] = useState(page);
   // Без JS кнопка не працює — до гідратації показуємо все.
   const limit = hydrated ? pageLimit : Number.POSITIVE_INFINITY;
   const list = useRef<HTMLOListElement>(null);
@@ -40,7 +50,7 @@ export function ShowMore({ items }: { items: { key: string; node: ReactNode }[] 
   const rest = items.length - limit;
   return (
     <>
-      <ol ref={list} className="grid gap-3">
+      <ol ref={list} className={className}>
         {items.map((item, i) => (
           <li
             key={item.key}
@@ -58,10 +68,10 @@ export function ShowMore({ items }: { items: { key: string; node: ReactNode }[] 
         <Button
           type="button"
           variant="outline"
-          onClick={() => setLimit((n) => n + PAGE)}
+          onClick={() => setLimit((n) => n + page)}
           className="bg-card hover:border-primary/50 hover:text-primary mx-auto h-11 rounded-full px-6 shadow-xs transition-all"
         >
-          {t("showMore", { count: Math.min(PAGE, rest), total: rest })}
+          {t("showMore", { count: Math.min(page, rest), total: rest })}
           <ChevronDown className="size-4" aria-hidden />
         </Button>
       )}

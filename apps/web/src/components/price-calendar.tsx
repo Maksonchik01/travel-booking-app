@@ -3,6 +3,8 @@ import { BadgeCheck, CalendarDays, ChevronLeft, ChevronRight } from "lucide-reac
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
+import { InfoHint } from "@/components/info-hint";
+
 import { LinkPendingOverlay } from "@/components/pending";
 import { daysAgo, hoursAgo } from "@/lib/format";
 import { type SearchState, toSearchParams, withDepartureDate } from "@/lib/search-params";
@@ -72,7 +74,9 @@ export function PriceCalendar({
             <CalendarDays className="text-primary size-4" aria-hidden />
             {t("title", { month: format.dateTime(monthDate, { month: "long", year: "numeric" }) })}
           </h2>
-          <p className="text-muted-foreground text-xs">{t("hint")}</p>
+          <InfoHint label={t("how")}>
+            <p>{t("hint")}</p>
+          </InfoHint>
         </div>
         <nav className="flex items-center gap-1" aria-label={t("months")}>
           {shift(-1) >= thisMonth && (

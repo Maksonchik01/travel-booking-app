@@ -73,6 +73,7 @@ test("пошук: підказки міст → результати → філ�
   await expect(page).toHaveURL(/sort=score/);
 
   // Інший день у календарі — новий пошук.
+  await page.getByText("Ціни на інші дати").click();
   await page.locator('[data-testid="calendar-day"]:not([aria-current])').first().click();
   await expect(page).not.toHaveURL(/depart=2026-12-05/);
   await expect(cards.first()).toBeVisible();
@@ -171,10 +172,12 @@ test("помічник «уся поїздка»: загальна сума й �
   // (попередня сторінка лишається змонтованою прихованою — рахуємо лише видиме).
   await expect(page.locator('[data-testid="search-panel-chat"]:visible')).toHaveCount(0);
   await page.locator('[data-testid="chat-launcher"]:visible').click();
-  await expect(conversation).toContainText("Поїздка з Варшави до Лісабона");
-  await page.getByRole("button", { name: "Новий чат" }).click();
-  await page.getByRole("button", { name: /^Квитки/ }).click();
-  await expect(conversation).not.toContainText("Поїздка з Варшави до Лісабона");
+  const panel = page.locator('[data-testid="search-panel-chat"]:visible');
+  const here = panel.getByRole("list", { name: "Розмова з помічником" });
+  await expect(here).toContainText("Поїздка з Варшави до Лісабона");
+  await panel.getByRole("button", { name: "Новий чат" }).click();
+  await panel.getByRole("button", { name: /^Квитки/ }).click();
+  await expect(here).not.toContainText("Поїздка з Варшави до Лісабона");
 });
 
 test("поїздка: загальна сума, три варіанти, бюджет, посилання на рейс і житло", async ({
@@ -463,6 +466,8 @@ test("3–5 ночей у грудні: форма без дати поверн�
 }) => {
   // Туди й назад (є повернення) — тоді для місяця з'являються поля ночей.
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+  // Над результатами форма згорнута (модуль 23c) — «Змінити» розгортає її.
+  await page.getByRole("button", { name: "Змінити" }).click();
   // Вибір до гідратації React не обробить (повільний CI) — повторюємо, доки не подіє.
   await expect(async () => {
     await page.getByLabel("Гнучкість дат").selectOption("month");
@@ -484,6 +489,9 @@ test("3–5 ночей у грудні: форма без дати поверн�
 test("матриця туди-назад і календар: гортання місяців, вибір дати без форми", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12");
 
+  // Інші дати згорнуті в один рядок над квитками (модуль 23e) — розгортаємо.
+  await expect(page.getByTestId("other-dates")).toContainText(/від \d/);
+  await page.getByText("Ціни на інші дати").click();
   await expect(page.getByRole("heading", { name: "Матриця цін туди й назад" })).toBeVisible();
   const cells = page.getByTestId("matrix-cell");
   expect(await cells.count()).toBeGreaterThan(5);
