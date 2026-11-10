@@ -153,6 +153,20 @@ async def test_stale_price_leads_neither_the_card_nor_the_list() -> None:
     assert group.offer_keys[1] == "cached:cached-KL1361-99"  # стара — серед продавців
 
 
+async def test_same_price_card_is_led_by_the_offer_with_sellers() -> None:
+    """scrape.do і SerpApi — та сама видача Google Flights (ADR 0043): за однакової ціни картку
+    очолює пропозиція з `booking_ref`, інакше зникла б перевірка продавців."""
+    plain = flight("live", 105, "AF 1047")  # джерело «live» < «serp» за абеткою
+    checkable = flight("serp", 105, "AF1047", booking_ref="token")
+
+    result = await service(
+        StubProvider("live", offers=[plain]), StubProvider("serp", offers=[checkable])
+    ).search(QUERY)
+
+    [group] = result.groups
+    assert group.offer_keys[0] == "serp:serp-AF1047-105"
+
+
 async def test_order_uses_comparable_price_in_search_currency() -> None:
     pln = flight("live", 400, "LO 1", currency="PLN")  # 400 zł ≈ 93 € — дешевше за 100 €
     eur = flight("live", 100, "LO 2")

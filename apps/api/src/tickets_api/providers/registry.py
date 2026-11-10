@@ -8,6 +8,7 @@ from tickets_api.providers.base import FlightProvider, StayProvider
 from tickets_api.providers.cached import CachedFlightProvider
 from tickets_api.providers.mock import MockFlightProvider
 from tickets_api.providers.mock_stays import MockStayProvider
+from tickets_api.providers.scrapedo import ScrapeDoFlightProvider
 from tickets_api.providers.serpapi import SerpApiFlightProvider
 from tickets_api.providers.travelpayouts import TravelpayoutsFlightProvider
 from tickets_api.reference.airports import default_airport_directory
@@ -44,6 +45,18 @@ def _build(
             base_url=settings.serpapi_base_url,
         )
         return CachedFlightProvider(serp, redis, settings.provider_cache_ttl_s)
+    if name == "scrapedo" and settings.scrapedo_token is not None:
+        sdo = ScrapeDoFlightProvider(
+            http,
+            settings.scrapedo_token.get_secret_value(),
+            airports=default_airport_directory(),
+            max_requests_per_search=settings.scrapedo_max_requests_per_search,
+            timeout_s=settings.scrapedo_timeout_s,
+            request_timeout_s=settings.scrapedo_request_timeout_s,
+            market=settings.serpapi_market,
+            base_url=settings.scrapedo_base_url,
+        )
+        return CachedFlightProvider(sdo, redis, settings.provider_cache_ttl_s)
     return None
 
 

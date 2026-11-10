@@ -168,7 +168,8 @@
     "provider": {
       "serpapi": "Google Flights",
       "travelpayouts": "Aviasales",
-      "mock": "Test data"
+      "mock": "Test data",
+      "scrapedo": "Google Flights (scrape.do)"
     },
     "showMore": "Show {count} more {total, plural, one {(# option left)} other {(# options left)}}",
     "rateLimited": "Too many requests this hour. Please try again a bit later.",
@@ -243,7 +244,9 @@
       "fastest": "Fastest",
       "balanced": "Optimal",
       "direct": "Direct flight",
-      "selfTransfer": "Self-transfer"
+      "selfTransfer": "Self-transfer",
+      "separateTickets": "Two separate tickets",
+      "separateTicketsHint": "Two one-way tickets: the price is their sum, each is changed and cancelled separately"
     },
     "totalDuration": "Total travel time {duration}",
     "sellerCount": "{count, plural, one {# seller} other {# sellers}}",
@@ -1367,7 +1370,7 @@
         {
           "h": "Who receives data",
           "p": [
-            "Search parameters (cities, dates, number of people) — price providers: SerpApi (Google Flights) and Travelpayouts.",
+            "Search parameters (cities, dates, number of people) — price providers: SerpApi and scrape.do (Google Flights) and Travelpayouts.",
             "The text of your requests to the AI assistant and the search results — DeepSeek, for parsing and explanation. We don't log this text; chats are stored in your account only if you turned on chat sync. Don't put personal data in the chat. If you're signed in, the assistant searches with your profile settings: your home airport and currency are part of the conversation context, while preferred airlines and amenities are applied only by our scoring code and are not sent to the model.",
             "Infrastructure: Vercel (site), Render (server), Supabase (database, EU — Frankfurt), Sentry (error reports without personal data). Notifications — via Telegram or email.",
             "Stays map: your browser loads map tiles directly from OpenFreeMap (tiles.openfreemap.org, OpenStreetMap data) — that service sees your IP address and the part of the map you're viewing. The map loads only in “Map” mode."
@@ -1394,7 +1397,7 @@
         {
           "h": "Where prices come from",
           "p": [
-            "Flight search asks several sources at once: live Google Flights prices via SerpApi and seller prices from the Aviasales search cache (Travelpayouts), marked with when the price was found. Flexible dates start from free cached prices, and the live source checks only the cheapest dates. The same flight from several sellers is one card showing the cheapest seller; the rest are under “Seller offers” with each one's terms (baggage, price freshness), and for the first flight in the list we check sellers right away, for the others “Compare sellers and check the price” checks live which airlines and agencies sell the flight on Google Flights. The list is ordered by the lowest cost for all passengers and the whole trip in your currency, including the baggage you need when its price is known. This is the lowest price among the sources checked in this search, not a guaranteed lowest price on the whole market: we don't query Skyscanner, Kiwi.com, Trip.com, Expedia or airline websites directly — there is no open access to their prices, and their offers reach us only through these sources.",
+            "Flight search asks several sources at once: live Google Flights prices via SerpApi and scrape.do (there a round trip is two separate one-way tickets, and it is labelled so) and seller prices from the Aviasales search cache (Travelpayouts), marked with when the price was found. Flexible dates start from free cached prices, and the live source checks only the cheapest dates. The same flight from several sellers is one card showing the cheapest seller; the rest are under “Seller offers” with each one's terms (baggage, price freshness), and for the first flight in the list we check sellers right away, for the others “Compare sellers and check the price” checks live which airlines and agencies sell the flight on Google Flights. The list is ordered by the lowest cost for all passengers and the whole trip in your currency, including the baggage you need when its price is known. This is the lowest price among the sources checked in this search, not a guaranteed lowest price on the whole market: we don't query Skyscanner, Kiwi.com, Trip.com, Expedia or airline websites directly — there is no open access to their prices, and their offers reach us only through these sources.",
             "The flight price is shown for the whole party of the search (for one adult — for that adult): children and infants are at their own fare, we don't guess it. The stay price is for the whole room with taxes.",
             "Every price shows how fresh it is: “just checked” (live source, up to 30 min), “cached” (found earlier, up to 3 days), “approximate” (unknown when found) or “worth re-checking” (older). Identical searches made at the same time go to the source only once.",
             "You choose the currency (EUR, USD, GBP, PLN) for flights, stays and trips. Prices are shown as the source gives them; if it gave another currency, we convert it for comparison at the ECB reference rate and mark it “≈ … approximate”. The seller may charge in its own currency at your bank's rate — this is not a guaranteed charge. We don't hide cents: a fractional price is shown with cents."

@@ -43,6 +43,7 @@ const OFFER: Offer = {
   price_status: "cached",
   seller: null,
   reported_total_duration_min: null,
+  separate_tickets: false,
   stops: 0,
   total_duration_min: 520,
 };

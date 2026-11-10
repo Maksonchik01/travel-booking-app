@@ -7,7 +7,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from pydantic import Field, SecretStr, ValidationInfo, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
-FlightProviderName = Literal["mock", "travelpayouts", "serpapi"]
+FlightProviderName = Literal["mock", "travelpayouts", "serpapi", "scrapedo"]
 StayProviderName = Literal["mock"]
 LLMProviderName = Literal["off", "mock", "deepseek"]
 CalendarProviderName = Literal["mock", "travelpayouts"]
@@ -17,6 +17,7 @@ TOKEN_FIELDS = frozenset(
     {
         "deepseek_api_key",
         "serpapi_key",
+        "scrapedo_token",
         "travelpayouts_token",
         "travelpayouts_marker",
         "telegram_bot_token",
@@ -89,7 +90,8 @@ class Settings(BaseSettings):
     travelpayouts_marker: str | None = None
     travelpayouts_base_url: str = "https://api.travelpayouts.com"
 
-    # Провайдери через кому. Пошук: mock, travelpayouts, serpapi (живі ціни Google Flights).
+    # Провайдери через кому. Пошук: mock, travelpayouts, serpapi (живі ціни Google Flights),
+    # scrapedo (та сама видача Google Flights через scrape.do).
     # Календар: mock, travelpayouts (у serpapi календаря немає).
     flight_providers: Annotated[list[FlightProviderName], NoDecode] = Field(
         default_factory=lambda: list[FlightProviderName](["mock"])
@@ -146,6 +148,12 @@ class Settings(BaseSettings):
     serpapi_market: str | None = None
     """Країна Google (`gl`, напр. "pl"), з якої дивимось ціни; None — за замовчуванням Google."""
     """Для скількох найдешевших вильотів підвантажувати зворотні рейси (+1 запит кожен)."""
+    scrapedo_token: SecretStr | None = None
+    scrapedo_base_url: str = "https://api.scrape.do"
+    scrapedo_max_requests_per_search: int = Field(default=2, ge=1, le=20)
+    """Запит — 10 кредитів (безкоштовно 1000/міс); туди-назад — 2 запити (два квитки в один бік)."""
+    scrapedo_timeout_s: float = Field(default=30.0, gt=0)
+    scrapedo_request_timeout_s: float = Field(default=20.0, gt=0)
     provider_timeout_s: float = 8.0
     scoring_config_path: Path | None = None
     """None — вбудований tickets_api/scoring/config.toml."""
@@ -204,6 +212,7 @@ class Settings(BaseSettings):
         "email_from",
         "serpapi_key",
         "serpapi_market",
+        "scrapedo_token",
         mode="before",
     )
     @classmethod
@@ -227,14 +236,18 @@ class Settings(BaseSettings):
         ]
         if uses_tp and self.travelpayouts_token is None:
             raise ValueError("travelpayouts увімкнено без TRAVELPAYOUTS_TOKEN")
-        if "serpapi" in self.alert_providers:
-            raise ValueError("ALERT_PROVIDERS не може містити serpapi: перевірки вичерпають квоту")
+        if {"serpapi", "scrapedo"} & set(self.alert_providers):
+            raise ValueError(
+                "ALERT_PROVIDERS не може містити serpapi чи scrapedo: перевірки вичерпають квоту"
+            )
         if (self.google_client_id is None) != (self.google_client_secret is None):
             raise ValueError("GOOGLE_CLIENT_ID і GOOGLE_CLIENT_SECRET задаються лише разом")
         if self.telegram_bot_token is not None and not self.telegram_bot_username:
             raise ValueError("TELEGRAM_BOT_TOKEN без TELEGRAM_BOT_USERNAME (для посилання на бота)")
         if "serpapi" in self.flight_providers and self.serpapi_key is None:
             raise ValueError("FLIGHT_PROVIDERS містить serpapi без SERPAPI_KEY")
+        if "scrapedo" in self.flight_providers and self.scrapedo_token is None:
+            raise ValueError("FLIGHT_PROVIDERS містить scrapedo без SCRAPEDO_TOKEN")
         if self.llm_provider == "deepseek" and self.deepseek_api_key is None:
             raise ValueError("LLM_PROVIDER=deepseek без DEEPSEEK_API_KEY")
         return self

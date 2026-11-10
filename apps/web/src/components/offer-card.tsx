@@ -43,7 +43,7 @@ const RISK_ICON: Record<LayoverRisk, typeof Clock> = {
   selfTransfer: Ticket,
 };
 
-const KNOWN_SOURCES = new Set(["serpapi", "travelpayouts", "mock"]);
+const KNOWN_SOURCES = new Set(["serpapi", "scrapedo", "travelpayouts", "mock"]);
 
 export function OfferCard({
   offer,
@@ -105,7 +105,7 @@ export function OfferCard({
       ? t("foundOnAgo", { days: daysAgo(offer.found_on, now) })
       : t("collectedAgo", { hours: hoursAgo(offer.collected_at, now) });
   const service = KNOWN_SOURCES.has(offer.source)
-    ? tResults(`provider.${offer.source as "serpapi" | "travelpayouts" | "mock"}`)
+    ? tResults(`provider.${offer.source as "serpapi" | "scrapedo" | "travelpayouts" | "mock"}`)
     : offer.source;
 
   return (
@@ -501,7 +501,8 @@ function OfferBadges({
   const direct = legs.every((leg) => leg.stops === 0);
   const selfTransfer = legs.some((leg) => leg.layovers?.some((l) => l.self_transfer === true));
   const labels = [...(pickLabel ? [pickLabel] : []), ...pickAlso];
-  if (labels.length === 0 && !direct && !selfTransfer) return null;
+  const separate = offer.separate_tickets === true;
+  if (labels.length === 0 && !direct && !selfTransfer && !separate) return null;
   return (
     <div className="mb-2 flex flex-wrap gap-1" data-testid="offer-badges">
       {labels.map((label, i) => (
@@ -521,6 +522,16 @@ function OfferBadges({
       {selfTransfer && (
         <Badge variant="outline" className="border-warning/40 text-warning">
           {t("badge.selfTransfer")}
+        </Badge>
+      )}
+      {separate && (
+        <Badge
+          variant="outline"
+          className="border-warning/40 text-warning"
+          title={t("badge.separateTicketsHint")}
+          data-testid="separate-tickets"
+        >
+          {t("badge.separateTickets")}
         </Badge>
       )}
     </div>

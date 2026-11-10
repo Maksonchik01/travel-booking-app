@@ -36,6 +36,7 @@ function offer(id: string, price: number, duration: number | null, stops: number
     found_on: null,
     seller: null,
     reported_total_duration_min: null,
+    separate_tickets: false,
     stops,
     total_duration_min: duration,
   };

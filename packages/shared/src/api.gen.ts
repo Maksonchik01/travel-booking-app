@@ -3219,6 +3219,11 @@ export interface components {
             booking_ref?: string | null;
             /** Reported Total Duration Min */
             reported_total_duration_min?: number | null;
+            /**
+             * Separate Tickets
+             * @default false
+             */
+            separate_tickets: boolean;
             /** Stops */
             readonly stops: number;
             /** Total Duration Min */

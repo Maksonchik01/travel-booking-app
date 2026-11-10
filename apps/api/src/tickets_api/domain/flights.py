@@ -465,6 +465,9 @@ class Offer(_Frozen):
     `booking_token`. Лише для бекенду: веб передає його назад як є."""
     reported_total_duration_min: int | None = Field(default=None, ge=0)
     """Загальний час у дорозі від провайдера — коли його не розкласти по напрямках."""
+    separate_tickets: bool = False
+    """Туди й назад — два окремі квитки в один бік (scrape.do): ціна — їхня сума, зміна чи
+    скасування одного не стосується другого."""
 
     @computed_field  # type: ignore[prop-decorator]
     @property

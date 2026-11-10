@@ -13,14 +13,15 @@
 - `TEST_DATABASE_URL=… TEST_REDIS_URL=… uv run pytest -m integration` — INT;
 - `make e2e` — E2E (після нього перезапусти `npm run dev`).
 
-Живі джерела (SerpApi — квота 250 на місяць) у тестах не використовуються: лише записані фікстури (`tests/fixtures/serpapi`, `travelpayouts`, `ecb`).
+Живі джерела (SerpApi — квота 250 на місяць, scrape.do — 1000 кредитів) у тестах не використовуються: лише записані фікстури (`tests/fixtures/serpapi`, `scrapedo`, `travelpayouts`, `ecb`).
 
 ## 21.1 Авіаквитки
 
 | Сценарій | Тести |
 |---|---|
-| One-way | E2E «пошук: підказки міст → результати…» (в один бік); API `test_serpapi_provider` (type=2), `test_mock_provider` |
-| Round-trip | E2E «картка…», «гнучкі дати…», «матриця…»; API `test_serpapi_provider` (повернення через departure_token) |
+| One-way | E2E «пошук: підказки міст → результати…» (в один бік); API `test_serpapi_provider` (type=2), `test_scrapedo_provider`, `test_mock_provider` |
+| Round-trip | E2E «картка…», «гнучкі дати…», «матриця…»; API `test_serpapi_provider` (повернення через departure_token), `test_scrapedo_provider` (два квитки в один бік) |
+| Два окремі квитки | API `test_scrapedo_provider`; web `offer-card.test` (позначка «Два окремі квитки») |
 | Категорії пасажирів | E2E «сім'я з багажем»; API `test_flight_search_service::test_source_that_cannot_price_the_party…`, `test_domain_flights` (Passengers), WEB `passenger-picker.test` |
 | Гнучкі дати | E2E «гнучкі дати…», «3–5 ночей у грудні…»; API `test_flexible_dates` |
 | Сусідні аеропорти | API `test_airports` (route_filter, радіус), `test_provider_resilience` (ключ кешу); WEB `search-params.test`, `empty-suggestions.test` |

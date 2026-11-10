@@ -62,7 +62,10 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `apps/api/tests/fixtures/scoring/`.
 - **Джерела** ([ADR 0006](docs/adr/0006-live-prices-serpapi.md), [ADR 0041](docs/adr/0041-multi-source-flight-search.md)):
   пошук — SerpApi Google Flights (живі) + Travelpayouts (кешовані ціни продавців, `live = False`):
-  `FLIGHT_PROVIDERS=serpapi,travelpayouts`, календар — `CALENDAR_PROVIDERS=travelpayouts`; без ключів — `mock`.
+  `FLIGHT_PROVIDERS=serpapi,scrapedo,travelpayouts`, календар — `CALENDAR_PROVIDERS=travelpayouts`; без ключів — `mock`.
+  scrape.do ([ADR 0043](docs/adr/0043-scrapedo-google-flights.md)) — та сама видача Google Flights лише з бекенду
+  (`SCRAPEDO_TOKEN`), туди-назад — два запити в один бік → `Offer.separate_tickets` («Два окремі квитки»), без продавців;
+  запит — 10 кредитів (1000/міс), фікстури — `apps/api/tests/fixtures/scrapedo/`.
   Кешоване джерело — розвідник гнучких дат і вдруге не питається. Однаковий рейс — `flight_key` (усі номери
   рейсів; пересадка без сегментів не групується); порядок — `comparable_order` (валюта пошуку, відомий
   багаж; без курсу, `needs_recheck`, невідомий багаж — у кінці). Охоплення — `coverage` у відповіді, лог

@@ -9338,6 +9338,11 @@
             ],
             "title": "Reported Total Duration Min"
           },
+          "separate_tickets": {
+            "type": "boolean",
+            "title": "Separate Tickets",
+            "default": false
+          },
           "stops": {
             "type": "integer",
             "title": "Stops",

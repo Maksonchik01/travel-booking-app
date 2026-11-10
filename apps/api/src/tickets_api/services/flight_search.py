@@ -47,7 +47,7 @@ RecordHistory = Callable[[list[dict[str, Any]]], Awaitable[None]]
 RateLookup = Callable[[str, str], Awaitable[Decimal | None]]
 """(база, валюта) → одиниць валюти за одиницю бази; None — курсу немає."""
 RecordCoverage = Callable[["SearchCoverage"], Awaitable[None]]
-PriceOrder = tuple[bool, bool, bool, Decimal, str, str]
+PriceOrder = tuple[bool, bool, bool, Decimal, bool, str, str]
 
 
 class ProviderStatus(BaseModel):
@@ -672,7 +672,8 @@ def comparable_order(
     пасажирів і весь маршрут, з потрібним багажем, якщо його вартість відома. Невідоме — у
     кінці, а не попереду: ціна без курсу (інша валюта), стара ціна, яку треба перевірити
     (`needs_recheck` — інакше вона очолила б список і картку рейсу, а в продавця вже інша),
-    потрібний багаж з невідомою доплатою."""
+    потрібний багаж з невідомою доплатою. За однакової ціни першим — той, чиїх продавців можна
+    перевірити (`booking_ref`): картку очолює він, і перевірка продавців лишається (ADR 0043)."""
     order: dict[str, PriceOrder] = {}
     for o in offers:
         key = offer_key(o)
@@ -683,6 +684,7 @@ def comparable_order(
             freshness.get(key) == "needs_recheck",
             bool(baggage) and total is None,
             total if total is not None else o.price,
+            o.booking_ref is None,
             o.source,
             o.id,
         )

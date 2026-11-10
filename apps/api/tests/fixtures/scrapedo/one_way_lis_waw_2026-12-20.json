@@ -1,0 +1,552 @@
+{
+ "search_parameters": {
+  "engine": "google_flights",
+  "type": 2,
+  "departure_id": "LIS",
+  "arrival_id": "WAW",
+  "outbound_date": "2026-12-20",
+  "adults": 1,
+  "currency": "EUR",
+  "gl": "us",
+  "hl": "en"
+ },
+ "best_flights": [
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 15:10"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-20 20:15"
+     },
+     "duration": 245,
+     "airplane": "Boeing 737MAX 8 Passenger",
+     "airline": "LOT",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+     "travel_class": "Economy",
+     "flight_number": "LO 426",
+     "legroom": "29 in",
+     "extensions": [
+      "Below average legroom (29 in)",
+      "In-seat power & USB outlets",
+      "Carbon emissions estimate: 194 kg"
+     ]
+    }
+   ],
+   "total_duration": 245,
+   "carbon_emissions": {
+    "this_flight": 194000,
+    "typical_for_this_route": 253000,
+    "difference_percent": -23
+   },
+   "price": 123,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+   "departure_token": "N7fJGd",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEgVMTzQyNhoKCOxfEAIaA0VVUjgccPNq"
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 07:05"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-20 12:10"
+     },
+     "duration": 245,
+     "airplane": "Airbus A320neo",
+     "airline": "Tap Air Portugal",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TP.png",
+     "travel_class": "Economy",
+     "flight_number": "TP 1204",
+     "legroom": "28 in",
+     "extensions": [
+      "Below average legroom (28 in)",
+      "Carbon emissions estimate: 198 kg"
+     ]
+    }
+   ],
+   "total_duration": 245,
+   "carbon_emissions": {
+    "this_flight": 198000,
+    "typical_for_this_route": 253000,
+    "difference_percent": -22
+   },
+   "price": 133,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TP.png",
+   "departure_token": "iiC1ib",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEgZUUDEyMDQaCgjUZxACGgNFVVI4HHDPcw=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 23:30"
+     },
+     "arrival_airport": {
+      "name": "Athens International Airport \"Eleftherios Venizelos\"",
+      "id": "ATH",
+      "time": "2026-12-21 05:30"
+     },
+     "duration": 240,
+     "airplane": "Airbus A320neo",
+     "airline": "SKY express",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/GQ.png",
+     "travel_class": "Economy",
+     "flight_number": "GQ 923",
+     "legroom": "28 in",
+     "extensions": [
+      "Below average legroom (28 in)",
+      "In-seat power & USB outlets",
+      "Carbon emissions estimate: 190 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Athens International Airport \"Eleftherios Venizelos\"",
+      "id": "ATH",
+      "time": "2026-12-21 08:30"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-21 10:10"
+     },
+     "duration": 160,
+     "airplane": "Airbus A320neo",
+     "airline": "SKY express",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/GQ.png",
+     "travel_class": "Economy",
+     "flight_number": "GQ 770",
+     "legroom": "28 in",
+     "extensions": [
+      "Below average legroom (28 in)",
+      "In-seat power & USB outlets",
+      "Carbon emissions estimate: 115 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 180,
+     "name": "Athens International Airport \"Eleftherios Venizelos\"",
+     "id": "ATH"
+    }
+   ],
+   "total_duration": 580,
+   "carbon_emissions": {
+    "this_flight": 307000,
+    "typical_for_this_route": 253000,
+    "difference_percent": 21
+   },
+   "price": 202,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/GQ.png",
+   "departure_token": "m5bA9b",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEgtHUTkyM3xHUTc3MBoLCOSdARACGgNFVVI4HHD+rwE="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 11:30"
+     },
+     "arrival_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-20 15:30"
+     },
+     "duration": 180,
+     "airplane": "Airbus A321neo",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1580",
+     "legroom": "29 in",
+     "extensions": [
+      "Below average legroom (29 in)",
+      "Free Wi-Fi",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 119 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-20 17:00"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-20 18:55"
+     },
+     "duration": 115,
+     "airplane": "Boeing 737",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1317",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 92 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 90,
+     "name": "Amsterdam Airport Schiphol",
+     "id": "AMS"
+    }
+   ],
+   "total_duration": 385,
+   "carbon_emissions": {
+    "this_flight": 212000,
+    "typical_for_this_route": 253000,
+    "difference_percent": -16
+   },
+   "price": 254,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+   "departure_token": "PKJZmb",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEg1LTDE1ODB8S0wxMzE3GgsI6cUBEAIaA0VVUjgccNLcAQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 15:55"
+     },
+     "arrival_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-20 19:55"
+     },
+     "duration": 180,
+     "airplane": "Airbus A321",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Economy",
+     "flight_number": "LH 1169",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Carbon emissions estimate: 184 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-20 21:00"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-20 22:40"
+     },
+     "duration": 100,
+     "airplane": "Airbus A320",
+     "airline": "Lufthansa",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+     "travel_class": "Economy",
+     "flight_number": "LH 1348",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "Carbon emissions estimate: 93 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 65,
+     "name": "Frankfurt Airport",
+     "id": "FRA"
+    }
+   ],
+   "total_duration": 345,
+   "carbon_emissions": {
+    "this_flight": 279000,
+    "typical_for_this_route": 253000,
+    "difference_percent": 10
+   },
+   "price": 267,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LH.png",
+   "departure_token": "EmrnLd",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEg1MSDExNjl8TEgxMzQ4GgsIwtABEAIaA0VVUjgccMnoAQ=="
+  }
+ ],
+ "other_flights": [
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 08:15"
+     },
+     "arrival_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-20 12:30"
+     },
+     "duration": 195,
+     "airplane": "Airbus A320",
+     "airline": "Tap Air Portugal",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TP.png",
+     "travel_class": "Economy",
+     "flight_number": "TP 570",
+     "legroom": "28 in",
+     "extensions": [
+      "Below average legroom (28 in)",
+      "Carbon emissions estimate: 169 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Frankfurt Airport",
+      "id": "FRA",
+      "time": "2026-12-20 16:55"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-20 18:45"
+     },
+     "duration": 110,
+     "airplane": "Boeing 737MAX 8 Passenger",
+     "airline": "LOT",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+     "travel_class": "Economy",
+     "flight_number": "LO 378",
+     "legroom": "29 in",
+     "extensions": [
+      "Below average legroom (29 in)",
+      "In-seat power & USB outlets",
+      "Carbon emissions estimate: 82 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 265,
+     "name": "Frankfurt Airport",
+     "id": "FRA"
+    }
+   ],
+   "total_duration": 570,
+   "carbon_emissions": {
+    "this_flight": 252000,
+    "typical_for_this_route": 253000,
+    "difference_percent": 0
+   },
+   "price": 266,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MULTI.png",
+   "departure_token": "ujDHnb",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEgtUUDU3MHxMTzM3OBoLCN7PARACGgNFVVI4HHDa5wE="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 05:00"
+     },
+     "arrival_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-20 09:00"
+     },
+     "duration": 180,
+     "airplane": "Boeing 737",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1578",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 139 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Amsterdam Airport Schiphol",
+      "id": "AMS",
+      "time": "2026-12-20 10:05"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-20 12:00"
+     },
+     "duration": 115,
+     "airplane": "Boeing 737",
+     "airline": "KLM",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+     "travel_class": "Economy",
+     "flight_number": "KL 1313",
+     "legroom": "30 in",
+     "extensions": [
+      "Average legroom (30 in)",
+      "In-seat USB outlet",
+      "Carbon emissions estimate: 92 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 65,
+     "name": "Amsterdam Airport Schiphol",
+     "id": "AMS"
+    }
+   ],
+   "total_duration": 360,
+   "carbon_emissions": {
+    "this_flight": 232000,
+    "typical_for_this_route": 253000,
+    "difference_percent": -8
+   },
+   "price": 287,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/KL.png",
+   "departure_token": "Ty6ote",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEg1LTDE1Nzh8S0wxMzEzGgsIzd8BEAIaA0VVUjgccLP5AQ=="
+  },
+  {
+   "flights": [
+    {
+     "departure_airport": {
+      "name": "Lisbon Airport",
+      "id": "LIS",
+      "time": "2026-12-20 11:40"
+     },
+     "arrival_airport": {
+      "name": "Berlin Brandenburg Airport",
+      "id": "BER",
+      "time": "2026-12-20 16:15"
+     },
+     "duration": 215,
+     "airplane": "Airbus A321",
+     "airline": "Tap Air Portugal",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/TP.png",
+     "travel_class": "Economy",
+     "flight_number": "TP 532",
+     "legroom": "28 in",
+     "extensions": [
+      "Below average legroom (28 in)",
+      "Carbon emissions estimate: 198 kg"
+     ]
+    },
+    {
+     "departure_airport": {
+      "name": "Berlin Brandenburg Airport",
+      "id": "BER",
+      "time": "2026-12-20 18:40"
+     },
+     "arrival_airport": {
+      "name": "Warsaw Chopin Airport",
+      "id": "WAW",
+      "time": "2026-12-20 19:50"
+     },
+     "duration": 70,
+     "airplane": "Embraer 195",
+     "airline": "LOT",
+     "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/LO.png",
+     "travel_class": "Economy",
+     "flight_number": "LO 390",
+     "legroom": "31 in",
+     "extensions": [
+      "Average legroom (31 in)",
+      "Carbon emissions estimate: 76 kg"
+     ]
+    }
+   ],
+   "layovers": [
+    {
+     "duration": 145,
+     "name": "Berlin Brandenburg Airport",
+     "id": "BER"
+    }
+   ],
+   "total_duration": 430,
+   "carbon_emissions": {
+    "this_flight": 275000,
+    "typical_for_this_route": 253000,
+    "difference_percent": 9
+   },
+   "price": 313,
+   "type": "One way",
+   "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/MULTI.png",
+   "departure_token": "s15Rz",
+   "booking_token": "CjRIT3FGVnZsVmdEREFBRWZjM3dCRy0tLS0tLS0tLXZ0bW4xNkFBQUFBR3J6U1JVTVhJVXdBEgtUUDUzMnxMTzM5MBoLCOTzARACGgNFVVI4HHD0jwI="
+  }
+ ],
+ "price_insights": {
+  "lowest_price": 123,
+  "price_level": "high",
+  "typical_price_range": [
+   65,
+   145
+  ]
+ },
+ "airports": [
+  {
+   "departure": [
+    {
+     "airport": {
+      "id": "LIS",
+      "name": "Lisbon Airport"
+     },
+     "city": "Lisbon",
+     "country": "Portugal",
+     "country_code": "PT",
+     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSG3-nF1u-sTIpnrbZ3a_ly_OcwqDxS9MCOGoiQTX3dJ3ZoIiUsVHqxHC-nmruwZ8aoJZJPM7O5YSmsHR6tp2L_EHV4CnsiNtatHuedKBE",
+     "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLxT3PIh1TwnGsLrG7G-JQRFMG0zIp4uiQ71FTwf1WQHKROUG_veOYAiGQTLGO36g5OCdu9DUrwHrzaA",
+     "latitude": 38.7741667,
+     "longitude": -9.1341667
+    }
+   ],
+   "arrival": [
+    {
+     "airport": {
+      "id": "WAW",
+      "name": "Warsaw Chopin Airport"
+     },
+     "city": "Warsaw",
+     "country": "Poland",
+     "country_code": "PL",
+     "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpYgCZaR1AQIUNfZw69CxHGT2OB0VmzHyYCmfyHLlH1lJ2D1OlspuNu2uN7sK40UqPj5Z_kAZhiUpZUUYlMqsL3_cZdxPEjp86EGSCGi4",
+     "thumbnail": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHx25TjZC37XYjd35zw7q_e_LkTtU5W8UU5aNruIEFZ8jijgQfjKJekztMYYqNnWAaSzk5IOJCZwpmhg",
+     "latitude": 52.1658333,
+     "longitude": 20.9672222
+    }
+   ]
+  }
+ ]
+}

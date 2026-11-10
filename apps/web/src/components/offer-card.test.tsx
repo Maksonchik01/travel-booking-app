@@ -40,6 +40,7 @@ const base: Offer = {
   found_on: null,
   seller: null,
   reported_total_duration_min: null,
+  separate_tickets: false,
   stops: 2,
   total_duration_min: 976,
 };
@@ -113,6 +114,16 @@ describe("OfferCard", () => {
     expect(screen.getByTestId("seller")).toHaveTextContent(
       "Найдешевше: Trip.com · 3 продавці · через Тестові дані",
     );
+  });
+
+  it("два квитки в один бік (scrape.do) — позначка й назва джерела", () => {
+    const { rerender } = renderCard({ ...base, source: "scrapedo", separate_tickets: true });
+
+    expect(screen.getByTestId("separate-tickets")).toHaveTextContent("Два окремі квитки");
+    expect(screen.getByTestId("seller")).toHaveTextContent("Google Flights (scrape.do)");
+
+    rerender(card({ ...base, separate_tickets: false }));
+    expect(screen.queryByTestId("separate-tickets")).not.toBeInTheDocument();
   });
 
   it("для кешованого джерела без деталей пише, що деталі невідомі", () => {

@@ -32,8 +32,8 @@ services:
         sync: false
       - key: CORS_ORIGINS # та сама адреса Vercel
         sync: false
-      - key: FLIGHT_PROVIDERS # живі ціни + продавці з кешу Aviasales (ADR 0041)
-        value: serpapi,travelpayouts
+      - key: FLIGHT_PROVIDERS # живі ціни (SerpApi, scrape.do) + продавці з кешу Aviasales (ADR 0041, 0043)
+        value: serpapi,scrapedo,travelpayouts
       - key: CALENDAR_PROVIDERS
         value: travelpayouts
       - key: STAY_PROVIDERS
@@ -45,6 +45,8 @@ services:
       - key: TELEGRAM_BOT_USERNAME
         value: flyandbookbot
       - key: SERPAPI_KEY
+        sync: false
+      - key: SCRAPEDO_TOKEN
         sync: false
       - key: TRAVELPAYOUTS_TOKEN
         sync: false

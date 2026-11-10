@@ -370,7 +370,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
     .filter((p) => p.status === "ok")
     .map((p) =>
       t.has(`provider.${p.provider}`)
-        ? t(`provider.${p.provider as "serpapi" | "travelpayouts" | "mock"}`)
+        ? t(`provider.${p.provider as "serpapi" | "scrapedo" | "travelpayouts" | "mock"}`)
         : p.provider,
     );
   const filtered = hasFilters(query.filters);
