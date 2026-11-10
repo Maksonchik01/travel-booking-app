@@ -197,7 +197,7 @@ test("поїздка: загальна сума, три варіанти, бюд
   await page
     .locator('[data-testid="trip-card"]')
     .first()
-    .getByRole("link", { name: /Житло/ })
+    .getByRole("link", { name: "Відкрити житло" })
     .click();
   await expect(page).toHaveURL(/\/stays\?city=LIS/);
   await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
@@ -969,4 +969,50 @@ test("модуль 21.1: сортування — «Швидші» впоряд�
   );
   expect(minutes.length).toBeGreaterThan(1);
   expect(minutes).toEqual([...minutes].sort((a, b) => a - b));
+});
+
+test("модуль 23b: обрана поїздка не губиться між розділами, помічник не розкривається сам", async ({
+  page,
+}) => {
+  test.slow(); // три розділи з пошуками й поверненнями
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
+  await page.waitForLoadState("networkidle");
+
+  // Обрати варіант — сторінка відкривається на «Вашій поїздці».
+  await page.getByTestId("trip-choose").first().click();
+  await expect(page).toHaveURL(/flight=.*#your-trip$/);
+  const builder = page.getByTestId("trip-builder");
+  await expect(builder).toBeInViewport();
+  const chosen = new URL(page.url()).searchParams;
+
+  // Помічник відкрили тут, потім перейшли в «Авіаквитки» — там він згорнутий.
+  await page.locator('[data-testid="chat-launcher"]:visible').click();
+  await expect(page.locator('[data-testid="search-panel-chat"]:visible')).toHaveCount(1);
+  await page
+    .locator('[data-testid="search-modes"]:visible')
+    .getByRole("link", { name: "Авіаквитки" })
+    .click();
+  await expect(page).toHaveURL(/^[^?]*\/\?from=WAW&to=LIS/);
+  await expect(page.locator('[data-testid="search-panel-chat"]:visible')).toHaveCount(0);
+
+  // Назад у «Поїздку» (перемикач і шапка) — та сама поїздка з вибором рейсу й житла.
+  await page
+    .locator('[data-testid="search-modes"]:visible')
+    .getByRole("link", { name: "Поїздка" })
+    .click();
+  await expect(page).toHaveURL(/\/trip\?/);
+  const back = new URL(page.url()).searchParams;
+  expect([back.get("flight"), back.get("stay")]).toEqual([
+    chosen.get("flight"),
+    chosen.get("stay"),
+  ]);
+  await expect(page.locator('[data-testid="trip-builder"]:visible')).toHaveCount(1);
+  await expect(page.locator('[data-testid="search-panel-chat"]:visible')).toHaveCount(0);
+
+  const sections = page.locator('nav[aria-label="Розділи сайту"]:visible');
+  await sections.getByRole("link", { name: "Перельоти" }).click();
+  await expect(page).toHaveURL(/from=WAW&to=LIS/);
+  await expect(page.locator('[data-testid="offer-card"]:visible').first()).toBeVisible();
+  await sections.getByRole("link", { name: "Поїздка" }).click();
+  await expect(page).toHaveURL(new RegExp(`flight=${encodeURIComponent(chosen.get("flight")!)}`));
 });

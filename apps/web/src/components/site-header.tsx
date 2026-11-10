@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { SectionLink } from "@/components/section-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
@@ -30,8 +31,9 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
           className="text-muted-foreground -mx-1 hidden min-w-0 items-center gap-0.5 overflow-x-auto px-1 text-[13px] sm:flex sm:gap-1 sm:text-sm"
         >
           {(Object.keys(SECTIONS) as (keyof typeof SECTIONS)[]).map((section) => (
-            <Link
+            <SectionLink
               key={section}
+              section={section}
               href={SECTIONS[section]}
               aria-current={active === section ? "page" : undefined}
               className={cn(
@@ -42,7 +44,7 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
               )}
             >
               {t(section)}
-            </Link>
+            </SectionLink>
           ))}
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">

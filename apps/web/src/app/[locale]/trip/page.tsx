@@ -38,6 +38,7 @@ import {
   parseTripParams,
   savedId,
   toTripParams,
+  toYourTrip,
   withChoice,
 } from "@/lib/trip-params";
 import { dateRange, peopleCount } from "@/lib/summary";
@@ -254,7 +255,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
       chooseHref={
         combo.key === data.selected?.key
           ? undefined
-          : withChoice(query, { flight: combo.offer_key, stay: combo.stay_key }, saved)
+          : toYourTrip(withChoice(query, { flight: combo.offer_key, stay: combo.stay_key }, saved))
       }
       compare={cardActions(combo, label ? tPicks(`label.${label.label}`) : historyTitle)}
     />

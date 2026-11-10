@@ -106,3 +106,46 @@ export function draftHref(mode: SearchMode, common: CommonSearch): string {
   if (!meaningful) return href;
   return `${href}${href.includes("?") ? "&" : "?"}${DRAFT_PARAM}=1`;
 }
+
+const LAST_SEARCH_KEY = "tickets.lastSearch.";
+const SAME_TRIP_KEYS = ["from", "to", "depart", "return", "adults", "children"] as const;
+
+/**
+ * Останній пошук кожного розділу у вкладці (sessionStorage, модуль 23b): повернення в розділ
+ * відкриває саме його — з обраним рейсом і житлом, фільтрами, сортуванням, — а не новий пошук.
+ */
+export function rememberSearch(mode: SearchMode, href: string): void {
+  try {
+    sessionStorage.setItem(LAST_SEARCH_KEY + mode, href);
+  } catch {
+    // без сховища повертаємось звичайним посиланням
+  }
+}
+
+export function lastSearch(mode: SearchMode): string | null {
+  try {
+    return sessionStorage.getItem(LAST_SEARCH_KEY + mode);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Куди веде перемикач розділів: останній пошук розділу, якщо він про ту саму подорож (куди,
+ * дати, люди — що задано в обох), інакше — новий пошук зі спільним (`modeHref`).
+ */
+export function returnHref(target: SearchMode, common: CommonSearch): string {
+  const last = lastSearch(target);
+  if (last) {
+    const query = new URLSearchParams(last.split("?")[1] ?? "");
+    const remembered = commonFrom(target, query);
+    const same = SAME_TRIP_KEYS.every(
+      (key) =>
+        remembered[key] === undefined ||
+        common[key] === undefined ||
+        remembered[key] === common[key],
+    );
+    if (same && remembered.to !== undefined && remembered.to === common.to) return last;
+  }
+  return modeHref(target, common);
+}

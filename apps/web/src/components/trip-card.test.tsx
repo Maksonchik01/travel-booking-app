@@ -1,5 +1,5 @@
 import type { Offer, Stay, TripCombo } from "@tickets/shared";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it } from "vitest";
 
@@ -166,11 +166,17 @@ describe("TripCard", () => {
     expect(dates).toHaveTextContent("Виліт назад вт, 8 груд., 10:00 → виїзд вт, 8 груд.");
     expect(screen.getByText(/Приліт уночі/)).toBeInTheDocument();
     expect(screen.getByText("Pension Rosa")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Рейс/ })).toHaveAttribute(
+    // Модуль 23b: переліт і житло — окремі блоки, кожен зі своєю ціною, статусом і посиланням.
+    const flight = screen.getByTestId("trip-flight");
+    expect(flight).toHaveTextContent("Переліт");
+    expect(within(flight).getByRole("link", { name: "Відкрити квиток" })).toHaveAttribute(
       "href",
       "/?from=WAW&to=LIS#offer-mock-f1",
     );
-    expect(screen.getByRole("link", { name: /Житло/ })).toHaveAttribute(
+    const stay = screen.getByTestId("trip-stay");
+    expect(stay).toHaveTextContent("Pension Rosa");
+    expect(stay).toHaveTextContent("231 €Підтверджено");
+    expect(within(stay).getByRole("link", { name: "Відкрити житло" })).toHaveAttribute(
       "href",
       "/stays?city=LIS#stay-mock-s1",
     );

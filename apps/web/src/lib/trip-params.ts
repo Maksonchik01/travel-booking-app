@@ -249,6 +249,14 @@ export function savedId(params: RawSearchParams): string | null {
  * Та сама поїздка з іншим вибором рейсу чи житла (null — прибрати вибір). `saved` — режим
  * редагування збереженої поїздки переживає кожну зміну.
  */
+/** Якір блоку «Ваша поїздка» (модуль 23b): вибір рейсу чи житла відкриває сторінку на ньому. */
+export const YOUR_TRIP_ANCHOR = "your-trip";
+
+/** Поїздка з вибором — одразу до «Вашої поїздки», а не на початок сторінки з формою. */
+export function toYourTrip(href: string): string {
+  return `${href}#${YOUR_TRIP_ANCHOR}`;
+}
+
 export function withChoice(
   query: TripQuery,
   choice: { flight?: string | null; stay?: string | null },

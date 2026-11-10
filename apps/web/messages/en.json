@@ -833,8 +833,8 @@
     "stayDates": "Check-in {from}, check-out {to}",
     "toCenter": "{km} km to the center",
     "value": "“Optimal” score (price + inconveniences): {value}",
-    "openFlight": "Flight",
-    "openStay": "Stay",
+    "openFlight": "Open ticket",
+    "openStay": "Open stay",
     "warning": {
       "night_arrival": "Night arrival: check-in is usually from 14:00, the night before arrival isn't paid",
       "late_arrival": "Late arrival — let the property know about check-in",
@@ -867,7 +867,18 @@
     "why": "Why this option?",
     "nightsFull": "{full} of {nights} nights are full",
     "travel": "{duration} travelling",
-    "waiting": "incl. {duration} waiting"
+    "waiting": "incl. {duration} waiting",
+    "details": "Cost breakdown and dates",
+    "chosenFlight": "Chosen flight",
+    "chosenStay": "Chosen stay",
+    "stayTitle": "Stay",
+    "nightsCount": "{nights, plural, one {# night} other {# nights}}",
+    "statusHint": {
+      "confirmed": "Source price for these dates",
+      "approximate": "Cached price or your own costs — may change",
+      "unknown": "No amount — not included in the total"
+    },
+    "statusLegend": "Confirmed — the source's price for these dates. Approximate — a cached price or your own costs. Unknown amounts are not in the total."
   },
   "alerts": {
     "watch": "Track price",
@@ -1573,14 +1584,14 @@
   },
   "tripBuilder": {
     "title": "Your trip",
-    "hint": "Replace the flight or the stay — the other is kept if it fits the new dates. Totals are recalculated after every change.",
+    "hint": "Swap the flight or the stay — totals update and the rest is kept.",
     "undo": "Undo last choice",
     "reset": "Reset choice",
     "flightUnavailable": "The selected flight is no longer in this search (other dates or the price changed) — showing the best option.",
     "stayReplaced": "The selected stay isn't available for this flight's dates — we picked the best value for these dates.",
     "cheaper": "Find a cheaper option",
     "cheaperSearching": "Looking for cheaper…",
-    "cheaperHint": "We'll check other dates (±3 days, the same number of nights), nearby airports, other flights and stays with the same conditions: travelers, class, direct flights, baggage, stay type and preferences stay unchanged.",
+    "cheaperHint": "±3 days, nearby airports, other flights and stays — on your terms.",
     "cheaperFailed": "Couldn't check. Please try later.",
     "rateLimited": "Too many requests this hour. Please try again a bit later.",
     "checked": "Checked {flights, plural, one {# flight} other {# flights}} and {combos, plural, one {# combination} other {# combinations}} — this is part of the market, not every possible price.",
@@ -1606,9 +1617,11 @@
     "stops": "{count, plural, one {# stop} other {# stops}}",
     "km": "{km} km to the center",
     "baggageUnknown": "baggage fee unknown",
-    "saveHint": "We'll save the selected flight and stay with today's prices — you can refresh them later. “Share” gives a link to this exact configuration; whoever opens it sees current prices.",
+    "saveHint": "We'll save your choice and current prices. “Share” gives a link to this trip.",
     "optimize": "Optimize with AI",
-    "optimizeDraft": "Optimize this trip: what can be made cheaper or more convenient without changing my conditions?"
+    "optimizeDraft": "Optimize this trip: what can be made cheaper or more convenient without changing my conditions?",
+    "breakdown": "Cost breakdown",
+    "changeTitle": "Change the trip"
   },
   "savedTrips": {
     "pageTitle": "My trips",

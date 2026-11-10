@@ -182,13 +182,16 @@ describe("Ваша поїздка", () => {
     const flights = within(screen.getByTestId("trip-flight-options")).getAllByTestId("trip-option");
     expect(flights).toHaveLength(1); // поточний рейс у варіантах не дублюємо
     expect(flights[0]).toHaveTextContent(/−50\s€/);
-    const flightUrl = new URLSearchParams(flights[0].getAttribute("href")!.split("?")[1]);
+    // Заміна відкриває сторінку одразу на «Вашій поїздці» (модуль 23b).
+    expect(flights[0].getAttribute("href")).toMatch(/#your-trip$/);
+    const query = (href: string | null) => new URLSearchParams(href!.split("#")[0].split("?")[1]);
+    const flightUrl = query(flights[0].getAttribute("href"));
     expect([flightUrl.get("flight"), flightUrl.get("stay")]).toEqual(["mock:f2", "mock:s1"]);
 
     const stays = within(screen.getByTestId("trip-stay-options")).getAllByTestId("trip-option");
     expect(stays).toHaveLength(1);
     expect(stays[0]).toHaveTextContent(/\+120\s€/);
-    const stayUrl = new URLSearchParams(stays[0].getAttribute("href")!.split("?")[1]);
+    const stayUrl = query(stays[0].getAttribute("href"));
     expect([stayUrl.get("flight"), stayUrl.get("stay")]).toEqual(["mock:f1", "mock:s2"]);
 
     // Житла немає на дати рейсу — чесно кажемо, що підібрали інше.

@@ -16,7 +16,7 @@ import { stayAnchor } from "@/components/stay-picks";
 import { offerAnchor } from "@/components/top-picks";
 import type { StoredCard } from "@/lib/chat-history";
 import { hoursAgo, localDate, localTime, splitDuration } from "@/lib/format";
-import { toTripParams } from "@/lib/trip-params";
+import { toTripParams, toYourTrip } from "@/lib/trip-params";
 import { fractionDigits } from "@/lib/money";
 
 /**
@@ -29,7 +29,11 @@ export function cardLinks(
   queries: { flight?: FlightQuery | null; stay?: StayQuery | null },
 ): StoredCard[] {
   return (cards ?? []).map((card) => {
-    if (card.kind === "trip") return { card, trip: `/trip?${toTripParams(card.query)}` };
+    if (card.kind === "trip") {
+      // Картка з вибором рейсу й житла — одразу до «Вашої поїздки» (модуль 23b).
+      const href = `/trip?${toTripParams(card.query)}`;
+      return { card, trip: card.query.flight ? toYourTrip(href) : href };
+    }
     if (card.kind === "flight") {
       const q = queries.flight;
       const trip =

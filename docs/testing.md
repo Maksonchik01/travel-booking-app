@@ -68,6 +68,7 @@
 | Перерахунок бюджету | E2E «поїздка 8a: … бюджет за статусами»; API `test_budget_filters_picks_or_reports_shortfall`, `test_costs_split_confirmed_approximate_unknown`, `test_currency` |
 | Оптимізація вартості | E2E «поїздка 8b: … знайти дешевше»; API `test_cheaper_*` |
 | Збереження | E2E «поїздка 8c…», «модуль 20.2…»; INT `test_accounts::test_saved_trips_*` |
+| Вибір не губиться між розділами | E2E «модуль 23b: обрана поїздка не губиться…» (якір «Ваша поїздка», повернення з вибором, помічник згорнутий); WEB `search-modes.test` (returnHref), `trip-builder.test` (заміни з якорем), `trip-card.test` (окремі блоки рейсу й житла) |
 | Повторне відкриття | E2E «поїздка 8c» (редагувати → `saved=`), «модуль 20.2» (публічне посилання); WEB `trip-builder.test` |
 | Оновлення цін | E2E «поїздка 8c» (оновити ціни); API `test_refresh_reports_current_total_and_availability` |
 

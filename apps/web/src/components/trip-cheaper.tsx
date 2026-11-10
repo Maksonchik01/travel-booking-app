@@ -8,7 +8,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { localDate, localTime } from "@/lib/format";
-import { toTripParams } from "@/lib/trip-params";
+import { toTripParams, toYourTrip } from "@/lib/trip-params";
 import { useHydrated } from "@/lib/use-hydrated";
 import { fetchWithTimeout } from "@/lib/client-fetch";
 import { fractionDigits } from "@/lib/money";
@@ -145,7 +145,7 @@ export function TripCheaper({ query }: { query: TripQuery }) {
       <p className="text-muted-foreground text-[11px]">{checked}</p>
       <Button asChild size="sm" className="w-fit">
         <Link
-          href={`/trip?${toTripParams(result.apply as TripQuery)}`}
+          href={toYourTrip(`/trip?${toTripParams(result.apply as TripQuery)}`)}
           data-testid="trip-cheaper-apply"
         >
           {t("apply")}

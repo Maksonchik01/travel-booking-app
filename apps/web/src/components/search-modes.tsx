@@ -2,7 +2,7 @@
 
 import { BedDouble, Luggage, Plane, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
@@ -17,6 +17,8 @@ import {
   commonFrom,
   draftHref,
   modeHref,
+  rememberSearch,
+  returnHref,
   SEARCH_MODES,
   type SearchMode,
 } from "@/lib/search-modes";
@@ -60,6 +62,12 @@ export function SearchModes({
     node?.addEventListener(TAB_CHANGED_EVENT, onChange);
     return () => node?.removeEventListener(TAB_CHANGED_EVENT, onChange);
   }, []);
+
+  // Пошук із результатами — запам'ятати для повернення в цей розділ (модуль 23b).
+  const search = useSearchParams().toString();
+  useEffect(() => {
+    if (!drafting && search) rememberSearch(current, `${window.location.pathname}?${search}`);
+  }, [current, drafting, search]);
 
   // Чернетка форми — в адресу (без запису в історію): оновлення сторінки її не губить.
   useEffect(() => {
@@ -105,7 +113,7 @@ export function SearchModes({
       selectTab("form");
       return;
     }
-    router.push(modeHref(mode, liveCommon()));
+    router.push(returnHref(mode, liveCommon()));
   }
 
   const item =

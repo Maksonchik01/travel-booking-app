@@ -6,14 +6,26 @@ import { useFormatter, useTranslations } from "next-intl";
 import { FavoriteToggle } from "@/components/favorites";
 import { OptimizeWithAI } from "@/components/open-chat-button";
 import { SaveTripButton, ShareTripButton } from "@/components/saved-trips";
-import { TripCard } from "@/components/trip-card";
+import { offerAnchor } from "@/components/top-picks";
+import { stayAnchor } from "@/components/stay-picks";
+import {
+  OverBudget,
+  TripBreakdown,
+  TripDates,
+  TripFlightSection,
+  TripPrice,
+  TripQuality,
+  TripStaySection,
+  TripWarnings,
+  TripWhy,
+} from "@/components/trip-card";
 import { TripCompareToggle } from "@/components/trip-compare";
 import { TripCheaper } from "@/components/trip-cheaper";
 import { TripUndo } from "@/components/trip-history";
 import { Button } from "@/components/ui/button";
 import { localTime } from "@/lib/format";
 import { pinnedQuery, tripSnapshot } from "@/lib/saved-trips";
-import { toTripParams, withChoice } from "@/lib/trip-params";
+import { toTripParams, toYourTrip, withChoice, YOUR_TRIP_ANCHOR } from "@/lib/trip-params";
 import { cn } from "@/lib/utils";
 import { fractionDigits } from "@/lib/money";
 
@@ -89,13 +101,18 @@ export function TripBuilder({
   ].filter((x): x is string => x !== null);
 
   return (
-    <section className="grid gap-3" aria-labelledby="trip-builder-title" data-testid="trip-builder">
+    <section
+      id={YOUR_TRIP_ANCHOR}
+      className="grid scroll-mt-20 gap-5"
+      aria-labelledby="trip-builder-title"
+      data-testid="trip-builder"
+    >
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="grid gap-0.5">
           <h2 id="trip-builder-title" className="text-xl font-semibold tracking-tight">
             {t("title")}
           </h2>
-          <p className="text-muted-foreground text-xs">{t("hint")}</p>
+          <p className="text-muted-foreground text-sm">{t("hint")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <TripUndo params={here.split("?")[1]} showButton />
@@ -122,39 +139,73 @@ export function TripBuilder({
         </p>
       ))}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
-        <TripCard
-          combo={selected}
-          offer={offer}
-          stay={stay}
-          travelers={travelers}
-          overBudget={overBudget}
-          airlineNames={airlineNames}
-          flightsHref={flightsHref}
-          staysHref={staysHref}
-          compare={
-            <>
-              <TripCompareToggle item={{ key: selected.key, title: t("title"), snapshot }} />
-              <FavoriteToggle body={{ kind: "trip", trip: { title, query: pinned, snapshot } }} />
-            </>
-          }
-        />
-
-        <div className="grid gap-4">
-          <div className="bg-card grid gap-2 rounded-xl border p-4" data-testid="trip-save-panel">
-            <div className="flex flex-wrap items-center gap-2">
-              {/* key: інша конфігурація — свіжа кнопка (стан «Збережено» не переноситься). */}
-              <SaveTripButton
-                key={here}
-                body={{ title, query: pinned, snapshot, status: "draft" }}
-                savedId={saved}
-              />
-              <ShareTripButton key={`share-${here}`} href={`/trip?${toTripParams(pinned)}`} />
-              {aiEnabled && <OptimizeWithAI />}
-            </div>
-            <p className="text-muted-foreground text-[11px]">{t("saveHint")}</p>
+      {/* 1. Зведення: куди й коли, загальна сума і її статус, головні дії (модуль 23b). */}
+      <div
+        className="bg-card grid gap-4 rounded-2xl border p-5 shadow-sm sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
+        data-testid="trip-summary"
+      >
+        <div className="grid gap-3">
+          <p className="text-lg font-semibold tracking-tight">{title}</p>
+          {overBudget && <OverBudget />}
+          <TripPrice combo={selected} travelers={travelers} money={money} size="lg" />
+        </div>
+        <div className="grid gap-2 lg:justify-items-end" data-testid="trip-save-panel">
+          <div className="flex flex-wrap gap-2">
+            {/* key: інша конфігурація — свіжа кнопка (стан «Збережено» не переноситься). */}
+            <SaveTripButton
+              key={here}
+              body={{ title, query: pinned, snapshot, status: "draft" }}
+              savedId={saved}
+            />
+            <ShareTripButton key={`share-${here}`} href={`/trip?${toTripParams(pinned)}`} />
           </div>
+          <p className="text-muted-foreground max-w-xs text-[11px] lg:text-right">
+            {t("saveHint")}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
+        {/* 2. Що саме обрано: переліт, житло, розбивка вартості. */}
+        <div className="grid gap-4">
+          <TripFlightSection
+            combo={selected}
+            offer={offer}
+            airlineNames={airlineNames}
+            href={`${flightsHref}#${offerAnchor(selected.offer_key)}`}
+            money={money}
+            detailed
+          />
+          <TripStaySection
+            combo={selected}
+            stay={stay}
+            href={`${staysHref}#${stayAnchor(selected.stay_key)}`}
+            money={money}
+            detailed
+          />
+          <TripWarnings combo={selected} />
+          <section
+            className="bg-card grid gap-3 rounded-xl border p-4 sm:p-5"
+            aria-labelledby="trip-breakdown-title"
+          >
+            <h3 id="trip-breakdown-title" className="text-sm font-semibold">
+              {t("breakdown")}
+            </h3>
+            <TripBreakdown combo={selected} money={money} />
+            <div className="grid gap-2 border-t pt-3">
+              <TripDates combo={selected} />
+              <TripQuality combo={selected} />
+            </div>
+            <TripWhy combo={selected} money={money} />
+          </section>
+        </div>
+
+        {/* 3. Змінити поїздку: дешевше, інший рейс, інше житло; другорядне — внизу. */}
+        <aside className="grid gap-4" aria-labelledby="trip-change-title">
           <div className="bg-card grid gap-2 rounded-xl border p-4">
+            <h3 id="trip-change-title" className="text-sm font-semibold">
+              {t("changeTitle")}
+            </h3>
             <TripCheaper query={query} />
             <p className="text-muted-foreground text-[11px]">{t("cheaperHint")}</p>
           </div>
@@ -172,10 +223,12 @@ export function TripBuilder({
               return (
                 <OptionRow
                   key={option.offer_key}
-                  href={withChoice(
-                    query,
-                    { flight: option.offer_key, stay: query.stay ?? selected.stay_key },
-                    saved,
+                  href={toYourTrip(
+                    withChoice(
+                      query,
+                      { flight: option.offer_key, stay: query.stay ?? selected.stay_key },
+                      saved,
+                    ),
                   )}
                   title={`${day(option.window.check_in)} – ${day(option.window.check_out)} · ${t("nights", { count: option.window.nights })}`}
                   detail={flightDetail(offer, airlineNames, t)}
@@ -198,10 +251,12 @@ export function TripBuilder({
             {stayOptions.map(({ index, stay }) => (
               <OptionRow
                 key={index}
-                href={withChoice(
-                  query,
-                  { flight: selected.offer_key, stay: `${stay.source}:${stay.id}` },
-                  saved,
+                href={toYourTrip(
+                  withChoice(
+                    query,
+                    { flight: selected.offer_key, stay: `${stay.source}:${stay.id}` },
+                    saved,
+                  ),
                 )}
                 title={stay.name}
                 detail={stayDetail(stay, format, t)}
@@ -211,7 +266,13 @@ export function TripBuilder({
               />
             ))}
           </Options>
-        </div>
+
+          <div className="flex flex-wrap gap-2">
+            <TripCompareToggle item={{ key: selected.key, title: t("title"), snapshot }} />
+            <FavoriteToggle body={{ kind: "trip", trip: { title, query: pinned, snapshot } }} />
+            {aiEnabled && <OptimizeWithAI />}
+          </div>
+        </aside>
       </div>
     </section>
   );
