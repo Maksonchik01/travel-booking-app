@@ -1,6 +1,8 @@
 "use client";
 
-import { ArrowLeftRight, Loader2, PlaneLanding, PlaneTakeoff, Search } from "lucide-react";
+import { ArrowLeftRight, Compass, Loader2, PlaneLanding, PlaneTakeoff, Search } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Form from "next/form";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -8,6 +10,7 @@ import { useFormStatus } from "react-dom";
 
 import { ParamsToggle } from "@/components/params-toggle";
 import { PassengerPicker } from "@/components/passenger-picker";
+import { exploreFromFlights } from "@/lib/explore-params";
 import { readLocalFilters } from "@/lib/saved-filters";
 import type { FlightDefaults } from "@/lib/search-prefs";
 import { useHydrated } from "@/lib/use-hydrated";
@@ -116,7 +119,10 @@ export function SearchForm({
             placeholder={t("toPlaceholder")}
             icon={<PlaneLanding />}
           />
-          <NearbyToggle name="toNear" checked={toNear} onChange={setToNear} />
+          <div className="flex flex-wrap items-center justify-between gap-x-3">
+            <NearbyToggle name="toNear" checked={toNear} onChange={setToNear} />
+            <AnywhereLink />
+          </div>
         </Field>
       </div>
 
@@ -279,6 +285,32 @@ function NearbyToggle({
       />
       {t("nearby", { km: NEARBY_RADIUS_KM })}
     </label>
+  );
+}
+
+/**
+ * «Будь-куди» (ADR 0045): Explore з тим, що вже введено у форму (звідки, дати, люди, «прямі»,
+ * валюта). Без JS — просто сторінка Explore.
+ */
+function AnywhereLink() {
+  const t = useTranslations("search");
+  const router = useRouter();
+  return (
+    <Link
+      href="/explore"
+      onClick={(event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        const form = event.currentTarget.closest("form");
+        if (!form) return;
+        event.preventDefault();
+        router.push(exploreFromFlights(new FormData(form)));
+      }}
+      className="text-primary flex items-center gap-1 text-xs font-medium hover:underline"
+      data-testid="search-anywhere"
+    >
+      <Compass className="size-3.5" aria-hidden />
+      {t("anywhere")}
+    </Link>
   );
 }
 

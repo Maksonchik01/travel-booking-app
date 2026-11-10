@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { recordEvent } from "@/lib/api";
 import type { EventName, EventProps } from "@/lib/analytics";
 
-type Mode = "flights" | "stays" | "trip";
+type Mode = "flights" | "stays" | "trip" | "explore";
 type Outcome = { ok: true; results: number } | { ok: false; reason: string };
 
 /** Браузер просить не відстежувати (Sec-GPC / DNT) — серверні події теж не пишемо. */

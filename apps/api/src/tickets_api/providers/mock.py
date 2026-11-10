@@ -51,6 +51,12 @@ DEPARTURE_SLOTS = (
 # Тривалості пересадок у хвилинах: від ризиково коротких до нічних.
 LAYOVER_CHOICES = (40, 55, 75, 110, 180, 300, 540)
 NIGHT_START, NIGHT_END = time(0, 0), time(6, 0)
+EXPLORE_DESTINATIONS = (
+    "LIS", "BCN", "ROM", "PAR", "LON", "PRG", "BUD", "ATH", "AGP", "NCE",
+    "DUB", "CPH", "VIE", "IST", "TCI", "SPU", "MLA", "OSL", "EDI", "NAP",
+)  # fmt: skip
+EXPLORE_DAY_STEP = 4
+EXPLORE_NIGHTS = (2, 3, 4, 6, 9)
 
 
 def _rng(*parts: object) -> random.Random:
@@ -122,6 +128,39 @@ class MockFlightProvider:
                 )
             )
         return result
+
+    async def explore(
+        self, origin: str, departure: str, return_at: str | None, currency: str, *, direct: bool
+    ) -> list[Offer]:
+        """Explore без токенів: фіксований набір напрямків, кілька пар дат у місяці."""
+        collected_at = self._clock().replace(microsecond=0)
+        if return_at is not None:
+            pairs = [(date.fromisoformat(departure), date.fromisoformat(return_at))]
+        else:
+            month = date.fromisoformat(f"{departure}-01")
+            last = _calendar.monthrange(month.year, month.month)[1]
+            pairs = [
+                (month.replace(day=day), month.replace(day=day) + timedelta(days=nights))
+                for day in range(1, last + 1, EXPLORE_DAY_STEP)
+                for nights in EXPLORE_NIGHTS
+            ]
+        offers: list[Offer] = []
+        for destination in EXPLORE_DESTINATIONS:
+            if destination == origin.upper():
+                continue
+            for dep, ret in pairs:
+                query = FlightQuery(
+                    origin=origin,
+                    destination=destination,
+                    departure_date=dep,
+                    return_date=ret,
+                    direct_only=direct,
+                    currency=currency,
+                )
+                found = self._offers_for_dates(query, dep, ret, collected_at)
+                if found:
+                    offers.append(min(found, key=lambda o: (o.price, o.id)))
+        return sorted(offers, key=lambda o: (o.price, o.id))
 
     def _offers_for_dates(
         self, query: FlightQuery, dep: date, ret: date | None, collected_at: datetime

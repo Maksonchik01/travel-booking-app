@@ -338,6 +338,48 @@
         }
       }
     },
+    "/explore": {
+      "post": {
+        "tags": [
+          "explore"
+        ],
+        "summary": "Explore",
+        "description": "Напрямки за бюджетом (ADR 0045): кешовані ціни перельотів з міста будь-куди.\n\nЖивих запитів перельотів немає; житло (режим `trip`) — лише для кількох найдешевших.",
+        "operationId": "explore_explore_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExploreQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExploreResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/places": {
       "get": {
         "tags": [
@@ -6913,6 +6955,24 @@
         ],
         "title": "DeleteAccountBody"
       },
+      "DestinationPhoto": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "page": {
+            "type": "string",
+            "title": "Page"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "page"
+        ],
+        "title": "DestinationPhoto"
+      },
       "EditBody": {
         "properties": {
           "token": {
@@ -7112,6 +7172,430 @@
           "recommended_id"
         ],
         "title": "Explanation"
+      },
+      "ExploreDestination": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "city_name": {
+            "type": "string",
+            "title": "City Name"
+          },
+          "country": {
+            "type": "string",
+            "title": "Country"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "categories": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "city",
+                "sea",
+                "mountains",
+                "romance",
+                "culture",
+                "nightlife"
+              ]
+            },
+            "type": "array",
+            "title": "Categories",
+            "default": []
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DestinationPhoto"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "offer": {
+            "$ref": "#/components/schemas/Offer"
+          },
+          "nights": {
+            "type": "integer",
+            "title": "Nights"
+          },
+          "nights_approximate": {
+            "type": "boolean",
+            "title": "Nights Approximate",
+            "default": false
+          },
+          "freshness": {
+            "type": "string",
+            "enum": [
+              "live",
+              "cached",
+              "approximate",
+              "needs_recheck"
+            ],
+            "title": "Freshness"
+          },
+          "stay": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExploreStay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stay_status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "not_checked",
+                  "none",
+                  "unsupported",
+                  "rate_limited",
+                  "error"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stay Status"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "city_name",
+          "country",
+          "offer",
+          "nights",
+          "freshness"
+        ],
+        "title": "ExploreDestination"
+      },
+      "ExploreQuery": {
+        "properties": {
+          "origins": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Origins"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "europe",
+                  "middle_east",
+                  "africa",
+                  "asia",
+                  "north_america",
+                  "south_america",
+                  "oceania"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "categories": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "city",
+                "sea",
+                "mountains",
+                "romance",
+                "culture",
+                "nightlife"
+              ]
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Categories"
+          },
+          "departure_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Departure Date"
+          },
+          "departure_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Until"
+          },
+          "return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Date"
+          },
+          "min_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Nights"
+          },
+          "max_nights": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 30.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Nights"
+          },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
+            "default": false
+          },
+          "adults": {
+            "type": "integer",
+            "maximum": 9.0,
+            "minimum": 1.0,
+            "title": "Adults",
+            "default": 1
+          },
+          "budget": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "flights",
+              "trip"
+            ],
+            "title": "Mode",
+            "default": "flights"
+          },
+          "direct_only": {
+            "type": "boolean",
+            "title": "Direct Only",
+            "default": false
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Za-z]{3}$",
+            "title": "Currency",
+            "default": "EUR"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "uk",
+              "en"
+            ],
+            "title": "Lang",
+            "default": "uk"
+          },
+          "limit": {
+            "type": "integer",
+            "maximum": 60.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "default": 30
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "origins",
+          "departure_date"
+        ],
+        "title": "ExploreQuery"
+      },
+      "ExploreResult": {
+        "properties": {
+          "destinations": {
+            "items": {
+              "$ref": "#/components/schemas/ExploreDestination"
+            },
+            "type": "array",
+            "title": "Destinations"
+          },
+          "found": {
+            "type": "integer",
+            "title": "Found"
+          },
+          "providers": {
+            "items": {
+              "$ref": "#/components/schemas/ProviderStatus"
+            },
+            "type": "array",
+            "title": "Providers"
+          },
+          "stays_checked": {
+            "type": "integer",
+            "title": "Stays Checked",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "destinations",
+          "found",
+          "providers"
+        ],
+        "title": "ExploreResult"
+      },
+      "ExploreStay": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "total_price": {
+            "type": "number",
+            "title": "Total Price"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "taxes_included": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxes Included"
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "source",
+          "name",
+          "rating",
+          "total_price",
+          "currency",
+          "taxes_included"
+        ],
+        "title": "ExploreStay",
+        "description": "Житло для напрямку (режим trip): вибір скорингу житла в межах залишку бюджету."
       },
       "FavoriteBody": {
         "properties": {

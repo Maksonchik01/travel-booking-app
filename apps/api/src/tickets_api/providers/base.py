@@ -65,6 +65,20 @@ class SellerSource(Protocol):
 
 
 @runtime_checkable
+class ExploreSource(Protocol):
+    """Необов'язкова здатність кешованого джерела: найдешевші квитки туди-назад з міста в усі
+    напрямки (Explore, ADR 0045). Ціна — за одного дорослого в економі."""
+
+    name: str
+
+    async def explore(
+        self, origin: str, departure: str, return_at: str | None, currency: str, *, direct: bool
+    ) -> list[Offer]:
+        """`departure` — YYYY-MM або YYYY-MM-DD; `return_at` — YYYY-MM-DD (точні дати) чи None."""
+        ...
+
+
+@runtime_checkable
 class StayProvider(Protocol):
     """Єдиний інтерфейс джерел житла (як FlightProvider для перельотів)."""
 

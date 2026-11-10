@@ -11,6 +11,8 @@ import type {
   ChatBody,
   ChatReply,
   ExplainResult,
+  ExploreQuery,
+  ExploreResult,
   FlightQuery,
   FlightSearchResult,
   Place,
@@ -93,6 +95,19 @@ export function searchFlights(query: FlightQuery): Promise<ApiResult<FlightSearc
     {
       method: "POST",
       headers: { "content-type": "application/json" },
+      body: JSON.stringify(query),
+    },
+    SEARCH_TIMEOUT_MS,
+  );
+}
+
+/** Explore (ADR 0045): кешовані ціни «звідси будь-куди»; режим trip — ще й житло для топ-3. */
+export function searchExplore(query: ExploreQuery): Promise<ApiResult<ExploreResult>> {
+  return request<ExploreResult>(
+    "/explore",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(query),
     },
     SEARCH_TIMEOUT_MS,

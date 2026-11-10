@@ -17,7 +17,7 @@ import { fractionDigits } from "@/lib/money";
 /** Безкоштовні векторні тайли OpenFreeMap (дані OpenStreetMap), без ключа — ADR 0019. */
 export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 /** Копія воркера з node_modules (scripts/copy-maplibre-worker.mjs) — збирач його не підхоплює. */
-const WORKER_URL = "/maplibre/maplibre-gl-worker.mjs";
+export const WORKER_URL = "/maplibre/maplibre-gl-worker.mjs";
 
 export type MapStay = {
   key: string;
@@ -238,7 +238,7 @@ export function StayMap({
 }
 
 /** Вигляд маркера-«пігулки» з ціною (інлайн, через змінні теми): вибраний — синій і над іншими. */
-function markerStyle(el: HTMLElement, selected: boolean) {
+export function markerStyle(el: HTMLElement, selected: boolean) {
   Object.assign(el.style, {
     cursor: "pointer",
     borderRadius: "9999px",

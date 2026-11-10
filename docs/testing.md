@@ -45,6 +45,21 @@
 
 Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 
+## Explore (ADR 0045)
+
+| Сценарій | Тест |
+|---|---|
+| «Будь-куди»: запит без `destination`, обидва `unique`, об'єднання без дублів | API `test_explore::test_provider_asks_for_any_destination_both_unique_variants` (записані відповіді AMS) |
+| Найдешевший квиток на місто в межах бюджету (× дорослі), без міста вильоту, історія цін | API `test_explore::test_cheapest_fitting_ticket_per_city_within_budget` |
+| Країна, регіон, категорія «море» лише в сезон | API `test_explore::test_region_country_and_category_narrow_destinations` |
+| Вихідні й точні дати | API `test_explore::test_weekends_and_exact_dates` |
+| Авіаквитки + житло: лише 3 найдешевші, сума ≤ бюджету, нагорі | API `test_explore::test_trip_mode_prices_stays_only_for_cheapest_three` |
+| Збій джерела — статус, а не помилка | API `test_explore::test_source_failure_is_reported_not_raised` |
+| Довідник напрямків (міста, категорії, фото з Вікімедіа, регіони без дублів) | API `test_explore::test_destination_reference_is_consistent` |
+| URL ↔ запит, переходи в рейси й поїздку, «Будь-куди» з форми, швидкі дати, послаблення | WEB `explore-params.test` |
+| Картка (фото з атрибуцією, сума, житло), порівняння до 3 (таблиця й картки), форма | WEB `explore.test` |
+| Рейси → «Будь-куди» → порівняння → + житло → карта → поїздка | E2E «Explore: «Будь-куди» з рейсів…»; доступність і телефон — `a11y.spec`, `mobile.spec` |
+
 ## 21.2 Житло
 
 | Сценарій | Тести |

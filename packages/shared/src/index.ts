@@ -154,3 +154,12 @@ export type NotifyPrefs = Schemas["NotifyPrefs"];
 export type SessionInfo = Schemas["SessionInfo"];
 export type AlertEdit = Schemas["AlertEdit"];
 export type AlertEventOut = Schemas["AlertEventOut"];
+
+// Explore — напрямки за бюджетом (ADR 0045).
+export type ExploreQuery = Schemas["ExploreQuery"];
+export type ExploreResult = Schemas["ExploreResult"];
+export type ExploreDestination = Schemas["ExploreDestination"];
+export type ExploreStay = Schemas["ExploreStay"];
+export type ExploreCategory = NonNullable<ExploreQuery["categories"]>[number];
+export type ExploreRegion = NonNullable<ExploreQuery["region"]>;
+export type ExploreMode = NonNullable<ExploreQuery["mode"]>;

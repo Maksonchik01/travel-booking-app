@@ -71,6 +71,10 @@ test("телефон: головна, результати, фільтри у в
   await page.getByTestId("trip-card").first().waitFor();
   await noHorizontalOverflow(page, "trip");
 
+  await page.goto("/explore?from=WAW&depart=2026-12-01&until=2026-12-31&nmin=2&nmax=4");
+  await page.getByTestId("explore-card").first().waitFor();
+  await noHorizontalOverflow(page, "explore");
+
   await page.goto("/login");
   await noHorizontalOverflow(page, "login");
   await page.goto("/privacy");

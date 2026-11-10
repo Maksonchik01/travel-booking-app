@@ -1,4 +1,4 @@
-import { Heart, Luggage, PlaneTakeoff } from "lucide-react";
+import { Compass, Heart, Luggage, PlaneTakeoff } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const SECTIONS = { flights: "/", stays: "/stays", trip: "/trip" } as const;
 
-export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null }) {
+export function SiteHeader({ active }: { active: keyof typeof SECTIONS | "explore" | null }) {
   const t = useTranslations("nav");
   return (
     <header className="bg-background/75 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 border-b backdrop-blur-md">
@@ -46,6 +46,19 @@ export function SiteHeader({ active }: { active: keyof typeof SECTIONS | null })
               {t(section)}
             </SectionLink>
           ))}
+          <Link
+            href="/explore"
+            aria-current={active === "explore" ? "page" : undefined}
+            className={cn(
+              "flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 font-medium transition-colors sm:px-3",
+              active === "explore"
+                ? "bg-accent text-accent-foreground"
+                : "hover:text-foreground hover:bg-muted",
+            )}
+          >
+            <Compass className="size-3.5" aria-hidden />
+            {t("explore")}
+          </Link>
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           {/* На телефоні місця для розділів замало — «Обране» й «Мої поїздки» там у футері. */}

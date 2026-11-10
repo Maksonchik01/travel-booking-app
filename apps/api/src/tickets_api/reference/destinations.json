@@ -1,0 +1,2100 @@
+{
+ "regions": {
+  "europe": [
+   "AD",
+   "AL",
+   "AT",
+   "BA",
+   "BE",
+   "BG",
+   "BY",
+   "CH",
+   "CY",
+   "CZ",
+   "DE",
+   "DK",
+   "EE",
+   "ES",
+   "FI",
+   "FO",
+   "FR",
+   "GB",
+   "GI",
+   "GR",
+   "HR",
+   "HU",
+   "IE",
+   "IM",
+   "IS",
+   "IT",
+   "LI",
+   "LT",
+   "LU",
+   "LV",
+   "MC",
+   "MD",
+   "ME",
+   "MK",
+   "MT",
+   "NL",
+   "NO",
+   "PL",
+   "PT",
+   "RO",
+   "RS",
+   "SE",
+   "SI",
+   "SK",
+   "SM",
+   "UA",
+   "VA",
+   "XK",
+   "GE",
+   "AM",
+   "AZ",
+   "TR"
+  ],
+  "middle_east": [
+   "AE",
+   "BH",
+   "IL",
+   "IQ",
+   "IR",
+   "JO",
+   "KW",
+   "LB",
+   "OM",
+   "PS",
+   "QA",
+   "SA",
+   "SY",
+   "YE"
+  ],
+  "africa": [
+   "DZ",
+   "AO",
+   "BJ",
+   "BW",
+   "BF",
+   "BI",
+   "CM",
+   "CV",
+   "CF",
+   "TD",
+   "KM",
+   "CG",
+   "CD",
+   "CI",
+   "DJ",
+   "EG",
+   "GQ",
+   "ER",
+   "ET",
+   "GA",
+   "GM",
+   "GH",
+   "GN",
+   "GW",
+   "KE",
+   "LS",
+   "LR",
+   "LY",
+   "MG",
+   "MW",
+   "ML",
+   "MR",
+   "MU",
+   "YT",
+   "MA",
+   "MZ",
+   "NA",
+   "NE",
+   "NG",
+   "RE",
+   "RW",
+   "SH",
+   "ST",
+   "SN",
+   "SC",
+   "SL",
+   "SO",
+   "ZA",
+   "SS",
+   "SD",
+   "SZ",
+   "TZ",
+   "TG",
+   "TN",
+   "UG",
+   "EH",
+   "ZM",
+   "ZW"
+  ],
+  "asia": [
+   "AF",
+   "BD",
+   "BT",
+   "BN",
+   "KH",
+   "CN",
+   "HK",
+   "IN",
+   "ID",
+   "JP",
+   "KZ",
+   "KG",
+   "LA",
+   "MO",
+   "MY",
+   "MV",
+   "MN",
+   "MM",
+   "NP",
+   "KP",
+   "PK",
+   "PH",
+   "SG",
+   "KR",
+   "LK",
+   "TW",
+   "TJ",
+   "TH",
+   "TL",
+   "TM",
+   "UZ",
+   "VN"
+  ],
+  "north_america": [
+   "US",
+   "CA",
+   "MX",
+   "BM",
+   "GL",
+   "PM",
+   "AG",
+   "BS",
+   "BB",
+   "BZ",
+   "CR",
+   "CU",
+   "DM",
+   "DO",
+   "SV",
+   "GD",
+   "GT",
+   "HT",
+   "HN",
+   "JM",
+   "KN",
+   "LC",
+   "VC",
+   "NI",
+   "PA",
+   "TT",
+   "AW",
+   "CW",
+   "SX",
+   "BQ",
+   "KY",
+   "TC",
+   "VG",
+   "VI",
+   "PR",
+   "AI",
+   "MS",
+   "GP",
+   "MQ",
+   "BL",
+   "MF"
+  ],
+  "south_america": [
+   "AR",
+   "BO",
+   "BR",
+   "CL",
+   "CO",
+   "EC",
+   "FK",
+   "GF",
+   "GY",
+   "PY",
+   "PE",
+   "SR",
+   "UY",
+   "VE"
+  ],
+  "oceania": [
+   "AU",
+   "NZ",
+   "FJ",
+   "PG",
+   "SB",
+   "VU",
+   "NC",
+   "PF",
+   "WS",
+   "TO",
+   "KI",
+   "TV",
+   "NR",
+   "PW",
+   "FM",
+   "MH",
+   "CK",
+   "NU",
+   "GU",
+   "MP",
+   "AS"
+  ]
+ },
+ "cities": {
+  "PAR": {
+   "categories": [
+    "city",
+    "romance",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg/500px-La_Tour_Eiffel_vue_de_la_Tour_Saint-Jacques%2C_Paris_ao%C3%BBt_2014_%282%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Paris"
+   }
+  },
+  "LON": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/London_Skyline_%28125508655%29.jpeg/500px-London_Skyline_%28125508655%29.jpeg",
+    "page": "https://en.wikipedia.org/wiki/London"
+   }
+  },
+  "ROM": {
+   "categories": [
+    "city",
+    "romance",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Trevi_Fountain%2C_Rome%2C_Italy_2_-_May_2007.jpg/500px-Trevi_Fountain%2C_Rome%2C_Italy_2_-_May_2007.jpg",
+    "page": "https://en.wikipedia.org/wiki/Rome"
+   }
+  },
+  "MIL": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Milan_Cathedral_from_Piazza_del_Duomo.jpg/500px-Milan_Cathedral_from_Piazza_del_Duomo.jpg",
+    "page": "https://en.wikipedia.org/wiki/Milan"
+   }
+  },
+  "VCE": {
+   "categories": [
+    "romance",
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Venezia_aerial_view.jpg/500px-Venezia_aerial_view.jpg",
+    "page": "https://en.wikipedia.org/wiki/Venice"
+   }
+  },
+  "FLR": {
+   "categories": [
+    "culture",
+    "romance",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Firenze_-_Piazzale_Michelangelo%2C_Firenze%2C_Italy_-_April_6%2C_2015_02.jpg/500px-Firenze_-_Piazzale_Michelangelo%2C_Firenze%2C_Italy_-_April_6%2C_2015_02.jpg",
+    "page": "https://en.wikipedia.org/wiki/Florence"
+   }
+  },
+  "PSA": {
+   "categories": [
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Italy_-_Pisa.jpg/500px-Italy_-_Pisa.jpg",
+    "page": "https://en.wikipedia.org/wiki/Pisa"
+   }
+  },
+  "BLQ": {
+   "categories": [
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Torri_di_Bologna%2C_Bologna.jpg/500px-Torri_di_Bologna%2C_Bologna.jpg",
+    "page": "https://en.wikipedia.org/wiki/Bologna"
+   }
+  },
+  "VRN": {
+   "categories": [
+    "romance",
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Verona_cityscape_sunny.jpg/500px-Verona_cityscape_sunny.jpg",
+    "page": "https://en.wikipedia.org/wiki/Verona"
+   }
+  },
+  "TRN": {
+   "categories": [
+    "city",
+    "culture",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Torino_Piazza_Castello_11.jpg/500px-Torino_Piazza_Castello_11.jpg",
+    "page": "https://en.wikipedia.org/wiki/Turin"
+   }
+  },
+  "NAP": {
+   "categories": [
+    "city",
+    "culture",
+    "sea"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Napoli_-_Maschio_Angioino_-_202209302342_3.jpg/500px-Napoli_-_Maschio_Angioino_-_202209302342_3.jpg",
+    "page": "https://en.wikipedia.org/wiki/Naples"
+   }
+  },
+  "BRI": {
+   "categories": [
+    "sea",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Bari_-_Lungomare_Imperatore_Augusto_%26_Mare.jpg/500px-Bari_-_Lungomare_Imperatore_Augusto_%26_Mare.jpg",
+    "page": "https://en.wikipedia.org/wiki/Bari"
+   }
+  },
+  "CTA": {
+   "categories": [
+    "sea",
+    "mountains",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Catania_vista_dall%27alto_e_il_vulcano_Etna_a_sovrastarla.jpg/500px-Catania_vista_dall%27alto_e_il_vulcano_Etna_a_sovrastarla.jpg",
+    "page": "https://en.wikipedia.org/wiki/Catania"
+   }
+  },
+  "PMO": {
+   "categories": [
+    "sea",
+    "culture",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Sicilia_Palermo5_tango7174.jpg/500px-Sicilia_Palermo5_tango7174.jpg",
+    "page": "https://en.wikipedia.org/wiki/Palermo"
+   }
+  },
+  "CAG": {
+   "categories": [
+    "sea",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Cagliari_collage.png/500px-Cagliari_collage.png",
+    "page": "https://en.wikipedia.org/wiki/Cagliari"
+   }
+  },
+  "OLB": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Aerial_view_of_Olbia.jpg/500px-Aerial_view_of_Olbia.jpg",
+    "page": "https://en.wikipedia.org/wiki/Olbia"
+   }
+  },
+  "RMI": {
+   "categories": [
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Rimini_Montage.jpg/500px-Rimini_Montage.jpg",
+    "page": "https://en.wikipedia.org/wiki/Rimini"
+   }
+  },
+  "BCN": {
+   "categories": [
+    "city",
+    "sea",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Evening_light_over_Barcelona.jpg/500px-Evening_light_over_Barcelona.jpg",
+    "page": "https://en.wikipedia.org/wiki/Barcelona"
+   }
+  },
+  "MAD": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Madrid_-_Sky_Bar_360%C2%BA_%28Hotel_Riu_Plaza_Espa%C3%B1a%29%2C_vistas_19.jpg/500px-Madrid_-_Sky_Bar_360%C2%BA_%28Hotel_Riu_Plaza_Espa%C3%B1a%29%2C_vistas_19.jpg",
+    "page": "https://en.wikipedia.org/wiki/Madrid"
+   }
+  },
+  "SVQ": {
+   "categories": [
+    "culture",
+    "romance",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Sevilla_Cathedral_-_Southeast.jpg/500px-Sevilla_Cathedral_-_Southeast.jpg",
+    "page": "https://en.wikipedia.org/wiki/Seville"
+   }
+  },
+  "GRX": {
+   "categories": [
+    "culture",
+    "romance",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Granada_%2825987961022%29.jpg/500px-Granada_%2825987961022%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Granada"
+   }
+  },
+  "VLC": {
+   "categories": [
+    "city",
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Malvarrosa_Beach%2C_Valencia%2C_Spain_%2829812271043%29.jpg/500px-Malvarrosa_Beach%2C_Valencia%2C_Spain_%2829812271043%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Valencia"
+   }
+  },
+  "AGP": {
+   "categories": [
+    "sea",
+    "city",
+    "culture"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Da_Gibralfaro_%28cropped%292.jpg/500px-Da_Gibralfaro_%28cropped%292.jpg",
+    "page": "https://en.wikipedia.org/wiki/M%C3%A1laga"
+   }
+  },
+  "ALC": {
+   "categories": [
+    "sea",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Alicante%2C_Spain.jpg/500px-Alicante%2C_Spain.jpg",
+    "page": "https://en.wikipedia.org/wiki/Alicante"
+   }
+  },
+  "BIO": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Museo_Guggenheim%2C_Bilbao_%2831273245344%29.jpg/500px-Museo_Guggenheim%2C_Bilbao_%2831273245344%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Guggenheim_Museum_Bilbao"
+   }
+  },
+  "PMI": {
+   "categories": [
+    "sea",
+    "nightlife",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Kathedrale_von_Palma.jpg/500px-Kathedrale_von_Palma.jpg",
+    "page": "https://en.wikipedia.org/wiki/Palma_de_Mallorca"
+   }
+  },
+  "IBZ": {
+   "categories": [
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/ForbysIbizaTown_03.jpg/500px-ForbysIbizaTown_03.jpg",
+    "page": "https://en.wikipedia.org/wiki/Ibiza_(city)"
+   }
+  },
+  "TCI": {
+   "categories": [
+    "sea",
+    "mountains"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Tenerife%2C_Canary_Islands_ESA23970088.jpeg/500px-Tenerife%2C_Canary_Islands_ESA23970088.jpeg",
+    "page": "https://en.wikipedia.org/wiki/Tenerife"
+   }
+  },
+  "LPA": {
+   "categories": [
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Gran_Canaria_Sentinel-2.jpg/500px-Gran_Canaria_Sentinel-2.jpg",
+    "page": "https://en.wikipedia.org/wiki/Gran_Canaria"
+   }
+  },
+  "ACE": {
+   "categories": [
+    "sea",
+    "mountains"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Lanzarote%27s_Lunar-Like_Landscape.jpg/500px-Lanzarote%27s_Lunar-Like_Landscape.jpg",
+    "page": "https://en.wikipedia.org/wiki/Lanzarote"
+   }
+  },
+  "FUE": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Fuerteventura_from_space.jpg/500px-Fuerteventura_from_space.jpg",
+    "page": "https://en.wikipedia.org/wiki/Fuerteventura"
+   }
+  },
+  "FNC": {
+   "categories": [
+    "mountains",
+    "sea"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Funchal%2C_Jardins_da_Quinta_Vigia_%28lookout%29.jpg/500px-Funchal%2C_Jardins_da_Quinta_Vigia_%28lookout%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Funchal"
+   }
+  },
+  "PDL": {
+   "categories": [
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/S%C3%A3o_Miguel%2C_Azores_ESA399763.jpg/500px-S%C3%A3o_Miguel%2C_Azores_ESA399763.jpg",
+    "page": "https://en.wikipedia.org/wiki/S%C3%A3o_Miguel_Island"
+   }
+  },
+  "LIS": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife",
+    "romance",
+    "sea"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Lisboa_-_Portugal_%2852597836992%29.jpg/500px-Lisboa_-_Portugal_%2852597836992%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Lisbon"
+   }
+  },
+  "OPO": {
+   "categories": [
+    "city",
+    "romance",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Puente_Don_Luis_I%2C_Oporto%2C_Portugal%2C_2012-05-09%2C_DD_13.JPG/500px-Puente_Don_Luis_I%2C_Oporto%2C_Portugal%2C_2012-05-09%2C_DD_13.JPG",
+    "page": "https://en.wikipedia.org/wiki/Porto"
+   }
+  },
+  "FAO": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/2021_12_12_arne_mueseler_08_17_0576.jpg/500px-2021_12_12_arne_mueseler_08_17_0576.jpg",
+    "page": "https://en.wikipedia.org/wiki/Faro,_Portugal"
+   }
+  },
+  "NCE": {
+   "categories": [
+    "sea",
+    "romance",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Promenade_des_Anglais_Nice_IMG_1255.jpg/500px-Promenade_des_Anglais_Nice_IMG_1255.jpg",
+    "page": "https://en.wikipedia.org/wiki/Nice"
+   }
+  },
+  "MRS": {
+   "categories": [
+    "sea",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Notre-Dame_de_la_Garde_aerial_view_2020.jpeg/500px-Notre-Dame_de_la_Garde_aerial_view_2020.jpeg",
+    "page": "https://en.wikipedia.org/wiki/Marseille"
+   }
+  },
+  "LYS": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Lyon-part-dieu-2023.jpg/500px-Lyon-part-dieu-2023.jpg",
+    "page": "https://en.wikipedia.org/wiki/Lyon"
+   }
+  },
+  "BOD": {
+   "categories": [
+    "city",
+    "romance",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Bordeaux_place_de_la_bourse_with_tram.JPG/500px-Bordeaux_place_de_la_bourse_with_tram.JPG",
+    "page": "https://en.wikipedia.org/wiki/Bordeaux"
+   }
+  },
+  "NTE": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Panorama_depuis_Butte_Sainte-Anne.jpg/500px-Panorama_depuis_Butte_Sainte-Anne.jpg",
+    "page": "https://en.wikipedia.org/wiki/Nantes"
+   }
+  },
+  "TLS": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Toulouse_-_vue_du_Vieux_Toulouse_depuis_St_Sernin_06.jpg/500px-Toulouse_-_vue_du_Vieux_Toulouse_depuis_St_Sernin_06.jpg",
+    "page": "https://en.wikipedia.org/wiki/Toulouse"
+   }
+  },
+  "GVA": {
+   "categories": [
+    "city",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Geneve_2005_001_Ork.ch.jpg/500px-Geneve_2005_001_Ork.ch.jpg",
+    "page": "https://en.wikipedia.org/wiki/Geneva"
+   }
+  },
+  "ZRH": {
+   "categories": [
+    "city",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Altstadt_Z%C3%BCrich_2015.jpg/500px-Altstadt_Z%C3%BCrich_2015.jpg",
+    "page": "https://en.wikipedia.org/wiki/Zurich"
+   }
+  },
+  "BSL": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Basel_-_M%C3%BCnsterpfalz1.jpg/500px-Basel_-_M%C3%BCnsterpfalz1.jpg",
+    "page": "https://en.wikipedia.org/wiki/Basel"
+   }
+  },
+  "INN": {
+   "categories": [
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/B%C3%BCrgerstra%C3%9Fe_26%2B24_%28BT0A2830%29.jpg/500px-B%C3%BCrgerstra%C3%9Fe_26%2B24_%28BT0A2830%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Innsbruck"
+   }
+  },
+  "SZG": {
+   "categories": [
+    "culture",
+    "mountains",
+    "romance"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Salzburg_%2848489551981%29.jpg/500px-Salzburg_%2848489551981%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Salzburg"
+   }
+  },
+  "VIE": {
+   "categories": [
+    "city",
+    "culture",
+    "romance"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Schoenbrunn_philharmoniker_2012.jpg/500px-Schoenbrunn_philharmoniker_2012.jpg",
+    "page": "https://en.wikipedia.org/wiki/Vienna"
+   }
+  },
+  "PRG": {
+   "categories": [
+    "city",
+    "romance",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Prague_%286365119737%29.jpg/500px-Prague_%286365119737%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Prague"
+   }
+  },
+  "BUD": {
+   "categories": [
+    "city",
+    "nightlife",
+    "culture",
+    "romance"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/View_from_Gell%C3%A9rt_Hill_to_the_Danube%2C_Hungary_-_Budapest_%2828493220635%29.jpg/500px-View_from_Gell%C3%A9rt_Hill_to_the_Danube%2C_Hungary_-_Budapest_%2828493220635%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Budapest"
+   }
+  },
+  "BTS": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Slovakia_bratislava.jpg/500px-Slovakia_bratislava.jpg",
+    "page": "https://en.wikipedia.org/wiki/Bratislava"
+   }
+  },
+  "BER": {
+   "categories": [
+    "city",
+    "nightlife",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Museumsinsel_Berlin_Juli_2021_1_%28cropped%29_b.jpg/500px-Museumsinsel_Berlin_Juli_2021_1_%28cropped%29_b.jpg",
+    "page": "https://en.wikipedia.org/wiki/Berlin"
+   }
+  },
+  "MUC": {
+   "categories": [
+    "city",
+    "culture",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Frauenkirche_and_Neues_Rathaus_Munich_March_2013.JPG/500px-Frauenkirche_and_Neues_Rathaus_Munich_March_2013.JPG",
+    "page": "https://en.wikipedia.org/wiki/Munich"
+   }
+  },
+  "HAM": {
+   "categories": [
+    "city",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Hamburg%2C_Landungsbr%C3%BCcken_--_2016_--_3131-7.jpg/500px-Hamburg%2C_Landungsbr%C3%BCcken_--_2016_--_3131-7.jpg",
+    "page": "https://en.wikipedia.org/wiki/Hamburg"
+   }
+  },
+  "FRA": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Frankfurt_am_Main%2C_Central_business_district_%282024%29.jpg/500px-Frankfurt_am_Main%2C_Central_business_district_%282024%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Frankfurt"
+   }
+  },
+  "CGN": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Kranh%C3%A4user_Cologne%2C_April_2018_-01.jpg/500px-Kranh%C3%A4user_Cologne%2C_April_2018_-01.jpg",
+    "page": "https://en.wikipedia.org/wiki/Cologne"
+   }
+  },
+  "AMS": {
+   "categories": [
+    "city",
+    "nightlife",
+    "romance",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Imagen_de_los_canales_conc%C3%A9ntricos_en_%C3%81msterdam.png/500px-Imagen_de_los_canales_conc%C3%A9ntricos_en_%C3%81msterdam.png",
+    "page": "https://en.wikipedia.org/wiki/Amsterdam"
+   }
+  },
+  "BRU": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Grand_Place_Bruselas_2.jpg/500px-Grand_Place_Bruselas_2.jpg",
+    "page": "https://en.wikipedia.org/wiki/Brussels"
+   }
+  },
+  "CPH": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/2018_-_Christiansborg_from_the_Marble_Bridge.jpg/500px-2018_-_Christiansborg_from_the_Marble_Bridge.jpg",
+    "page": "https://en.wikipedia.org/wiki/Copenhagen"
+   }
+  },
+  "STO": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Munkbroleden_with_Kornhamstorg_at_Gamla_Stan%2C_Stockholm%2C_Sweden_01.jpg/500px-Munkbroleden_with_Kornhamstorg_at_Gamla_Stan%2C_Stockholm%2C_Sweden_01.jpg",
+    "page": "https://en.wikipedia.org/wiki/Stockholm"
+   }
+  },
+  "GOT": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/G%C3%B6teborg_2503_stitch_%2828573994096%29.jpg/500px-G%C3%B6teborg_2503_stitch_%2828573994096%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Gothenburg"
+   }
+  },
+  "OSL": {
+   "categories": [
+    "city",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Nationaltheatret_evening.jpg/500px-Nationaltheatret_evening.jpg",
+    "page": "https://en.wikipedia.org/wiki/Oslo"
+   }
+  },
+  "BGO": {
+   "categories": [
+    "mountains",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Bergen_panorama_at_night_-_panoramio_%281%29.jpg/500px-Bergen_panorama_at_night_-_panoramio_%281%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Bergen"
+   }
+  },
+  "TOS": {
+   "categories": [
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Troms%C3%B8_sentrum_%285835702754%29.jpg/500px-Troms%C3%B8_sentrum_%285835702754%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Troms%C3%B8"
+   }
+  },
+  "HEL": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Suomenlinna_%28cropped%29.jpg/500px-Suomenlinna_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Helsinki"
+   }
+  },
+  "RVN": {
+   "categories": [
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Rovaniemi_Montage.jpg/500px-Rovaniemi_Montage.jpg",
+    "page": "https://en.wikipedia.org/wiki/Rovaniemi"
+   }
+  },
+  "REK": {
+   "categories": [
+    "city",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Reykjav%C3%ADk%2C_view_from_Hallgr%C3%ADmskirkja_%282%29.jpg/500px-Reykjav%C3%ADk%2C_view_from_Hallgr%C3%ADmskirkja_%282%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Reykjav%C3%ADk"
+   }
+  },
+  "DUB": {
+   "categories": [
+    "city",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Dublin_-_aerial_-_2025-07-07_01.jpg/500px-Dublin_-_aerial_-_2025-07-07_01.jpg",
+    "page": "https://en.wikipedia.org/wiki/Dublin"
+   }
+  },
+  "EDI": {
+   "categories": [
+    "city",
+    "culture",
+    "romance"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Skyline_of_Edinburgh.jpg/500px-Skyline_of_Edinburgh.jpg",
+    "page": "https://en.wikipedia.org/wiki/Edinburgh"
+   }
+  },
+  "MAN": {
+   "categories": [
+    "city",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Tower_Blocks_over_Knott_Mill%2C_geograph_6866152_by_David_Dixon.jpg/500px-Tower_Blocks_over_Knott_Mill%2C_geograph_6866152_by_David_Dixon.jpg",
+    "page": "https://en.wikipedia.org/wiki/Manchester"
+   }
+  },
+  "WAW": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Aleja_Niepdleglosci_Warsaw_2022_aerial_%28cropped%29.jpg/500px-Aleja_Niepdleglosci_Warsaw_2022_aerial_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Warsaw"
+   }
+  },
+  "KRK": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Krakow_Rynek_Glowny_panorama_2.jpg/500px-Krakow_Rynek_Glowny_panorama_2.jpg",
+    "page": "https://en.wikipedia.org/wiki/Krak%C3%B3w"
+   }
+  },
+  "GDN": {
+   "categories": [
+    "city",
+    "sea"
+   ],
+   "sea_months": [
+    7,
+    8
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Calle_Dlugie_Pobrzeze%2C_Gdansk%2C_Polonia%2C_2013-05-20%2C_DD_06.jpg/500px-Calle_Dlugie_Pobrzeze%2C_Gdansk%2C_Polonia%2C_2013-05-20%2C_DD_06.jpg",
+    "page": "https://en.wikipedia.org/wiki/Gda%C5%84sk"
+   }
+  },
+  "WRO": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Wroclaw-_Most_Grunwaldzki.jpg/500px-Wroclaw-_Most_Grunwaldzki.jpg",
+    "page": "https://en.wikipedia.org/wiki/Wroc%C5%82aw"
+   }
+  },
+  "RIX": {
+   "categories": [
+    "city",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Riga_%2833844464828%29.jpg/500px-Riga_%2833844464828%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Riga"
+   }
+  },
+  "TLL": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Raekoja_plats_at_night.jpg/500px-Raekoja_plats_at_night.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tallinn"
+   }
+  },
+  "VNO": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Vilnius_old_town_by_Augustas_Didzgalvis.jpg/500px-Vilnius_old_town_by_Augustas_Didzgalvis.jpg",
+    "page": "https://en.wikipedia.org/wiki/Vilnius"
+   }
+  },
+  "LJU": {
+   "categories": [
+    "city",
+    "mountains",
+    "romance"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Ljubljana_Old_Town%2C_Slovenia_%28Old_Camera%29_%2833286165680%29.jpg/500px-Ljubljana_Old_Town%2C_Slovenia_%28Old_Camera%29_%2833286165680%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Ljubljana"
+   }
+  },
+  "ZAG": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Zagreb_%2829255640143%29.jpg/500px-Zagreb_%2829255640143%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Zagreb"
+   }
+  },
+  "SPU": {
+   "categories": [
+    "sea",
+    "nightlife",
+    "culture"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Split_080620-133710-IMG_0968x.jpg/500px-Split_080620-133710-IMG_0968x.jpg",
+    "page": "https://en.wikipedia.org/wiki/Split,_Croatia"
+   }
+  },
+  "DBV": {
+   "categories": [
+    "sea",
+    "romance",
+    "culture"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg/500px-The_walls_of_the_fortress_and_View_of_the_old_city._panorama.jpg",
+    "page": "https://en.wikipedia.org/wiki/Dubrovnik"
+   }
+  },
+  "ZAD": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Roman_Forum_in_Zadar%2C_Croatia_%2848607823862%29.jpg/500px-Roman_Forum_in_Zadar%2C_Croatia_%2848607823862%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Zadar"
+   }
+  },
+  "PUY": {
+   "categories": [
+    "sea",
+    "culture"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Pula_Aerial_View.jpg/500px-Pula_Aerial_View.jpg",
+    "page": "https://en.wikipedia.org/wiki/Pula"
+   }
+  },
+  "TIV": {
+   "categories": [
+    "sea",
+    "mountains"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Tivat_Sv._Marko_Gospa_od_Milosti.jpg/500px-Tivat_Sv._Marko_Gospa_od_Milosti.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tivat"
+   }
+  },
+  "BEG": {
+   "categories": [
+    "city",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Belgrade_from_the_Belgrade_Tower_%28October_2026%2C_1%29.jpg/500px-Belgrade_from_the_Belgrade_Tower_%28October_2026%2C_1%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Belgrade"
+   }
+  },
+  "SOF": {
+   "categories": [
+    "city",
+    "mountains"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Panoramic_view_over_central_Sofia_and_the_Vitosha_Mountain_2017-10-08.jpg/500px-Panoramic_view_over_central_Sofia_and_the_Vitosha_Mountain_2017-10-08.jpg",
+    "page": "https://en.wikipedia.org/wiki/Sofia"
+   }
+  },
+  "BUH": {
+   "categories": [
+    "city",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bucharest_University_Square_%28cropped%29.jpg/500px-Bucharest_University_Square_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Bucharest"
+   }
+  },
+  "TIA": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Skanderbeg_square_tirana_2016.jpg/500px-Skanderbeg_square_tirana_2016.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tirana"
+   }
+  },
+  "ATH": {
+   "categories": [
+    "city",
+    "culture",
+    "sea"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Athens_Acropolis_at_Daybreak.jpg/500px-Athens_Acropolis_at_Daybreak.jpg",
+    "page": "https://en.wikipedia.org/wiki/Athens"
+   }
+  },
+  "SKG": {
+   "categories": [
+    "city",
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Tessaloniki_BW_2017-10-05_18-22-47.jpg/500px-Tessaloniki_BW_2017-10-05_18-22-47.jpg",
+    "page": "https://en.wikipedia.org/wiki/Thessaloniki"
+   }
+  },
+  "HER": {
+   "categories": [
+    "sea",
+    "culture"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Heraklion_Montage_L.png/500px-Heraklion_Montage_L.png",
+    "page": "https://en.wikipedia.org/wiki/Heraklion"
+   }
+  },
+  "CHQ": {
+   "categories": [
+    "sea",
+    "romance"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Aerial_view_of_the_Old_Venetian_Harbour_in_Chania%2C_Greece.jpg/500px-Aerial_view_of_the_Old_Venetian_Harbour_in_Chania%2C_Greece.jpg",
+    "page": "https://en.wikipedia.org/wiki/Chania"
+   }
+  },
+  "RHO": {
+   "categories": [
+    "sea",
+    "culture"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Rhodes_sentinel2_%28cropped%29.jpg/500px-Rhodes_sentinel2_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Rhodes"
+   }
+  },
+  "JTR": {
+   "categories": [
+    "sea",
+    "romance"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Oia_sunset_-_panoramio_%282%29.jpg/500px-Oia_sunset_-_panoramio_%282%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Oia,_Greece"
+   }
+  },
+  "JMK": {
+   "categories": [
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Against_Greek_skies%2C_one_of_the_Mykonos_Island_Windmills%2C_Chora._Cyclades%2C_Agean_Sea%2C_Greece.jpg/500px-Against_Greek_skies%2C_one_of_the_Mykonos_Island_Windmills%2C_Chora._Cyclades%2C_Agean_Sea%2C_Greece.jpg",
+    "page": "https://en.wikipedia.org/wiki/Mykonos_windmills"
+   }
+  },
+  "CFU": {
+   "categories": [
+    "sea",
+    "romance"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Pontikonisi.jpg/500px-Pontikonisi.jpg",
+    "page": "https://en.wikipedia.org/wiki/Corfu"
+   }
+  },
+  "ZTH": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Zakintos_-_panorama.jpg/500px-Zakintos_-_panorama.jpg",
+    "page": "https://en.wikipedia.org/wiki/Zakynthos"
+   }
+  },
+  "KGS": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Greece_kos_city.jpg/500px-Greece_kos_city.jpg",
+    "page": "https://en.wikipedia.org/wiki/Kos"
+   }
+  },
+  "LCA": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Larnaca_01-2017_img27_Finikoudes.jpg/500px-Larnaca_01-2017_img27_Finikoudes.jpg",
+    "page": "https://en.wikipedia.org/wiki/Larnaca"
+   }
+  },
+  "PFO": {
+   "categories": [
+    "sea",
+    "culture"
+   ],
+   "sea_months": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Paphos_Marine%2C_Cyprus_-_panoramio.jpg/500px-Paphos_Marine%2C_Cyprus_-_panoramio.jpg",
+    "page": "https://en.wikipedia.org/wiki/Paphos"
+   }
+  },
+  "MLA": {
+   "categories": [
+    "sea",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/St_Sebastian_Curtain_%28cropped%29.jpg/500px-St_Sebastian_Curtain_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Valletta"
+   }
+  },
+  "IST": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Historical_peninsula_and_modern_skyline_of_Istanbul.jpg/500px-Historical_peninsula_and_modern_skyline_of_Istanbul.jpg",
+    "page": "https://en.wikipedia.org/wiki/Istanbul"
+   }
+  },
+  "AYT": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Falezlerden_Antalya_Konyaalt%C4%B1_Plaj%C4%B1na_do%C4%9Fru_bir_g%C3%B6r%C3%BCn%C3%BCm.jpg/500px-Falezlerden_Antalya_Konyaalt%C4%B1_Plaj%C4%B1na_do%C4%9Fru_bir_g%C3%B6r%C3%BCn%C3%BCm.jpg",
+    "page": "https://en.wikipedia.org/wiki/Antalya"
+   }
+  },
+  "DLM": {
+   "categories": [
+    "sea",
+    "mountains"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Iztuzu_strand.JPG/500px-Iztuzu_strand.JPG",
+    "page": "https://en.wikipedia.org/wiki/Dalaman"
+   }
+  },
+  "BJV": {
+   "categories": [
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Sunset_over_Bodrum_I.jpg/500px-Sunset_over_Bodrum_I.jpg",
+    "page": "https://en.wikipedia.org/wiki/Bodrum"
+   }
+  },
+  "TBS": {
+   "categories": [
+    "city",
+    "culture",
+    "mountains",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/View_of_Tbilisi_from_Tabori_Church_2023-10-08-2.jpg/500px-View_of_Tbilisi_from_Tabori_Church_2023-10-08-2.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tbilisi"
+   }
+  },
+  "BUS": {
+   "categories": [
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    6,
+    7,
+    8,
+    9
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/USS_Oak_Hill%2C_26th_MEU_Marines_Visit_Batumi%2C_Georgia_%2840817303032%29.jpg/500px-USS_Oak_Hill%2C_26th_MEU_Marines_Visit_Batumi%2C_Georgia_%2840817303032%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Batumi"
+   }
+  },
+  "EVN": {
+   "categories": [
+    "city",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/Mount_Ararat_and_the_Yerevan_skyline_%28June_2018%29.jpg/500px-Mount_Ararat_and_the_Yerevan_skyline_%28June_2018%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Yerevan"
+   }
+  },
+  "TLV": {
+   "categories": [
+    "sea",
+    "nightlife",
+    "city"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Sarona_CBD_01_%28cropped%29.jpg/500px-Sarona_CBD_01_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tel_Aviv"
+   }
+  },
+  "DXB": {
+   "categories": [
+    "city",
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    10,
+    11,
+    12,
+    1,
+    2,
+    3,
+    4
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/en/thumb/c/c7/Burj_Khalifa_2021.jpg/500px-Burj_Khalifa_2021.jpg",
+    "page": "https://en.wikipedia.org/wiki/Dubai"
+   }
+  },
+  "AUH": {
+   "categories": [
+    "city",
+    "sea"
+   ],
+   "sea_months": [
+    10,
+    11,
+    12,
+    1,
+    2,
+    3,
+    4
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Abu_dhabi_skylines_2014.jpg/500px-Abu_dhabi_skylines_2014.jpg",
+    "page": "https://en.wikipedia.org/wiki/Abu_Dhabi"
+   }
+  },
+  "DOH": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/DOha_corniche_view1.jpg/500px-DOha_corniche_view1.jpg",
+    "page": "https://en.wikipedia.org/wiki/Doha_Corniche"
+   }
+  },
+  "RAK": {
+   "categories": [
+    "culture",
+    "romance"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Marrakech%2C_Morocco_%285421595453%29_%285%29.jpg/500px-Marrakech%2C_Morocco_%285421595453%29_%285%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Marrakesh"
+   }
+  },
+  "AGA": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/South_view_sea_side_from_Kasbah_of_Agadir_Oufella_%28cropped%29.jpg/500px-South_view_sea_side_from_Kasbah_of_Agadir_Oufella_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Agadir"
+   }
+  },
+  "TNG": {
+   "categories": [
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Tanger_cor.jpg/500px-Tanger_cor.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tangier"
+   }
+  },
+  "RBA": {
+   "categories": [
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/%22Eine_beeindruckende_Festung%22._09.jpg/500px-%22Eine_beeindruckende_Festung%22._09.jpg",
+    "page": "https://en.wikipedia.org/wiki/Rabat"
+   }
+  },
+  "TUN": {
+   "categories": [
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/TunisAveHabibBourguiba.jpg/500px-TunisAveHabibBourguiba.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tunis"
+   }
+  },
+  "DJE": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Djerba_Island.jpeg/500px-Djerba_Island.jpeg",
+    "page": "https://en.wikipedia.org/wiki/Djerba"
+   }
+  },
+  "CAI": {
+   "categories": [
+    "culture",
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Cairo_From_Tower_%28cropped%29.jpg/500px-Cairo_From_Tower_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Cairo"
+   }
+  },
+  "HRG": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Hurghada_Hotels_R03.jpg/500px-Hurghada_Hotels_R03.jpg",
+    "page": "https://en.wikipedia.org/wiki/Hurghada"
+   }
+  },
+  "SSH": {
+   "categories": [
+    "sea"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Sharm_El_Sheikh_-_panoramio_%2815%29.jpg/500px-Sharm_El_Sheikh_-_panoramio_%2815%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Sharm_El_Sheikh"
+   }
+  },
+  "NYC": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg/500px-View_of_Empire_State_Building_from_Rockefeller_Center_New_York_City_dllu_%28cropped%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/New_York_City"
+   }
+  },
+  "BKK": {
+   "categories": [
+    "city",
+    "nightlife",
+    "culture"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/4Y1A1159_Bangkok_%2833536795515%29.jpg/500px-4Y1A1159_Bangkok_%2833536795515%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Bangkok"
+   }
+  },
+  "HKT": {
+   "categories": [
+    "sea",
+    "nightlife"
+   ],
+   "sea_months": [
+    11,
+    12,
+    1,
+    2,
+    3,
+    4
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Phuket_Aerial.jpg/500px-Phuket_Aerial.jpg",
+    "page": "https://en.wikipedia.org/wiki/Phuket_province"
+   }
+  },
+  "DPS": {
+   "categories": [
+    "sea",
+    "romance",
+    "mountains"
+   ],
+   "sea_months": [
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/TanahLot_2014.JPG/500px-TanahLot_2014.JPG",
+    "page": "https://en.wikipedia.org/wiki/Tanah_Lot"
+   }
+  },
+  "SIN": {
+   "categories": [
+    "city"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Marina_Bay_Sands_%28I%29.jpg/500px-Marina_Bay_Sands_%28I%29.jpg",
+    "page": "https://en.wikipedia.org/wiki/Marina_Bay_Sands"
+   }
+  },
+  "TYO": {
+   "categories": [
+    "city",
+    "culture",
+    "nightlife"
+   ],
+   "sea_months": [],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Skyscrapers_of_Shinjuku_2009_January.jpg/500px-Skyscrapers_of_Shinjuku_2009_January.jpg",
+    "page": "https://en.wikipedia.org/wiki/Tokyo"
+   }
+  },
+  "MLE": {
+   "categories": [
+    "sea",
+    "romance"
+   ],
+   "sea_months": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+   ],
+   "photo": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Mal%C3%A9.jpg/500px-Mal%C3%A9.jpg",
+    "page": "https://en.wikipedia.org/wiki/Mal%C3%A9"
+   }
+  }
+ }
+}

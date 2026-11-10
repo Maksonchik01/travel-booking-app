@@ -75,6 +75,13 @@ SkyPack — веб-застосунок для пошуку подорожей �
   витрачає квоту (250/міс): не роби зайвих живих запитів, тести — лише на фікстурах
   `apps/api/tests/fixtures/serpapi/`. Довідник аеропортів (пояси, місто → аеропорти):
   `reference/airports.json`, оновлення — `scripts/update_reference_data.py`.
+- **Explore** ([ADR 0045](docs/adr/0045-explore.md)): `/explore`, `POST /explore` — напрямки за бюджетом лише з
+  кешованих джерел календаря (`ExploreSource.explore`: Travelpayouts `prices_for_dates` без `destination`, `unique`
+  true+false; mock), запитів — аеропорти (≤ 3) × місяці; ціна джерела × дорослі (дітей немає). Режим `trip` — житло
+  лише для `STAY_LOOKUPS = 3` найдешевших (інші — `not_checked`, суму не вигадуємо). Категорії, сезон моря, регіони,
+  фото (upload.wikimedia.org, атрибуція) — `reference/destinations.json` з `scripts/update_destinations.py`.
+  URL і переходи — `lib/explore-params.ts` (`flightsHref`, `tripHref`, `exploreFromFlights` — «Будь-куди» у формі
+  рейсів і перемикачі режимів); порівняння до 3 — `explore-compare.tsx`; карта — `explore-map-lazy.tsx`.
 - **Аеропорти в пошуку:** код аеропорту — лише він (WAW без Модліна), код міста без власного
   аеропорту — усі аеропорти міста (LON). `origin_radius_km`/`destination_radius_km` додають
   сусідні (UI — 150 км). Пропозиції з інших аеропортів відсікає `AirportDirectory.route_filter`.

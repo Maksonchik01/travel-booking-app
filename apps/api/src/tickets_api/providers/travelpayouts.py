@@ -19,6 +19,11 @@
 Ендпоінти (https://support.travelpayouts.com/hc/en-us/articles/203956163):
 - GET /aviasales/v3/prices_for_dates — квитки на дату (YYYY-MM-DD) або місяць (YYYY-MM);
 - GET /aviasales/v3/grouped_prices   — найдешевші ціни, згруповані по днях.
+
+Explore (ADR 0045): той самий prices_for_dates БЕЗ `destination` — квитки з міста в усі
+напрямки (перевірено: AMS, грудень — 212 напрямків з `unique=true`, 321 квиток у 104 напрямки з
+`unique=false`). Без `return_at` і з `one_way=false` повернення — будь-якого місяця. Беремо обидва
+варіанти `unique`: перший — охоплення, другий — різні дати для фільтра ночей.
 Автентифікація — заголовок X-Access-Token.
 """
 
@@ -51,6 +56,7 @@ BOOKING_HOST = "https://www.aviasales.com"
 PRICES_FOR_DATES = "/aviasales/v3/prices_for_dates"
 GROUPED_PRICES = "/aviasales/v3/grouped_prices"
 MAX_LIMIT = 100
+EXPLORE_LIMIT = 1000
 TRAVELPAYOUTS_MAX_CONCURRENCY = 6
 TRAVELPAYOUTS_RETRY = RetryPolicy(attempts=3, base_delay_s=0.3, max_delay_s=2.0)
 
@@ -165,6 +171,34 @@ class TravelpayoutsFlightProvider:
                 )
             )
         return sorted(days, key=lambda d: d.date)
+
+    async def explore(
+        self, origin: str, departure: str, return_at: str | None, currency: str, *, direct: bool
+    ) -> list[Offer]:
+        """Квитки туди-назад з `origin` у всі напрямки (ціна — за одного дорослого)."""
+        offers: dict[str, Offer] = {}
+        for unique in ("true", "false"):
+            params: dict[str, str | int] = {
+                "origin": origin.upper(),
+                "departure_at": departure,
+                "one_way": "false",
+                "unique": unique,
+                "currency": currency.lower(),
+                "sorting": "price",
+                "limit": EXPLORE_LIMIT,
+            }
+            if return_at is not None:
+                params["return_at"] = return_at
+            if direct:
+                params["direct"] = "true"
+            payload = await self._get(PRICES_FOR_DATES, params)
+            collected_at = self._clock().replace(microsecond=0)
+            resp_currency = str(payload.get("currency") or currency).upper()
+            for raw in _as_list(payload.get("data")):
+                offer = self._to_offer(raw, resp_currency, collected_at, round_trip=True)
+                if offer is not None and (not direct or offer.stops == 0):
+                    offers.setdefault(offer.id, offer)
+        return sorted(offers.values(), key=lambda o: (o.price, o.id))
 
     # --- внутрішнє -----------------------------------------------------------------
 

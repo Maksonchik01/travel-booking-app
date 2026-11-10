@@ -14,6 +14,7 @@ from tickets_api.api import (
     alerts,
     auth,
     events,
+    explore,
     flights,
     health,
     ops,
@@ -36,6 +37,7 @@ from tickets_api.providers.fx import EcbRates
 from tickets_api.providers.registry import build_providers, build_stay_providers
 from tickets_api.reference.airlines import default_airline_names
 from tickets_api.reference.airports import default_airport_directory
+from tickets_api.reference.destinations import default_destination_directory
 from tickets_api.repositories.price_history import PriceHistoryRecorder
 from tickets_api.repositories.search_coverage import SearchCoverageRecorder
 from tickets_api.repositories.stay_price_history import StayPriceHistoryRecorder
@@ -43,6 +45,7 @@ from tickets_api.scoring.config import default_scoring_config, load_scoring_conf
 from tickets_api.scoring.stays import default_stay_scoring_config, load_stay_scoring_config
 from tickets_api.services.accounts import AccountService, AccountSettings
 from tickets_api.services.alerts_factory import build_alert_service
+from tickets_api.services.explore import ExploreService
 from tickets_api.services.flight_search import FlightSearchService
 from tickets_api.services.stay_search import StaySearchService
 from tickets_api.services.trip_planner import TripPlanner
@@ -109,6 +112,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             rate=app.state.flight_search.rate,
         )
         app.state.trip_planner = TripPlanner(app.state.flight_search, app.state.stay_search)
+        app.state.explore = ExploreService(
+            app.state.flight_search,
+            app.state.stay_search,
+            airports=default_airport_directory(),
+            destinations=default_destination_directory(),
+        )
         app.state.alerts = build_alert_service(
             settings,
             http=app.state.http,
@@ -162,6 +171,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.include_router(health.router)
     app.include_router(flights.router)
+    app.include_router(explore.router)
     app.include_router(places.router)
     app.include_router(stays.router)
     app.include_router(trips.router)

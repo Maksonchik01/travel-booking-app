@@ -11,6 +11,7 @@ export const CLIENT_NAMESPACES = [
   "auth",
   "authErrors",
   "chatCards",
+  "explore",
   "common",
   "compare",
   "currency",

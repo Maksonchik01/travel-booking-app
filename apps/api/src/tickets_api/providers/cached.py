@@ -29,6 +29,7 @@ from tickets_api.domain.sellers import SellerOffer
 from tickets_api.domain.stay_rates import StayRate
 from tickets_api.domain.stays import Stay, StayQuery, StayReview
 from tickets_api.providers.base import (
+    ExploreSource,
     FlightProvider,
     ProviderUnsupportedError,
     SellerSource,
@@ -201,6 +202,19 @@ class CachedFlightProvider(RedisCache):
             self._key("calendar", raw_key),
             _DAYS,
             lambda: self._inner.calendar(origin, destination, month, currency),
+        )
+
+    async def explore(
+        self, origin: str, departure: str, return_at: str | None, currency: str, *, direct: bool
+    ) -> list[Offer]:
+        inner = self._inner
+        if not isinstance(inner, ExploreSource):
+            raise ProviderUnsupportedError(self.name, "explore")
+        raw_key = f"{origin}|{departure}|{return_at}|{currency}|{direct}".upper()
+        return await self._cached(
+            self._key("explore", raw_key),
+            _OFFERS,
+            lambda: inner.explore(origin, departure, return_at, currency, direct=direct),
         )
 
     async def sellers(self, query: FlightQuery, booking_ref: str) -> list[SellerOffer]:

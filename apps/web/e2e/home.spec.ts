@@ -14,7 +14,8 @@ test("головна українською з формою пошуку і ст
   await expect(
     page.getByRole("list", { name: "Що вміє SkyPack" }).getByRole("listitem"),
   ).toHaveCount(3);
-  await expect(page.getByTestId("search-modes").getByRole("link")).toHaveCount(3);
+  // Авіаквитки, житло, поїздка й Explore (ADR 0045).
+  await expect(page.getByTestId("search-modes").getByRole("link")).toHaveCount(4);
   await expect(page.getByLabel("Звідки")).toBeVisible();
   await expect(page.getByText(/Стан сервісів|API недоступний/)).toBeVisible();
 });
@@ -171,6 +172,47 @@ test("житло: картка → сторінка об'єкта з цінам�
   await page.getByTestId("stay-hotel-back").click();
   await expect(page).toHaveURL(/\/stays\?city=LIS&in=2026-12-05&out=2026-12-08/);
   await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
+});
+
+test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
+  // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).
+  await page.getByTestId("mode-explore").click();
+  await expect(page).toHaveURL(/\/explore\?from=WAW&depart=2026-12-05&return=2026-12-08&adults=2/);
+
+  const cards = page.getByTestId("explore-card");
+  await expect(cards.first()).toBeVisible();
+  // Точні дати — ті самі в кожній картці; найдешевший напрямок — першим.
+  await expect(cards.first()).toContainText("2 дорослі");
+  const prices = await page.getByTestId("explore-price").allInnerTexts();
+  const numbers = prices.map((p) => Number(p.replace(/[^\d,]/g, "").replace(",", ".")));
+  expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
+
+  // Порівняння двох напрямків.
+  await cards.nth(0).getByTestId("explore-compare-toggle").click();
+  await cards.nth(1).getByTestId("explore-compare-toggle").click();
+  await page.getByTestId("explore-compare-open").click();
+  await expect(page.getByTestId("explore-compare-dialog")).toBeVisible();
+  await page.getByTestId("explore-compare-dialog").getByRole("button", { name: "Закрити" }).click();
+
+  // Авіаквитки + житло: для трьох найдешевших — загальна сума з житлом.
+  await page.getByTestId("explore-mode-trip").click();
+  await expect(page).toHaveURL(/mode=trip/);
+  await expect(page.getByTestId("explore-stay").first()).toContainText("Переліт");
+  await expect(page.getByText(/Житло перевірено для 3/)).toBeVisible();
+
+  // Карта й назад до списку.
+  await page.getByTestId("explore-view-map").click();
+  await expect(page.getByTestId("explore-marker").first()).toBeVisible();
+  await page.getByTestId("explore-view-list").click();
+
+  const city = await cards.first().locator("h3").innerText();
+  await cards.first().getByTestId("explore-to-trip").click();
+  await expect(page).toHaveURL(
+    /\/trip\?from=WAW&to=[A-Z]{3}&depart=2026-12-05&return=2026-12-08&adults=2/,
+  );
+  await expect(page.getByTestId("trip-card").first()).toBeVisible();
+  expect(city).not.toBe("");
 });
 
 test("помічник «уся поїздка»: загальна сума й сторінка поїздки", async ({ page }) => {

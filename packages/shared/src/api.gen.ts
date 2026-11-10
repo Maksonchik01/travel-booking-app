@@ -129,6 +129,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/explore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Explore
+         * @description Напрямки за бюджетом (ADR 0045): кешовані ціни перельотів з міста будь-куди.
+         *
+         *     Живих запитів перельотів немає; житло (режим `trip`) — лише для кількох найдешевших.
+         */
+        post: operations["explore_explore_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/places": {
         parameters: {
             query?: never;
@@ -2361,6 +2383,13 @@ export interface components {
             /** Confirm */
             confirm: string;
         };
+        /** DestinationPhoto */
+        DestinationPhoto: {
+            /** Url */
+            url: string;
+            /** Page */
+            page: string;
+        };
         /** EditBody */
         EditBody: {
             /** Token */
@@ -2446,6 +2475,142 @@ export interface components {
              * @default []
              */
             flags: string[];
+        };
+        /** ExploreDestination */
+        ExploreDestination: {
+            /** Code */
+            code: string;
+            /** City Name */
+            city_name: string;
+            /** Country */
+            country: string;
+            /** Lat */
+            lat?: number | null;
+            /** Lon */
+            lon?: number | null;
+            /**
+             * Categories
+             * @default []
+             */
+            categories: ("city" | "sea" | "mountains" | "romance" | "culture" | "nightlife")[];
+            photo?: components["schemas"]["DestinationPhoto"] | null;
+            offer: components["schemas"]["Offer"];
+            /** Nights */
+            nights: number;
+            /**
+             * Nights Approximate
+             * @default false
+             */
+            nights_approximate: boolean;
+            /**
+             * Freshness
+             * @enum {string}
+             */
+            freshness: "live" | "cached" | "approximate" | "needs_recheck";
+            stay?: components["schemas"]["ExploreStay"] | null;
+            /** Stay Status */
+            stay_status?: ("ok" | "not_checked" | "none" | "unsupported" | "rate_limited" | "error") | null;
+            /** Total */
+            total?: number | null;
+        };
+        /** ExploreQuery */
+        ExploreQuery: {
+            /** Origins */
+            origins: string[];
+            /** Country */
+            country?: string | null;
+            /** Region */
+            region?: ("europe" | "middle_east" | "africa" | "asia" | "north_america" | "south_america" | "oceania") | null;
+            /** Categories */
+            categories?: ("city" | "sea" | "mountains" | "romance" | "culture" | "nightlife")[];
+            /**
+             * Departure Date
+             * Format: date
+             */
+            departure_date: string;
+            /** Departure Until */
+            departure_until?: string | null;
+            /** Return Date */
+            return_date?: string | null;
+            /** Min Nights */
+            min_nights?: number | null;
+            /** Max Nights */
+            max_nights?: number | null;
+            /**
+             * Weekends
+             * @default false
+             */
+            weekends: boolean;
+            /**
+             * Adults
+             * @default 1
+             */
+            adults: number;
+            /** Budget */
+            budget?: number | null;
+            /**
+             * Mode
+             * @default flights
+             * @enum {string}
+             */
+            mode: "flights" | "trip";
+            /**
+             * Direct Only
+             * @default false
+             */
+            direct_only: boolean;
+            /**
+             * Currency
+             * @default EUR
+             */
+            currency: string;
+            /**
+             * Lang
+             * @default uk
+             * @enum {string}
+             */
+            lang: "uk" | "en";
+            /**
+             * Limit
+             * @default 30
+             */
+            limit: number;
+        };
+        /** ExploreResult */
+        ExploreResult: {
+            /** Destinations */
+            destinations: components["schemas"]["ExploreDestination"][];
+            /** Found */
+            found: number;
+            /** Providers */
+            providers: components["schemas"]["ProviderStatus"][];
+            /**
+             * Stays Checked
+             * @default 0
+             */
+            stays_checked: number;
+        };
+        /**
+         * ExploreStay
+         * @description Житло для напрямку (режим trip): вибір скорингу житла в межах залишку бюджету.
+         */
+        ExploreStay: {
+            /** Id */
+            id: string;
+            /** Source */
+            source: string;
+            /** Name */
+            name: string;
+            /** Rating */
+            rating: number | null;
+            /** Total Price */
+            total_price: number;
+            /** Currency */
+            currency: string;
+            /** Taxes Included */
+            taxes_included: boolean | null;
+            /** Image Url */
+            image_url?: string | null;
         };
         /** FavoriteBody */
         FavoriteBody: {
@@ -5494,6 +5659,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SellersResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explore_explore_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExploreQuery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExploreResult"];
                 };
             };
             /** @description Validation Error */

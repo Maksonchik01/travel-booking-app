@@ -15,6 +15,7 @@ from typing import Any, Literal, cast
 import structlog
 from pydantic import BaseModel
 
+from tickets_api.domain.explore import ExploreQuery
 from tickets_api.domain.flights import (
     MAX_NIGHTS,
     CalendarDay,
@@ -29,6 +30,7 @@ from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_f
 from tickets_api.domain.money import ConvertedPrice, convert, converted
 from tickets_api.domain.sellers import SellersRequest, SellersResult
 from tickets_api.providers.base import (
+    ExploreSource,
     FlightProvider,
     ProviderError,
     ProviderRateLimitedError,
@@ -469,6 +471,54 @@ class FlightSearchService:
             ],
             providers=[s for s, _ in results],
         )
+
+    async def explore_offers(
+        self, query: ExploreQuery
+    ) -> tuple[list[ProviderStatus], list[tuple[str, Offer]]]:
+        """Explore (ADR 0045): кешовані джерела календаря, що вміють «з міста будь-куди».
+
+        Запитів — аеропорти вильоту × місяці (кожен — кеш Redis), живих — жодного.
+        Повертає (код вильоту із запиту, пропозиція) — ціна за одного дорослого, як у джерела.
+        """
+        exact = query.departure_until is None and query.return_date is not None
+        params = (
+            [(query.departure_date.isoformat(), cast(date, query.return_date).isoformat())]
+            if exact
+            else [(f"{month:%Y-%m}", None) for month in query.months]
+        )
+
+        async def run(provider: FlightProvider) -> list[tuple[str, Offer]]:
+            source = cast(ExploreSource, provider)
+            calls = [(origin, dep, ret) for origin in query.origins for dep, ret in params]
+            found = await asyncio.gather(
+                *(
+                    source.explore(origin, dep, ret, query.currency, direct=query.direct_only)
+                    for origin, dep, ret in calls
+                )
+            )
+            return [
+                (origin, o)
+                for (origin, _, _), offers in zip(calls, found, strict=True)
+                for o in offers
+            ]
+
+        sources = [p for p in self._calendar_providers if isinstance(p, ExploreSource)]
+        results = await self._gather(sources, run)
+        tagged = [
+            (origin, o)
+            for _, items in results
+            for origin, o in items
+            if o.currency == query.currency
+        ]
+        if self._record_history and tagged:
+            routes: dict[tuple[str, str], list[Offer]] = {}
+            for origin, o in tagged:
+                destination = o.inbound.origin if o.inbound else o.outbound.destination
+                routes.setdefault((origin, destination), []).append(o)
+            await self._record_history(
+                [row for (a, b), offers in routes.items() for row in offer_rows(a, b, offers)]
+            )
+        return [status for status, _ in results], tagged
 
     async def sellers(self, request: SellersRequest) -> SellersResult:
         """Продавці рейсу й свіжа ціна в кожного (модуль 3b/3c). Джерело без такої здатності —
