@@ -6541,6 +6541,14 @@
             "title": "Changes",
             "default": []
           },
+          "differences": {
+            "items": {
+              "$ref": "#/components/schemas/TripDifference"
+            },
+            "type": "array",
+            "title": "Differences",
+            "default": []
+          },
           "apply": {
             "anyOf": [
               {
@@ -6757,6 +6765,7 @@
               "tickets",
               "baggage",
               "stay",
+              "airport",
               "extra"
             ],
             "title": "Kind"
@@ -14161,6 +14170,38 @@
         ],
         "title": "SyncedTurn"
       },
+      "TripAlternative": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "better",
+              "cheaper_dates",
+              "more_city_time",
+              "better_stay"
+            ],
+            "title": "Kind"
+          },
+          "combo_key": {
+            "type": "string",
+            "title": "Combo Key"
+          },
+          "differences": {
+            "items": {
+              "$ref": "#/components/schemas/TripDifference"
+            },
+            "type": "array",
+            "title": "Differences"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "combo_key",
+          "differences"
+        ],
+        "title": "TripAlternative"
+      },
       "TripBudget": {
         "properties": {
           "budget": {
@@ -14386,6 +14427,17 @@
             ],
             "title": "Travel Min"
           },
+          "city_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City Minutes"
+          },
           "waiting_min": {
             "anyOf": [
               {
@@ -14457,6 +14509,102 @@
         ],
         "title": "TripCosts",
         "description": "Розбивка бюджету: підтверджене й орієнтовне не змішуються, невідоме — окремо."
+      },
+      "TripDifference": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "cheaper",
+              "pricier",
+              "direct",
+              "fewer_stops",
+              "more_stops",
+              "faster",
+              "slower",
+              "more_city_time",
+              "less_city_time",
+              "earlier",
+              "later",
+              "higher_rating",
+              "lower_rating",
+              "closer",
+              "farther"
+            ],
+            "title": "Code"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "km": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Km"
+          },
+          "days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "TripDifference"
       },
       "TripExtra-Input": {
         "properties": {
@@ -14977,6 +15125,22 @@
             "maxItems": 5,
             "title": "Extras"
           },
+          "airport_road": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 10000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Airport Road"
+          },
           "currency": {
             "type": "string",
             "pattern": "^[A-Za-z]{3}$",
@@ -15213,6 +15377,17 @@
             "type": "array",
             "maxItems": 5,
             "title": "Extras"
+          },
+          "airport_road": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Airport Road"
           },
           "currency": {
             "type": "string",
@@ -15584,6 +15759,45 @@
             },
             "type": "array",
             "title": "Stay Options",
+            "default": []
+          },
+          "destination_photo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DestinationPhoto"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "base_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Key"
+          },
+          "better": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TripAlternative"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/TripAlternative"
+            },
+            "type": "array",
+            "title": "Recommendations",
             "default": []
           }
         },

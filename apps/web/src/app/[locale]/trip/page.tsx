@@ -27,12 +27,13 @@ import { SavedTripsProvider } from "@/components/saved-trips";
 import { TripBuilder } from "@/components/trip-builder";
 import { TripCompareBar, TripCompareProvider, TripCompareToggle } from "@/components/trip-compare";
 import { TripCard } from "@/components/trip-card";
+import { TripRecommendations } from "@/components/trip-insights";
 import { TripUndo } from "@/components/trip-history";
 import { TripSearchForm } from "@/components/trip-search-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { ERROR_KEY, fetchAIStatus, fetchAlertChannels, searchTrip } from "@/lib/api";
 import { type RawSearchParams, routeTitle, toSearchParams } from "@/lib/search-params";
-import { toStayParams } from "@/lib/stay-params";
+import { stayHotelHref, toStayParams } from "@/lib/stay-params";
 import { pinnedQuery, tripSnapshot } from "@/lib/saved-trips";
 import {
   parseTripDraft,
@@ -346,13 +347,21 @@ async function Results({ searchParams }: { searchParams: Params }) {
           airlineNames={airlineNames}
           flightsHref={flightsHref}
           staysHref={staysHref(data.selected)}
+          hotelHref={stayHotelHref(
+            staysHref(data.selected).split("?")[1],
+            data.stays[data.selected.stay_index],
+          )}
           saved={saved}
           title={historyTitle}
           pricedAt={pricedAt}
           aiEnabled={ai.enabled}
         />
       ) : (
-        <TripUndo params={historyParams} showButton={false} />
+        <>
+          <TripUndo params={historyParams} showButton={false} />
+          {/* Підказки (етап 4) — відносно «Оптимального»; у «Вашій поїздці» — свої. */}
+          <TripRecommendations data={data} query={query} saved={saved} />
+        </>
       )}
 
       {data.picks.length === 0 ? (

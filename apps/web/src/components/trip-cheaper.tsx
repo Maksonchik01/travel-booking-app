@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { DifferenceList } from "@/components/trip-insights";
 import { Button } from "@/components/ui/button";
 import { localDate, localTime } from "@/lib/format";
 import { toTripParams, toYourTrip } from "@/lib/trip-params";
@@ -142,6 +143,11 @@ export function TripCheaper({ query }: { query: TripQuery }) {
           </li>
         ))}
       </ul>
+      {/* Конкретні відмінності (етап 4): окрім ціни — пересадки, час у місті, житло. */}
+      <DifferenceList
+        differences={(result.differences ?? []).filter((d) => d.code !== "cheaper")}
+        currency={result.after.currency}
+      />
       <p className="text-muted-foreground text-[11px]">{checked}</p>
       <Button asChild size="sm" className="w-fit">
         <Link

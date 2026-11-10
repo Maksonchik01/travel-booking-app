@@ -26,6 +26,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from tickets_api.domain.explore import DestinationPhoto
 from tickets_api.domain.flights import FlightQuery, Money, Offer
 from tickets_api.domain.money import convert
 from tickets_api.domain.saved_trips import (
@@ -36,6 +37,10 @@ from tickets_api.domain.saved_trips import (
 )
 from tickets_api.domain.stays import Stay, StayQuery
 from tickets_api.domain.trips import FLIGHT_PROFILE, STAY_PROFILE, TRIP_NEARBY_KM, TripQuery
+from tickets_api.reference.destinations import (
+    DestinationDirectory,
+    default_destination_directory,
+)
 from tickets_api.scoring.baggage import BaggageCost
 from tickets_api.scoring.engine import OfferScore, Pick, offer_key
 from tickets_api.scoring.stays import StayScore, stay_key
@@ -52,6 +57,14 @@ from tickets_api.services.flight_search import (
     offer_in_currency,
 )
 from tickets_api.services.stay_search import StaySearchResult, StaySearchService
+from tickets_api.services.trip_insights import (
+    Comparable,
+    TripAlternative,
+    TripDifference,
+    better_within_budget,
+    differences,
+    recommendations,
+)
 
 MAX_FLIGHTS = 6
 MAX_STAY_WINDOWS = 3
@@ -65,7 +78,8 @@ PinnedStay = Literal["used", "partly", "unavailable"]
 PinnedFlight = Literal["used", "unavailable"]
 ChangeKind = Literal["dates", "origin_airport", "destination_airport", "flight", "stay"]
 """Обране житло: у всіх вікнах дат, лише в частині, ніде (на дати перельотів його немає)."""
-CostKind = Literal["tickets", "baggage", "stay", "extra"]
+CostKind = Literal["tickets", "baggage", "stay", "airport", "extra"]
+"""airport — дорога до аеропорту й назад, вручну (етап 4): поза бронюванням, орієнтовно."""
 CostStatus = Literal["confirmed", "approximate", "unknown"]
 LABEL_PRECEDENCE: tuple[TripPickLabel, ...] = ("best_value", "cheapest", "comfort")
 DISPLAY_ORDER: tuple[TripPickLabel, ...] = ("cheapest", "best_value", "comfort")
@@ -168,6 +182,9 @@ class TripCombo(BaseModel):
     при ранньому вильоті назад (до 07:00) — їх оплачено, але виспатися не вийде."""
     travel_min: int | None = None
     """У дорозі туди й назад разом; None — тривалість невідома."""
+    city_minutes: int | None = None
+    """Корисний час (етап 4): від посадки туди до вильоту назад, з урахуванням поясів (обидва
+    часи — місцеві з поясом). None — прибуття невідоме. Трансфер не віднімаємо: даних немає."""
     waiting_min: int | None = None
     """З них — очікування на пересадках; None — деталі пересадок невідомі."""
     reasons: list[TripReason] = []
@@ -227,6 +244,14 @@ class TripSearchResult(BaseModel):
     """Чим замінити переліт: кандидати пошуку, від кращого."""
     stay_options: list[int] = []
     """Чим замінити житло на дати «Вашої поїздки»: індекси в `stays`, від найвигіднішого."""
+    destination_photo: DestinationPhoto | None = None
+    """Фото міста призначення (довідник напрямків); None — міста в довіднику немає."""
+    base_key: str | None = None
+    """З чим порівнюємо (етап 4): «Ваша поїздка», а без неї — «Оптимальний»."""
+    better: TripAlternative | None = None
+    """Кращий варіант у межах бюджету (без нього — не дорожчий за `base_key`)."""
+    recommendations: list[TripAlternative] = []
+    """До двох підказок з реально знайдених комбінацій."""
 
 
 class CheaperResult(BaseModel):
@@ -237,6 +262,8 @@ class CheaperResult(BaseModel):
     after: TripCombo | None = None
     saving: Money | None = None
     changes: list[ChangeKind] = []
+    differences: list[TripDifference] = []
+    """Що конкретно інакше (етап 4): дешевше на…, інші дати, рейтинг житла…"""
     apply: TripQuery | None = None
     """Запит, що відкриє знайдений варіант як «Вашу поїздку» (точні дати, рейс, житло)."""
     offers: list[Offer] = []
@@ -269,10 +296,19 @@ class TripPlanner:
         flights: FlightSearchService,
         stays: StaySearchService,
         config: TripScoringConfig | None = None,
+        *,
+        destinations: DestinationDirectory | None = None,
     ) -> None:
         self._flights = flights
         self._stays = stays
         self._config = config or default_trip_scoring_config()
+        self._destinations = destinations or default_destination_directory()
+
+    def destination_photo(self, code: str) -> DestinationPhoto | None:
+        """Фото міста призначення з довідника напрямків (ADR 0045) — для сторінки поїздки."""
+        place = self._stays.place(code)
+        info = self._destinations.info(place.code if place else code)
+        return info.photo if info else None
 
     async def plan(self, query: TripQuery) -> TripSearchResult:
         flight_query = flight_query_for(query)
@@ -420,6 +456,17 @@ class TripPlanner:
         shown = {c.offer_key for c in ordered} | {f.offer_key for f in flight_options}
         picks = _picks(ordered, offers, stay_list, query.budget_total)
         explain = _explainer(ordered, picks, stay_list, query.budget_total)
+        base = selected or next(
+            (c for c in ordered for p in picks if p.label == "best_value" and p.combo_key == c.key),
+            None,
+        )
+        pool = [comparable(c) for c in ordered]
+        better = (
+            better_within_budget(comparable(base), pool, stay_list, query.budget_total)
+            if base
+            else None
+        )
+        hints = recommendations(comparable(base), pool, stay_list) if base else []
         return TripSearchResult(
             query=query,
             flight_query=flight_query,
@@ -440,6 +487,10 @@ class TripPlanner:
             selected=explain(selected) if selected is not None else None,
             flight_options=flight_options,
             stay_options=stay_options,
+            destination_photo=self.destination_photo(query.destination),
+            base_key=base.key if base else None,
+            better=better,
+            recommendations=[h for h in hints if better is None or h.combo_key != better.combo_key],
         )
 
     async def refresh(self, request: TripRefreshRequest) -> TripRefresh:
@@ -547,6 +598,7 @@ class TripPlanner:
             after=after.model_copy(update={"stay_index": 1}),
             saving=before.money_total - after.money_total,
             changes=changes,
+            differences=differences(comparable(before), before_stay, comparable(after), after_stay),
             apply=apply,
             offers=[before_offer, after_offer],
             stays=[before_stay, after_stay],
@@ -625,6 +677,7 @@ class TripPlanner:
             ),
             travel_min=offer.total_duration_min,
             waiting_min=_waiting(offer),
+            city_minutes=_city_minutes(offer.outbound.arrival_at, back.departure_at),
         )
 
 
@@ -709,6 +762,8 @@ def trip_costs(
             else "confirmed",
         )
     )
+    if query.airport_road is not None:
+        items.append(CostItem(kind="airport", amount=query.airport_road, status="approximate"))
     items.extend(
         CostItem(kind="extra", label=e.label, amount=e.amount, status="approximate")
         for e in query.extras
@@ -861,6 +916,29 @@ def _picks(
             picks[key] = TripPick(label=label, combo_key=key, over_budget=not within)
     order = {label: i for i, label in enumerate(DISPLAY_ORDER)}
     return sorted(picks.values(), key=lambda p: order[p.label])
+
+
+def _city_minutes(arrival: datetime | None, departure: datetime) -> int | None:
+    if arrival is None or departure <= arrival:
+        return None
+    return int((departure - arrival).total_seconds() // 60)
+
+
+def comparable(combo: TripCombo) -> Comparable:
+    return Comparable(
+        key=combo.key,
+        offer_key=combo.offer_key,
+        stay_key=combo.stay_key,
+        stay_index=combo.stay_index,
+        money_total=combo.money_total,
+        unknown=combo.costs.unknown,
+        stops=combo.stops,
+        travel_min=combo.travel_min,
+        city_minutes=combo.city_minutes,
+        full_nights=combo.full_nights,
+        check_in=combo.window.check_in,
+        check_out=combo.window.check_out,
+    )
 
 
 def _waiting(offer: Offer) -> int | None:

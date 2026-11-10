@@ -20,6 +20,8 @@ import {
   TripWhy,
 } from "@/components/trip-card";
 import { TripCompareToggle } from "@/components/trip-compare";
+import { AirportRoad } from "@/components/airport-road";
+import { CityTime, TripBetter, TripRecommendations } from "@/components/trip-insights";
 import { TripCheaper } from "@/components/trip-cheaper";
 import { TripUndo } from "@/components/trip-history";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,7 @@ export function TripBuilder({
   airlineNames,
   flightsHref,
   staysHref,
+  hotelHref,
   saved,
   title,
   pricedAt,
@@ -54,6 +57,8 @@ export function TripBuilder({
   airlineNames: Record<string, string | null>;
   flightsHref: string;
   staysHref: string;
+  /** Сторінка об'єкта житла (ADR 0044): фото, опис, ціни продавців. */
+  hotelHref?: string;
   /** Id збереженої поїздки, яку редагують (`saved=`). */
   saved?: string | null;
   /** Назва для збереження: «WAW → LIS · 5–8 груд.». */
@@ -144,10 +149,25 @@ export function TripBuilder({
         className="bg-card grid gap-4 rounded-2xl border p-5 shadow-sm sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
         data-testid="trip-summary"
       >
-        <div className="grid gap-3">
-          <p className="text-lg font-semibold tracking-tight">{title}</p>
-          {overBudget && <OverBudget />}
-          <TripPrice combo={selected} travelers={travelers} money={money} size="lg" />
+        <div className="flex gap-4">
+          {data.destination_photo && (
+            // Фото міста — з довідника напрямків (upload.wikimedia.org), без Referer.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={data.destination_photo.url}
+              alt=""
+              referrerPolicy="no-referrer"
+              className="hidden size-24 shrink-0 rounded-xl object-cover sm:block"
+              data-testid="trip-destination-photo"
+            />
+          )}
+          <div className="grid gap-2">
+            <p className="text-lg font-semibold tracking-tight">{title}</p>
+            <CityTime combo={selected} />
+            <p className="text-muted-foreground text-xs">{travelers}</p>
+            {overBudget && <OverBudget />}
+            <TripPrice combo={selected} travelers={travelers} money={money} size="lg" />
+          </div>
         </div>
         <div className="grid gap-2 lg:justify-items-end" data-testid="trip-save-panel">
           <div className="flex flex-wrap gap-2">
@@ -165,6 +185,8 @@ export function TripBuilder({
         </div>
       </div>
 
+      <TripRecommendations data={data} query={query} saved={saved} />
+
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
         {/* 2. Що саме обрано: переліт, житло, розбивка вартості. */}
         <div className="grid gap-4">
@@ -180,6 +202,7 @@ export function TripBuilder({
             combo={selected}
             stay={stay}
             href={`${staysHref}#${stayAnchor(selected.stay_key)}`}
+            hotelHref={hotelHref}
             money={money}
             detailed
           />
@@ -192,6 +215,7 @@ export function TripBuilder({
               {t("breakdown")}
             </h3>
             <TripBreakdown combo={selected} money={money} />
+            <AirportRoad query={query} saved={saved} currency={selected.currency} />
             <div className="grid gap-2 border-t pt-3">
               <TripDates combo={selected} />
               <TripQuality combo={selected} />
@@ -208,6 +232,10 @@ export function TripBuilder({
             </h3>
             <TripCheaper query={query} />
             <p className="text-muted-foreground text-[11px]">{t("cheaperHint")}</p>
+            <div className="grid gap-2 border-t pt-3">
+              <p className="text-xs font-medium">{t("betterTitle")}</p>
+              <TripBetter data={data} query={query} saved={saved} />
+            </div>
           </div>
 
           <Options

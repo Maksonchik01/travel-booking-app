@@ -45,6 +45,19 @@
 
 Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 
+## Порівняння варіантів поїздки (ADR 0048)
+
+| Сценарій | Тест |
+|---|---|
+| Конкретні відмінності з порогами | API `test_trip_insights::test_differences_are_concrete_facts` |
+| Краще в межах бюджету / не дорожче за поточний | API `test_trip_insights::test_better_within_budget_or_not_pricier_than_current` |
+| До двох підказок з реальних комбінацій, поріг економії | API `test_trip_insights::test_recommendations_up_to_two_from_real_combos` |
+| Час у місті, дорога до аеропорту в сумі, підказки в планувальнику | API `test_trip_insights::test_planner_gives_city_time_insights_and_airport_road` |
+| «Знайти дешевший» — відмінності | API `test_trip_insights::test_cheaper_reports_differences` |
+| Зведення (фото, дні/ночі/години), сторінка готелю, підказка й «краще», `road=` | WEB `trip-builder.test` |
+| Підказка дат у рейсах, `road=` в URL | WEB `flight-hints.test` |
+| «Ваша поїздка»: час у місті, готель, краще в бюджеті, дорога → нова сума | E2E «етап 4: «Ваша поїздка»…» |
+
 ## Швидкі дати (ADR 0047)
 
 | Сценарій | Тест |

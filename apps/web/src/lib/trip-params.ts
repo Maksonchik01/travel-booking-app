@@ -134,6 +134,7 @@ export function parseTripParams(params: RawSearchParams): TripQuery | null {
     profile: TRIP_PROFILES.find((p) => p === first(params.prio)) ?? "balanced",
     budget_total: Number.isFinite(budget) && budget > 0 && budget <= 1_000_000 ? budget : null,
     extras: parseExtras(params),
+    airport_road: parseRoad(first(params.road)),
     currency: parseCurrency(params),
     stay: stayKey(first(params.stay)),
     flight: flightKey(first(params.flight)),
@@ -193,6 +194,7 @@ export function toTripParams(query: TripQuery): URLSearchParams {
   if (query.profile && query.profile !== "balanced") params.set("prio", query.profile);
   if (query.budget_total != null) params.set("budget", String(query.budget_total));
   if (query.currency && query.currency !== "EUR") params.set("cur", query.currency);
+  if (query.airport_road != null) params.set("road", String(query.airport_road));
   for (const extra of query.extras ?? []) {
     params.append("xl", extra.label);
     params.append("xa", String(extra.amount));
@@ -266,6 +268,27 @@ export const YOUR_TRIP_ANCHOR = "your-trip";
 /** Поїздка з вибором — одразу до «Вашої поїздки», а не на початок сторінки з формою. */
 export function toYourTrip(href: string): string {
   return `${href}#${YOUR_TRIP_ANCHOR}`;
+}
+
+export const MAX_AIRPORT_ROAD = 10_000;
+
+/** Дорога до аеропорту (етап 4): `road=` — сума на всіх, вручну; биті значення — без неї. */
+function parseRoad(value: string | undefined): number | null {
+  const amount = Number(value);
+  return value && Number.isFinite(amount) && amount >= 0 && amount <= MAX_AIRPORT_ROAD
+    ? Math.round(amount * 100) / 100
+    : null;
+}
+
+/** Та сама поїздка з іншою вартістю дороги до аеропорту (null — прибрати). */
+export function withAirportRoad(
+  query: TripQuery,
+  amount: number | null,
+  saved?: string | null,
+): string {
+  const params = toTripParams({ ...query, airport_road: amount });
+  if (saved) params.set("saved", saved);
+  return `/trip?${params}`;
 }
 
 export function withChoice(

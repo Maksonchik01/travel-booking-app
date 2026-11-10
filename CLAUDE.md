@@ -134,6 +134,10 @@ SkyPack — веб-застосунок для пошуку подорожей �
   спойлером; «Ваша поїздка» — зведення, переліт, житло, розбивка, «Змінити поїздку» збоку. Вибір — з `#your-trip`
   (`toYourTrip`); повернення в розділ — останній пошук розділу (`returnHref`, `SectionLink`). Над результатами
   форма згорнута на всіх екранах (`CollapsibleSearch`, модуль 23c); інші комбінації — по 3 (`ShowMore page`).
+  Порівняння варіантів ([ADR 0048](docs/adr/0048-trip-insights.md)): `services/trip_insights.py` — `differences`,
+  `better_within_budget`, `recommendations` (≤ 2, лише серед знайдених, база `base_key`); `TripCombo.city_minutes`
+  (посадка → виліт назад); дорога до аеропорту — `TripQuery.airport_road` (`road=`, рядок `airport`, вручну); фото
+  міста — `destination_photo`; веб — `trip-insights.tsx`, `airport-road.tsx`; рейси — `cheaperDateHint`.
 - **Запити до джерел** ([ADR 0034](docs/adr/0034-provider-resilience-and-freshness.md)): HTTP — лише через
   `providers/gate.py` `ProviderGate` (ліміт одночасних, повтор 502–504/обриву з паузою; 429/4xx —
   ні; SerpApi тайм-аут не повторює). Однакові запити — один виклик (`CachedFlightProvider`: у процесі

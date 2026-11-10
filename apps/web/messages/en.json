@@ -882,7 +882,8 @@
       "tickets": "SkyPack",
       "baggage": "Baggage",
       "stay": "Stay, {nights, plural, one {# night} other {# nights}}",
-      "extra": "Other"
+      "extra": "Other",
+      "airport": "Getting to the airport"
     },
     "status": {
       "confirmed": "Confirmed",
@@ -911,7 +912,8 @@
       "approximate": "Cached price or your own costs — may change",
       "unknown": "No amount — not included in the total"
     },
-    "statusLegend": "Confirmed — the source's price for these dates. Approximate — a cached price or your own costs. Unknown amounts are not in the total."
+    "statusLegend": "Confirmed — the source's price for these dates. Approximate — a cached price or your own costs. Unknown amounts are not in the total.",
+    "openHotel": "Hotel page"
   },
   "alerts": {
     "watch": "Track price",
@@ -1444,7 +1446,8 @@
           "h": "The whole trip",
           "p": [
             "Trip total = tickets for everyone + baggage fees + the stay for all nights with taxes + costs you added yourself. Confirmed (source prices for these dates), indicative (cached prices, your costs) and unknown items are shown separately; unknown items aren't included in the total, and transfers without reliable data aren't added. The stay runs from the arrival date to the return departure date in local time: a night flight won't get you a hotel on the wrong dates. Scenarios: “Economy” — the lowest total with your conditions; “Optimal” — the price plus the “cost” of travel time, stops, the stay's location and rating, and inconvenient arrival or departure times; “Comfort” — the fewest stops and least travel time, then the stay's rating and proximity. The choice is within the budget, and if none fits — marked as over budget. Identical scenarios aren't duplicated. “Find a cheaper option” checks other dates (±3 days, the same number of nights), nearby airports, other flights and stays of the same type without changing your conditions, and shows how many options were checked: this is part of the market, not a guarantee of the lowest price.",
-            "For each combination we show how many nights are full (a late arrival from 23:00 or an early return before 07:00 “eats” a night you paid for), the total travel time and how much of it is waiting at layovers. “Why this option?” compares it with “Budget” and “Comfort”: how much more or less it costs, how many hours of travel, full nights and stops it saves, how much better the stay is and whether it fits the budget."
+            "For each combination we show how many nights are full (a late arrival from 23:00 or an early return before 07:00 “eats” a night you paid for), the total travel time and how much of it is waiting at layovers. “Why this option?” compares it with “Budget” and “Comfort”: how much more or less it costs, how many hours of travel, full nights and stops it saves, how much better the stay is and whether it fits the budget.",
+            "Useful time runs from landing to the return departure in each airport's local time (time zones included); getting to the airport and transfers aren't subtracted — we have no reliable data on them. Hints (“other dates cheaper”, “more time in the city”, “better stay for the same price”, “better within budget”) are computed by code only among the options already found, with concrete differences. You enter the cost of getting to the airport yourself — it's a separate approximate line, outside bookings."
           ]
         },
         {
@@ -1666,7 +1669,8 @@
     "optimize": "Optimize with AI",
     "optimizeDraft": "Optimize this trip: what can be made cheaper or more convenient without changing my conditions?",
     "breakdown": "Cost breakdown",
-    "changeTitle": "Change the trip"
+    "changeTitle": "Change the trip",
+    "betterTitle": "Better option within budget"
   },
   "savedTrips": {
     "pageTitle": "My trips",
@@ -2047,5 +2051,50 @@
     "monthWeekends": "Weekends in the month",
     "short": "3–4 days",
     "week": "5–7 days"
+  },
+  "tripInsights": {
+    "diff": {
+      "cheaper": "{amount} cheaper",
+      "pricier": "{amount} more",
+      "direct": "Direct flight instead of a connection",
+      "fewer_stops": "{count, plural, one {# stop} other {# stops}} fewer",
+      "more_stops": "{count, plural, one {# stop} other {# stops}} more",
+      "faster": "{hours} h less travelling",
+      "slower": "{hours} h more travelling",
+      "more_city_time": "{hours} h more in the city",
+      "less_city_time": "{hours} h less in the city",
+      "earlier": "Depart {days, plural, one {# day} other {# days}} earlier",
+      "later": "Depart {days, plural, one {# day} other {# days}} later",
+      "higher_rating": "Stay rated {rating} higher",
+      "lower_rating": "Stay rated {rating} lower",
+      "closer": "{km} km closer to the centre",
+      "farther": "{km} km farther from the centre"
+    },
+    "kind": {
+      "better": "Better within budget",
+      "cheaper_dates": "Other dates — cheaper",
+      "more_city_time": "More time in the city",
+      "better_stay": "Better stay for the same price"
+    },
+    "apply": "Apply",
+    "hintsTitle": "Worth a look",
+    "betterNone": "No better option for the same or a lower price among those found.",
+    "betterNoneBudget": "No better option within the budget among those found.",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "cityHours": "≈ {hours} h in the city",
+    "cityHint": "From landing to the return departure, local time; getting to the airport and transfers aren't included.",
+    "cityUnknown": "time in the city unknown (no arrival time)",
+    "flightEarlier": "Departing {days, plural, one {# day} other {# days}} earlier is {amount} cheaper",
+    "flightLater": "Departing {days, plural, one {# day} other {# days}} later is {amount} cheaper",
+    "flightOtherReturn": "Another return date is {amount} cheaper",
+    "road": {
+      "label": "Getting to the airport and back, {currency}",
+      "placeholder": "e.g. 30",
+      "add": "Add",
+      "update": "Update",
+      "remove": "Remove",
+      "hint": "We have no public transport data for the airport — enter an approximate cost for everyone. It's shown separately from bookings."
+    }
   }
 }

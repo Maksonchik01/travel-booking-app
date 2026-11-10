@@ -40,6 +40,7 @@ export const CLIENT_NAMESPACES = [
   "stays",
   "tripBuilder",
   "tripCompare",
+  "tripInsights",
   "tripForm",
 ] as const;
 

@@ -19,6 +19,7 @@ import {
   PlaneLanding,
   PlaneTakeoff,
   Receipt,
+  TrainFront,
   Scale,
   SlidersHorizontal,
   Wallet,
@@ -39,7 +40,13 @@ import { cn } from "@/lib/utils";
 import { fractionDigits } from "@/lib/money";
 
 const LABEL_ICON = { cheapest: Wallet, best_value: Scale, comfort: Crown } as const;
-const COST_ICON = { tickets: Plane, baggage: Briefcase, stay: BedDouble, extra: Receipt } as const;
+const COST_ICON = {
+  tickets: Plane,
+  baggage: Briefcase,
+  stay: BedDouble,
+  airport: TrainFront,
+  extra: Receipt,
+} as const;
 const STATUS_CLASS = {
   confirmed: "bg-success/10 text-success",
   approximate: "bg-warning/10 text-warning",
@@ -368,12 +375,15 @@ export function TripStaySection({
   combo,
   stay,
   href,
+  hotelHref,
   money,
   detailed = false,
 }: {
   combo: TripCombo;
   stay: Stay;
   href: string;
+  /** Сторінка об'єкта (фото, опис, ціни продавців) — у «Вашій поїздці». */
+  hotelHref?: string;
   money: Money;
   detailed?: boolean;
 }) {
@@ -395,6 +405,18 @@ export function TripStaySection({
         status={statusOf(items)}
       />
       <div className="grid gap-1.5 text-xs">
+        {detailed && stay.image_url && (
+          // Фото — від джерела житла, без Referer (як на картці житла).
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={stay.image_url}
+            alt=""
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="aspect-[16/9] w-full max-w-sm rounded-lg object-cover"
+            data-testid="trip-stay-photo"
+          />
+        )}
         <p className="text-sm font-medium">{stay.name}</p>
         <RatingBadge rating={stay.rating ?? null} reviews={stay.review_count ?? 0} />
         <p className="text-muted-foreground">
@@ -407,9 +429,16 @@ export function TripStaySection({
             ` · ${t("toCenter", { km: format.number(stay.distance_to_center_km) })}`}
         </p>
       </div>
-      <OpenLink href={href} testId="trip-open-stay">
-        {t("openStay")}
-      </OpenLink>
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {hotelHref && (
+          <OpenLink href={hotelHref} testId="trip-open-hotel">
+            {t("openHotel")}
+          </OpenLink>
+        )}
+        <OpenLink href={href} testId="trip-open-stay">
+          {t("openStay")}
+        </OpenLink>
+      </div>
     </section>
   );
 }

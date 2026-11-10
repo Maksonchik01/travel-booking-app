@@ -2214,6 +2214,11 @@ export interface components {
              * @default []
              */
             changes: ("dates" | "origin_airport" | "destination_airport" | "flight" | "stay")[];
+            /**
+             * Differences
+             * @default []
+             */
+            differences: components["schemas"]["TripDifference"][];
             apply?: components["schemas"]["TripQuery-Output"] | null;
             /**
              * Offers
@@ -2316,7 +2321,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "tickets" | "baggage" | "stay" | "extra";
+            kind: "tickets" | "baggage" | "stay" | "airport" | "extra";
             /** Label */
             label?: string | null;
             /** Amount */
@@ -4813,6 +4818,18 @@ export interface components {
             /** Cards */
             cards?: components["schemas"]["SyncedCard"][] | null;
         };
+        /** TripAlternative */
+        TripAlternative: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "better" | "cheaper_dates" | "more_city_time" | "better_stay";
+            /** Combo Key */
+            combo_key: string;
+            /** Differences */
+            differences: components["schemas"]["TripDifference"][];
+        };
         /** TripBudget */
         TripBudget: {
             /** Budget */
@@ -4907,6 +4924,8 @@ export interface components {
             full_nights: number;
             /** Travel Min */
             travel_min?: number | null;
+            /** City Minutes */
+            city_minutes?: number | null;
             /** Waiting Min */
             waiting_min?: number | null;
             /**
@@ -4928,6 +4947,26 @@ export interface components {
             approximate: number;
             /** Unknown */
             unknown: number;
+        };
+        /** TripDifference */
+        TripDifference: {
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "cheaper" | "pricier" | "direct" | "fewer_stops" | "more_stops" | "faster" | "slower" | "more_city_time" | "less_city_time" | "earlier" | "later" | "higher_rating" | "lower_rating" | "closer" | "farther";
+            /** Amount */
+            amount?: number | null;
+            /** Minutes */
+            minutes?: number | null;
+            /** Count */
+            count?: number | null;
+            /** Rating */
+            rating?: number | null;
+            /** Km */
+            km?: number | null;
+            /** Days */
+            days?: number | null;
         };
         /**
          * TripExtra
@@ -5132,6 +5171,8 @@ export interface components {
             budget_total?: number | null;
             /** Extras */
             extras?: components["schemas"]["TripExtra-Input"][];
+            /** Airport Road */
+            airport_road?: number | string | null;
             /**
              * Currency
              * @default EUR
@@ -5230,6 +5271,8 @@ export interface components {
             budget_total?: number | null;
             /** Extras */
             extras?: components["schemas"]["TripExtra-Output"][];
+            /** Airport Road */
+            airport_road?: number | null;
             /**
              * Currency
              * @default EUR
@@ -5331,6 +5374,15 @@ export interface components {
              * @default []
              */
             stay_options: number[];
+            destination_photo?: components["schemas"]["DestinationPhoto"] | null;
+            /** Base Key */
+            base_key?: string | null;
+            better?: components["schemas"]["TripAlternative"] | null;
+            /**
+             * Recommendations
+             * @default []
+             */
+            recommendations: components["schemas"]["TripAlternative"][];
         };
         /**
          * TripSnapshot

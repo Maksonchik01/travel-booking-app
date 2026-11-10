@@ -32,6 +32,8 @@ import { CompareBar, CompareProvider, CompareToggle } from "@/components/compare
 import { FavoriteToggle, FavoritesProvider } from "@/components/favorites";
 import { flightFavorite } from "@/lib/favorites";
 import { DateOptions } from "@/components/date-options";
+import { FlightDateHint } from "@/components/flight-hint";
+import { cheaperDateHint } from "@/lib/flight-hints";
 import { PriceCalendar } from "@/components/price-calendar";
 import { PriceMatrix } from "@/components/price-matrix";
 import { SellerOffers } from "@/components/seller-offers";
@@ -431,6 +433,9 @@ async function Results({ searchParams }: { searchParams: Params }) {
 
           {/* 2. Проблеми з джерелами — до результатів, щоб було ясно, чому їх мало. */}
           <ProviderAlerts providers={result.data.providers} />
+
+          {/* Підказка (етап 4): інші дати помітно дешевші за запитані. */}
+          <FlightDateHint hint={cheaperDateHint(result.data.date_options ?? [], state)} />
 
           {/* 3. Гнучкі дати: найкраща ціна на кожну пару дат (модуль 2a). */}
           <DateOptions options={result.data.date_options ?? []} state={state} now={now} />

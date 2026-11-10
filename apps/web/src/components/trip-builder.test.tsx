@@ -210,6 +210,7 @@ describe("Знайти дешевший варіант", () => {
       before: SELECTED,
       after: { ...SELECTED, key: "mock:f2|mock:s1", offer_key: "mock:f2", money_total: 430 },
       saving: 70,
+      differences: [{ code: "cheaper", amount: 70 }],
       changes: ["dates", "flight"],
       apply: { ...QUERY, flight: "mock:f2", departure_date: "2026-12-06" } as never,
       offers: [offer("f1", 200), offer("f2", 150)],
@@ -461,5 +462,107 @@ describe("Збереження й порівняння поїздок", () => {
     expect(within(totals).getByText(/500\s€/).className).toContain("success");
     const rating = within(table).getByText("Рейтинг житла").closest("tr")!;
     expect(within(rating).getByText(/9,1/).className).toContain("success");
+  });
+});
+
+describe("Порівняння варіантів, час у місті, дорога до аеропорту (етап 4)", () => {
+  const BETTER: TripCombo = {
+    ...SELECTED,
+    key: "mock:f2|mock:s2",
+    offer_key: "mock:f2",
+    stay_key: "mock:s2",
+    stay_index: 1,
+    money_total: 570,
+  };
+  const CHEAPER: TripCombo = { ...SELECTED, key: "mock:f2|mock:s1", offer_key: "mock:f2" };
+  const RICH = {
+    ...DATA,
+    combos: [SELECTED, BETTER, CHEAPER],
+    base_key: SELECTED.key,
+    destination_photo: {
+      url: "https://upload.wikimedia.org/lisbon.jpg",
+      page: "https://en.wikipedia.org/wiki/Lisbon",
+    },
+    better: {
+      kind: "better",
+      combo_key: BETTER.key,
+      differences: [
+        { code: "pricier", amount: 70 },
+        { code: "higher_rating", rating: 0.6 },
+      ],
+    },
+    recommendations: [
+      {
+        kind: "cheaper_dates",
+        combo_key: CHEAPER.key,
+        differences: [
+          { code: "cheaper", amount: 42 },
+          { code: "earlier", days: 1 },
+        ],
+      },
+    ],
+  } as unknown as TripSearchResult;
+
+  function rich(query: TripQuery = QUERY) {
+    return (
+      <TripBuilder
+        data={RICH}
+        query={query}
+        selected={{ ...SELECTED, city_minutes: 3630 }}
+        travelers="2 дорослі"
+        airlineNames={{ LO: "LOT" }}
+        flightsHref="/"
+        staysHref="/stays?city=LIS&in=2026-12-05&out=2026-12-08"
+        hotelHref="/stays/hotel?city=LIS&in=2026-12-05&out=2026-12-08&src=mock&id=s1"
+        title="WAW → LIS"
+        pricedAt="2026-11-06T12:00:00Z"
+      />
+    );
+  }
+
+  it("зведення: фото напрямку, дні, ночі й години в місті; сторінка готелю", () => {
+    wrap(rich());
+
+    expect(screen.getByTestId("trip-destination-photo")).toHaveAttribute(
+      "src",
+      "https://upload.wikimedia.org/lisbon.jpg",
+    );
+    expect(screen.getByTestId("trip-city-time")).toHaveTextContent(
+      "4 дні · 3 ночі · ≈ 61 год у місті",
+    );
+    expect(screen.getByTestId("trip-open-hotel")).toHaveAttribute(
+      "href",
+      "/stays/hotel?city=LIS&in=2026-12-05&out=2026-12-08&src=mock&id=s1",
+    );
+  });
+
+  it("підказка й «краще в межах бюджету» — з відмінностями й «Застосувати»", () => {
+    wrap(rich());
+
+    const hint = screen.getByTestId("trip-hint");
+    expect(hint).toHaveTextContent("Інші дати — дешевше");
+    expect(hint).toHaveTextContent("Дешевше на 42 €");
+    expect(hint).toHaveTextContent("Виліт на 1 день раніше");
+    expect(screen.getByTestId("trip-hint-apply").getAttribute("href")).toContain(
+      "flight=mock%3Af2",
+    );
+
+    const better = screen.getByTestId("trip-better");
+    expect(better).toHaveTextContent("Дорожче на 70 €");
+    expect(better).toHaveTextContent("Рейтинг житла вищий на 0,6");
+    expect(screen.getByTestId("trip-better-apply").getAttribute("href")).toContain(
+      "stay=mock%3As2",
+    );
+  });
+
+  it("дорога до аеропорту: сума в URL (`road=`), окремо від бронювання", () => {
+    wrap(rich());
+
+    fireEvent.change(screen.getByLabelText(/Дорога до аеропорту й назад/), {
+      target: { value: "35" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Додати" }));
+
+    expect(push).toHaveBeenCalledWith(expect.stringContaining("road=35"), { scroll: false });
   });
 });

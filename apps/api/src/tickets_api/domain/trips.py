@@ -95,6 +95,9 @@ class TripQuery(_StrictInput):
     budget_total: int | None = Field(default=None, ge=1, le=1_000_000)
     """Бюджет на всю поїздку (переліт, багаж, житло, власні витрати), у валюті пошуку."""
     extras: list[TripExtra] = Field(default_factory=list, max_length=MAX_EXTRAS)
+    airport_road: Money | None = Field(default=None, ge=0, le=Decimal(10_000))
+    """Дорога до аеропорту вильоту й назад на всіх (етап 4) — вручну: даних про транспорт немає.
+    Окремо від бронювання, у сумі — орієнтовно."""
     currency: Currency = DEFAULT_CURRENCY
     stay: StayKey | None = None
     """Обране житло («Додати до поїздки», модуль 7; заміна житла, 8b) — ключ `source:id`:

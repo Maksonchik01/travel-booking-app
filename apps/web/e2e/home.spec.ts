@@ -219,6 +219,32 @@ test("модуль 3: швидкі дати — вихідні місяця в �
   await expect(page.getByTestId("trip-card").first()).toBeVisible();
 });
 
+test("етап 4: «Ваша поїздка» — час у місті, сторінка готелю, краще в бюджеті, дорога до аеропорту", async ({
+  page,
+}) => {
+  await page.goto("/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&budget=5000");
+  await page.getByTestId("trip-choose").first().click();
+  const builder = page.getByTestId("trip-builder");
+  await expect(builder).toBeVisible();
+
+  await expect(page.getByTestId("trip-city-time")).toContainText("год у місті");
+  await expect(page.getByTestId("trip-open-hotel")).toHaveAttribute(
+    "href",
+    /\/stays\/hotel\?.*src=mock/,
+  );
+  // «Краще в межах бюджету» — або варіант з відмінностями, або чесне «немає».
+  await expect(
+    page.getByTestId("trip-better").or(page.getByTestId("trip-better-none")),
+  ).toBeVisible();
+
+  const total = await page.getByTestId("trip-summary").innerText();
+  await page.getByLabel(/Дорога до аеропорту й назад/).fill("30");
+  await page.getByTestId("airport-road").getByRole("button", { name: "Додати" }).click();
+  await expect(page).toHaveURL(/road=30/);
+  await expect(builder.getByTestId("trip-breakdown")).toContainText("Дорога до аеропорту");
+  await expect(page.getByTestId("trip-summary")).not.toHaveText(total);
+});
+
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
   // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).

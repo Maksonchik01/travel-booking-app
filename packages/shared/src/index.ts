@@ -163,3 +163,7 @@ export type ExploreStay = Schemas["ExploreStay"];
 export type ExploreCategory = NonNullable<ExploreQuery["categories"]>[number];
 export type ExploreRegion = NonNullable<ExploreQuery["region"]>;
 export type ExploreMode = NonNullable<ExploreQuery["mode"]>;
+
+// Порівняння варіантів поїздки (етап 4, ADR 0048).
+export type TripAlternative = Schemas["TripAlternative"];
+export type TripDifference = Schemas["TripDifference"];
