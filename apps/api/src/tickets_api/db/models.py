@@ -191,6 +191,10 @@ class Alert(Base):
     adults: Mapped[int] = mapped_column(Integer, default=1)
     baggage: Mapped[str] = mapped_column(String(16), default="none", server_default="none")
     stay_key: Mapped[str | None] = mapped_column(String(110))
+    direct_only: Mapped[bool] = mapped_column(default=False, server_default="false")
+    """Лише прямі рейси (етап 6)."""
+    min_rating: Mapped[int | None] = mapped_column(Integer)
+    """Рейтинг житла від N з 10 (етап 6)."""
     condition: Mapped[str] = mapped_column(String(16))
     threshold: Mapped[int | None] = mapped_column(Integer)
     percent: Mapped[int | None] = mapped_column(Integer)
@@ -227,6 +231,7 @@ class Alert(Base):
         CheckConstraint("adults BETWEEN 1 AND 9", name="adults"),
         CheckConstraint("threshold IS NULL OR threshold > 0", name="threshold"),
         CheckConstraint("percent IS NULL OR percent BETWEEN 1 AND 90", name="percent"),
+        CheckConstraint("min_rating IS NULL OR min_rating BETWEEN 1 AND 10", name="min_rating"),
         CheckConstraint(
             "min_nights IS NULL OR max_nights IS NULL OR min_nights <= max_nights",
             name="nights",

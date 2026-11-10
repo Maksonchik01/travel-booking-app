@@ -7,7 +7,7 @@
 from decimal import Decimal
 
 from tickets_api.db.models import Alert
-from tickets_api.domain.stays import Guests, StayQuery
+from tickets_api.domain.stays import Guests, StayFilters, StayQuery
 from tickets_api.services.alerts import Found, PriceSource
 from tickets_api.services.stay_search import StaySearchService
 
@@ -25,6 +25,7 @@ def stay_price_source(stays: StaySearchService) -> PriceSource:
             check_out=alert.return_date,
             guests=Guests(adults=alert.adults),
             currency=alert.currency,
+            filters=StayFilters(min_rating=alert.min_rating),
         )
         result = await stays.search(query)
         prices = [

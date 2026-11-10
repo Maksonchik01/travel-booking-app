@@ -17,6 +17,11 @@ function day(value: FormDataEntryValue | null): string | null {
   return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
 }
 
+function rating(value: FormDataEntryValue | null): number | null {
+  const n = int(value);
+  return n != null && n >= 1 && n <= 10 ? n : null;
+}
+
 /** Редагування підписки звичайною формою (без JS теж). Перевіряє API тими ж правилами. */
 export async function POST(request: NextRequest) {
   const form = await request.formData();
@@ -31,6 +36,8 @@ export async function POST(request: NextRequest) {
     weekends: form.get("weekends") === "1",
     adults: int(form.get("adults")) ?? 1,
     baggage: BAGGAGE.find((b) => b === form.get("baggage")) ?? "none",
+    direct_only: form.get("direct_only") === "1",
+    min_rating: rating(form.get("min_rating")),
     condition,
     threshold:
       condition === "below_price"

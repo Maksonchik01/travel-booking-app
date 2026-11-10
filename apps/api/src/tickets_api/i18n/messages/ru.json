@@ -4,7 +4,9 @@
       "flex": "вылет {start} – {end}, {nights} ноч.",
       "weekends": ", только выходные",
       "stay": "Жильё: {city}, {dates}",
-      "trip": "Поездка {route}"
+      "trip": "Поездка {route}",
+      "direct": ", только прямые",
+      "rating": ", жильё от {rating}/10"
     },
     "party": {
       "stay": "за всё проживание",

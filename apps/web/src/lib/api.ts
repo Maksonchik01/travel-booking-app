@@ -15,6 +15,7 @@ import type {
   ExploreResult,
   FlightQuery,
   GeocodeResult,
+  PriceSeries,
   FlightSearchResult,
   Place,
   PriceMatrix,
@@ -203,6 +204,47 @@ export function fetchPlaces(
 ): Promise<ApiResult<Place[]>> {
   const params = new URLSearchParams({ q, limit: String(limit), lang, kind });
   return request(`/places?${params}`);
+}
+
+/** Історія цін на ці дати (етап 6): найнижча ціна на кожен день спостереження. */
+export function fetchFlightHistory(params: {
+  origin: string;
+  destination: string;
+  departure: string;
+  return?: string | null;
+  adults: number;
+  cabin: string;
+  currency: string;
+}): Promise<ApiResult<PriceSeries>> {
+  const query = new URLSearchParams({
+    origin: params.origin,
+    destination: params.destination,
+    departure: params.departure,
+    adults: String(params.adults),
+    cabin: params.cabin,
+    currency: params.currency,
+  });
+  if (params.return) query.set("return", params.return);
+  return request(`/flights/history?${query}`);
+}
+
+export function fetchStayHistory(params: {
+  source: string;
+  stayId: string;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  currency: string;
+}): Promise<ApiResult<PriceSeries>> {
+  const query = new URLSearchParams({
+    source: params.source,
+    stay_id: params.stayId,
+    in: params.checkIn,
+    out: params.checkOut,
+    guests: String(params.guests),
+    currency: params.currency,
+  });
+  return request(`/stays/history?${query}`);
 }
 
 /** Місце біля житла (етап 5): адреса чи визначна точка в місті — OpenStreetMap через API. */

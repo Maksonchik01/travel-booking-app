@@ -32,6 +32,7 @@ import { CompareBar, CompareProvider, CompareToggle } from "@/components/compare
 import { FavoriteToggle, FavoritesProvider } from "@/components/favorites";
 import { flightFavorite } from "@/lib/favorites";
 import { DateOptions } from "@/components/date-options";
+import { PriceHistoryChart } from "@/components/price-history-chart";
 import { FlightDateHint } from "@/components/flight-hint";
 import { cheaperDateHint } from "@/lib/flight-hints";
 import { PriceCalendar } from "@/components/price-calendar";
@@ -57,6 +58,7 @@ import {
   fetchAIStatus,
   fetchAlertChannels,
   fetchCalendar,
+  fetchFlightHistory,
   fetchMatrix,
   searchFlights,
 } from "@/lib/api";
@@ -486,6 +488,12 @@ async function Results({ searchParams }: { searchParams: Params }) {
                   {(await getTranslations("calendar"))("unavailable")}
                 </p>
               )}
+              {/* Історія цін на саме ці дати (етап 6) — лише точні дати. */}
+              {!query.flex_days && !query.departure_until && (
+                <Suspense fallback={null}>
+                  <FlightHistory query={query} />
+                </Suspense>
+              )}
             </div>
           </details>
 
@@ -613,6 +621,22 @@ async function Results({ searchParams }: { searchParams: Params }) {
 const AUTO_SELLER_CHECKS = 1;
 
 /** Живий пошук: провайдер зафіксував ціну в момент нашого запиту. */
+/** Історія цін на ці дати (етап 6): збережені спостереження цього складу й класу. */
+async function FlightHistory({ query }: { query: SearchState["query"] }) {
+  const result = await fetchFlightHistory({
+    origin: query.origin,
+    destination: query.destination,
+    departure: query.departure_date,
+    return: query.return_date,
+    adults: query.passengers?.adults ?? 1,
+    cabin: query.cabin ?? "economy",
+    currency: query.currency ?? "EUR",
+  });
+  if (!result.ok) return null;
+  const t = await getTranslations("priceHistory");
+  return <PriceHistoryChart series={result.data} title={t("flightTitle")} />;
+}
+
 function isLivePrice(offer: Offer): boolean {
   return offer.found_at != null && offer.found_at === offer.collected_at;
 }

@@ -371,6 +371,35 @@ function EditForm({ alert, token, back }: { alert: AlertView; token: string; bac
             {t("weekendsLabel")}
           </label>
         )}
+        {/* Умови пошуку (етап 6): «лише прямі» — переліт і поїздка; рейтинг — житло й поїздка. */}
+        {!stay && (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="direct_only"
+              value="1"
+              defaultChecked={alert.direct_only ?? false}
+              className="accent-primary size-4"
+            />
+            {t("directLabel")}
+          </label>
+        )}
+        {(stay || alert.kind === "trip") && (
+          <Field label={t("ratingLabel")}>
+            <select
+              name="min_rating"
+              defaultValue={alert.min_rating ?? ""}
+              className={SELECT_CLASS}
+            >
+              <option value="">{t("anyRating")}</option>
+              {[7, 8, 9].map((r) => (
+                <option key={r} value={r}>
+                  {t("ratingFrom", { rating: r })}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         <fieldset className="grid gap-2 text-sm">
           <legend className="text-muted-foreground mb-1 text-xs font-medium">
             {t("condition")}

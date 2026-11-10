@@ -56,12 +56,14 @@ EDITABLE_FIELDS = (
     "weekends",
     "adults",
     "baggage",
+    "direct_only",
+    "min_rating",
     "condition",
     "threshold",
     "percent",
 )
 """Що можна змінити в підписці (11.3). Маршрут, тип, валюта й канал — лише новою підпискою."""
-SEARCH_FIELDS = frozenset(EDITABLE_FIELDS[:8])
+SEARCH_FIELDS = frozenset(EDITABLE_FIELDS[:10])
 """Зміна цих полів — інший пошук: ціни й база для зниження починаються заново."""
 # Перевірка форми адреси без окремої залежності: що адреса справжня, підтверджує лист
 # (подвійна згода) — без кліку на посилання підписка не активується.
@@ -95,6 +97,10 @@ class AlertCreate(_StrictInput):
     """Потрібний багаж: у посилання на пошук; ціну з багажем порівнюємо, лише якщо вона відома."""
     stay_key: StayKey | None = None
     """stay: конкретний об'єкт (`source:id`); без нього — будь-яка пропозиція в місті."""
+    direct_only: bool = False
+    """Переліт, гнучкі дати, поїздка: лише прямі рейси (етап 6)."""
+    min_rating: int | None = Field(default=None, ge=1, le=10)
+    """Житло, поїздка: рейтинг гостей від N з 10 (етап 6)."""
     condition: AlertCondition = "below_price"
     threshold: int | None = Field(default=None, ge=1, le=100_000)
     """Поріг за всіх (below_price) або сума зниження (drop_amount)."""
@@ -130,6 +136,10 @@ class AlertCreate(_StrictInput):
             raise ValueError("період і тривалість — лише для гнучких дат")
         if self.stay_key is not None and self.kind != "stay":
             raise ValueError("об'єкт житла — лише для сповіщення про житло")
+        if self.direct_only and self.kind == "stay":
+            raise ValueError("«лише прямі» — для перельоту чи поїздки")
+        if self.min_rating is not None and self.kind not in ("stay", "trip"):
+            raise ValueError("рейтинг житла — для житла чи поїздки")
         if self.condition in ("below_price", "drop_amount") and self.threshold is None:
             raise ValueError("для цієї умови потрібна сума")
         if self.condition == "drop_percent" and self.percent is None:
@@ -154,6 +164,8 @@ class AlertEdit(_StrictInput):
     weekends: bool = False
     adults: int = Field(default=1, ge=1, le=9)
     baggage: BaggageNeed = "none"
+    direct_only: bool = False
+    min_rating: int | None = Field(default=None, ge=1, le=10)
     condition: AlertCondition = "below_price"
     threshold: int | None = Field(default=None, ge=1, le=100_000)
     percent: int | None = Field(default=None, ge=1, le=90)
@@ -184,6 +196,8 @@ class AlertView(BaseModel):
     adults: int
     baggage: BaggageNeed = "none"
     stay_key: str | None = None
+    direct_only: bool = False
+    min_rating: int | None = None
     condition: AlertCondition
     threshold: int | None
     percent: int | None = None

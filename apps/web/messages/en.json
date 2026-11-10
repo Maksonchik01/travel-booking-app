@@ -975,7 +975,9 @@
       "closed": "A turned-off or past alert can't be changed — create a new one.",
       "owner_limit": "Too many alerts — turn off or delete some in your account.",
       "invalid": "Check the alert conditions: some value doesn't fit."
-    }
+    },
+    "directOnly": "Watching direct flights only",
+    "minRating": "Stays rated {rating}/10 and up"
   },
   "alertPage": {
     "title": "Price subscription",
@@ -1084,7 +1086,11 @@
       "too_soon": "too soon for the chosen frequency",
       "small_drop": "drop below the chosen minimum"
     },
-    "deletedHint": "The subscription and its history were deleted. You can create a new one from the search results page."
+    "deletedHint": "The subscription and its history were deleted. You can create a new one from the search results page.",
+    "directLabel": "Direct flights only",
+    "ratingLabel": "Stay rating",
+    "anyRating": "Any",
+    "ratingFrom": "{rating}/10 and up"
   },
   "auth": {
     "title": "Sign in to SkyPack",
@@ -2120,5 +2126,23 @@
     "clear": "Remove {name}",
     "chosenPoint": "Chosen place",
     "hint": "Search by OpenStreetMap (© OpenStreetMap contributors). Distance is in a straight line; we don't show walking or transit time — we have no routing data."
+  },
+  "priceHistory": {
+    "flightTitle": "Price history for these dates",
+    "stayTitle": "Price history for these dates",
+    "summary": "{low} to {high} · {days, plural, one {# day} other {# days}} observed",
+    "down": "{amount} cheaper than at first",
+    "up": "{amount} pricier than at first",
+    "same": "same as at first",
+    "aria": "Lowest price by day: {low} to {high}, {days, plural, one {# day} other {# days}} observed",
+    "point": "{day}: {price}",
+    "observations": "{count, plural, one {# price} other {# prices}}",
+    "table": "Table",
+    "day": "Day",
+    "lowest": "Lowest price",
+    "note": "Only prices we actually saw (our searches and sources' cached prices) — not a forecast.",
+    "few": "Not much history yet: {count, plural, one {# day} other {# days}} observed. The chart appears from 3.",
+    "none": "No price history for these dates yet.",
+    "flat": "{price} · {days, plural, one {# day} other {# days}} observed"
   }
 }

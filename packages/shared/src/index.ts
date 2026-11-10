@@ -171,3 +171,7 @@ export type TripDifference = Schemas["TripDifference"];
 // Місце біля житла (етап 5, ADR 0049).
 export type GeoPlace = Schemas["GeoPlace"];
 export type GeocodeResult = Schemas["GeocodeResult"];
+
+// Історія цін (етап 6, ADR 0050).
+export type PriceSeries = Schemas["PriceSeries"];
+export type PricePoint = Schemas["PricePoint"];

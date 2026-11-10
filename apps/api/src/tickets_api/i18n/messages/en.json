@@ -4,7 +4,9 @@
       "flex": "departure {start} – {end}, {nights} nights",
       "weekends": ", weekends only",
       "stay": "Stay: {city}, {dates}",
-      "trip": "Trip {route}"
+      "trip": "Trip {route}",
+      "direct": ", direct only",
+      "rating": ", stay rated {rating}/10+"
     },
     "party": {
       "stay": "for the whole stay",

@@ -165,6 +165,10 @@ SkyPack — веб-застосунок для пошуку подорожей �
   відновлення / редагування / вимкнення / видалення / історія (`alert-manage.tsx`, і в кабінеті);
   перевірка — замок у Redis, однакові пошуки — один запит, `ALERT_MAX_SEARCHES_PER_RUN`,
   `ALERT_MAX_ACTIVE_PER_OWNER`, дати ≤ року, журнал `checked` — 30 днів.
+  Етап 6 ([ADR 0050](docs/adr/0050-price-history-and-alert-conditions.md)): умови `direct_only` (переліт/flex/поїздка)
+  і `min_rating` (житло/поїздка) — з поточного пошуку (`lib/alerts.ts`), у `SEARCH_FIELDS`. Графік історії —
+  `GET /flights/history`, `/stays/history` (`repositories/price_series.py`: мінімум за день, ≥ 3 днів), веб —
+  `price-history-chart.tsx`.
 - **Синхронізація модулів** ([ADR 0032](docs/adr/0032-module-sync.md)): стан — URL; переходи «→ поїздка»
   лише через `lib/trip-params.ts` (`tripFromStay`, `tripFromFlight` → `flight=`/`stay=`), без логіки в
   компонентах. Збережена поїздка → `/trip?…#price-alert`. Кабінет → нові пошуки: `tripDefaults`,

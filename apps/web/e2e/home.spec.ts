@@ -274,6 +274,26 @@ test("етап 5: «Більше налаштувань» — рейси (пер
   await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
 });
 
+test("етап 6: історія цін на ці дати й підписка «прямий дешевше 100 €»", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12&direct=1");
+  await page.getByTestId("offer-card").first().waitFor();
+  await page.getByTestId("other-dates").locator("summary").first().click();
+  // Графік — коли є ≥ 3 дні спостережень, інакше чесне «даних ще мало / немає».
+  await expect(
+    page.getByTestId("price-history").or(page.getByTestId("price-history-few")).first(),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Стежити за ціною" }).click();
+  await expect(page.getByTestId("alert-search-conditions")).toHaveText(
+    "Стежимо лише за прямими рейсами",
+  );
+
+  await page.goto("/stays/hotel?city=LIS&in=2026-12-05&out=2026-12-08&src=mock&id=mock-lis-1");
+  await expect(
+    page.getByTestId("stay-price-history").or(page.getByTestId("stay-price-history-few")),
+  ).toBeVisible();
+});
+
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
   // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).

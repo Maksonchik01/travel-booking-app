@@ -45,6 +45,17 @@
 
 Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 
+## Історія цін і умови сповіщень (ADR 0050)
+
+| Сценарій | Тест |
+|---|---|
+| Ряд перельоту: мінімум за день, день знаходження, лише той самий склад/тип/валюта, 90 днів | INT `test_price_series::test_flight_series_is_min_per_day_for_same_trip` |
+| Ряд житла: ціна видачі без тарифів продавців, «мало даних» | INT `test_price_series::test_stay_series_uses_listing_price_only` |
+| Без бази — порожній ряд | API `test_price_series::test_history_endpoints_without_database_are_empty` |
+| «Прямий дешевше 100 €», «готель від 8/10», «поїздка до 500 €», валідація, текст маршруту | API `test_alert_rules::test_direct_and_rating_conditions`, `test_stay_source_requires_rating` |
+| Графік: діапазон, зміна, підказка, таблиця; «мало даних»; умови з пошуку | WEB `price-history-chart.test` |
+| Історія в рейсах і на сторінці готелю; підписка з «лише прямі» | E2E «етап 6: історія цін…» |
+
 ## Житло біля місця, «Більше налаштувань» (ADR 0049)
 
 | Сценарій | Тест |

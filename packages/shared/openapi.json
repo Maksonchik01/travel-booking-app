@@ -338,6 +338,132 @@
         }
       }
     },
+    "/flights/history": {
+      "get": {
+        "tags": [
+          "flights"
+        ],
+        "summary": "Price History",
+        "description": "Історія цін на ці дати (етап 6): найнижча ціна на кожен день спостереження за 90 днів.\n\nЛише збережені спостереження цього складу й класу; база недоступна — порожній ряд.",
+        "operationId": "price_history_flights_history_get",
+        "parameters": [
+          {
+            "name": "origin",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "examples": [
+                "WAW"
+              ],
+              "title": "Origin"
+            }
+          },
+          {
+            "name": "destination",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "examples": [
+                "WAW"
+              ],
+              "title": "Destination"
+            }
+          },
+          {
+            "name": "departure",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Departure"
+            }
+          },
+          {
+            "name": "return",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Return"
+            }
+          },
+          {
+            "name": "adults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 9,
+              "minimum": 1,
+              "default": 1,
+              "title": "Adults"
+            }
+          },
+          {
+            "name": "cabin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "economy",
+                "premium_economy",
+                "business",
+                "first"
+              ],
+              "type": "string",
+              "default": "economy",
+              "title": "Cabin"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "default": "EUR",
+              "title": "Currency"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceSeries"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/explore": {
       "post": {
         "tags": [
@@ -676,6 +802,104 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StayDetailResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stays/history": {
+      "get": {
+        "tags": [
+          "stays"
+        ],
+        "summary": "Stay History",
+        "description": "Історія ціни об'єкта на ці дати (етап 6): найнижча сума видачі на кожен день.",
+        "operationId": "stay_history_stays_history_get",
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9_]{1,32}$",
+              "title": "Source"
+            }
+          },
+          {
+            "name": "stay_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Stay Id"
+            }
+          },
+          {
+            "name": "in",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "In"
+            }
+          },
+          {
+            "name": "out",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Out"
+            }
+          },
+          {
+            "name": "guests",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 17,
+              "minimum": 1,
+              "default": 2,
+              "title": "Guests"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "default": "EUR",
+              "title": "Currency"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceSeries"
                 }
               }
             }
@@ -4821,6 +5045,22 @@
             ],
             "title": "Stay Key"
           },
+          "direct_only": {
+            "type": "boolean",
+            "title": "Direct Only",
+            "default": false
+          },
+          "min_rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rating"
+          },
           "condition": {
             "type": "string",
             "enum": [
@@ -5184,6 +5424,24 @@
             ],
             "title": "Stay Key"
           },
+          "direct_only": {
+            "type": "boolean",
+            "title": "Direct Only",
+            "default": false
+          },
+          "min_rating": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rating"
+          },
           "condition": {
             "type": "string",
             "enum": [
@@ -5403,6 +5661,24 @@
             "title": "Baggage",
             "default": "none"
           },
+          "direct_only": {
+            "type": "boolean",
+            "title": "Direct Only",
+            "default": false
+          },
+          "min_rating": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rating"
+          },
           "condition": {
             "type": "string",
             "enum": [
@@ -5621,6 +5897,22 @@
               }
             ],
             "title": "Stay Key"
+          },
+          "direct_only": {
+            "type": "boolean",
+            "title": "Direct Only",
+            "default": false
+          },
+          "min_rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rating"
           },
           "condition": {
             "type": "string",
@@ -10807,6 +11099,56 @@
         ],
         "title": "PriceMatrix",
         "description": "Матриця туди-назад (модуль 2c): виліт × повернення, лише кешовані джерела календаря."
+      },
+      "PricePoint": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "price": {
+            "type": "number",
+            "title": "Price"
+          },
+          "observations": {
+            "type": "integer",
+            "title": "Observations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "price",
+          "observations"
+        ],
+        "title": "PricePoint"
+      },
+      "PriceSeries": {
+        "properties": {
+          "currency": {
+            "type": "string",
+            "title": "Currency"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/PricePoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "enough": {
+            "type": "boolean",
+            "title": "Enough"
+          }
+        },
+        "type": "object",
+        "required": [
+          "currency",
+          "points",
+          "enough"
+        ],
+        "title": "PriceSeries"
       },
       "ProfileBody": {
         "properties": {

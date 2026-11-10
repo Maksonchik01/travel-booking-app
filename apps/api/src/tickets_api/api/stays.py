@@ -1,8 +1,14 @@
-from fastapi import APIRouter, Depends, Request
+from datetime import UTC, date, datetime
+from typing import Annotated
+
+import structlog
+from fastapi import APIRouter, Depends, Query, Request
+from sqlalchemy.exc import SQLAlchemyError
 
 from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.stay_rates import StayRatesRequest, StayRatesResult
 from tickets_api.domain.stays import StayQuery
+from tickets_api.repositories.price_series import PriceSeries, stay_series
 from tickets_api.services.stay_search import (
     StayDetailRequest,
     StayDetailResult,
@@ -42,3 +48,34 @@ async def stay_rates(body: StayRatesRequest, request: Request) -> StayRatesResul
 async def stay_detail(body: StayDetailRequest, request: Request) -> StayDetailResult:
     """Сторінка об'єкта: фото, опис, деталі — з видачі тих самих дат і гостей (з кешу пошуку)."""
     return await _service(request).detail(body)
+
+
+log = structlog.get_logger(__name__)
+
+
+@router.get("/history", response_model=PriceSeries)
+async def stay_history(
+    request: Request,
+    source: Annotated[str, Query(pattern=r"^[a-z0-9_]{1,32}$")],
+    stay_id: Annotated[str, Query(min_length=1, max_length=128)],
+    check_in: Annotated[date, Query(alias="in")],
+    check_out: Annotated[date, Query(alias="out")],
+    guests: Annotated[int, Query(ge=1, le=17)] = 2,
+    currency: Annotated[str, Query(pattern=r"^[A-Za-z]{3}$")] = "EUR",
+) -> PriceSeries:
+    """Історія ціни об'єкта на ці дати (етап 6): найнижча сума видачі на кожен день."""
+    try:
+        async with request.app.state.sessionmaker() as session:
+            return await stay_series(
+                session,
+                source=source,
+                stay_id=stay_id,
+                check_in=check_in,
+                check_out=check_out,
+                guests=guests,
+                currency=currency,
+                today=datetime.now(UTC).date(),
+            )
+    except (SQLAlchemyError, OSError) as exc:
+        log.warning("stay_history.unavailable", error=type(exc).__name__)
+        return PriceSeries(currency=currency.upper(), points=[], enough=False)

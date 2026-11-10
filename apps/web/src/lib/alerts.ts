@@ -55,6 +55,8 @@ export function flightTarget(query: FlightQuery): AlertTarget | null {
     departure_date: query.departure_date,
     adults: p?.adults ?? 1,
     baggage: query.baggage ?? "none",
+    // «Лише прямі» з пошуку (етап 6): «прямий переліт дешевше 100 €».
+    direct_only: query.direct_only ?? false,
     currency: query.currency ?? "EUR",
   };
   const title = { from: query.origin, to: query.destination };
@@ -88,7 +90,13 @@ export function flightTarget(query: FlightQuery): AlertTarget | null {
   return {
     kind: "flight",
     base: { ...common, kind: "flight", return_date: query.return_date ?? null },
-    key: [query.origin, query.destination, query.departure_date, query.return_date ?? ""].join("|"),
+    key: [
+      query.origin,
+      query.destination,
+      query.departure_date,
+      query.return_date ?? "",
+      query.direct_only ? "direct" : "",
+    ].join("|"),
     title,
   };
 }
@@ -104,9 +112,18 @@ export function stayTarget(query: StayQuery): AlertTarget {
       return_date: query.check_out,
       adults: query.guests?.adults ?? 2,
       baggage: "none",
+      direct_only: false,
+      // Рейтинг із фільтра пошуку (етап 6): «готель від 8/10 до певної ціни».
+      min_rating: query.filters?.min_rating ? Math.round(query.filters.min_rating) : null,
       currency: query.currency ?? "EUR",
     },
-    key: ["stay", query.city, query.check_in, query.check_out].join("|"),
+    key: [
+      "stay",
+      query.city,
+      query.check_in,
+      query.check_out,
+      query.filters?.min_rating ?? "",
+    ].join("|"),
     title: { from: query.city, to: query.city },
   };
 }
@@ -124,6 +141,8 @@ export function tripTarget(query: TripQuery): AlertTarget | null {
       return_date: query.return_date,
       adults: query.adults ?? 2,
       baggage: query.baggage ?? "none",
+      direct_only: query.direct_only ?? false,
+      min_rating: query.stay_filters?.min_rating ? Math.round(query.stay_filters.min_rating) : null,
       currency: query.currency ?? "EUR",
     },
     key: ["trip", query.origin, query.destination, query.departure_date, query.return_date].join(

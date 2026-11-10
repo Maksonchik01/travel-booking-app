@@ -297,6 +297,17 @@ function AlertPanel({
           {target.base.baggage && target.base.baggage !== "none" && (
             <p className="text-muted-foreground text-xs">{t("baggageNote")}</p>
           )}
+          {/* Умови з пошуку (етап 6): підписка стежить саме за ними. */}
+          {(target.base.direct_only || target.base.min_rating) && (
+            <p className="text-muted-foreground text-xs" data-testid="alert-search-conditions">
+              {[
+                target.base.direct_only ? t("directOnly") : null,
+                target.base.min_rating ? t("minRating", { rating: target.base.min_rating }) : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          )}
 
           <fieldset className="grid gap-2 text-sm">
             <legend className="text-muted-foreground mb-1 text-xs font-semibold tracking-wide uppercase">

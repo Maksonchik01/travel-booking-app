@@ -24,6 +24,7 @@ export const CLIENT_NAMESPACES = [
   "nearPlace",
   "offer",
   "picks",
+  "priceHistory",
   "recent",
   "results",
   "saveSearch",

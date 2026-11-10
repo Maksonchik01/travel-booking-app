@@ -1,11 +1,14 @@
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Annotated
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy.exc import SQLAlchemyError
 
 from tickets_api.core.rate_limit import rate_limit
-from tickets_api.domain.flights import DEFAULT_CURRENCY, FlightQuery
+from tickets_api.domain.flights import DEFAULT_CURRENCY, Cabin, FlightQuery, Passengers
 from tickets_api.domain.sellers import SellersRequest, SellersResult
+from tickets_api.repositories.price_series import PriceSeries, flight_series
 from tickets_api.services.flight_search import (
     CalendarResult,
     FlightSearchResult,
@@ -92,3 +95,38 @@ async def flight_sellers(body: SellersRequest, request: Request) -> SellersResul
     Це й перевірка перед переходом: якщо ціна змінилась, UI показує нову.
     """
     return await _service(request).sellers(body)
+
+
+log = structlog.get_logger(__name__)
+
+
+@router.get("/history", response_model=PriceSeries)
+async def price_history(
+    request: Request,
+    origin: IataParam,
+    destination: IataParam,
+    departure: date,
+    return_date: Annotated[date | None, Query(alias="return")] = None,
+    adults: Annotated[int, Query(ge=1, le=9)] = 1,
+    cabin: Cabin = "economy",
+    currency: CurrencyParam = DEFAULT_CURRENCY,
+) -> PriceSeries:
+    """Історія цін на ці дати (етап 6): найнижча ціна на кожен день спостереження за 90 днів.
+
+    Лише збережені спостереження цього складу й класу; база недоступна — порожній ряд."""
+    try:
+        async with request.app.state.sessionmaker() as session:
+            return await flight_series(
+                session,
+                origin=origin,
+                destination=destination,
+                departure=departure,
+                return_date=return_date,
+                party=Passengers(adults=adults).code,
+                cabin=cabin,
+                currency=currency,
+                today=datetime.now(UTC).date(),
+            )
+    except (SQLAlchemyError, OSError) as exc:
+        log.warning("price_history.unavailable", error=type(exc).__name__)
+        return PriceSeries(currency=currency.upper(), points=[], enough=False)

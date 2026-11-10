@@ -7,8 +7,9 @@ import pytest
 from pydantic import ValidationError
 from tickets_api.db.models import Alert
 from tickets_api.domain.alerts import AlertCreate, triggered
-from tickets_api.services.alert_sources import trip_price_source
-from tickets_api.services.alerts import Found, route_text
+from tickets_api.domain.stays import StayQuery
+from tickets_api.services.alert_sources import stay_price_source, trip_price_source
+from tickets_api.services.alerts import Found, flight_query, route_text
 
 
 def fires(condition: str, best: int, **kw: object) -> bool:
@@ -123,3 +124,53 @@ async def test_trip_source_sums_flight_and_stay() -> None:
     total = await trip_price_source(flight, stay)(alert(kind="trip"))
     assert total == Found(Decimal(420), date(2026, 12, 1), date(2026, 12, 5), True)
     assert await trip_price_source(flight, nothing)(alert(kind="trip")) is None
+
+
+def test_direct_and_rating_conditions() -> None:
+    """Етап 6: «прямий дешевше 100 €», «готель від 8/10 до ціни», «поїздка до 500 €»."""
+    direct = AlertCreate.model_validate(body(direct_only=True))
+    assert direct.direct_only is True
+    hotel = AlertCreate.model_validate(
+        body(kind="stay", origin=None, return_date=date(2026, 12, 4), min_rating=8)
+    )
+    assert hotel.min_rating == 8
+    trip = AlertCreate.model_validate(
+        body(
+            kind="trip",
+            return_date=date(2026, 12, 4),
+            min_rating=8,
+            direct_only=True,
+            threshold=500,
+        )
+    )
+    assert (trip.min_rating, trip.direct_only, trip.threshold) == (8, True, 500)
+    for case in (
+        body(kind="stay", origin=None, return_date=date(2026, 12, 4), direct_only=True),
+        body(min_rating=8),  # рейтинг житла — не для перельоту
+        body(kind="stay", origin=None, return_date=date(2026, 12, 4), min_rating=11),
+    ):
+        with pytest.raises(ValidationError):
+            AlertCreate.model_validate(case)
+
+    query = flight_query(alert(direct_only=True, return_date=date(2026, 12, 5), currency="EUR"))
+    assert query.direct_only is True
+    assert route_text(alert(direct_only=True)) == "AMS → WAW, 01.12.2026, лише прямі"
+    assert (
+        route_text(alert(kind="stay", origin=None, return_date=date(2026, 12, 5), min_rating=8))
+        == "Житло: WAW, 01.12.2026 – 05.12.2026, житло від 8/10"
+    )
+
+
+async def test_stay_source_requires_rating() -> None:
+    queries: list[StayQuery] = []
+
+    class Stays:
+        async def search(self, query: StayQuery) -> object:
+            queries.append(query)
+            return type("R", (), {"stays": []})()
+
+    source = stay_price_source(Stays())  # type: ignore[arg-type]
+    await source(
+        alert(kind="stay", origin=None, return_date=date(2026, 12, 5), min_rating=8, currency="EUR")
+    )
+    assert queries[0].filters.min_rating == 8

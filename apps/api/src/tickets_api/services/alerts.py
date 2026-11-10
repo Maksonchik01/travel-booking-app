@@ -274,6 +274,8 @@ class AlertService:
             adults=body.adults,
             baggage=body.baggage,
             stay_key=body.stay_key,
+            direct_only=body.direct_only,
+            min_rating=body.min_rating,
             condition=body.condition,
             threshold=body.threshold,
             percent=body.percent,
@@ -809,6 +811,8 @@ class AlertService:
         if alert.kind == "stay":
             params = {"city": alert.destination, "in": alert.departure_date}
             params |= {"out": alert.return_date, "adults": alert.adults}
+            if alert.min_rating:
+                params["rating"] = alert.min_rating
             return f"{base}/stays?{urlencode(params)}"
         query: dict[str, object] = {"from": alert.origin, "to": alert.destination}
         if alert.kind == "flex" and not (found and found.departure):
@@ -823,7 +827,11 @@ class AlertService:
             query["adults"] = alert.adults
         if alert.baggage != "none":
             query["bag"] = alert.baggage
+        if alert.direct_only:
+            query["direct"] = 1
         if alert.kind == "trip":
+            if alert.min_rating:
+                query["rating"] = alert.min_rating
             return f"{base}/trip?{urlencode(query)}"
         return f"{base}/?{urlencode(query)}"
 
@@ -863,6 +871,7 @@ def flight_query(alert: Alert) -> FlightQuery:
         max_nights=(alert.max_nights or alert.min_nights) if flex else None,
         passengers={"adults": alert.adults},
         baggage=alert.baggage,
+        direct_only=bool(alert.direct_only),
         currency=alert.currency,
     )
 
@@ -939,6 +948,10 @@ def route_text(alert: Alert) -> str:
         dates = _date(alert.departure_date)
         if alert.return_date:
             dates += f" – {_date(alert.return_date)}"
+    if alert.direct_only:
+        dates += t("alerts.route.direct")
+    if alert.min_rating:
+        dates += t("alerts.route.rating", rating=alert.min_rating)
     if alert.kind == "stay":
         return t("alerts.route.stay", city=alert.destination, dates=dates)
     route = f"{alert.origin} → {alert.destination}, {dates}"

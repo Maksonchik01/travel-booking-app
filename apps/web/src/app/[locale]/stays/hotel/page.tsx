@@ -22,10 +22,11 @@ import { PageNotice } from "@/components/page-notice";
 import { FreshnessBadge } from "@/components/price-freshness";
 import { SiteHeader } from "@/components/site-header";
 import { isGoogleHotels, RatingBadge, StayDetails } from "@/components/stay-card";
+import { PriceHistoryChart } from "@/components/price-history-chart";
 import { StayGallery } from "@/components/stay-gallery";
 import { StayHotelRates } from "@/components/stay-hotel-rates";
 import { Button } from "@/components/ui/button";
-import { ERROR_KEY, fetchStayDetail } from "@/lib/api";
+import { ERROR_KEY, fetchStayDetail, fetchStayHistory } from "@/lib/api";
 import { favoriteSnapshot } from "@/lib/favorites";
 import { fractionDigits } from "@/lib/money";
 import { outboundHref } from "@/lib/outbound";
@@ -157,6 +158,11 @@ async function Hotel({ searchParams }: { searchParams: Promise<RawSearchParams> 
             )}
           </section>
 
+          {/* Історія ціни на ці дати (етап 6) — збережені спостереження видачі. */}
+          <Suspense fallback={null}>
+            <StayHistory stay={stay} query={state.query} />
+          </Suspense>
+
           <section className="grid gap-3" aria-labelledby="hotel-details">
             <h2 id="hotel-details" className="text-lg font-semibold">
               {t("details")}
@@ -175,6 +181,24 @@ async function Hotel({ searchParams }: { searchParams: Promise<RawSearchParams> 
         />
       </div>
     </article>
+  );
+}
+
+async function StayHistory({ stay, query }: { stay: Stay; query: StayQuery }) {
+  const result = await fetchStayHistory({
+    source: stay.source,
+    stayId: stay.id,
+    checkIn: query.check_in,
+    checkOut: query.check_out,
+    guests: (query.guests?.adults ?? 2) + (query.guests?.children ?? 0),
+    currency: stay.currency,
+  });
+  if (!result.ok) return null;
+  const t = await getTranslations("priceHistory");
+  return (
+    <section className="bg-card rounded-xl border p-4" data-testid="stay-history">
+      <PriceHistoryChart series={result.data} title={t("stayTitle")} testId="stay-price-history" />
+    </section>
   );
 }
 

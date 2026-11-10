@@ -129,6 +129,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/flights/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Price History
+         * @description Історія цін на ці дати (етап 6): найнижча ціна на кожен день спостереження за 90 днів.
+         *
+         *     Лише збережені спостереження цього складу й класу; база недоступна — порожній ряд.
+         */
+        get: operations["price_history_flights_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/explore": {
         parameters: {
             query?: never;
@@ -273,6 +295,26 @@ export interface paths {
          * @description Сторінка об'єкта: фото, опис, деталі — з видачі тих самих дат і гостей (з кешу пошуку).
          */
         post: operations["stay_detail_stays_detail_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stays/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Stay History
+         * @description Історія ціни об'єкта на ці дати (етап 6): найнижча сума видачі на кожен день.
+         */
+        get: operations["stay_history_stays_history_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1626,6 +1668,13 @@ export interface components {
             /** Stay Key */
             stay_key?: string | null;
             /**
+             * Direct Only
+             * @default false
+             */
+            direct_only: boolean;
+            /** Min Rating */
+            min_rating?: number | null;
+            /**
              * Condition
              * @enum {string}
              */
@@ -1753,6 +1802,13 @@ export interface components {
             /** Stay Key */
             stay_key?: string | null;
             /**
+             * Direct Only
+             * @default false
+             */
+            direct_only: boolean;
+            /** Min Rating */
+            min_rating?: number | null;
+            /**
              * Condition
              * @default below_price
              * @enum {string}
@@ -1834,6 +1890,13 @@ export interface components {
              */
             baggage: "none" | "personal_item" | "carry_on" | "checked" | "checked_extra";
             /**
+             * Direct Only
+             * @default false
+             */
+            direct_only: boolean;
+            /** Min Rating */
+            min_rating?: number | null;
+            /**
              * Condition
              * @default below_price
              * @enum {string}
@@ -1909,6 +1972,13 @@ export interface components {
             baggage: "none" | "personal_item" | "carry_on" | "checked" | "checked_extra";
             /** Stay Key */
             stay_key?: string | null;
+            /**
+             * Direct Only
+             * @default false
+             */
+            direct_only: boolean;
+            /** Min Rating */
+            min_rating?: number | null;
             /**
              * Condition
              * @enum {string}
@@ -3689,6 +3759,27 @@ export interface components {
             cells: components["schemas"]["MatrixCell"][];
             /** Providers */
             providers: components["schemas"]["ProviderStatus"][];
+        };
+        /** PricePoint */
+        PricePoint: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Price */
+            price: number;
+            /** Observations */
+            observations: number;
+        };
+        /** PriceSeries */
+        PriceSeries: {
+            /** Currency */
+            currency: string;
+            /** Points */
+            points: components["schemas"]["PricePoint"][];
+            /** Enough */
+            enough: boolean;
         };
         /** ProfileBody */
         ProfileBody: {
@@ -5797,6 +5888,43 @@ export interface operations {
             };
         };
     };
+    price_history_flights_history_get: {
+        parameters: {
+            query: {
+                origin: string;
+                destination: string;
+                departure: string;
+                return?: string | null;
+                adults?: number;
+                cabin?: "economy" | "premium_economy" | "business" | "first";
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceSeries"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     explore_explore_post: {
         parameters: {
             query?: never;
@@ -6003,6 +6131,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayDetailResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stay_history_stays_history_get: {
+        parameters: {
+            query: {
+                source: string;
+                stay_id: string;
+                in: string;
+                out: string;
+                guests?: number;
+                currency?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PriceSeries"];
                 };
             };
             /** @description Validation Error */
