@@ -5,10 +5,11 @@ from redis.asyncio import Redis
 
 from tickets_api.core.config import Settings
 from tickets_api.providers.base import FlightProvider, StayProvider
-from tickets_api.providers.cached import CachedFlightProvider
+from tickets_api.providers.cached import CachedFlightProvider, CachedStayProvider
 from tickets_api.providers.mock import MockFlightProvider
 from tickets_api.providers.mock_stays import MockStayProvider
 from tickets_api.providers.scrapedo import ScrapeDoFlightProvider
+from tickets_api.providers.scrapedo_stays import ScrapeDoStayProvider
 from tickets_api.providers.serpapi import SerpApiFlightProvider
 from tickets_api.providers.travelpayouts import TravelpayoutsFlightProvider
 from tickets_api.reference.airports import default_airport_directory
@@ -82,10 +83,34 @@ def build_providers(
     return providers
 
 
-def build_stay_providers(names: Sequence[str]) -> list[StayProvider]:
-    """Поки лише mock (ADR 0008); реальне джерело — ще одна гілка тут, за кешем Redis."""
+def build_stay_providers(
+    names: Sequence[str],
+    settings: Settings | None = None,
+    http: httpx.AsyncClient | None = None,
+    redis: Redis | None = None,
+) -> list[StayProvider]:
+    """mock (ADR 0008) і scrape.do Google Hotels (ADR 0044) — за кешем Redis: пошук платний, а
+    сторінка об'єкта й тарифи беруть його з кешу. Без ключа чи клієнтів платне не будуємо."""
     providers: list[StayProvider] = []
     for name in dict.fromkeys(names):
         if name == "mock":
             providers.append(MockStayProvider(default_airport_directory()))
+        elif (
+            name == "scrapedo"
+            and settings is not None
+            and settings.scrapedo_token is not None
+            and http is not None
+            and redis is not None
+        ):
+            hotels = ScrapeDoStayProvider(
+                http,
+                settings.scrapedo_token.get_secret_value(),
+                airports=default_airport_directory(),
+                timeout_s=settings.scrapedo_timeout_s,
+                market=settings.serpapi_market,
+                base_url=settings.scrapedo_base_url,
+            )
+            cached = CachedStayProvider(hotels, redis, settings.provider_cache_ttl_s)
+            hotels.lookup = cached.search  # тарифи — з кешу пошуку, без нового запиту
+            providers.append(cached)
     return providers

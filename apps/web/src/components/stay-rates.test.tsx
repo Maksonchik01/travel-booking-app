@@ -43,6 +43,7 @@ const STAY: Stay = {
   breakfast_included: null,
   collected_at: "2026-11-06T10:00:00Z",
   found_at: "2026-11-06T10:00:00Z",
+  taxes_included: true,
 };
 
 const QUERY: StayQuery = {
@@ -62,6 +63,7 @@ const QUERY: StayQuery = {
 
 const RATE = {
   is_property: false,
+  sponsored: false,
   room_name: "Стандартний двомісний номер",
   bed_type: "double" as const,
   meal: "room_only" as const,

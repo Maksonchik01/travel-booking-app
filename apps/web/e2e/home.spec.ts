@@ -151,6 +151,28 @@ test("житло: пошук → наш вибір → фільтр → резю
   await expect(page.getByTestId("stay-analysis")).toContainText("Радимо:");
 });
 
+test("житло: картка → сторінка об'єкта з цінами продавців → назад до результатів", async ({
+  page,
+}) => {
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  const card = page.locator('[data-testid="stay-card"]:visible').first();
+  const name = (await card.getByTestId("stay-name").innerText()).trim();
+
+  await card.getByTestId("stay-open").click();
+  await expect(page).toHaveURL(/\/stays\/hotel\?.*src=mock&id=mock-lis-/);
+  const hotel = page.getByTestId("stay-hotel");
+  await expect(hotel.getByRole("heading", { level: 1 })).toHaveText(name);
+  // Mock фото не дає — чесно так і пишемо; ціни продавців підвантажуються самі.
+  await expect(page.getByTestId("stay-gallery-empty")).toBeVisible();
+  await expect(page.getByTestId("stay-rates")).toBeVisible();
+  await expect(page.getByTestId("stay-rate").first()).toContainText("€");
+  await expect(page.getByTestId("stay-hotel-price")).toContainText("за 3 ночі");
+
+  await page.getByTestId("stay-hotel-back").click();
+  await expect(page).toHaveURL(/\/stays\?city=LIS&in=2026-12-05&out=2026-12-08/);
+  await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
+});
+
 test("помічник «уся поїздка»: загальна сума й сторінка поїздки", async ({ page }) => {
   await page.goto("/stays");
   await page.waitForLoadState("networkidle");

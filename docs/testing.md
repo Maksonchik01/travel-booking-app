@@ -55,6 +55,8 @@
 | Фільтри | E2E «житло: … фільтр»; API `test_stay_filters`; WEB `stay-filters.test` |
 | Карта | E2E «карта житла…», `mobile.spec` (карта); WEB `stay-map.test` |
 | Вибір об'єкта | E2E «житло: детальніше…»; WEB `stay-card.test` |
+| Сторінка об'єкта (фото, опис, ціни продавців) | E2E «житло: картка → сторінка об'єкта…», `mobile.spec`, `a11y.spec` (stay-hotel); API `test_scrapedo_stays`, `test_stay_rates::test_stay_detail_api`; WEB `stay-hotel.test` |
+| Google Hotels (scrape.do) | API `test_scrapedo_stays` (записані відповіді: фото, опис, продавці, склад гостей); `test_trip_planner::test_stay_with_unknown_taxes_is_approximate` |
 | Перегляд цін | E2E «житло: … порівняння цін продавців»; API `test_stay_rates`; WEB `stay-rates.test` |
 | Додавання до поїздки | E2E «житло: … додати до поїздки»; API `test_trip_planner::test_pinned_stay_is_used_where_available`; WEB `stay-rates.test` (tripFromStay) |
 

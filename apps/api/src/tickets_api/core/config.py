@@ -8,7 +8,7 @@ from pydantic import Field, SecretStr, ValidationInfo, field_validator, model_va
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 FlightProviderName = Literal["mock", "travelpayouts", "serpapi", "scrapedo"]
-StayProviderName = Literal["mock"]
+StayProviderName = Literal["mock", "scrapedo"]
 LLMProviderName = Literal["off", "mock", "deepseek"]
 CalendarProviderName = Literal["mock", "travelpayouts"]
 
@@ -248,6 +248,8 @@ class Settings(BaseSettings):
             raise ValueError("FLIGHT_PROVIDERS містить serpapi без SERPAPI_KEY")
         if "scrapedo" in self.flight_providers and self.scrapedo_token is None:
             raise ValueError("FLIGHT_PROVIDERS містить scrapedo без SCRAPEDO_TOKEN")
+        if "scrapedo" in self.stay_providers and self.scrapedo_token is None:
+            raise ValueError("STAY_PROVIDERS містить scrapedo без SCRAPEDO_TOKEN")
         if self.llm_provider == "deepseek" and self.deepseek_api_key is None:
             raise ValueError("LLM_PROVIDER=deepseek без DEEPSEEK_API_KEY")
         return self

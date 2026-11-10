@@ -104,7 +104,8 @@ function RoomGroup({ room, source }: { room: RoomOffers; source: string }) {
   return (
     <section className="grid gap-1.5" data-testid="stay-room">
       <h4 className="text-sm font-semibold">
-        {room.room_name}
+        {/* Джерело не назвало номер (Google Hotels) — чесно: тип номера уточнює продавець. */}
+        {room.room_name || t("roomAny")}
         <span className="text-muted-foreground ml-2 text-xs font-normal">
           {conditions.join(" · ")}
         </span>
@@ -160,6 +161,14 @@ function RateRow({ offer, source }: { offer: RateOffer; source: string }) {
         {rate.seller}
         {rate.is_property && (
           <span className="text-muted-foreground text-[11px] font-normal">{t("property")}</span>
+        )}
+        {rate.sponsored && (
+          <span
+            className="text-muted-foreground rounded border px-1 text-[10px] font-normal"
+            data-testid="stay-rate-sponsored"
+          >
+            {t("sponsored")}
+          </span>
         )}
       </span>
       <span className="grid">

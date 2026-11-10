@@ -1,0 +1,4185 @@
+{
+ "search_parameters": {
+  "engine": "google_hotels",
+  "q": "Lisbon hotels",
+  "check_in_date": "2026-12-13",
+  "check_out_date": "2026-12-16",
+  "currency": "EUR",
+  "gl": "us",
+  "hl": "en"
+ },
+ "search_information": {
+  "total_results": 20
+ },
+ "properties": [
+  {
+   "type": "hotel",
+   "name": "The One Palácio da Anunciada",
+   "description": "Plush rooms in a formal hotel offering a hip restaurant & 2 posh bars, plus a luxe spa & 2 pools.",
+   "gps_coordinates": {
+    "latitude": 38.7173074,
+    "longitude": -9.1411617
+   },
+   "hotel_class": "5-star hotel",
+   "extracted_hotel_class": 5,
+   "overall_rating": 4.7,
+   "reviews": 1232,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 86,
+     "count": 1054
+    },
+    {
+     "stars": 4,
+     "percent": 9,
+     "count": 111
+    },
+    {
+     "stars": 3,
+     "percent": 2,
+     "count": 25
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 16
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 26
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Fitness",
+     "sentiment": 0.41954502,
+     "total_mentioned": 75,
+     "positive": 1,
+     "negative": 56,
+     "neutral": 12
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.6592428,
+     "total_mentioned": 218,
+     "positive": 1,
+     "negative": 190,
+     "neutral": 21
+    },
+    {
+     "name": "Pool",
+     "sentiment": 0.6747394,
+     "total_mentioned": 46,
+     "positive": 1,
+     "negative": 41,
+     "neutral": 4
+    },
+    {
+     "name": "Wellness",
+     "sentiment": 0.37869686,
+     "total_mentioned": 28,
+     "positive": 1,
+     "negative": 21,
+     "neutral": 7
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.6210888,
+     "total_mentioned": 92,
+     "positive": 1,
+     "negative": 79,
+     "neutral": 12
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.66348314,
+     "total_mentioned": 178,
+     "positive": 1,
+     "negative": 156,
+     "neutral": 17
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    17,
+    21,
+    2,
+    18,
+    8,
+    26,
+    4,
+    23,
+    24,
+    1,
+    31,
+    27,
+    7,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc1SLOcOsvoOxrWq8cx-kO5-uy94xCM8l7OTcsTw8GPyXJExc8ytnUIbtWM1hIZ8UsaD1jVXX9wN_JZebINqc-1S2ICxrk-i6YJCpjFzzeYxvdf4V24QAeDsCmMT4PkLpQOlB_flA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLc1SLOcOsvoOxrWq8cx-kO5-uy94xCM8l7OTcsTw8GPyXJExc8ytnUIbtWM1hIZ8UsaD1jVXX9wN_JZebINqc-1S2ICxrk-i6YJCpjFzzeYxvdf4V24QAeDsCmMT4PkLpQOlB_flA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf87qtxBJPDCcaaIZyifv6awPNU2dgGm_Bbe-DhzoUrBpd3O2VKlsSXcLLhBsUjOP4kb9Fn4HFros3PT1aCq5243ASe1cAGfSoKQBLZ6ciWaVj6gVbSPurAbrUG1mcWYGQax_Kv3ASqJPXp=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf87qtxBJPDCcaaIZyifv6awPNU2dgGm_Bbe-DhzoUrBpd3O2VKlsSXcLLhBsUjOP4kb9Fn4HFros3PT1aCq5243ASe1cAGfSoKQBLZ6ciWaVj6gVbSPurAbrUG1mcWYGQax_Kv3ASqJPXp=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfBj8ufYTMctBzNI7_oMiLX1ZKWqGlYxJmzOVSnqpE9AEEpsfdMlXR205_hSpaEjfkq68DeXydfSd6FU21Cy62WKNexKI-00olxO81fg1WPEJL7qcNHgIw_PhGhTllZAOILe1sbRw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfBj8ufYTMctBzNI7_oMiLX1ZKWqGlYxJmzOVSnqpE9AEEpsfdMlXR205_hSpaEjfkq68DeXydfSd6FU21Cy62WKNexKI-00olxO81fg1WPEJL7qcNHgIw_PhGhTllZAOILe1sbRw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf5hplmY166pXJvhSABvjzhOED2hYPo8chU6lKzUsJpRc4qUrPXzg9lasd7yRX85-oJvJMPq3ZsukMrYR1XVjt7FDS-fvIXOPHk_iXVTRye4JzO3gRgBsZPod1-bGWOzqBqb1Q-XF3Zj9K_=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf5hplmY166pXJvhSABvjzhOED2hYPo8chU6lKzUsJpRc4qUrPXzg9lasd7yRX85-oJvJMPq3ZsukMrYR1XVjt7FDS-fvIXOPHk_iXVTRye4JzO3gRgBsZPod1-bGWOzqBqb1Q-XF3Zj9K_=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfX7an1-rx42zOKAaEmQqwsi6sT9boUSr88kHLygqs6fts_UUSLlDkJ0epEA65-DcHarTdZ4Jj379DuX-WoBOx4kcIZymK10t2mq8X83cu2S__0EC9zT1vM3qWABnLKxAj40fg4=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfX7an1-rx42zOKAaEmQqwsi6sT9boUSr88kHLygqs6fts_UUSLlDkJ0epEA65-DcHarTdZ4Jj379DuX-WoBOx4kcIZymK10t2mq8X83cu2S__0EC9zT1vM3qWABnLKxAj40fg4=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLexPFanNal8ZgPK0YtKylhwG1PnBUmSZ9Iu2QkLC7VTyfp-pglCB5Gqx6rfckMhkeb2ezitrNL1ah4qxfaUNkZlA9J2wCtR8zJSjCqwuol_NcP8-2IaK1ssirfD31sYfnYTBg5aEQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLexPFanNal8ZgPK0YtKylhwG1PnBUmSZ9Iu2QkLC7VTyfp-pglCB5Gqx6rfckMhkeb2ezitrNL1ah4qxfaUNkZlA9J2wCtR8zJSjCqwuol_NcP8-2IaK1ssirfD31sYfnYTBg5aEQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcIuO4RAYaV7kIwaMM2-at77J6IqtH4xumrZHRdbDTitIG0OYGWt7fIs8U_IpRcmSUZyNgjgnmteEunrMlusEzh_gAaIIbkSg8575gqiC3HJD4sd2pgnYYpqHn4OZ5Z5xkd0IRCWQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcIuO4RAYaV7kIwaMM2-at77J6IqtH4xumrZHRdbDTitIG0OYGWt7fIs8U_IpRcmSUZyNgjgnmteEunrMlusEzh_gAaIIbkSg8575gqiC3HJD4sd2pgnYYpqHn4OZ5Z5xkd0IRCWQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcp5h6DqJbSbSwEJfkEVq6mvVCSJvlG66h6rE2PjDBk2e-2Y9BIKuB7-jlCsoMfDzcpipBCkjygUBxb4VmwTDHRc-foO_qpxTGKmokVPVy_CxfrujSp_OJJ_7QrTlAfyucEPvI=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcp5h6DqJbSbSwEJfkEVq6mvVCSJvlG66h6rE2PjDBk2e-2Y9BIKuB7-jlCsoMfDzcpipBCkjygUBxb4VmwTDHRc-foO_qpxTGKmokVPVy_CxfrujSp_OJJ_7QrTlAfyucEPvI=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLd7k0nN98sTleZYoUf_SvTBYho36y__2wTlWqObAibet16ESBoAFjDCndPlHRhIauJyIdVg3H4SI_yZbba-ccR3KBG0kspJPOCKt3B6N8ThmO4wduraIxCZfgal6-x9toQeJEDJLQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLd7k0nN98sTleZYoUf_SvTBYho36y__2wTlWqObAibet16ESBoAFjDCndPlHRhIauJyIdVg3H4SI_yZbba-ccR3KBG0kspJPOCKt3B6N8ThmO4wduraIxCZfgal6-x9toQeJEDJLQ=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSXliLWI2Zl9MaDVEakFSb05MMmN2TVRGbmFGODJhM0JyYUJBQnwweGQxOTMzNmU0ZDMxZjYyNToweGUzMjAxZTVmZmQyNmRmYzl8MzEzMTA0",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€200",
+    "amount": 199.74,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€599",
+    "amount": 599,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Santa Justa Lift",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "9 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "28 min"
+      },
+      {
+       "type": 3,
+       "duration": "29 min"
+      }
+     ]
+    },
+    {
+     "name": "Leitaria Baiana",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "4 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "InterContinental Lisbon",
+   "description": "Cosmopolitan rooms & suites in a plush lodging offering a sophisticated eatery & a hip bar.",
+   "gps_coordinates": {
+    "latitude": 38.726817,
+    "longitude": -9.1552236
+   },
+   "hotel_class": "5-star hotel",
+   "extracted_hotel_class": 5,
+   "overall_rating": 4.6,
+   "reviews": 3008,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 73,
+     "count": 2135
+    },
+    {
+     "stars": 4,
+     "percent": 20,
+     "count": 609
+    },
+    {
+     "stars": 3,
+     "percent": 4,
+     "count": 140
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 58
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 66
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Service",
+     "sentiment": 0.5908393,
+     "total_mentioned": 377,
+     "positive": 1,
+     "negative": 308,
+     "neutral": 54
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.6359443,
+     "total_mentioned": 347,
+     "positive": 1,
+     "negative": 291,
+     "neutral": 38
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.57573676,
+     "total_mentioned": 140,
+     "positive": 1,
+     "negative": 112,
+     "neutral": 20
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.48438594,
+     "total_mentioned": 89,
+     "positive": 1,
+     "negative": 67,
+     "neutral": 14
+    },
+    {
+     "name": "Food and Beverage",
+     "sentiment": 0.58267844,
+     "total_mentioned": 107,
+     "positive": 1,
+     "negative": 85,
+     "neutral": 14
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.597089,
+     "total_mentioned": 227,
+     "positive": 1,
+     "negative": 183,
+     "neutral": 21
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    15,
+    2,
+    18,
+    8,
+    4,
+    23,
+    24,
+    1,
+    31,
+    27,
+    7,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdfZdHRcC74bMt39sicPSnFm3DSr68HEpei4idq6O5nDq-UT1LbnPNi7TDV-khNFpaUdWwpUAy2zKxZejnGxkW0a-JBjtPQibejSlCaH4SodY1_9W16YeDhMB_xHOVuQ123L0P9=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdfZdHRcC74bMt39sicPSnFm3DSr68HEpei4idq6O5nDq-UT1LbnPNi7TDV-khNFpaUdWwpUAy2zKxZejnGxkW0a-JBjtPQibejSlCaH4SodY1_9W16YeDhMB_xHOVuQ123L0P9=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2jUnm7PNvX60Gn1TRp21iCVqKJVCiKjv27aME4eod8Oni-7zvJVwEOCjpqk8H1NLbVkvLZ0-BvjIZIXV1oykZsuKOMWqXuuKnskwMhwhg7ewEp6WDtEgwQ9R1Q6o2gxJq36Qsp6q4OFOcObZn7xBjIyqUOhvuT6-MYHNlRJrwXAzHJiS0G-4Bc=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2jUnm7PNvX60Gn1TRp21iCVqKJVCiKjv27aME4eod8Oni-7zvJVwEOCjpqk8H1NLbVkvLZ0-BvjIZIXV1oykZsuKOMWqXuuKnskwMhwhg7ewEp6WDtEgwQ9R1Q6o2gxJq36Qsp6q4OFOcObZn7xBjIyqUOhvuT6-MYHNlRJrwXAzHJiS0G-4Bc=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeNi0xQAfAa7xkHK5fXt4mUVhJft0YPELP8WrKhN-5ya4C4CW-wXRN7OK9e54GNtlvBVxeO4FPcKgbLH20FEnBuVp2_d8MT3qV2k5APLH6yt03s66YQVJu562VfOQFnBF9_hu0=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeNi0xQAfAa7xkHK5fXt4mUVhJft0YPELP8WrKhN-5ya4C4CW-wXRN7OK9e54GNtlvBVxeO4FPcKgbLH20FEnBuVp2_d8MT3qV2k5APLH6yt03s66YQVJu562VfOQFnBF9_hu0=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdZvk2AZO67chXihLnCUyZVNO4LbjDeEfDBayPoJ8b6brwtoAfDa1NR0yKlmJA93lVx3ufcJD-g5d9_sJPYGMwgBME5uQqjl9SmVugZeELpV4StJf6S0vwS1MlNpWMd8NinudCbFWKDlRQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdZvk2AZO67chXihLnCUyZVNO4LbjDeEfDBayPoJ8b6brwtoAfDa1NR0yKlmJA93lVx3ufcJD-g5d9_sJPYGMwgBME5uQqjl9SmVugZeELpV4StJf6S0vwS1MlNpWMd8NinudCbFWKDlRQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1vmHKab7V2PFJ0heyem0pgwqIuaC0T86XiAv3RYL5S37Q045FpLPfPi-yPF5aoaePUaMbLezhMyKAmLI_D173-q_NqWuMDWwDZgzeM44157aBiZF_fX5eEtrp4yheXecYvY-j8uwEeNBpPOq2uQRYo7DlVNSHjsQXRWDCZTnpHWg4_dsxLBM6Bxw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1vmHKab7V2PFJ0heyem0pgwqIuaC0T86XiAv3RYL5S37Q045FpLPfPi-yPF5aoaePUaMbLezhMyKAmLI_D173-q_NqWuMDWwDZgzeM44157aBiZF_fX5eEtrp4yheXecYvY-j8uwEeNBpPOq2uQRYo7DlVNSHjsQXRWDCZTnpHWg4_dsxLBM6Bxw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcuC_Nqv0Ir4c6gK7NN6KMnccqQfTLztVjJzWi5-wEK0tlnoBUFhURhmGE2AqGg6eKBRlaVEAFZ1kVkyX5lB8vgHJyZg44FxcLDjMAgwji8woynGgOD6qDH_lDNlYk4SRcRvKhk=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcuC_Nqv0Ir4c6gK7NN6KMnccqQfTLztVjJzWi5-wEK0tlnoBUFhURhmGE2AqGg6eKBRlaVEAFZ1kVkyX5lB8vgHJyZg44FxcLDjMAgwji8woynGgOD6qDH_lDNlYk4SRcRvKhk=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1iJmSn1xSqQIBfT3_6H2uwOY7YOuGqASuLEUZ3sWOjLJOnhjmuLksAQIyrKeElpkdwfynKc8xMpb13q8XfxW6oS-LGvdVrVABYKudM39vITF7ElBMuzM_LsS_lAhqX_vMHVl0bHuY3uiijuusiMzdPTRt4cLrs9alM2mcaKerz2f2VLRXSq1QT=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1iJmSn1xSqQIBfT3_6H2uwOY7YOuGqASuLEUZ3sWOjLJOnhjmuLksAQIyrKeElpkdwfynKc8xMpb13q8XfxW6oS-LGvdVrVABYKudM39vITF7ElBMuzM_LsS_lAhqX_vMHVl0bHuY3uiijuusiMzdPTRt4cLrs9alM2mcaKerz2f2VLRXSq1QT=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdljI6DWZKi-JU_HbIIb83mq_iw58SyUmNxjHO9Tat7nBSSl473FRdo5NeiFqGX0ySwYlwPsx1Tn8AoCKYeQ1hnijNt-YDRH2k11dO3SIrTSRaB6VK6y4LVyKZGSB6y7H-jcS-m=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdljI6DWZKi-JU_HbIIb83mq_iw58SyUmNxjHO9Tat7nBSSl473FRdo5NeiFqGX0ySwYlwPsx1Tn8AoCKYeQ1hnijNt-YDRH2k11dO3SIrTSRaB6VK6y4LVyKZGSB6y7H-jcS-m=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW11BFxcIcQi9bd0d28DgYesMnW4losDFlHrjwqnQXtRKMqjCTI5ipZChnE5k77WmZvahsyNuleoOI_4hDtXDVRgS35XgANoiXdEu68cRq2_wKk9T7u-BhB2t_gY93qQbxRj8g_xPcI8ZMN65xJaHyCp_iCoY2VCct864m_Gx94EokdNFmdv9rns=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW11BFxcIcQi9bd0d28DgYesMnW4losDFlHrjwqnQXtRKMqjCTI5ipZChnE5k77WmZvahsyNuleoOI_4hDtXDVRgS35XgANoiXdEu68cRq2_wKk9T7u-BhB2t_gY93qQbxRj8g_xPcI8ZMN65xJaHyCp_iCoY2VCct864m_Gx94EokdNFmdv9rns=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSTdkcmJ0OXZ3aC1KVEdnMHZaeTh4TVdJMmNHTXdjakU0RUFFfDB4ZDE5MzM3MWViZmVhMTAxOjB4NTNjNDFmODViNmY2ZWQ2ZHwzMTMxMDQ",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€142",
+    "amount": 142.09,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€426",
+    "amount": 426,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Eduardo VII Park",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "8 min"
+      }
+     ]
+    },
+    {
+     "name": "Marquês de Pombal",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "9 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "22 min"
+      },
+      {
+       "type": 3,
+       "duration": "28 min"
+      }
+     ]
+    },
+    {
+     "name": "Napoli Lisboa",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "4 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Brown's | Avenue Hotel",
+   "description": "Polished adults-only hotel offering a lounge & a restaurant, plus a rooftop pool with city views.",
+   "gps_coordinates": {
+    "latitude": 38.7220236,
+    "longitude": -9.1456424
+   },
+   "hotel_class": "5-star hotel",
+   "extracted_hotel_class": 5,
+   "overall_rating": 4.6,
+   "reviews": 287,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 81,
+     "count": 226
+    },
+    {
+     "stars": 4,
+     "percent": 10,
+     "count": 30
+    },
+    {
+     "stars": 3,
+     "percent": 4,
+     "count": 14
+    },
+    {
+     "stars": 2,
+     "percent": 2,
+     "count": 8
+    },
+    {
+     "stars": 1,
+     "percent": 3,
+     "count": 9
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Service",
+     "sentiment": 0.4270827,
+     "total_mentioned": 70,
+     "positive": 1,
+     "negative": 57,
+     "neutral": 10
+    },
+    {
+     "name": "Food and Beverage",
+     "sentiment": 0.5868818,
+     "total_mentioned": 33,
+     "positive": 1,
+     "negative": 26,
+     "neutral": 4
+    },
+    {
+     "name": "Fitness",
+     "total_mentioned": 17,
+     "negative": 10,
+     "neutral": 5
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.57743025,
+     "total_mentioned": 22,
+     "positive": 1,
+     "negative": 19,
+     "neutral": 3
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.55104905,
+     "total_mentioned": 72,
+     "positive": 1,
+     "negative": 58,
+     "neutral": 9
+    },
+    {
+     "name": "Pool",
+     "sentiment": 0.64081496,
+     "total_mentioned": 13,
+     "positive": 1,
+     "negative": 10,
+     "neutral": 2
+    }
+   ],
+   "amenities": [
+    54,
+    29,
+    17,
+    22,
+    2,
+    23,
+    1,
+    31
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLe9vqlV4nAmMqWgflpaVk-EH0Uu-Nh77kxiUf5t5-gi-jgfkf3mnBy0LElSO9BhnWchTyPzA3bS9XEwYnDSISwotstIgX1Gq3aEOAeR00FP_4MwkfviTX4Aw3SYelUEkAGg9gQe=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLe9vqlV4nAmMqWgflpaVk-EH0Uu-Nh77kxiUf5t5-gi-jgfkf3mnBy0LElSO9BhnWchTyPzA3bS9XEwYnDSISwotstIgX1Gq3aEOAeR00FP_4MwkfviTX4Aw3SYelUEkAGg9gQe=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLduDtGUOqrxksphO0Hf3MXJcBQPHqEekUXuNuVRWI3PjUnRSuQ6ysLYFI5QXQbX0CZDteu_Uhu884SsiSNrl-_oTuHyy6M983Xk4OaFJjanSHM747Stxk8QDMn0lYEQ_gbV_Izlj6PoP1MH=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLduDtGUOqrxksphO0Hf3MXJcBQPHqEekUXuNuVRWI3PjUnRSuQ6ysLYFI5QXQbX0CZDteu_Uhu884SsiSNrl-_oTuHyy6M983Xk4OaFJjanSHM747Stxk8QDMn0lYEQ_gbV_Izlj6PoP1MH=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf2n7lR4EgY-a1i0z-YtTHs1da42zYvb0FuJjI5B12KE6w_e5dnB64-uDfc2bpGdV7RDpJYJqQf1HdJvz6pI9Vy9WoqWNascrZD2xVL2LhRhPSqqy-tyoT0zdk7Y7yGbDRZDEXljQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf2n7lR4EgY-a1i0z-YtTHs1da42zYvb0FuJjI5B12KE6w_e5dnB64-uDfc2bpGdV7RDpJYJqQf1HdJvz6pI9Vy9WoqWNascrZD2xVL2LhRhPSqqy-tyoT0zdk7Y7yGbDRZDEXljQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdfGIx5PFNtoqZDVZRdt0jikmiInwNgq0N26kpCMoPOCheEdg_AGYT88gzF0v0qvBUbC2cdEipJ6wfZMrpXPLeG2B9pnSOUjAmMYchrVN-pVEYFOrEM4mFm7WQOReFY-Gr9y0s=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdfGIx5PFNtoqZDVZRdt0jikmiInwNgq0N26kpCMoPOCheEdg_AGYT88gzF0v0qvBUbC2cdEipJ6wfZMrpXPLeG2B9pnSOUjAmMYchrVN-pVEYFOrEM4mFm7WQOReFY-Gr9y0s=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdKID4iaPbi1QQgnDFXB2IXMdnsqZzwQCtBuRkCELmLfLAol-CfxDcj_hwtnQLo5Mcyr3Ga9hdkt92dXWPp9-HQBsgZa7PkJokxqymRNpfPDS22GIeMlOe00zDbQUIArgjwPaI=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdKID4iaPbi1QQgnDFXB2IXMdnsqZzwQCtBuRkCELmLfLAol-CfxDcj_hwtnQLo5Mcyr3Ga9hdkt92dXWPp9-HQBsgZa7PkJokxqymRNpfPDS22GIeMlOe00zDbQUIArgjwPaI=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW22HJvUu2K-mfJOgQ0py1f4EGnLrKJz9ppna3OODGZD-tG-8JV2DMhL9vZl8zP3TMcYo20ktj8xWgl0bY0e4We0Al-OYm61H9frQ8u2c5GONIoyh9dbJkcdQp7D7g-8aXAEvqStLi0-oqz1IOAk0T6ib0_QniU8KMao6QtWlcTnhSywtTWoncXk0A=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW22HJvUu2K-mfJOgQ0py1f4EGnLrKJz9ppna3OODGZD-tG-8JV2DMhL9vZl8zP3TMcYo20ktj8xWgl0bY0e4We0Al-OYm61H9frQ8u2c5GONIoyh9dbJkcdQp7D7g-8aXAEvqStLi0-oqz1IOAk0T6ib0_QniU8KMao6QtWlcTnhSywtTWoncXk0A=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1kIGIf2hmVnOJG4raKyZetnzrd-D8k_WM7bQpJn28OoZ3wm9S8yu84Yhe4vd012jkrii3aKPLeosfzjh2FtvA2ziUdSZoUST4zEC3eIxXuf180xV3Pmg68WKYZup9WKlqNcKu1svV5oQ9y5Xq_JaUvIi2sFuk3YGIYIXHK8g7lj9T7tq6V_mdMfA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1kIGIf2hmVnOJG4raKyZetnzrd-D8k_WM7bQpJn28OoZ3wm9S8yu84Yhe4vd012jkrii3aKPLeosfzjh2FtvA2ziUdSZoUST4zEC3eIxXuf180xV3Pmg68WKYZup9WKlqNcKu1svV5oQ9y5Xq_JaUvIi2sFuk3YGIYIXHK8g7lj9T7tq6V_mdMfA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1BMz8fsLHtXBfJHJLsKl8G6bSpv3oCPv81HQ0lafQ0OGnkzZ3Z6ezGKxURtBQ6RBmkYzc6wqS4rapTbvrLUbpnuer8DazMz1uhlVhS6NcKWJutFMN__o_0pBHTWRG3p6gVFJCsFiVcfXp3tC4LbOljPXWrZ05GV2ZGWUM83YSe8grY0fPVu7Ri=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1BMz8fsLHtXBfJHJLsKl8G6bSpv3oCPv81HQ0lafQ0OGnkzZ3Z6ezGKxURtBQ6RBmkYzc6wqS4rapTbvrLUbpnuer8DazMz1uhlVhS6NcKWJutFMN__o_0pBHTWRG3p6gVFJCsFiVcfXp3tC4LbOljPXWrZ05GV2ZGWUM83YSe8grY0fPVu7Ri=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0CHtXFU-ROYx5-acvoAQgveGdfJXPnIIwPt7wAbc8qBrx9YfvJMsXRMgZwyotMVAHhgVZm6b9j9XWfxSl2O93APxbQY3vhykeD_hPRvBGZt8kAhPUWrPwi6bcgE5DiCNT2Rgl5oqLa99EcDV9iEwQEw0fN43THH7pPPctfx4LHZrBMrv6VriE=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0CHtXFU-ROYx5-acvoAQgveGdfJXPnIIwPt7wAbc8qBrx9YfvJMsXRMgZwyotMVAHhgVZm6b9j9XWfxSl2O93APxbQY3vhykeD_hPRvBGZt8kAhPUWrPwi6bcgE5DiCNT2Rgl5oqLa99EcDV9iEwQEw0fN43THH7pPPctfx4LHZrBMrv6VriE=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSWhMQ1F3dmpPMklZV0dnMHZaeTh4TVhFMGJUWmllRGt5RUFFfDB4ZDE5MzMzOWZkN2M5MjczOjB4MTYwZDYyNzc4ODQ0MTgwNHwzMTMxMDQ",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€129",
+    "amount": 128.56,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€386",
+    "amount": 386,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Carmo Archaeological Museum",
+     "transportations": [
+      {
+       "type": 3,
+       "duration": "10 min"
+      }
+     ]
+    },
+    {
+     "name": "Avenida",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "5 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "25 min"
+      },
+      {
+       "type": 3,
+       "duration": "28 min"
+      }
+     ]
+    },
+    {
+     "name": "Fatima restaurante (Pakistani / Indian Cuisines )",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "1908 Lisboa Hotel",
+   "description": "Upmarket property featuring breakfast, plus an industrial-chic restaurant/bar.",
+   "gps_coordinates": {
+    "latitude": 38.720595,
+    "longitude": -9.135296
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.7,
+   "reviews": 687,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 80,
+     "count": 532
+    },
+    {
+     "stars": 4,
+     "percent": 16,
+     "count": 116
+    },
+    {
+     "stars": 3,
+     "percent": 2,
+     "count": 18
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 8
+    },
+    {
+     "stars": 1,
+     "percent": 1,
+     "count": 13
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Breakfast",
+     "sentiment": 0.80048925,
+     "total_mentioned": 63,
+     "positive": 1,
+     "negative": 58,
+     "neutral": 4
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.8163352,
+     "total_mentioned": 117,
+     "positive": 1,
+     "negative": 113,
+     "neutral": 3
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.8086531,
+     "total_mentioned": 117,
+     "positive": 1,
+     "negative": 111,
+     "neutral": 3
+    },
+    {
+     "name": "Food and Beverage",
+     "sentiment": 0.74843556,
+     "total_mentioned": 39,
+     "positive": 1,
+     "negative": 36,
+     "neutral": 2
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.7493951,
+     "total_mentioned": 28,
+     "positive": 1,
+     "negative": 26
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.6894306,
+     "total_mentioned": 65,
+     "positive": 1,
+     "negative": 56,
+     "neutral": 4
+    }
+   ],
+   "amenities": [
+    54,
+    29,
+    15,
+    2,
+    4,
+    23,
+    24,
+    1,
+    31,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc5Kk3MpSa9Dga8b94b0gFPbMzuqZrY3MuWWBjxDt__VvCcBR6OmQixDVBkNRCSXP94ck77ypizoZGRJOz6R3wOuiSYKIsp-eayK5oYee4ae4J4-Z9FIgcqGRkOmHjaL1u8gvGygIG7Sh0=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLc5Kk3MpSa9Dga8b94b0gFPbMzuqZrY3MuWWBjxDt__VvCcBR6OmQixDVBkNRCSXP94ck77ypizoZGRJOz6R3wOuiSYKIsp-eayK5oYee4ae4J4-Z9FIgcqGRkOmHjaL1u8gvGygIG7Sh0=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfNbzzdxhmW5jVlnmCh6CIUk6V3CTq2O2oOycuh1YiXbrusdq5qKsnxKAecvWCYvb7xmf1UoCJi2pqqZy-xz5iei57dRJmoGJUljZ_plvErJxpWhWR6MzklxUWwqNTjlF2EFHlK=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfNbzzdxhmW5jVlnmCh6CIUk6V3CTq2O2oOycuh1YiXbrusdq5qKsnxKAecvWCYvb7xmf1UoCJi2pqqZy-xz5iei57dRJmoGJUljZ_plvErJxpWhWR6MzklxUWwqNTjlF2EFHlK=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW26hUkOVgzBOCPpfo0ToNSVfQh08EwuuV_OAr-BbXh9Z18T-GQuH_XtofWtANgC3dxD6ytV34BD7fu7NP4vt905875hCihptJ_FFHwggzMiUYEVe9zhIozRlKgqEJE2X8GfFO6h42twHk3Clj-UId8LdRPwNZDDjKOiQHfC-6HPfvc-ExYdeOSz=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW26hUkOVgzBOCPpfo0ToNSVfQh08EwuuV_OAr-BbXh9Z18T-GQuH_XtofWtANgC3dxD6ytV34BD7fu7NP4vt905875hCihptJ_FFHwggzMiUYEVe9zhIozRlKgqEJE2X8GfFO6h42twHk3Clj-UId8LdRPwNZDDjKOiQHfC-6HPfvc-ExYdeOSz=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3MjPZq1FWjO-m6Y0Ecrx2haFK-CJZGM2QtKkY0Z4Kp7FY-hUGJ6BStGSaiNn_8MNNxfXQlR2MtRdD12Vr1nFskUykb_FSzkEM4OZtrTyTYL20EHHf381Xs2uFPHFE4wGdRNrMlKMUt9H3MTYh1EiysrP7UKZax6evDpAI5u2Prn5gPjXJU867Z=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3MjPZq1FWjO-m6Y0Ecrx2haFK-CJZGM2QtKkY0Z4Kp7FY-hUGJ6BStGSaiNn_8MNNxfXQlR2MtRdD12Vr1nFskUykb_FSzkEM4OZtrTyTYL20EHHf381Xs2uFPHFE4wGdRNrMlKMUt9H3MTYh1EiysrP7UKZax6evDpAI5u2Prn5gPjXJU867Z=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdkzBHvY88Wv-liXGD0Y3dhUA2q68hVVWy0kYtsw4Zp85upAzqI_hLDSsSJMctH5HRBKzHlJBfd2E-dGUKiPBxWJpkX03udC9msdqIvfXEFKrZqwF-rl0JZEHzN_AAbANg1VjuS=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdkzBHvY88Wv-liXGD0Y3dhUA2q68hVVWy0kYtsw4Zp85upAzqI_hLDSsSJMctH5HRBKzHlJBfd2E-dGUKiPBxWJpkX03udC9msdqIvfXEFKrZqwF-rl0JZEHzN_AAbANg1VjuS=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfphPMyulbzn8kPZqNur4amBmyscgHLK84xBR2t9H0GEJpWa7OkSy-151D7YyOAKgCqTJfxdCaYizzoLI0ZmLEHP8F5ap9xWdMm4B9MzPn3vBUNZcf3qf61uJpruvzjft2zswlC=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfphPMyulbzn8kPZqNur4amBmyscgHLK84xBR2t9H0GEJpWa7OkSy-151D7YyOAKgCqTJfxdCaYizzoLI0ZmLEHP8F5ap9xWdMm4B9MzPn3vBUNZcf3qf61uJpruvzjft2zswlC=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3SE3tTPkZ-45_Wo7bOqw0WxCIe_XIiCJ4yV9P04GLyc5iwm9l3ohKwz4lP5cloe4UL5Z9AULvfhHDL0_ejalLnh5-jSFYR26Y_zdKzZ8UeVkHwtdyZIu44UXVEiPSA_X3RT2_UbZazqkwT-8RKwRyKhOgsnK4603d4xBZ_zNX3YkFFDI0NZPkfNA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3SE3tTPkZ-45_Wo7bOqw0WxCIe_XIiCJ4yV9P04GLyc5iwm9l3ohKwz4lP5cloe4UL5Z9AULvfhHDL0_ejalLnh5-jSFYR26Y_zdKzZ8UeVkHwtdyZIu44UXVEiPSA_X3RT2_UbZazqkwT-8RKwRyKhOgsnK4603d4xBZ_zNX3YkFFDI0NZPkfNA=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSTRiREUwS1d3OUlwV0dnMHZaeTh4TVdNMWVITXdjbmgwRUFFfDB4ZDE5MzM4NTkzNGM1ZmUzOjB4NTYxNWQxODI1YTExMTg2MXwzMTMxMDQ",
+   "check_in_time": "2:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€103",
+    "amount": 102.89,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€309",
+    "amount": 309,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Tram 28",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "8 min"
+      }
+     ]
+    },
+    {
+     "name": "R. Palma",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "23 min"
+      },
+      {
+       "type": 3,
+       "duration": "28 min"
+      }
+     ]
+    },
+    {
+     "name": "BaniGala RESTAURANTE Lisbon",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Pestana Rua Augusta",
+   "gps_coordinates": {
+    "latitude": 38.708989,
+    "longitude": -9.136685
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.8,
+   "reviews": 525,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 89,
+     "count": 459
+    },
+    {
+     "stars": 4,
+     "percent": 7,
+     "count": 37
+    },
+    {
+     "stars": 3,
+     "percent": 2,
+     "count": 13
+    },
+    {
+     "stars": 2,
+     "count": 3
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 13
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Service",
+     "sentiment": 0.7692595,
+     "total_mentioned": 133,
+     "positive": 1,
+     "negative": 125,
+     "neutral": 5
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.8090301,
+     "total_mentioned": 129,
+     "positive": 1,
+     "negative": 123,
+     "neutral": 2
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.7824184,
+     "total_mentioned": 114,
+     "positive": 1,
+     "negative": 106,
+     "neutral": 4
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.761238,
+     "total_mentioned": 24,
+     "positive": 1,
+     "negative": 23
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.68025863,
+     "total_mentioned": 31,
+     "positive": 1,
+     "negative": 27,
+     "neutral": 2
+    },
+    {
+     "name": "Cleanliness",
+     "sentiment": 0.7378242,
+     "total_mentioned": 60,
+     "positive": 1,
+     "negative": 55,
+     "neutral": 4
+    }
+   ],
+   "amenities": [
+    54,
+    29,
+    2,
+    18,
+    15,
+    23,
+    31,
+    27,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLe9cbjJVyQvyq1aENrEUfC7Xt8XQ_5gFJcRP1MX0PfA_5YUNFplmJFQkPFq35QoH6bNGxF6anLSlAFY48GIEuj7IN8IY35mTksLNy5SN9OKF8Ry72W1My0vOsyrEgbZ9hRymZ_g=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLe9cbjJVyQvyq1aENrEUfC7Xt8XQ_5gFJcRP1MX0PfA_5YUNFplmJFQkPFq35QoH6bNGxF6anLSlAFY48GIEuj7IN8IY35mTksLNy5SN9OKF8Ry72W1My0vOsyrEgbZ9hRymZ_g=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfPfGiTZfO-HAQC7sfq4WPlddgEleb3XvtNBDCStAo8Y_HoFrMj_xjWNBdAXaAVaP__ZtmJ5jO2LyDnzG-luLqo-TGzw0Wo42OUsFDJU5fFZTu2k34ql7wZD1Z8_nCRbTdskD9j=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfPfGiTZfO-HAQC7sfq4WPlddgEleb3XvtNBDCStAo8Y_HoFrMj_xjWNBdAXaAVaP__ZtmJ5jO2LyDnzG-luLqo-TGzw0Wo42OUsFDJU5fFZTu2k34ql7wZD1Z8_nCRbTdskD9j=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf9g3vlFC4L43eVBJnBEM9_4X1rQOsHneZqaajDcjCDHsKEQ3DjNfwI77ZfKrmK7EpC-5-r4_4-KSC8Dt9AVRLegn_QBVvQGIKGDdgRMlJFnLmvvpYTx7sd_zpPlNtoqbKxd5cE=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf9g3vlFC4L43eVBJnBEM9_4X1rQOsHneZqaajDcjCDHsKEQ3DjNfwI77ZfKrmK7EpC-5-r4_4-KSC8Dt9AVRLegn_QBVvQGIKGDdgRMlJFnLmvvpYTx7sd_zpPlNtoqbKxd5cE=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeMhAV82QjkzH3s5m8axQEwE8ee_KKjM_U171eKe7ZEfOmps_GNvPbWYxt43Q5vuLbueW4WWJ3IeanYqGF7_70cngPBl7hS4lmI7SH945SFZBPfc4GwrOANzKUWqXsMQKEIZJeHCg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeMhAV82QjkzH3s5m8axQEwE8ee_KKjM_U171eKe7ZEfOmps_GNvPbWYxt43Q5vuLbueW4WWJ3IeanYqGF7_70cngPBl7hS4lmI7SH945SFZBPfc4GwrOANzKUWqXsMQKEIZJeHCg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfA7kbsqKU5yuAyREVgsgpnx40d58xCpkwOw0-HZ16uBiZJeJeI4sMYc4t5UrGdlgbZpVxD3KRSRaRhnPSpc4EblopIaCD5jTuPBDdVtZRqGSaU5KsP0YIvwy1l80UZOYydlrI=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfA7kbsqKU5yuAyREVgsgpnx40d58xCpkwOw0-HZ16uBiZJeJeI4sMYc4t5UrGdlgbZpVxD3KRSRaRhnPSpc4EblopIaCD5jTuPBDdVtZRqGSaU5KsP0YIvwy1l80UZOYydlrI=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeNKmA7ksv76OJKsp3U6p6VogVd81EAZM7o_FLedgV__6IyHtiUsEUDIOqSI7QGf2AJjvyiMgus6pCCmmy-x5z8aGXF0dz1NFCdEnLlmlKesrlTpln3b4N_HVvKXvkwE0p6GTKJ_MUp3DJx=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeNKmA7ksv76OJKsp3U6p6VogVd81EAZM7o_FLedgV__6IyHtiUsEUDIOqSI7QGf2AJjvyiMgus6pCCmmy-x5z8aGXF0dz1NFCdEnLlmlKesrlTpln3b4N_HVvKXvkwE0p6GTKJ_MUp3DJx=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeLE8vJCD2qgjBFNXVF9xd22h21BKBXRrL5Ce0rlZ_yQOwo3FARTql7qkph9U3Iy_Eblrdx7MwESMiwAHYA-3yQxeE5nsGw6ECrp7Gdb2v24ejFwt_3AmQbwhkqcWqLXwCCL0HwL0JJpbWD=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeLE8vJCD2qgjBFNXVF9xd22h21BKBXRrL5Ce0rlZ_yQOwo3FARTql7qkph9U3Iy_Eblrdx7MwESMiwAHYA-3yQxeE5nsGw6ECrp7Gdb2v24ejFwt_3AmQbwhkqcWqLXwCCL0HwL0JJpbWD=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfSovGDeXA33qbxve50h_5j9rl6Tx_BYkN8z67ts21gEO15YrxX47STJxCNSDLU4eZfCi1dkhE7NdXgTMxdUEmguftopEASLR_R6s-WGU445iX2Oxv67rsCGVO_vO5ywR988cs0bYiGI0aH=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfSovGDeXA33qbxve50h_5j9rl6Tx_BYkN8z67ts21gEO15YrxX47STJxCNSDLU4eZfCi1dkhE7NdXgTMxdUEmguftopEASLR_R6s-WGU445iX2Oxv67rsCGVO_vO5ywR988cs0bYiGI0aH=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLd2BScFPmMwz9-zEKdlk7KhOjsqBxDQHuidCgiatT60S14tzEJHIEKruuN88RMOW4jpgRV24Qk1cTn_AM3kieFDJiG8td5hjlpA1EiEx3xLBHDuK0sTBmEKYUNU-cUM724xMv8-=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLd2BScFPmMwz9-zEKdlk7KhOjsqBxDQHuidCgiatT60S14tzEJHIEKruuN88RMOW4jpgRV24Qk1cTn_AM3kieFDJiG8td5hjlpA1EiEx3xLBHDuK0sTBmEKYUNU-cUM724xMv8-=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSWtOWFMtOEtlOTRBR0dnMHZaeTh4TVhZMVlubDBORE0zRUFFfDB4ZDE5MzVjYTU5YmJiMTBkOjB4NjAxZGNmNDJmNzRhYTkwfDMxMzEwNA",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€121",
+    "amount": 120.57,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€362",
+    "amount": 362,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Rua Augusta Arch",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "1 min"
+      }
+     ]
+    },
+    {
+     "name": "Rossio",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "9 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "32 min"
+      },
+      {
+       "type": 3,
+       "duration": "33 min"
+      }
+     ]
+    },
+    {
+     "name": "Em Alta Na Baixa",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Czar Lisbon Hotel",
+   "description": "Understated rooms in a polished lodging featuring an elegant restaurant, a bar & breakfast.",
+   "gps_coordinates": {
+    "latitude": 38.7293279,
+    "longitude": -9.1348492
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.1,
+   "reviews": 1473,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 49,
+     "count": 692
+    },
+    {
+     "stars": 4,
+     "percent": 32,
+     "count": 474
+    },
+    {
+     "stars": 3,
+     "percent": 11,
+     "count": 176
+    },
+    {
+     "stars": 2,
+     "percent": 4,
+     "count": 63
+    },
+    {
+     "stars": 1,
+     "percent": 4,
+     "count": 68
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Service",
+     "sentiment": 0.5007616,
+     "total_mentioned": 101,
+     "positive": 1,
+     "negative": 76,
+     "neutral": 24
+    },
+    {
+     "name": "Breakfast",
+     "total_mentioned": 41,
+     "negative": 23,
+     "neutral": 16
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.52258736,
+     "total_mentioned": 94,
+     "positive": 1,
+     "negative": 72,
+     "neutral": 16
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.4153319,
+     "total_mentioned": 70,
+     "positive": 1,
+     "negative": 47,
+     "neutral": 10
+    },
+    {
+     "name": "Cleanliness",
+     "sentiment": 0.6023738,
+     "total_mentioned": 61,
+     "positive": 1,
+     "negative": 53,
+     "neutral": 7
+    },
+    {
+     "name": "Public transit",
+     "sentiment": 0.4788262,
+     "total_mentioned": 25,
+     "positive": 1,
+     "negative": 16,
+     "neutral": 1
+    }
+   ],
+   "amenities": [
+    54,
+    29,
+    15,
+    2,
+    4,
+    23,
+    24,
+    1,
+    31,
+    27,
+    7,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfFec2ZjMm3CmS6532dDswesc1NVWgQh-zfa7qTHfir_qWZR2njQqOkdAGJUxwQmo4RtA5Nb3p3Gy7ziEPNSt2hGM317tuVIXck4FQT-8ronHfuDuMeSaRLipzTHTs0xVCxnyJEyw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfFec2ZjMm3CmS6532dDswesc1NVWgQh-zfa7qTHfir_qWZR2njQqOkdAGJUxwQmo4RtA5Nb3p3Gy7ziEPNSt2hGM317tuVIXck4FQT-8ronHfuDuMeSaRLipzTHTs0xVCxnyJEyw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdfBzwj_gRYFg4YH1inYOQim0AbXrfFuqspSFSBzsc7M2c3GwwNnc6Cj3Cfr5Vt5M_DVYwtdOKGH2h0JMtcukPsYsU8hwVEUUDwBSGlwIKqApqZRjEjC3GtzRRLD2-GkBEwwZpDkrIOePda=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdfBzwj_gRYFg4YH1inYOQim0AbXrfFuqspSFSBzsc7M2c3GwwNnc6Cj3Cfr5Vt5M_DVYwtdOKGH2h0JMtcukPsYsU8hwVEUUDwBSGlwIKqApqZRjEjC3GtzRRLD2-GkBEwwZpDkrIOePda=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcbjkePMYKspo35Ki3pyrsp-dMd3Htro9IstxBbeLIuijThpOWd_ZlCe9mxhUyvwUqe7OtYrsI18PB5KaS_g24f_82sCx5qZvhA4k6ruhbRdzSnMQDUArCwn2PCTDHygJVhrWMV=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcbjkePMYKspo35Ki3pyrsp-dMd3Htro9IstxBbeLIuijThpOWd_ZlCe9mxhUyvwUqe7OtYrsI18PB5KaS_g24f_82sCx5qZvhA4k6ruhbRdzSnMQDUArCwn2PCTDHygJVhrWMV=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdLEX8q8DdNgbXXuiqICKPu5en-gk7QY8l3x4RDJszP0Kbc4lnn4q0TB055zTK1s8iUkj1kcX2LGGvkY3DgpvirKifXWkLdt840mPuMg-hs7iii4xveuaAeIO_EsE2zdb4YA-94=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdLEX8q8DdNgbXXuiqICKPu5en-gk7QY8l3x4RDJszP0Kbc4lnn4q0TB055zTK1s8iUkj1kcX2LGGvkY3DgpvirKifXWkLdt840mPuMg-hs7iii4xveuaAeIO_EsE2zdb4YA-94=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW30UpIxXW30Js-cmm1fSWT1pIdqa6QeUwCGnoNf3d4dZQ9cYQGt2WhO1qLdNo3r6WjL-3xx0IS5RYMVd8y1vgd8EcXyGMHkHJNpGxACvUOXqa6PWhfaUXPh0ENxx5FlUP96z5JrGNf2RMxZ9Sdkzd4DCMNx_NTOXQbZ8zjQUdhRZtdpEwOs9j8xaQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW30UpIxXW30Js-cmm1fSWT1pIdqa6QeUwCGnoNf3d4dZQ9cYQGt2WhO1qLdNo3r6WjL-3xx0IS5RYMVd8y1vgd8EcXyGMHkHJNpGxACvUOXqa6PWhfaUXPh0ENxx5FlUP96z5JrGNf2RMxZ9Sdkzd4DCMNx_NTOXQbZ8zjQUdhRZtdpEwOs9j8xaQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdPBMrT2j1RtAPUJJIFdq_eVvklCRxhRNp5ZgznCl_Ln7zWDI5zlwzvTWbr_GaslJww9K88T_HXOYRAyU3DWhXxE_18dAwx7SiAvBb06L2cs3dbijSq974mqJNdMQpsg9KruYNW=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdPBMrT2j1RtAPUJJIFdq_eVvklCRxhRNp5ZgznCl_Ln7zWDI5zlwzvTWbr_GaslJww9K88T_HXOYRAyU3DWhXxE_18dAwx7SiAvBb06L2cs3dbijSq974mqJNdMQpsg9KruYNW=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcMZD4gNHVOKDQnTdZoklj_He7tCWGtbOS8laYI3inFWbKTTc3ttrTOlkZCMb-ulh0HM6_Jl_mGM9aYIzG2QDgYcXM-263W3vT7_HQahgFdSM6UrIDrBjCCxC54CIrT79bH5-i0=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcMZD4gNHVOKDQnTdZoklj_He7tCWGtbOS8laYI3inFWbKTTc3ttrTOlkZCMb-ulh0HM6_Jl_mGM9aYIzG2QDgYcXM-263W3vT7_HQahgFdSM6UrIDrBjCCxC54CIrT79bH5-i0=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLczlhbhfm7gWP4Y2yqnFGud9F5TOPs_FwAT7F3hD-S8OUuNdfE6xGIGxHbdUTAMu1LPtSu1BiXG68SfumwaRgayHHmZ11YyGSLSP0SX5mNw2z5NnRI_JIqA2u7vc-N4l28cmqfo3A=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLczlhbhfm7gWP4Y2yqnFGud9F5TOPs_FwAT7F3hD-S8OUuNdfE6xGIGxHbdUTAMu1LPtSu1BiXG68SfumwaRgayHHmZ11YyGSLSP0SX5mNw2z5NnRI_JIqA2u7vc-N4l28cmqfo3A=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2wDwOCFZJp-KTLoyNjEnP_rQX4HAbmrK76GTOnS8Vqf-bUXiikHu0It9wW6Ix_YeA1T1zAwRvyjDW5E4ZrNZs3Qe3Kxkg1gqOULnxlFG8F5DDm0653ShD20sEu5XXzMMu3rB9vnKLMM_smAHm0FzREmtWnhlBZUB52qbkiovFqHGBGlhHYEZs=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2wDwOCFZJp-KTLoyNjEnP_rQX4HAbmrK76GTOnS8Vqf-bUXiikHu0It9wW6Ix_YeA1T1zAwRvyjDW5E4ZrNZs3Qe3Kxkg1gqOULnxlFG8F5DDm0653ShD20sEu5XXzMMu3rB9vnKLMM_smAHm0FzREmtWnhlBZUB52qbkiovFqHGBGlhHYEZs=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hjSTBlX1owdkh0MnZZeEdnc3ZaeTh4ZEdkMFozTXdkaEFCfDB4ZDE5MzM5OWZmNGZhMmEzOjB4MzFlZDZiNmYxYTU2NzdkMXwzMTMxMDQ",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€48",
+    "amount": 47.73,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€143",
+    "amount": 143,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Tram 28",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "6 min"
+      },
+      {
+       "type": 3,
+       "duration": "9 min"
+      }
+     ]
+    },
+    {
+     "name": "Anjos",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "4 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "23 min"
+      },
+      {
+       "type": 3,
+       "duration": "28 min"
+      }
+     ]
+    },
+    {
+     "name": "Leomar",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "4 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Blue Liberdade Hotel",
+   "gps_coordinates": {
+    "latitude": 38.71548,
+    "longitude": -9.1407781
+   },
+   "hotel_class": "3-star hotel",
+   "extracted_hotel_class": 3,
+   "overall_rating": 4.8,
+   "reviews": 734,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 95,
+     "count": 675
+    },
+    {
+     "stars": 4,
+     "percent": 4,
+     "count": 35
+    },
+    {
+     "stars": 3,
+     "count": 6
+    },
+    {
+     "stars": 2,
+     "count": 6
+    },
+    {
+     "stars": 1,
+     "percent": 1,
+     "count": 12
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Service",
+     "sentiment": 0.80519885,
+     "total_mentioned": 169,
+     "positive": 1,
+     "negative": 162,
+     "neutral": 6
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.8038386,
+     "total_mentioned": 145,
+     "positive": 1,
+     "negative": 139,
+     "neutral": 1
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.72802967,
+     "total_mentioned": 144,
+     "positive": 1,
+     "negative": 131,
+     "neutral": 4
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.77424926,
+     "total_mentioned": 41,
+     "positive": 1,
+     "negative": 38,
+     "neutral": 1
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.67556834,
+     "total_mentioned": 49,
+     "positive": 1,
+     "negative": 42,
+     "neutral": 5
+    },
+    {
+     "name": "Public transit",
+     "sentiment": 0.67999613,
+     "total_mentioned": 36,
+     "positive": 1,
+     "negative": 33,
+     "neutral": 1
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    17,
+    2,
+    23,
+    1,
+    31,
+    27,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf4Hwtbn3QkiN940nahaKcDrhH2tTcidT8g3FruXwfl6gOw8fVT6Lb-Zhgo5llWeyLEBij4jriAy2AdTdiDlfmHJ50vJtAsdcgND0-rDoMGZUrUAX8TGb-KfTqgk0kLzd0Wr0-zNOPFe0qr=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf4Hwtbn3QkiN940nahaKcDrhH2tTcidT8g3FruXwfl6gOw8fVT6Lb-Zhgo5llWeyLEBij4jriAy2AdTdiDlfmHJ50vJtAsdcgND0-rDoMGZUrUAX8TGb-KfTqgk0kLzd0Wr0-zNOPFe0qr=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1ASRxt4PonQKJl9Ub1JN9dhZ39beQpBkUVf8HXeNhw0VTSHM19sssa0nfeaeOfNGhNTU3FKN1Il0o_5jgHsEUct30pMB3bDEB5IscOQxASch8dL9YtKGniLpCP-fcKwbFlWcfmqDqlmimjsM52Q9QI2-jCCyvU99Cf8LkLH17qmoxERJ7yuVQL=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1ASRxt4PonQKJl9Ub1JN9dhZ39beQpBkUVf8HXeNhw0VTSHM19sssa0nfeaeOfNGhNTU3FKN1Il0o_5jgHsEUct30pMB3bDEB5IscOQxASch8dL9YtKGniLpCP-fcKwbFlWcfmqDqlmimjsM52Q9QI2-jCCyvU99Cf8LkLH17qmoxERJ7yuVQL=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfBgHzXrzSTX_6CtNV9DJqC_EpYsU64KjVrKTQwAadazrn0SmR6AjJBC7pM2F2AAhH8-k41XtCx2agT_o7s8L1HlRXVHVKxTv6bCIW8UqlOyuThkGTLBZrGv-igJy9nCThtcSjiNxCI89r6=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfBgHzXrzSTX_6CtNV9DJqC_EpYsU64KjVrKTQwAadazrn0SmR6AjJBC7pM2F2AAhH8-k41XtCx2agT_o7s8L1HlRXVHVKxTv6bCIW8UqlOyuThkGTLBZrGv-igJy9nCThtcSjiNxCI89r6=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3SG1knAFeme5QQ655jwcaTU1aOGUowCcbWncs1ACBphfD0upsHvqQwMfzJOeEIT00AteSRMpuY9pRxqCo6vjXY6wqGeUnExR9ClwvNPBYj9h0SmPQG4UuCxOCaM7InBbxwQqiSnQbDynWK2nEQDvy2eo2g8pu5g4X6wQiTdidKQfmtC-DcDTGHDA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3SG1knAFeme5QQ655jwcaTU1aOGUowCcbWncs1ACBphfD0upsHvqQwMfzJOeEIT00AteSRMpuY9pRxqCo6vjXY6wqGeUnExR9ClwvNPBYj9h0SmPQG4UuCxOCaM7InBbxwQqiSnQbDynWK2nEQDvy2eo2g8pu5g4X6wQiTdidKQfmtC-DcDTGHDA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW09RvGl7esifDG1B7zoN9eQQB_mx7gJzMdEBrVgmnEgBtE-c-Mgsa3CPOfGd4kcEA4zx0BwkLNQr4Inp2xc1joRUTOYT_lCAJJPF3H2QmTjcSBRjLCZB-4oMazziFlewDEymiDfuWfF66BHiSXXcH98XotlmvLdBWq7K7MOERRXVjaypk8P3Ko=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW09RvGl7esifDG1B7zoN9eQQB_mx7gJzMdEBrVgmnEgBtE-c-Mgsa3CPOfGd4kcEA4zx0BwkLNQr4Inp2xc1joRUTOYT_lCAJJPF3H2QmTjcSBRjLCZB-4oMazziFlewDEymiDfuWfF66BHiSXXcH98XotlmvLdBWq7K7MOERRXVjaypk8P3Ko=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2dGNReZ_xWDGZLY_KBDpDKg_oIjKTxRQRqUxoPT6A3TNfH3DKBtotg8HC1DpAS1QIFEHuuJRLZRiWfdKZuh-YKQcozlzwz9AG1FSptXE6zWkR1wiwN6OsD9QKqclEQg0bL4wpp2QV2DZGRQK5gL1YolLfs-w6AIsMxrpqeu7WYvJi_0QtW6qhe5w=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2dGNReZ_xWDGZLY_KBDpDKg_oIjKTxRQRqUxoPT6A3TNfH3DKBtotg8HC1DpAS1QIFEHuuJRLZRiWfdKZuh-YKQcozlzwz9AG1FSptXE6zWkR1wiwN6OsD9QKqclEQg0bL4wpp2QV2DZGRQK5gL1YolLfs-w6AIsMxrpqeu7WYvJi_0QtW6qhe5w=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0leiJULmjHR_cCC5Qg5fruy2Z3dAwVvsV_Dvovo38zLDnnmozsy2b1DPBzgfUcKE3DbErZFOx3Z-gqgIsFYtWsLE-SipA8JQYRsmJpl7z3h1sgaTTjeiGashRZmkhB-PSajr2rTouncMeR2QZnjeXudbUUTbIHZHEL0VHC4FRRiFyln5DnCvK0=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0leiJULmjHR_cCC5Qg5fruy2Z3dAwVvsV_Dvovo38zLDnnmozsy2b1DPBzgfUcKE3DbErZFOx3Z-gqgIsFYtWsLE-SipA8JQYRsmJpl7z3h1sgaTTjeiGashRZmkhB-PSajr2rTouncMeR2QZnjeXudbUUTbIHZHEL0VHC4FRRiFyln5DnCvK0=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSXVfTFl6Yi14MmYzSkFSb05MMmN2TVRGdWVXTnFPSHBtYmhBQnwweGQxOTMzYjU2MjU4MjYzOToweGM5ZmI2NThiZjliNjM5M2J8MzEzMTA0",
+   "check_in_time": "4:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€78",
+    "amount": 78.43,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€235",
+    "amount": 235,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Santa Justa Lift",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "6 min"
+      }
+     ]
+    },
+    {
+     "name": "Restauradores",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 3,
+       "duration": "27 min"
+      },
+      {
+       "type": 0,
+       "duration": "28 min"
+      }
+     ]
+    },
+    {
+     "name": "O Marques",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "JAM Lisbon",
+   "gps_coordinates": {
+    "latitude": 38.7053497,
+    "longitude": -9.1586933
+   },
+   "hotel_class": "3-star hotel",
+   "extracted_hotel_class": 3,
+   "overall_rating": 4.5,
+   "reviews": 602,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 77,
+     "count": 445
+    },
+    {
+     "stars": 4,
+     "percent": 15,
+     "count": 96
+    },
+    {
+     "stars": 3,
+     "percent": 4,
+     "count": 29
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 9
+    },
+    {
+     "stars": 1,
+     "percent": 3,
+     "count": 23
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Fitness",
+     "sentiment": 0.56567305,
+     "total_mentioned": 42,
+     "positive": 1,
+     "negative": 36,
+     "neutral": 3
+    },
+    {
+     "name": "Pool",
+     "sentiment": 0.7327661,
+     "total_mentioned": 34,
+     "positive": 1,
+     "negative": 31,
+     "neutral": 2
+    },
+    {
+     "name": "Family friendly",
+     "sentiment": 0.5871427,
+     "total_mentioned": 20,
+     "positive": 1,
+     "negative": 15,
+     "neutral": 1
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.73812944,
+     "total_mentioned": 92,
+     "positive": 1,
+     "negative": 80,
+     "neutral": 4
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.52598834,
+     "total_mentioned": 32,
+     "positive": 1,
+     "negative": 23,
+     "neutral": 4
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.5624306,
+     "total_mentioned": 81,
+     "positive": 1,
+     "negative": 66,
+     "neutral": 11
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    17,
+    22,
+    2,
+    4,
+    23,
+    1,
+    27,
+    7,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfz69b68i263MFISDpxOutlYA46a-0HtZZZVKFhvamJXp8oKJT0m_KcFe5WMOGE9VQqHJReDLrUXSEhrolGBFo8MqR1eiR4Fj9rKbBrFiEMVf6FyuonzbgnTIq0MRtPlgfv7T9378rEK1jw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfz69b68i263MFISDpxOutlYA46a-0HtZZZVKFhvamJXp8oKJT0m_KcFe5WMOGE9VQqHJReDLrUXSEhrolGBFo8MqR1eiR4Fj9rKbBrFiEMVf6FyuonzbgnTIq0MRtPlgfv7T9378rEK1jw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcZLcZjZQOCl6xtTLVdaZM9zhzT-V2ZlCIYgb14rzyy6dL2_EwJuE8JQzDxaUm221cPca2hoBydppDTUAvDFCU_Q1MSOe7L4SDkZYW6RA7lE-7Lg9KK9Sau6lNso6VAesjZneo=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcZLcZjZQOCl6xtTLVdaZM9zhzT-V2ZlCIYgb14rzyy6dL2_EwJuE8JQzDxaUm221cPca2hoBydppDTUAvDFCU_Q1MSOe7L4SDkZYW6RA7lE-7Lg9KK9Sau6lNso6VAesjZneo=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcmO1B-r8d_fRYjcHAEVbZKwFl98OId9w4tCzxEpq1T-LZBw2SSBvoDrpp-pP0nuGvXTl0oOBv_yluQFaRWOSw0wKphw3EmBMQUL1t3d6kZMQ_qCSvbTTD-CfrWmAuK9rny14PT4aNgN7jK=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcmO1B-r8d_fRYjcHAEVbZKwFl98OId9w4tCzxEpq1T-LZBw2SSBvoDrpp-pP0nuGvXTl0oOBv_yluQFaRWOSw0wKphw3EmBMQUL1t3d6kZMQ_qCSvbTTD-CfrWmAuK9rny14PT4aNgN7jK=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcZ5dCirulS5SXk5sCFWS0jbNlAwqN8HK_hH__holACtAjLEPc_S6UQ0QfYPmgxUAL9ygDPq5Ybnu8UZ_2QI55Agvo40ML4ju1qvIrz0_E3ZTRAhH0Ci4fTmqoSRGkqV2Qql-FW=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcZ5dCirulS5SXk5sCFWS0jbNlAwqN8HK_hH__holACtAjLEPc_S6UQ0QfYPmgxUAL9ygDPq5Ybnu8UZ_2QI55Agvo40ML4ju1qvIrz0_E3ZTRAhH0Ci4fTmqoSRGkqV2Qql-FW=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLe9ULB0Hhto8weyWH23bnwT6q7haVuQ0xpXu0oM6mr-4HDvXPAIr8BIaJ_tTPzJHLISGVpXytB3EAwIJd2-nwTP6-f7N6A8Ye6iQL9ggAafhprkcG5TxgFb4fJmRkYKtez_CnDjew=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLe9ULB0Hhto8weyWH23bnwT6q7haVuQ0xpXu0oM6mr-4HDvXPAIr8BIaJ_tTPzJHLISGVpXytB3EAwIJd2-nwTP6-f7N6A8Ye6iQL9ggAafhprkcG5TxgFb4fJmRkYKtez_CnDjew=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeN6BTj46XJHXiCjD3diiVXt-T1sM-T7lkXk_NPZKLQ539uS3fJPWiI6lCShLc9tUn8qRrTe2hrYCRvZXg1DA11jEZTCLdEAvVrGJ7sliuAnJ0e0p2udT91IuIRcfYl1DDdLDoW=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeN6BTj46XJHXiCjD3diiVXt-T1sM-T7lkXk_NPZKLQ539uS3fJPWiI6lCShLc9tUn8qRrTe2hrYCRvZXg1DA11jEZTCLdEAvVrGJ7sliuAnJ0e0p2udT91IuIRcfYl1DDdLDoW=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcOU0_mbgF_0iD818-qThof4OS4UYi-CKOpvjjMiByYoDcocCvGHNQk3tKP2rDFGaaTRV3IWuIgfRLcF7B3GkdeUXiisEzkvOKJH4f-grBxp1H0OkGks-BgqPN2PYyeKe6ePuE3=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcOU0_mbgF_0iD818-qThof4OS4UYi-CKOpvjjMiByYoDcocCvGHNQk3tKP2rDFGaaTRV3IWuIgfRLcF7B3GkdeUXiisEzkvOKJH4f-grBxp1H0OkGks-BgqPN2PYyeKe6ePuE3=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLe-kAl3m77rGTmNZfF9B_cy45z4WRft7vzpZa1nm7kDhOfBWo-obom9H9ituNMzjB7Riboswc_q3oYptaXKq9SZLVoU8qkjKo5WhZ5CxM0ouMT0r-O9mJ7hDu_Ysdt71F-Aso5w=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLe-kAl3m77rGTmNZfF9B_cy45z4WRft7vzpZa1nm7kDhOfBWo-obom9H9ituNMzjB7Riboswc_q3oYptaXKq9SZLVoU8qkjKo5WhZ5CxM0ouMT0r-O9mJ7hDu_Ysdt71F-Aso5w=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcvd9cRISsTohgR6xPTLZmNT2NkcIm3QgCL4AMTMEMHlMlZ8ZpyqkzT9ogns1HRs5mONSKNX3pBz83yFBws9IyewgmLI29s6FTcAMWYPn7etPV001rWsQh4f770KarKKrtrcHhIUw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcvd9cRISsTohgR6xPTLZmNT2NkcIm3QgCL4AMTMEMHlMlZ8ZpyqkzT9ogns1HRs5mONSKNX3pBz83yFBws9IyewgmLI29s6FTcAMWYPn7etPV001rWsQh4f770KarKKrtrcHhIUw=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSWljNkt3ODMzMWZwT0dnMHZaeTh4TVhOcllqRTJibkk1RUFFfDB4ZDE5MzViMTRiZGM0NDhiOjB4NGVmNTU3YmNkODYyYTcwOXwzMTMxMDQ",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "11:00 AM",
+   "price": {
+    "display": "€72",
+    "amount": 72.34,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€217",
+    "amount": 217,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Jerónimos Monastery",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "9 min"
+      }
+     ]
+    },
+    {
+     "name": "Santos-o-Velho",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "5 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "25 min"
+      },
+      {
+       "type": 3,
+       "duration": "53 min"
+      }
+     ]
+    },
+    {
+     "name": "Zuari",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "6 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Convent Square Lisbon, Vignette Collection by IHG",
+   "gps_coordinates": {
+    "latitude": 38.7143962,
+    "longitude": -9.1386404
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.7,
+   "reviews": 539,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 89,
+     "count": 466
+    },
+    {
+     "stars": 4,
+     "percent": 7,
+     "count": 40
+    },
+    {
+     "stars": 3,
+     "percent": 2,
+     "count": 14
+    },
+    {
+     "stars": 2,
+     "count": 5
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 14
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Service",
+     "sentiment": 0.76211333,
+     "total_mentioned": 139,
+     "positive": 1,
+     "negative": 128,
+     "neutral": 8
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.7493391,
+     "total_mentioned": 122,
+     "positive": 1,
+     "negative": 117,
+     "neutral": 3
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.7494338,
+     "total_mentioned": 126,
+     "positive": 1,
+     "negative": 117,
+     "neutral": 4
+    },
+    {
+     "name": "Wellness",
+     "sentiment": 0.52140486,
+     "total_mentioned": 18,
+     "positive": 1,
+     "negative": 15,
+     "neutral": 2
+    },
+    {
+     "name": "Spa",
+     "sentiment": 0.5326934,
+     "total_mentioned": 16,
+     "positive": 1,
+     "negative": 13,
+     "neutral": 2
+    },
+    {
+     "name": "Fitness",
+     "sentiment": 0.3527306,
+     "total_mentioned": 21,
+     "positive": 1,
+     "negative": 14,
+     "neutral": 3
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    17,
+    20,
+    10,
+    2,
+    8,
+    4,
+    23,
+    24,
+    31,
+    27,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdDwN4g_zujyCfwM0YhNotNpik-xRHVijPrsjPAgTp_Bxk1cnT4xtga6mUyKvQY1nhJXnCd48t_ZeFwNpOMA4I2tJ5dBb2BXl6rJrfB1VunpZDWQXBZk3xdWdzzUo4QXeYrgMQT=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdDwN4g_zujyCfwM0YhNotNpik-xRHVijPrsjPAgTp_Bxk1cnT4xtga6mUyKvQY1nhJXnCd48t_ZeFwNpOMA4I2tJ5dBb2BXl6rJrfB1VunpZDWQXBZk3xdWdzzUo4QXeYrgMQT=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeSuebGZAbHdGl4XkhLVBRaNozR83tinCXi7HUXHqjny9b4fDB6yGdsHSycqlxW6N8-buHWLDcVmPLOeQEyRZZXPTFayoAWb_pxhSfh-sZCkIPdAyPy0DNue2b2rAUqQV-ukvE6eA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeSuebGZAbHdGl4XkhLVBRaNozR83tinCXi7HUXHqjny9b4fDB6yGdsHSycqlxW6N8-buHWLDcVmPLOeQEyRZZXPTFayoAWb_pxhSfh-sZCkIPdAyPy0DNue2b2rAUqQV-ukvE6eA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfj5FUp3o_qz5jJ-5wEWUQRzfdgVGRbfFvFI9YiUz97p72TT4tB0jgEVaV9rgiM7XEmgz571c7tZ_4bp5ETLE7RiagEE7SEkWtcj43qgRbZcylZZt6qa6i8Yu8e4FdkkwHtqCTM=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfj5FUp3o_qz5jJ-5wEWUQRzfdgVGRbfFvFI9YiUz97p72TT4tB0jgEVaV9rgiM7XEmgz571c7tZ_4bp5ETLE7RiagEE7SEkWtcj43qgRbZcylZZt6qa6i8Yu8e4FdkkwHtqCTM=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeQiJduRgy254d7IrJQNlZW2kisGbbw9Y3biEZsMFKkHXYCpHjibRGy4qhnrxH0Z_LU0zCzhwWUTKtFeBsmXPL4Xx4DLwd_xOmEmIb8BjcYZ7_JPiQqC75MQkRssrYEHHd_dQ166W-MpfE_=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeQiJduRgy254d7IrJQNlZW2kisGbbw9Y3biEZsMFKkHXYCpHjibRGy4qhnrxH0Z_LU0zCzhwWUTKtFeBsmXPL4Xx4DLwd_xOmEmIb8BjcYZ7_JPiQqC75MQkRssrYEHHd_dQ166W-MpfE_=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfAlxXCgpvXUq8eZ-QZv0xXdN2y_lFpVfMGuxTOk9rFXfIbLdz7ushXjhnUR8yfR6dLMACig_JWm1MRo-IJ85PR3Hv3_iUVryzmUUhSd24nnmqfscsdhQuEb2VuJRFU7wHryr5f=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfAlxXCgpvXUq8eZ-QZv0xXdN2y_lFpVfMGuxTOk9rFXfIbLdz7ushXjhnUR8yfR6dLMACig_JWm1MRo-IJ85PR3Hv3_iUVryzmUUhSd24nnmqfscsdhQuEb2VuJRFU7wHryr5f=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLflDk9b-jPzjiqaHLXrvbw6Pi2sONCSNJ1WpLfTddIj6qt1etmZI4fEMq7H04p6crGoj8ujOJLeeYMQlmtMsNGDx0NDgt5yh_gALeo0_pPsmDjK0XGMTrRmlyJCuDKfQtMJIxovdA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLflDk9b-jPzjiqaHLXrvbw6Pi2sONCSNJ1WpLfTddIj6qt1etmZI4fEMq7H04p6crGoj8ujOJLeeYMQlmtMsNGDx0NDgt5yh_gALeo0_pPsmDjK0XGMTrRmlyJCuDKfQtMJIxovdA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfr0sDwdSe5R0luktMUyWLlsYq3a5DxoB_4dbqViuLDh8OIYckFjpvrVZRy1IybgmDY7DhX5A0mF4Of2eay0UwbT1IZ3j--ewuXnLFAB6kMo12t1BAOGisZ1tNeJywyMlywrbfn=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfr0sDwdSe5R0luktMUyWLlsYq3a5DxoB_4dbqViuLDh8OIYckFjpvrVZRy1IybgmDY7DhX5A0mF4Of2eay0UwbT1IZ3j--ewuXnLFAB6kMo12t1BAOGisZ1tNeJywyMlywrbfn=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcSXjeWX5pwS7AvNVxZYKCdUQBe59sweVMFSPQack9gy_t2tuVBq1XaHjF5nWhfHycQhnJQ3BEwpMRdjvDUSnajaA47kQONPKYtVs6F9jyqNoE1DZxZ0nybZmHxEqbndUGU9fMx=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcSXjeWX5pwS7AvNVxZYKCdUQBe59sweVMFSPQack9gy_t2tuVBq1XaHjF5nWhfHycQhnJQ3BEwpMRdjvDUSnajaA47kQONPKYtVs6F9jyqNoE1DZxZ0nybZmHxEqbndUGU9fMx=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdrccEHGpdFIJEUPVKO3KOMV5ZZut5ivVLgfS-IBE1j9cFTTytDzzQ5SPoUjEuCrDd70kK9dhZ7RGYLQz9DHis9zQjzc9cLUk06k6M6umTm4tTn4in_cyRXRnF54nnk7rXpnTrb=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdrccEHGpdFIJEUPVKO3KOMV5ZZut5ivVLgfS-IBE1j9cFTTytDzzQ5SPoUjEuCrDd70kK9dhZ7RGYLQz9DHis9zQjzc9cLUk06k6M6umTm4tTn4in_cyRXRnF54nnk7rXpnTrb=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSWlhUEcyYlhoOWZoc0dnMHZaeTh4TVhSeWMyWmlkbXM0RUFFfDB4ZDE5MzNlMjZjZTBiM2VkOjB4NmNmMWQ3MGI1YjMxOTE4OXwzMTMxMDQ",
+   "check_in_time": "2:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€127",
+    "amount": 127.43,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€382",
+    "amount": 382,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Santa Justa Lift",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "5 min"
+      }
+     ]
+    },
+    {
+     "name": "Rossio",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "1 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "28 min"
+      },
+      {
+       "type": 3,
+       "duration": "31 min"
+      }
+     ]
+    },
+    {
+     "name": "O Marques",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Madalena by The Beautique Hotels",
+   "gps_coordinates": {
+    "latitude": 38.7131948,
+    "longitude": -9.1365509
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.5,
+   "reviews": 475,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 76,
+     "count": 353
+    },
+    {
+     "stars": 4,
+     "percent": 14,
+     "count": 71
+    },
+    {
+     "stars": 3,
+     "percent": 3,
+     "count": 16
+    },
+    {
+     "stars": 2,
+     "percent": 2,
+     "count": 11
+    },
+    {
+     "stars": 1,
+     "percent": 5,
+     "count": 24
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Property",
+     "sentiment": 0.6599775,
+     "total_mentioned": 93,
+     "positive": 1,
+     "negative": 79,
+     "neutral": 13
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.603611,
+     "total_mentioned": 83,
+     "positive": 1,
+     "negative": 75,
+     "neutral": 7
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.71024495,
+     "total_mentioned": 70,
+     "positive": 1,
+     "negative": 63,
+     "neutral": 4
+    },
+    {
+     "name": "Breakfast",
+     "total_mentioned": 36,
+     "negative": 21,
+     "neutral": 13
+    },
+    {
+     "name": "Bathroom and toiletries",
+     "sentiment": -0.26885313,
+     "total_mentioned": 27,
+     "positive": 2,
+     "negative": 9,
+     "neutral": 17
+    },
+    {
+     "name": "Atmosphere",
+     "sentiment": 0.9286828,
+     "total_mentioned": 28,
+     "positive": 1,
+     "negative": 28
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    2,
+    4,
+    23,
+    24,
+    1,
+    31,
+    27,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcTit4ZLxzT8Xb50fbxwvLtSVPMGljfVvE3Wcur23aspSg4dgUhiEYJKuOBiIm5ukDYLJnIXFg3BMYwxCFYj9MUQ6d4klqj7RgL_iTPSzkddg_Df9T9kwq3evM5DfqIW124lpgr3Q=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcTit4ZLxzT8Xb50fbxwvLtSVPMGljfVvE3Wcur23aspSg4dgUhiEYJKuOBiIm5ukDYLJnIXFg3BMYwxCFYj9MUQ6d4klqj7RgL_iTPSzkddg_Df9T9kwq3evM5DfqIW124lpgr3Q=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcn1nggn_1-zEKX1eJA-v4lL2ATasOKuiRTcnEPZE-HJrzlatuZaqbCHhaJQiKvTNxGGQ-5DeiTjTyLF2NiMVwyrAWKlzodVwYJIlRoHnEULJ7lozzFtl_ldHeTQYMQuh4g6V5N=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcn1nggn_1-zEKX1eJA-v4lL2ATasOKuiRTcnEPZE-HJrzlatuZaqbCHhaJQiKvTNxGGQ-5DeiTjTyLF2NiMVwyrAWKlzodVwYJIlRoHnEULJ7lozzFtl_ldHeTQYMQuh4g6V5N=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfRH-C_1vyjpwAKibc5WvdA2Yy9BYqNLechUCPEvFx4YygqfbuJkCn_eIN2a8A9VdNz4ErWnYf1lr_OyYT0C-dIRi6WLPE9kCgGBD2s9qT43v_aWkjaIr_pAuCYV38TzP2VzCSN=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfRH-C_1vyjpwAKibc5WvdA2Yy9BYqNLechUCPEvFx4YygqfbuJkCn_eIN2a8A9VdNz4ErWnYf1lr_OyYT0C-dIRi6WLPE9kCgGBD2s9qT43v_aWkjaIr_pAuCYV38TzP2VzCSN=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLezVZVsTfpG4tlsBleTjQfVDXcbMDJ0ySnN70t_fDvemDe4NN3cbTvq8RCxdTahZuU2_LjRezoNospWgn0FCwZ9jOKBweTke7MraunvhgXwHX6c2pE_s0DINqieK1I5EIQzYlqJ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLezVZVsTfpG4tlsBleTjQfVDXcbMDJ0ySnN70t_fDvemDe4NN3cbTvq8RCxdTahZuU2_LjRezoNospWgn0FCwZ9jOKBweTke7MraunvhgXwHX6c2pE_s0DINqieK1I5EIQzYlqJ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeHaDGIqS9jih9j1s9dYF5lqjrnKlIeiOUiaTpfIlZ_ImlYHl7SZYguaUiYgFiZaLThBBIdazWHlP6OSzjp4Hns9pXgTDOCHLlyMMqvHL7NfnvybQOhvOEQmT0YfXLcQYG4WxDH=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeHaDGIqS9jih9j1s9dYF5lqjrnKlIeiOUiaTpfIlZ_ImlYHl7SZYguaUiYgFiZaLThBBIdazWHlP6OSzjp4Hns9pXgTDOCHLlyMMqvHL7NfnvybQOhvOEQmT0YfXLcQYG4WxDH=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLelSTI3z_4EkDvSpzMP1xR_75rucou9UPgaEBZ5SIk3SbSnWR6JnV1ft2eZNgf_hr1X3qq7YL2NrssLDXN59hKE8koN5DKSn8iScTzBtjS1AU9-0wB4573f6WeThA5o1LAFDpJ-1g=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLelSTI3z_4EkDvSpzMP1xR_75rucou9UPgaEBZ5SIk3SbSnWR6JnV1ft2eZNgf_hr1X3qq7YL2NrssLDXN59hKE8koN5DKSn8iScTzBtjS1AU9-0wB4573f6WeThA5o1LAFDpJ-1g=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLe-IiET4LbbQP93hZwquH8uvP1O7S1gM2K_TS1dn0yAKuFtkWSWexZ33k4SQIA57-3eAJ3AUEYdK9KhGTEj5x6Gn0KTz-C8o1F8UhHeMSR5YOxAxK8iJ2dAV0sH7di4ghdWDG7org=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLe-IiET4LbbQP93hZwquH8uvP1O7S1gM2K_TS1dn0yAKuFtkWSWexZ33k4SQIA57-3eAJ3AUEYdK9KhGTEj5x6Gn0KTz-C8o1F8UhHeMSR5YOxAxK8iJ2dAV0sH7di4ghdWDG7org=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcJ2UWTOXPK4yZ5hYdgV2zGRLUn-9pBdeGoeqPsFK6oOnMBF-9wG2k55waDYvz9v8oiLov4qzwlUm4W2GIaGSPpYLwW7Jz7s_EuOUPS_Ec3hfidi1Hcqdzm51zxWQcas-fMTrfU1w=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcJ2UWTOXPK4yZ5hYdgV2zGRLUn-9pBdeGoeqPsFK6oOnMBF-9wG2k55waDYvz9v8oiLov4qzwlUm4W2GIaGSPpYLwW7Jz7s_EuOUPS_Ec3hfidi1Hcqdzm51zxWQcas-fMTrfU1w=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf6XmYrozB4AE0X18tsh49xqe0217RvO_9ovANJb75kZcCN2upl4-__HQIv0EoKQve0HcuMikfMSISjVIcEHW_v1UA1ma32bWiiRRuR0ucLWBWthr4tSxsLtPGcFqoMLcSb3tek=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf6XmYrozB4AE0X18tsh49xqe0217RvO_9ovANJb75kZcCN2upl4-__HQIv0EoKQve0HcuMikfMSISjVIcEHW_v1UA1ma32bWiiRRuR0ucLWBWthr4tSxsLtPGcFqoMLcSb3tek=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSThxT0p4OHJEdWNNcEdnMHZaeTh4TVdaeU5uTnFZMnhxRUFFfDB4ZDE5MzQ3ODcwYjgyOWZiOjB4Mjk4NmU2MWNhOGUyNTFmMnwzMTMxMDQ",
+   "check_in_time": "2:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€82",
+    "amount": 81.55,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€245",
+    "amount": 245,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Tram 28",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Pç. Figueira",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "26 min"
+      },
+      {
+       "type": 3,
+       "duration": "35 min"
+      }
+     ]
+    },
+    {
+     "name": "Top Table Restaurant",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Lisboa Pessoa Hotel",
+   "description": "Bright, casual rooms in a city-center property offering an eatery, plus a terrace with city views.",
+   "gps_coordinates": {
+    "latitude": 38.7125123,
+    "longitude": -9.1414479
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.7,
+   "reviews": 1550,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 83,
+     "count": 1260
+    },
+    {
+     "stars": 4,
+     "percent": 13,
+     "count": 213
+    },
+    {
+     "stars": 3,
+     "percent": 2,
+     "count": 31
+    },
+    {
+     "stars": 2,
+     "count": 15
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 31
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Wellness",
+     "sentiment": 0.6810593,
+     "total_mentioned": 113,
+     "positive": 1,
+     "negative": 100,
+     "neutral": 5
+    },
+    {
+     "name": "Spa",
+     "sentiment": 0.70382446,
+     "total_mentioned": 102,
+     "positive": 1,
+     "negative": 93,
+     "neutral": 5
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.77575266,
+     "total_mentioned": 102,
+     "positive": 1,
+     "negative": 95,
+     "neutral": 5
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.77524436,
+     "total_mentioned": 241,
+     "positive": 1,
+     "negative": 226,
+     "neutral": 13
+    },
+    {
+     "name": "Fitness",
+     "sentiment": 0.48045853,
+     "total_mentioned": 55,
+     "positive": 1,
+     "negative": 41,
+     "neutral": 5
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.7723812,
+     "total_mentioned": 113,
+     "positive": 1,
+     "negative": 103,
+     "neutral": 7
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    17,
+    20,
+    2,
+    8,
+    26,
+    4,
+    23,
+    24,
+    1,
+    31,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLckHNXvGrFMohOmdcmAETObkP206sceX1eSvdACE53QXuQb4LyuzHbd4nXVQvUCpcu3C7Xqm7LYjNZNA70ZwTTl58fE7aXCgflp9a0Pz3QJ8TnMcZfmzj3MqjFrYv2mLbo-0rQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLckHNXvGrFMohOmdcmAETObkP206sceX1eSvdACE53QXuQb4LyuzHbd4nXVQvUCpcu3C7Xqm7LYjNZNA70ZwTTl58fE7aXCgflp9a0Pz3QJ8TnMcZfmzj3MqjFrYv2mLbo-0rQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc5pLTSWV-CN1fPzU_PeRu-bUuY0ICGg6YU4M5CNNiQaCGdhvE8QI1mrGX-RLsqnV_kY9Hr_DyRssTgKdM71A6u7xBWAi4jy1f2ddcqk6NYrYegUHSxgCZEN0TarOagKeOcA0wDrQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLc5pLTSWV-CN1fPzU_PeRu-bUuY0ICGg6YU4M5CNNiQaCGdhvE8QI1mrGX-RLsqnV_kY9Hr_DyRssTgKdM71A6u7xBWAi4jy1f2ddcqk6NYrYegUHSxgCZEN0TarOagKeOcA0wDrQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdmmyS17rMDNeF654oL1y2iGHs9dE_dMZOHVbtETlcxASvTa1hjQ8jKxfcaa5g3kkeWyYUjlHnLMhz-xOhD5vBGffuXSpF-qofT22aZ5U5d-3JIjPrwLQlmHwUPs6uzdC3_Fzwg3g=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdmmyS17rMDNeF654oL1y2iGHs9dE_dMZOHVbtETlcxASvTa1hjQ8jKxfcaa5g3kkeWyYUjlHnLMhz-xOhD5vBGffuXSpF-qofT22aZ5U5d-3JIjPrwLQlmHwUPs6uzdC3_Fzwg3g=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcbPK9o1EMi8R2F9g2r7I1lCidKNYmpIgBJHGedISRYORdCYOUSWws__FAURrpFjoIgYFEI-DLlVAlQyUfGlojnjHdpknp3t5YLR6RARAn3eVL9gFWL0ATckDwsckoSn7SbJeHi=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcbPK9o1EMi8R2F9g2r7I1lCidKNYmpIgBJHGedISRYORdCYOUSWws__FAURrpFjoIgYFEI-DLlVAlQyUfGlojnjHdpknp3t5YLR6RARAn3eVL9gFWL0ATckDwsckoSn7SbJeHi=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcoPafwyIiFl5pwnHu7PgxrMlWbODAt45WWqwTueAR8WDGLj4Kj7tDHQrala8nPN8__EWipR2kfc_mbj9_DcmDpESDMKqqH1Xscn6VfuHMj8Sa43HvIl4wLV0X0WuU3lPVMiy1EWQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcoPafwyIiFl5pwnHu7PgxrMlWbODAt45WWqwTueAR8WDGLj4Kj7tDHQrala8nPN8__EWipR2kfc_mbj9_DcmDpESDMKqqH1Xscn6VfuHMj8Sa43HvIl4wLV0X0WuU3lPVMiy1EWQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfeEe6Wh0h_zuHvAvT9ziR2kcYQx_tRk75rYwgL_C_cAPSjoDY4J3m5hJPFTmMI7zqWzm_DRonjvyGPOOti8zPndqBKD4jwQGWiW8PsmslZHGLhktXiHGEBy31NNQ4_y_lb0AJo=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfeEe6Wh0h_zuHvAvT9ziR2kcYQx_tRk75rYwgL_C_cAPSjoDY4J3m5hJPFTmMI7zqWzm_DRonjvyGPOOti8zPndqBKD4jwQGWiW8PsmslZHGLhktXiHGEBy31NNQ4_y_lb0AJo=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc-kvCKhSQJuTD2HJR2MFtCxEwohe_32VegvzXQ1oC8Fi_EbcFC1wr0e0E-Dn9Iqjbk4WhhQ8VF5HdRcb_fpbfYJZ31S6BMR5d2ggfHALoVeZK2SgiAiabNLMlsnRACbqj4htnGyg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLc-kvCKhSQJuTD2HJR2MFtCxEwohe_32VegvzXQ1oC8Fi_EbcFC1wr0e0E-Dn9Iqjbk4WhhQ8VF5HdRcb_fpbfYJZ31S6BMR5d2ggfHALoVeZK2SgiAiabNLMlsnRACbqj4htnGyg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcVT4ZuIc5WWqI3NSsPLxHrXCz2FVbtU8sfW3xR8c_f81-_WR47LBNh_X7oKA7QG08vQtKFETnZS07nLP4JfoDPGhn0xvlzn-tF-RDa4MgJ5Ct4fARkjlY9MViC77_4pLyJLpe03g=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcVT4ZuIc5WWqI3NSsPLxHrXCz2FVbtU8sfW3xR8c_f81-_WR47LBNh_X7oKA7QG08vQtKFETnZS07nLP4JfoDPGhn0xvlzn-tF-RDa4MgJ5Ct4fARkjlY9MViC77_4pLyJLpe03g=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfRb3zKwFuXkjKcmHved-mqymuLvN38Elc_KU8I6CfT5yiXWtCLF9IMLkhqI8SBhndoergelHEjwBfaDooj2FDH7MMzHtyJS7b9A8gFIgXC7nkCmP4wfQP3vLPBJC-9JdZFVA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfRb3zKwFuXkjKcmHved-mqymuLvN38Elc_KU8I6CfT5yiXWtCLF9IMLkhqI8SBhndoergelHEjwBfaDooj2FDH7MMzHtyJS7b9A8gFIgXC7nkCmP4wfQP3vLPBJC-9JdZFVA=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSWg0dWhydURrc3ZHQUFSb05MMmN2TVRGak1YTXpaSFE1ZEJBQnwweGQxOTM0N2Y0MmE5MDk3NzoweDgwZTJjYjI2MDVjODQ1ODd8MzEzMTA0",
+   "check_in_time": "4:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€110",
+    "amount": 109.9,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€330",
+    "amount": 330,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Carmo Archaeological Museum",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "1 min"
+      }
+     ]
+    },
+    {
+     "name": "Baixa-Chiado",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "5 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "30 min"
+      },
+      {
+       "type": 3,
+       "duration": "32 min"
+      }
+     ]
+    },
+    {
+     "name": "Vista Do Castelo",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "4 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Lumen Hotel & The Lisbon Light Show",
+   "description": "Chic hotel with a rooftop pool, plus a restaurant featuring evening light shows on the patio.",
+   "gps_coordinates": {
+    "latitude": 38.7295874,
+    "longitude": -9.1456099
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.6,
+   "reviews": 1416,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 79,
+     "count": 1099
+    },
+    {
+     "stars": 4,
+     "percent": 15,
+     "count": 214
+    },
+    {
+     "stars": 3,
+     "percent": 3,
+     "count": 43
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 18
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 42
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Fitness",
+     "sentiment": 0.54495937,
+     "total_mentioned": 75,
+     "positive": 1,
+     "negative": 58,
+     "neutral": 6
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.6488609,
+     "total_mentioned": 271,
+     "positive": 1,
+     "negative": 234,
+     "neutral": 26
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.73115826,
+     "total_mentioned": 261,
+     "positive": 1,
+     "negative": 235,
+     "neutral": 19
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.725647,
+     "total_mentioned": 129,
+     "positive": 1,
+     "negative": 113,
+     "neutral": 10
+    },
+    {
+     "name": "Pool",
+     "sentiment": 0.72648376,
+     "total_mentioned": 45,
+     "positive": 1,
+     "negative": 39
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.568762,
+     "total_mentioned": 62,
+     "positive": 1,
+     "negative": 50,
+     "neutral": 11
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    16,
+    22,
+    2,
+    8,
+    4,
+    23,
+    24,
+    1,
+    31,
+    27,
+    7,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdCETV4eRwb562EUWRYrZgoR-5-b2BwgY9LKCrPUnGIhiD9cskTk_OhQSWqeSP8xoY63KR4Y-gDPlSRrgLKTBNLkWtifkgBMTPFR_jq6YrYwt49tWYsrb5Hd26cI5je1bEXQk9h=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdCETV4eRwb562EUWRYrZgoR-5-b2BwgY9LKCrPUnGIhiD9cskTk_OhQSWqeSP8xoY63KR4Y-gDPlSRrgLKTBNLkWtifkgBMTPFR_jq6YrYwt49tWYsrb5Hd26cI5je1bEXQk9h=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeAYDoueO71MRvkj_L8MlmXNVhDq-KRcMkBZ4vzvoRQKucG8mr42ZbuxIzVqDxuYhhMPaItb91VgIDSjbVrN01cDkB9dAkKI4Y6LZKv9KvCwXcyq_C0I0GHGXg0h5uRXxkFaeM=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeAYDoueO71MRvkj_L8MlmXNVhDq-KRcMkBZ4vzvoRQKucG8mr42ZbuxIzVqDxuYhhMPaItb91VgIDSjbVrN01cDkB9dAkKI4Y6LZKv9KvCwXcyq_C0I0GHGXg0h5uRXxkFaeM=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcrVmW2FUOJHklrn-qqDVJ9auXHGT4XjWiJ52Iq2EzPeGLkt-nDAk7OV5GfiMWMqFAAjmCMO_jR7-PbP-OB2jSRe-jDG2ylePBXBJO2VX3afGH_5KSgCYYel2xH2CV5-LuujH_9=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcrVmW2FUOJHklrn-qqDVJ9auXHGT4XjWiJ52Iq2EzPeGLkt-nDAk7OV5GfiMWMqFAAjmCMO_jR7-PbP-OB2jSRe-jDG2ylePBXBJO2VX3afGH_5KSgCYYel2xH2CV5-LuujH_9=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcusdRxVHGBsn3k01vl3O7DUINfXL7EhQgKxQwp9p3Yb7yZtG7i4sHxNV5aEY4RT_WGOUR4YrPhao1IAF0n68NCk9T26_zQk_Z_541ExLTcUcKcZbdOpXrDH-Ng5uqzhnKwQ6QL=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcusdRxVHGBsn3k01vl3O7DUINfXL7EhQgKxQwp9p3Yb7yZtG7i4sHxNV5aEY4RT_WGOUR4YrPhao1IAF0n68NCk9T26_zQk_Z_541ExLTcUcKcZbdOpXrDH-Ng5uqzhnKwQ6QL=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeXcSBY8kubQFBrtB_ia4Nuh3H-Y8OJg3j0WozNAdpUvJzZkvMHF1efVHDa5bg9PWivfbTaM7GfArKis8IrJ7eOEo2rIG3s6OrgILi9sKrS01bJFKm1Yjq23q_yMua9k3EUW1aB=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeXcSBY8kubQFBrtB_ia4Nuh3H-Y8OJg3j0WozNAdpUvJzZkvMHF1efVHDa5bg9PWivfbTaM7GfArKis8IrJ7eOEo2rIG3s6OrgILi9sKrS01bJFKm1Yjq23q_yMua9k3EUW1aB=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfROZ41lDBZ8w242yKhwkCgDiGzpMPklEGBPQiYCIS7LBCc7UpIBgzyQtzD2kBCfpuExjZJ_MDrf_Uyy7Ri6DZZGF0gtWKMbiTjbvILqumoy2i2ACTFF8HVqhiynw9xPzvMvak=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfROZ41lDBZ8w242yKhwkCgDiGzpMPklEGBPQiYCIS7LBCc7UpIBgzyQtzD2kBCfpuExjZJ_MDrf_Uyy7Ri6DZZGF0gtWKMbiTjbvILqumoy2i2ACTFF8HVqhiynw9xPzvMvak=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcnAWXkiDToBmy4BaINoewmdzpPAzRWKQ2uCSgrTGL2qduYx4YKw4xHCGY1BpSO4EoKTRPmxFUO7twE7gZ6cmKg7RvZtbrMQJ7zLYPBiZU88CyJyJdQwbcZgFpGVV-L8H2cdk_y=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcnAWXkiDToBmy4BaINoewmdzpPAzRWKQ2uCSgrTGL2qduYx4YKw4xHCGY1BpSO4EoKTRPmxFUO7twE7gZ6cmKg7RvZtbrMQJ7zLYPBiZU88CyJyJdQwbcZgFpGVV-L8H2cdk_y=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcNjdhUH3LHZ7NuDt3JGguaETbSger8lZ71C1VdWhGF_walDAqBCc4Lsoqam7hP-JV541RN3Qdfuw6Vn71uw76yONtTWjOelFOIuPEY5GM6Slfk0Z29dksdQa9TR7cpKnTpz5d_mg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcNjdhUH3LHZ7NuDt3JGguaETbSger8lZ71C1VdWhGF_walDAqBCc4Lsoqam7hP-JV541RN3Qdfuw6Vn71uw76yONtTWjOelFOIuPEY5GM6Slfk0Z29dksdQa9TR7cpKnTpz5d_mg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcT-SYB5tqMzl2NfqjcB-ATXO0YOLYLeH2UOUrSNPzqXxODTbuZsAw_6jFJKh-Q4JecBkS_iOR0Nwm_YlC1-4J4Tx-Es3FXdjqpCfnVb0EIsaM0kRXiNTnBY0ybddRBEJsg7gO7lw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcT-SYB5tqMzl2NfqjcB-ATXO0YOLYLeH2UOUrSNPzqXxODTbuZsAw_6jFJKh-Q4JecBkS_iOR0Nwm_YlC1-4J4Tx-Es3FXdjqpCfnVb0EIsaM0kRXiNTnBY0ybddRBEJsg7gO7lw=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSWthbVM1T0xPOWQyUUFSb05MMmN2TVRGck9ETTROMjR6T1JBQnwweGQxOTMzNzVmNTczZTc5OToweDkwYmJkNjc2MmM4NDk0OTF8MzEzMTA0",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€79",
+    "amount": 78.66,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€236",
+    "amount": 236,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Tram 28",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "9 min"
+      }
+     ]
+    },
+    {
+     "name": "Picoas",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "20 min"
+      },
+      {
+       "type": 3,
+       "duration": "29 min"
+      }
+     ]
+    },
+    {
+     "name": "Flor de lisboa",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "1 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "My Story Hotel Rossio",
+   "description": "Polished hotel offering modern rooms, some with views of Rossio Square, plus an artsy cafe/bar.",
+   "gps_coordinates": {
+    "latitude": 38.7140957,
+    "longitude": -9.1401654
+   },
+   "hotel_class": "3-star hotel",
+   "extracted_hotel_class": 3,
+   "overall_rating": 4.5,
+   "reviews": 791,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 69,
+     "count": 530
+    },
+    {
+     "stars": 4,
+     "percent": 24,
+     "count": 197
+    },
+    {
+     "stars": 3,
+     "percent": 4,
+     "count": 34
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 11
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 19
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Location",
+     "sentiment": 0.77808446,
+     "total_mentioned": 128,
+     "positive": 1,
+     "negative": 122,
+     "neutral": 1
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.608781,
+     "total_mentioned": 70,
+     "positive": 1,
+     "negative": 53,
+     "neutral": 10
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.74360985,
+     "total_mentioned": 120,
+     "positive": 1,
+     "negative": 106,
+     "neutral": 11
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.57036656,
+     "total_mentioned": 106,
+     "positive": 1,
+     "negative": 83,
+     "neutral": 15
+    },
+    {
+     "name": "Restaurant",
+     "sentiment": 0.6510622,
+     "total_mentioned": 31,
+     "positive": 1,
+     "negative": 24,
+     "neutral": 4
+    },
+    {
+     "name": "Bathroom and toiletries",
+     "total_mentioned": 30,
+     "negative": 14,
+     "neutral": 10
+    }
+   ],
+   "amenities": [
+    54,
+    29,
+    2,
+    4,
+    23,
+    24,
+    1,
+    31,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0GcGmD6iJlI_u9tG5DvOKAGCiI5DNFWkfIsbb8I7jpvSc7lZje0YGF3QzuRONWrxvy4RMyA-L6dzM8TB04hJF-6nZjj7RRhod_c_JZ3QXbBuVybrI82u-F11XTyBpdZdp725TWBDVXKQqLH12Fa079xBTGcvtcpgY9VCcO2xgdgNrEAmcR2aWJXA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0GcGmD6iJlI_u9tG5DvOKAGCiI5DNFWkfIsbb8I7jpvSc7lZje0YGF3QzuRONWrxvy4RMyA-L6dzM8TB04hJF-6nZjj7RRhod_c_JZ3QXbBuVybrI82u-F11XTyBpdZdp725TWBDVXKQqLH12Fa079xBTGcvtcpgY9VCcO2xgdgNrEAmcR2aWJXA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3wLw3ZjAUO4gSjD5zMxhmyXHo5E7Pb1Vg0bpwRJOp8RXxtlTC0e-RCcriFcgC-Y8jyX_5j0fPeCgEJz0WF8K91WUaMNr0xyUmW7KJv6gN37CKpyDyRhg-_qiGY6wxEL9FnZZk1OuxtKxBbr-JcPDLQrOLR28GhDbGwAfPdn3fHkRhuD7QV9LjH=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3wLw3ZjAUO4gSjD5zMxhmyXHo5E7Pb1Vg0bpwRJOp8RXxtlTC0e-RCcriFcgC-Y8jyX_5j0fPeCgEJz0WF8K91WUaMNr0xyUmW7KJv6gN37CKpyDyRhg-_qiGY6wxEL9FnZZk1OuxtKxBbr-JcPDLQrOLR28GhDbGwAfPdn3fHkRhuD7QV9LjH=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2uvqupcCfsMRpngvPTitH73Cb6ut9At1NfKLRQKY1xS8hP6g-T3QMr1cLGpePBbHYWYkfITzsAmzE6iZRyjoIPgEBEoFynFTGR1pByy85i1nINKCsw0rEf6bQ1lK7dZdlUI9D_7cO1_29lFSC66GXVeqycrrv4e6vFY36-zmOVPAgmdH4FKA_n=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2uvqupcCfsMRpngvPTitH73Cb6ut9At1NfKLRQKY1xS8hP6g-T3QMr1cLGpePBbHYWYkfITzsAmzE6iZRyjoIPgEBEoFynFTGR1pByy85i1nINKCsw0rEf6bQ1lK7dZdlUI9D_7cO1_29lFSC66GXVeqycrrv4e6vFY36-zmOVPAgmdH4FKA_n=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcQtRIgkJnJVWEaDKIPh2nN0bwa6CJOdxs7qOotaThpRrZpgUCoeUP7QLvJCq3NPmiYFHsypT1n0Qxqrb2Dl9_KfHpa76E22TwfyqRbPE1L9YebnK7jmOAj3ddGx34594G6-ztS=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcQtRIgkJnJVWEaDKIPh2nN0bwa6CJOdxs7qOotaThpRrZpgUCoeUP7QLvJCq3NPmiYFHsypT1n0Qxqrb2Dl9_KfHpa76E22TwfyqRbPE1L9YebnK7jmOAj3ddGx34594G6-ztS=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLer8JEwM2f0aPl1Fj9wTLuaDldkcq_pSW-SUoC0Mzq0grKlcC-6gbSZl4A-awmuNRzzzyhGpcEMfRW6Gl3omy4cDq6pndNsamr8w16NEOmWVWH3lQt2Pan-zf8sYsazdfH88DnN=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLer8JEwM2f0aPl1Fj9wTLuaDldkcq_pSW-SUoC0Mzq0grKlcC-6gbSZl4A-awmuNRzzzyhGpcEMfRW6Gl3omy4cDq6pndNsamr8w16NEOmWVWH3lQt2Pan-zf8sYsazdfH88DnN=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0aXHZLr2Bdorsj9dei-NmIUdhAbQRnRmbssjSyUa3bXD_mdy8ba_QsfHabyEr2UQkHo76EpoEAoJ-hfyR4tL_2vzbq1wS8WA7qccoFKT7PMxR2EcGctt8oDmGa8Jv6MFQuVq83fB8dtGWapfJXnB3fZ3Pgfhs7JyMoJilApYZPm6slNBVisW3w0g=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0aXHZLr2Bdorsj9dei-NmIUdhAbQRnRmbssjSyUa3bXD_mdy8ba_QsfHabyEr2UQkHo76EpoEAoJ-hfyR4tL_2vzbq1wS8WA7qccoFKT7PMxR2EcGctt8oDmGa8Jv6MFQuVq83fB8dtGWapfJXnB3fZ3Pgfhs7JyMoJilApYZPm6slNBVisW3w0g=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW36SzlAiRFJO6jBUtEA0OoRgm7C3w4ER_8a-i9i8YqnDFP4S7Hw1i6nJGaIS2uBAMoj-L6nO3OpN2yxnnpvAeSJtdpWad4DntSxrqmY5OTSkHKHVOiYpEH7k2wIRN4K213zdUr75rRjIbSnZimt__rIWCk8uStleE80T19c-77FRJmGDf7ViOc=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW36SzlAiRFJO6jBUtEA0OoRgm7C3w4ER_8a-i9i8YqnDFP4S7Hw1i6nJGaIS2uBAMoj-L6nO3OpN2yxnnpvAeSJtdpWad4DntSxrqmY5OTSkHKHVOiYpEH7k2wIRN4K213zdUr75rRjIbSnZimt__rIWCk8uStleE80T19c-77FRJmGDf7ViOc=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0GnrNHDxV9I1zW1EHSGHp-EkuAoSJ7kJLV1H_FWXqh84dHCTl9Zj9MaLTOnR2Pq23XMWq9ejx43ZFYuN0pTV3YWRe6jMj4AUeAWtVCJtwvC6UFnY9CoVvY41pHCh9B33dpPsH6mJhb0LbiGZawPIPxkSNdRMcRARt2c1CQKuRvDRVvsqXeaSmB4g=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0GnrNHDxV9I1zW1EHSGHp-EkuAoSJ7kJLV1H_FWXqh84dHCTl9Zj9MaLTOnR2Pq23XMWq9ejx43ZFYuN0pTV3YWRe6jMj4AUeAWtVCJtwvC6UFnY9CoVvY41pHCh9B33dpPsH6mJhb0LbiGZawPIPxkSNdRMcRARt2c1CQKuRvDRVvsqXeaSmB4g=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeSRqG88tSQniIvWjS-1Mw_JePVr3v_-RVS1aVJ2A8l3V0m8hIz2xXB0N5iOaBTcQgBtIXWXoOaH__0jhKUwn5SN2craa1gYBfLMGgfLN_mq3FcjsuZu7sBOuCY4ZG7wePf91q6Bg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeSRqG88tSQniIvWjS-1Mw_JePVr3v_-RVS1aVJ2A8l3V0m8hIz2xXB0N5iOaBTcQgBtIXWXoOaH__0jhKUwn5SN2craa1gYBfLMGgfLN_mq3FcjsuZu7sBOuCY4ZG7wePf91q6Bg=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSXU0TGxyTHluN19qd0FSb05MMmN2TVRGaU4zSjBjRzFuYXhBQnwweGQxOTMzODc0ZGVkNTUzZDoweGYwZjFiZDNiYzU5OTQxM2J8MzEzMTA0",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "11:00 AM",
+   "price": {
+    "display": "€77",
+    "amount": 76.64,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€230",
+    "amount": 230,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Santa Justa Lift",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Restauradores",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "28 min"
+      },
+      {
+       "type": 3,
+       "duration": "30 min"
+      }
+     ]
+    },
+    {
+     "name": "A Lota - 2 Restaurante - Cervejaria",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "HOTEL HOTEL",
+   "description": "Hip rooms & suites in an upscale hotel featuring an outdoor pool & a contemporary restaurant.",
+   "gps_coordinates": {
+    "latitude": 38.717132,
+    "longitude": -9.1439877
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.8,
+   "reviews": 577,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 90,
+     "count": 510
+    },
+    {
+     "stars": 4,
+     "percent": 6,
+     "count": 36
+    },
+    {
+     "stars": 3,
+     "percent": 2,
+     "count": 12
+    },
+    {
+     "stars": 2,
+     "count": 5
+    },
+    {
+     "stars": 1,
+     "percent": 2,
+     "count": 14
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Fitness",
+     "sentiment": 0.74415314,
+     "total_mentioned": 74,
+     "positive": 1,
+     "negative": 67,
+     "neutral": 4
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.83824295,
+     "total_mentioned": 116,
+     "positive": 1,
+     "negative": 113,
+     "neutral": 2
+    },
+    {
+     "name": "Pool",
+     "sentiment": 0.79061747,
+     "total_mentioned": 47,
+     "positive": 1,
+     "negative": 44,
+     "neutral": 2
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.8132173,
+     "total_mentioned": 173,
+     "positive": 1,
+     "negative": 163,
+     "neutral": 8
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.78152704,
+     "total_mentioned": 170,
+     "positive": 1,
+     "negative": 156,
+     "neutral": 6
+    },
+    {
+     "name": "Restaurant",
+     "sentiment": 0.8517281,
+     "total_mentioned": 57,
+     "positive": 1,
+     "negative": 55
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    16,
+    22,
+    2,
+    4,
+    23,
+    1,
+    31,
+    27
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf2a60Va8C8WcDPyYthlUi-ngCdhdmmdq1aXbD9UYLeHBmWULzDRmW1hJmH2keLakKCBNrBY-bVr7-w1ZJNAzrQnisoacalW8ZLJi6Zw1sjiidZSlxeQV4vogBpBsWRHf_1wbVD=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf2a60Va8C8WcDPyYthlUi-ngCdhdmmdq1aXbD9UYLeHBmWULzDRmW1hJmH2keLakKCBNrBY-bVr7-w1ZJNAzrQnisoacalW8ZLJi6Zw1sjiidZSlxeQV4vogBpBsWRHf_1wbVD=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdKuSaUM3Ow3xRk7YT2TgxLYB0nxbLgh_AeRGHtXj5wRbrCIhielNm91mEG7-A6PMsGCtyjI6OkLI7iekfSVxfZ5rUPICWux9tJPIqEmUJI7hiWVvB8j3I67rLcMllKwTWPYqg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdKuSaUM3Ow3xRk7YT2TgxLYB0nxbLgh_AeRGHtXj5wRbrCIhielNm91mEG7-A6PMsGCtyjI6OkLI7iekfSVxfZ5rUPICWux9tJPIqEmUJI7hiWVvB8j3I67rLcMllKwTWPYqg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdxPIQP_ZfZSRMvgH8OwFy-q5cAnnVTn9vovjoVQj5pilHLcnTFTZGlQ-Ygq88KLOsj7B2mKh_3F7_gLkY98LM6KdjXDtq68U6jqFAOo2g_DmsKysdUdgVSkjymuV6s3vmfnhmCpA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdxPIQP_ZfZSRMvgH8OwFy-q5cAnnVTn9vovjoVQj5pilHLcnTFTZGlQ-Ygq88KLOsj7B2mKh_3F7_gLkY98LM6KdjXDtq68U6jqFAOo2g_DmsKysdUdgVSkjymuV6s3vmfnhmCpA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfsd5HlNaduPqWLHw9leWMDozOuuzDeTm_DYwIEpmsnEjh7dnPjuO5fUiZgHewZA978YJlCuy2GZ0uC9Itd8EtUqJHJgjtRttxT_bAHS2x_c4BQgCHBO0ZX4CAbiyJ0hHLxD_jK=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfsd5HlNaduPqWLHw9leWMDozOuuzDeTm_DYwIEpmsnEjh7dnPjuO5fUiZgHewZA978YJlCuy2GZ0uC9Itd8EtUqJHJgjtRttxT_bAHS2x_c4BQgCHBO0ZX4CAbiyJ0hHLxD_jK=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdsJTVb-YXkmGWKDABlEbKfmK2eMSM-r2lQgqNHcheLc96GntY38E2C-w2Pnu8-T3577JD5uQF1KRe2hEBH7tvcNK_BNsId3_mo2XEQw-tJJk7mderYJATlY_HAUnuSnYUJyZJJ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdsJTVb-YXkmGWKDABlEbKfmK2eMSM-r2lQgqNHcheLc96GntY38E2C-w2Pnu8-T3577JD5uQF1KRe2hEBH7tvcNK_BNsId3_mo2XEQw-tJJk7mderYJATlY_HAUnuSnYUJyZJJ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcin12AAriYKHEHQH-wBREfpTLnquwW43FsjcJfkkPfVzYeidMnbV_nr0Wu5CBg-Rqqo5mD3OM2TQ7776RXgS0nkBhffeOmhirf621S9gLd6MDzMCXSLxEET7qur1sinERb6xBO=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcin12AAriYKHEHQH-wBREfpTLnquwW43FsjcJfkkPfVzYeidMnbV_nr0Wu5CBg-Rqqo5mD3OM2TQ7776RXgS0nkBhffeOmhirf621S9gLd6MDzMCXSLxEET7qur1sinERb6xBO=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdktUsoW57AnMxNQT86VyCcYaMex6gpaPSdEgAlIs4zZm8iVa2nwT8Y2spPISRvlGKkSuLFoxOuVA1HLY2m4bY-_9ypB_HR8XxV9rVKTuvJ60Zl-TitX3f6xjDgEjrbx8FbLQ3ouw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdktUsoW57AnMxNQT86VyCcYaMex6gpaPSdEgAlIs4zZm8iVa2nwT8Y2spPISRvlGKkSuLFoxOuVA1HLY2m4bY-_9ypB_HR8XxV9rVKTuvJ60Zl-TitX3f6xjDgEjrbx8FbLQ3ouw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeCVv0U5WXMBCRb_HE_bfADX8UFyUtCNTJNqpowXAt_HgIQuy9pLefuotwUwmOCH2qCTexOnNXCDIbv5RPvVmLqZqPdn4dUQ__N6EelDS216GUMDRdpYd-rTWPliPBtXmyRE6kk=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeCVv0U5WXMBCRb_HE_bfADX8UFyUtCNTJNqpowXAt_HgIQuy9pLefuotwUwmOCH2qCTexOnNXCDIbv5RPvVmLqZqPdn4dUQ__N6EelDS216GUMDRdpYd-rTWPliPBtXmyRE6kk=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3WgWa16Ar0GQErqqITzC_BvlaTdTChTVXxtLtmJrnAJF8A9p8g1J4N6DLYlQlTZyHBFpUlX55DqQ80SgIAalzFqYtihYyo8ZQCFamX75VxCdrThEEkXjH9wQH-gcbIPKKx8Sz9L6JHu5b0ggHQDCx5ZRqq0yQGJD7jwPWBtji73IgKdgEe8Gg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3WgWa16Ar0GQErqqITzC_BvlaTdTChTVXxtLtmJrnAJF8A9p8g1J4N6DLYlQlTZyHBFpUlX55DqQ80SgIAalzFqYtihYyo8ZQCFamX75VxCdrThEEkXjH9wQH-gcbIPKKx8Sz9L6JHu5b0ggHQDCx5ZRqq0yQGJD7jwPWBtji73IgKdgEe8Gg=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSTN1YUFwSi1UazlUeEFSb05MMmN2TVRGb1pISjNjbTF5ZHhBQnwweGQxOTMzMTk0ZTYyMTk4MzoweGYxYTg0Yzk5ZjQ4MDMzNWV8MzEzMTA0",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€113",
+    "amount": 113.13,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€339",
+    "amount": 339,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Praça do Comércio",
+     "transportations": [
+      {
+       "type": 3,
+       "duration": "9 min"
+      }
+     ]
+    },
+    {
+     "name": "Restauradores",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "5 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "28 min"
+      },
+      {
+       "type": 3,
+       "duration": "28 min"
+      }
+     ]
+    },
+    {
+     "name": "Leitaria Baiana",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "1 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Mama Shelter Lisboa",
+   "description": "Bohemian hotel featuring a whimsical restaurant, plus a rooftop bar offering river views & DJ sets.",
+   "gps_coordinates": {
+    "latitude": 38.7208955,
+    "longitude": -9.1523714
+   },
+   "hotel_class": "3-star hotel",
+   "extracted_hotel_class": 3,
+   "overall_rating": 4.5,
+   "reviews": 3546,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 77,
+     "count": 2639
+    },
+    {
+     "stars": 4,
+     "percent": 14,
+     "count": 519
+    },
+    {
+     "stars": 3,
+     "percent": 4,
+     "count": 157
+    },
+    {
+     "stars": 2,
+     "percent": 2,
+     "count": 90
+    },
+    {
+     "stars": 1,
+     "percent": 3,
+     "count": 141
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Food and Beverage",
+     "sentiment": 0.5134476,
+     "total_mentioned": 238,
+     "positive": 1,
+     "negative": 180,
+     "neutral": 42
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.43150598,
+     "total_mentioned": 173,
+     "positive": 1,
+     "negative": 121,
+     "neutral": 31
+    },
+    {
+     "name": "Nightlife",
+     "sentiment": 0.59700596,
+     "total_mentioned": 69,
+     "positive": 1,
+     "negative": 57,
+     "neutral": 7
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.52459997,
+     "total_mentioned": 272,
+     "positive": 1,
+     "negative": 213,
+     "neutral": 47
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.5376679,
+     "total_mentioned": 229,
+     "positive": 1,
+     "negative": 174,
+     "neutral": 41
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.4969249,
+     "total_mentioned": 92,
+     "positive": 1,
+     "negative": 72,
+     "neutral": 14
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    2,
+    18,
+    15,
+    4,
+    23,
+    31,
+    27,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfV1YsU51XcyjyqlgPJAI3KelFeSGTcv0bEu8V0smkCi_DtnYsC1cS8XJR5SdiClGAlIuv0UEu11Fo6fEnlo_FTXGAIewYacdOwbu_4hRyTmZb1HbN3BY4wQFp1jhJCNjvObfY=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfV1YsU51XcyjyqlgPJAI3KelFeSGTcv0bEu8V0smkCi_DtnYsC1cS8XJR5SdiClGAlIuv0UEu11Fo6fEnlo_FTXGAIewYacdOwbu_4hRyTmZb1HbN3BY4wQFp1jhJCNjvObfY=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLe2CHTU-De9SKs4KCgbtGG1RK79aanj8cWNnWAEBcJDtYv2r1g04h7ztIjZzFcDI_-k44lckjYpQgvEh9hAiQ79OZ9GXCDfmmo4q3CxDe0t5NqKVv9oYaft62j_G18QJheIKdc1BA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLe2CHTU-De9SKs4KCgbtGG1RK79aanj8cWNnWAEBcJDtYv2r1g04h7ztIjZzFcDI_-k44lckjYpQgvEh9hAiQ79OZ9GXCDfmmo4q3CxDe0t5NqKVv9oYaft62j_G18QJheIKdc1BA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLerN8FEmqtE76Qq4Xq-5skJZStWuZxupHeMcJtdIltUUWRg8md_SLNA_YJWh8B3rsFHfooCYiXff1NgAQU3Hg0DpHYv8zmYpETJhIlV6jsEyHvT0OwYZmxntdIySbM5KMhRhpz8=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLerN8FEmqtE76Qq4Xq-5skJZStWuZxupHeMcJtdIltUUWRg8md_SLNA_YJWh8B3rsFHfooCYiXff1NgAQU3Hg0DpHYv8zmYpETJhIlV6jsEyHvT0OwYZmxntdIySbM5KMhRhpz8=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcTAJ9_Ao4Ih9Pt55ncOwDcVpGnE4HE1TlLp0WFKJLv82blW1tTPOXXCwm4JHwKKxbzR9GtfHaFUT7sJJn0axHKqelhoIXuWYejrF9ja4cgs8KpvmftT3x96nxqAvcw3OX_dnvh=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcTAJ9_Ao4Ih9Pt55ncOwDcVpGnE4HE1TlLp0WFKJLv82blW1tTPOXXCwm4JHwKKxbzR9GtfHaFUT7sJJn0axHKqelhoIXuWYejrF9ja4cgs8KpvmftT3x96nxqAvcw3OX_dnvh=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0fELZDdeesocXse8Gz3WfUrNUfJOWKzSYTpO4zGczFEgbRMXkgD4sauvaDcFN-JRBiUicNnU-q5r6kbgjpy848ElfMPYUyYG1nF2lfhhSlbySj4l6GkTZ1ALtSKAncMgLAwjaLwq3S52657uTcNC-CPLt2osFnRRDTTunW2UsYQBvTbpe-wHZdPQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0fELZDdeesocXse8Gz3WfUrNUfJOWKzSYTpO4zGczFEgbRMXkgD4sauvaDcFN-JRBiUicNnU-q5r6kbgjpy848ElfMPYUyYG1nF2lfhhSlbySj4l6GkTZ1ALtSKAncMgLAwjaLwq3S52657uTcNC-CPLt2osFnRRDTTunW2UsYQBvTbpe-wHZdPQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1UYdb-UnjGYSKTkMME2dNIPctbKQ3aF-t8WG_OP4ccEK7KczToVfGJhHyNBNw_gjwywKU5bOPK3aZFnN84DI6xwT10t596cjQ2xdjJLunlWRJEL4T1SztVFWKWNi0CDan9C8OoLIxPGYzRvKQYDRblko2QIAEa82HWfSZTbxHlQixkuzqkyPq2=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1UYdb-UnjGYSKTkMME2dNIPctbKQ3aF-t8WG_OP4ccEK7KczToVfGJhHyNBNw_gjwywKU5bOPK3aZFnN84DI6xwT10t596cjQ2xdjJLunlWRJEL4T1SztVFWKWNi0CDan9C8OoLIxPGYzRvKQYDRblko2QIAEa82HWfSZTbxHlQixkuzqkyPq2=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdEmoQ_YRuFFqC2_joHQgDyiX9eO__3hJpXuNZ0vEdbzLg39wZnC_NV8aZXYvVczCw08Xg2J2Q6OJTF-L23psjUb_zFJtDeN0Ln79MAjpr-KFBVU3lHfh2_NBq2gahjh3wJ1Iow-w=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdEmoQ_YRuFFqC2_joHQgDyiX9eO__3hJpXuNZ0vEdbzLg39wZnC_NV8aZXYvVczCw08Xg2J2Q6OJTF-L23psjUb_zFJtDeN0Ln79MAjpr-KFBVU3lHfh2_NBq2gahjh3wJ1Iow-w=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf6v-6BHTExMKe2vluJI8aM0rWAr8oXNYch-9hH3tDa27XcHGxDsSYd4P3CRgNLlVVeUG2STgs1sZSkDGB2zoAOroZrCe_mMU1dfTzE4zUWjmKX8i3g9pdQuJqwG5bWsEPfxMmAm2F_zqhz=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf6v-6BHTExMKe2vluJI8aM0rWAr8oXNYch-9hH3tDa27XcHGxDsSYd4P3CRgNLlVVeUG2STgs1sZSkDGB2zoAOroZrCe_mMU1dfTzE4zUWjmKX8i3g9pdQuJqwG5bWsEPfxMmAm2F_zqhz=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1rQeEBOB96JlGkhsoCXobRNNucvkMOo4NxK6vON2rZz8K74-35ZmdIWBKTk1mXW_6Zhqz9GwWjBEoynt5GwcmTf0b1OKx4VOE7iLJ3G-M77fz1271FQfdofsgrOdmKwv5PYSgV5BClLYRYlck53jna5HboK7tFa86dJOYhh10hd-msPI1TXSo=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1rQeEBOB96JlGkhsoCXobRNNucvkMOo4NxK6vON2rZz8K74-35ZmdIWBKTk1mXW_6Zhqz9GwWjBEoynt5GwcmTf0b1OKx4VOE7iLJ3G-M77fz1271FQfdofsgrOdmKwv5PYSgV5BClLYRYlck53jna5HboK7tFa86dJOYhh10hd-msPI1TXSo=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSWg5MkQ0X1AzaV9fb0FSb05MMmN2TVRGd05XeDRZMlp5Y1JBQnwweGQxOTMzMjkyOGU4NjIxZjoweGU4ZmUyZmJmM2M2MGVlODd8MzEzMTA0",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€69",
+    "amount": 68.57,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€206",
+    "amount": 206,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Santa Justa Lift",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "7 min"
+      }
+     ]
+    },
+    {
+     "name": "Rato",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "25 min"
+      },
+      {
+       "type": 3,
+       "duration": "31 min"
+      }
+     ]
+    },
+    {
+     "name": "Blue Bistrot",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "4 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Boutique Chiado Apartments & Suites",
+   "description": "Stylish suites with vintage chandeliers & flat-screen TVs in a snug, relaxed hotel.",
+   "gps_coordinates": {
+    "latitude": 38.7102437,
+    "longitude": -9.144626
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.6,
+   "reviews": 432,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 83,
+     "count": 353
+    },
+    {
+     "stars": 4,
+     "percent": 9,
+     "count": 39
+    },
+    {
+     "stars": 3,
+     "percent": 3,
+     "count": 14
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 8
+    },
+    {
+     "stars": 1,
+     "percent": 4,
+     "count": 18
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Location",
+     "sentiment": 0.7870425,
+     "total_mentioned": 127,
+     "positive": 1,
+     "negative": 119,
+     "neutral": 3
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.6855187,
+     "total_mentioned": 124,
+     "positive": 1,
+     "negative": 113,
+     "neutral": 7
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.75703454,
+     "total_mentioned": 114,
+     "positive": 1,
+     "negative": 105,
+     "neutral": 3
+    },
+    {
+     "name": "Cleanliness",
+     "sentiment": 0.6653354,
+     "total_mentioned": 65,
+     "positive": 1,
+     "negative": 58,
+     "neutral": 7
+    },
+    {
+     "name": "Sleep",
+     "sentiment": 0.4528809,
+     "total_mentioned": 41,
+     "positive": 1,
+     "negative": 33,
+     "neutral": 5
+    },
+    {
+     "name": "Room amenities",
+     "total_mentioned": 29,
+     "negative": 21,
+     "neutral": 6
+    }
+   ],
+   "amenities": [
+    29,
+    2,
+    23,
+    1
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfDN4g49yOBAPjBnE_M4iheaAYqIMXZ2MxqyRrx1YG97uyblSOr50wk1HCVJZj--6JMi6CrIEXPhEXlnYN8I1A2mxlayCd9dE8hASjXYTmQ_zA56HlkaEnauc_z_fXL8sxG5gxX=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfDN4g49yOBAPjBnE_M4iheaAYqIMXZ2MxqyRrx1YG97uyblSOr50wk1HCVJZj--6JMi6CrIEXPhEXlnYN8I1A2mxlayCd9dE8hASjXYTmQ_zA56HlkaEnauc_z_fXL8sxG5gxX=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc9BsV41N9aucq-VKyuIZeRCvaqKCzgZD_208QvEKavtL8G0Scp1a784g5cSLWBC5GY0E358nJJPgu15td5hq32Z5MUc3a7pIrLq1sfl2JYtovFCk4IE1IxDnwt3Tdot36NZq8=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLc9BsV41N9aucq-VKyuIZeRCvaqKCzgZD_208QvEKavtL8G0Scp1a784g5cSLWBC5GY0E358nJJPgu15td5hq32Z5MUc3a7pIrLq1sfl2JYtovFCk4IE1IxDnwt3Tdot36NZq8=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLd6phgZZc8qzI0f1aiywAOA7too2ReHREvdGWhsu6BnE-rmJYY5NXM_n9C-byP_C4L6TNe4pINsdXPHplysjPyo7PiVdMpPY4BR3-OUB3FXEjTwBJCCFPLw0UbgNJxA7MWWqQfjlKh3EcWk=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLd6phgZZc8qzI0f1aiywAOA7too2ReHREvdGWhsu6BnE-rmJYY5NXM_n9C-byP_C4L6TNe4pINsdXPHplysjPyo7PiVdMpPY4BR3-OUB3FXEjTwBJCCFPLw0UbgNJxA7MWWqQfjlKh3EcWk=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdG31V3ikc3TqFpOQcgbElqid7Bs2Cik6aG979ZD9R6NB7wGWfZUwioPfI5jDZ2gf6nCTEDrcPsPTLUhiqAKZewvTEcLIVu4vjBIdtCzYkhYqLeUNEBzfLJp7ZqfQaL37y1h80z=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdG31V3ikc3TqFpOQcgbElqid7Bs2Cik6aG979ZD9R6NB7wGWfZUwioPfI5jDZ2gf6nCTEDrcPsPTLUhiqAKZewvTEcLIVu4vjBIdtCzYkhYqLeUNEBzfLJp7ZqfQaL37y1h80z=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLds62oYhAnX_Y5eYSI5opIMuys0uksZgenN9JcLRDy00RVw-tWy4RkaGAO8mTE8fE3Y4W_a-Kkn_deAoiK7VN1joIptLkddmdqvcVDPszxCZ51TLmOsT59RXMMf9TPNkVh92-sd=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLds62oYhAnX_Y5eYSI5opIMuys0uksZgenN9JcLRDy00RVw-tWy4RkaGAO8mTE8fE3Y4W_a-Kkn_deAoiK7VN1joIptLkddmdqvcVDPszxCZ51TLmOsT59RXMMf9TPNkVh92-sd=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcaMlyFwDRpvOgPuZcELlOYc-z9Ox47Ikt0RWtJTL3JdGltoPfn2tE-ReRBuYNZ2T4iB0Sno-VSVLfoPp47EC18kVws5d6UnqH78d8qIZdy9ILVDkI7SxaGDs_8EKuR0l1ggRsMLg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcaMlyFwDRpvOgPuZcELlOYc-z9Ox47Ikt0RWtJTL3JdGltoPfn2tE-ReRBuYNZ2T4iB0Sno-VSVLfoPp47EC18kVws5d6UnqH78d8qIZdy9ILVDkI7SxaGDs_8EKuR0l1ggRsMLg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLeMilbATM8ng6tHUWL9Hbpl8kXJcbZANl-3V7ick3SsUKKjuyqNfda7WQOG-zD4TiSFUH8mabTvJBkwhkRXyCwem4vUnX5BVhyfzr8X5E2KX4__SHHGdCSlFDVVr17adCwQQrs=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLeMilbATM8ng6tHUWL9Hbpl8kXJcbZANl-3V7ick3SsUKKjuyqNfda7WQOG-zD4TiSFUH8mabTvJBkwhkRXyCwem4vUnX5BVhyfzr8X5E2KX4__SHHGdCSlFDVVr17adCwQQrs=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfhbTdVt14t1oImFHMzsZwyosgJ8lkFySnLf22URRMQEFyPB6wLVR9NMsw9hBW564ikKfoNyk2WA8dVLXyaUhgeNZlICEW69g9jwCjH7ApN8PCBlEy1j9hmNlH_WnBT4UqVrwaUAg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfhbTdVt14t1oImFHMzsZwyosgJ8lkFySnLf22URRMQEFyPB6wLVR9NMsw9hBW564ikKfoNyk2WA8dVLXyaUhgeNZlICEW69g9jwCjH7ApN8PCBlEy1j9hmNlH_WnBT4UqVrwaUAg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf3Hug0On9VDGBzzTWn0jgoZ5ztq7cnJwphSUhidytGct34WN5lxhfhSAXd0y_yGXy39TqdDnr8pdso4nWkvi4yw6A_Hfuc2lPm7qNFYb62eVor_V5o_RP_35qGhCCA7mGPo3wS=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf3Hug0On9VDGBzzTWn0jgoZ5ztq7cnJwphSUhidytGct34WN5lxhfhSAXd0y_yGXy39TqdDnr8pdso4nWkvi4yw6A_Hfuc2lPm7qNFYb62eVor_V5o_RP_35qGhCCA7mGPo3wS=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSXlNV2FudWl2MFBUU0FSb05MMmN2TVRGbU56TjBZbXQ2YkJBQnwweGQxOTM1YzE2NDY4YWRlMToweGQyZTk0MTdlODNjNmEyYzh8MzEzMTA0",
+   "check_in_time": "3:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€93",
+    "amount": 93.2,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€280",
+    "amount": 280,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Carmo Archaeological Museum",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "7 min"
+      }
+     ]
+    },
+    {
+     "name": "Baixa-Chiado",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 3,
+       "duration": "28 min"
+      },
+      {
+       "type": 0,
+       "duration": "31 min"
+      }
+     ]
+    },
+    {
+     "name": "O Trevo",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Hotel da Baixa",
+   "description": "Refined rooms, some with balconies, in a sophisticated property featuring a chic restaurant.",
+   "gps_coordinates": {
+    "latitude": 38.7121521,
+    "longitude": -9.1375196
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.8,
+   "reviews": 1296,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 84,
+     "count": 1069
+    },
+    {
+     "stars": 4,
+     "percent": 13,
+     "count": 171
+    },
+    {
+     "stars": 3,
+     "percent": 2,
+     "count": 33
+    },
+    {
+     "stars": 2,
+     "count": 9
+    },
+    {
+     "stars": 1,
+     "percent": 1,
+     "count": 14
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Service",
+     "sentiment": 0.823033,
+     "total_mentioned": 335,
+     "positive": 1,
+     "negative": 318,
+     "neutral": 13
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.743762,
+     "total_mentioned": 302,
+     "positive": 1,
+     "negative": 271,
+     "neutral": 18
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.7755897,
+     "total_mentioned": 276,
+     "positive": 1,
+     "negative": 260,
+     "neutral": 4
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.7173186,
+     "total_mentioned": 144,
+     "positive": 1,
+     "negative": 127,
+     "neutral": 11
+    },
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.7069794,
+     "total_mentioned": 74,
+     "positive": 1,
+     "negative": 68,
+     "neutral": 4
+    },
+    {
+     "name": "Restaurant",
+     "sentiment": 0.7371418,
+     "total_mentioned": 82,
+     "positive": 1,
+     "negative": 73,
+     "neutral": 6
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    17,
+    2,
+    4,
+    23,
+    24,
+    1,
+    31,
+    27,
+    7,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfxmpCkAo-IE0u9RHU8M0TCHs8wDA2JmSqt4LssZlUisJCGRbiNYN-MEVnh2mXZ74wWsUfpGSB3M7NGsDHj_f2HI44r2U9IlCKXur6Jxs1KFR1UmmIRDz1PUNzMkdmrOk9CWl6yew=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfxmpCkAo-IE0u9RHU8M0TCHs8wDA2JmSqt4LssZlUisJCGRbiNYN-MEVnh2mXZ74wWsUfpGSB3M7NGsDHj_f2HI44r2U9IlCKXur6Jxs1KFR1UmmIRDz1PUNzMkdmrOk9CWl6yew=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLd4_U4UNyNeawepXzwVk7Hu9ZkcUW6LJObZxbmmcGOxfXjThipWfT4UhLvun06hW8jUIEFyyP4oJCgRbL-Q6aP3mLugtTg4_5DhHShVBBAf3U8t7h2juKXmuhkf3JR0PCZCfCRc=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLd4_U4UNyNeawepXzwVk7Hu9ZkcUW6LJObZxbmmcGOxfXjThipWfT4UhLvun06hW8jUIEFyyP4oJCgRbL-Q6aP3mLugtTg4_5DhHShVBBAf3U8t7h2juKXmuhkf3JR0PCZCfCRc=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLctp4lHiTd7qnrD_iK7OW-1PpPimVgc-PZYWFYzKHjvRBTHjdH1j9C-t-tKzDqfwxPvF_d834DokLWMwgHiKcpzAm3oI4rTtz8METflvdj-J1eNwKxhRiU8vtk4F5K-mnR2yRwM=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLctp4lHiTd7qnrD_iK7OW-1PpPimVgc-PZYWFYzKHjvRBTHjdH1j9C-t-tKzDqfwxPvF_d834DokLWMwgHiKcpzAm3oI4rTtz8METflvdj-J1eNwKxhRiU8vtk4F5K-mnR2yRwM=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLdL6lnBBj8ZkwrK8cqpUgmmexHHi3Y_1MGExALhuurhekPnIUqsp156MbDVKIh2uTtjQAh3_3bx0Gx4J37xR8zKQmQfHjWZf8mQt2MaqvrWMe-b4C9UzZ3mPF251qxrXKiM_RXfkA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLdL6lnBBj8ZkwrK8cqpUgmmexHHi3Y_1MGExALhuurhekPnIUqsp156MbDVKIh2uTtjQAh3_3bx0Gx4J37xR8zKQmQfHjWZf8mQt2MaqvrWMe-b4C9UzZ3mPF251qxrXKiM_RXfkA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLegg9M5Scw9IZ46y3pXtGO2SyVZEql1jXiJkklb6wwSJOFgBID1mqL_1Z1GCAprnsk5JmqFRxI0VqBhhzlsTb7WMgXp2_rXFBXJGdL42WKOneVVwjatqYZtRVFt_aBUT-DimMxrvg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLegg9M5Scw9IZ46y3pXtGO2SyVZEql1jXiJkklb6wwSJOFgBID1mqL_1Z1GCAprnsk5JmqFRxI0VqBhhzlsTb7WMgXp2_rXFBXJGdL42WKOneVVwjatqYZtRVFt_aBUT-DimMxrvg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1NiBTbsQ9u0fNraf8l8OcVRMHcySUnZhhwpU03oXkFBGR9WR2-4ii7c41exSBh-NIGnnE9uo5LkzMoXKeuX6NxIH0hc-mg5UWLYz12NHRiEHsc6YHnbc2fFv6f0tDcBi4BbEez5_2hRB5tHqX8etHxIaFEv1brRe0aVynpBpb5bAHdmZskFXSr=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1NiBTbsQ9u0fNraf8l8OcVRMHcySUnZhhwpU03oXkFBGR9WR2-4ii7c41exSBh-NIGnnE9uo5LkzMoXKeuX6NxIH0hc-mg5UWLYz12NHRiEHsc6YHnbc2fFv6f0tDcBi4BbEez5_2hRB5tHqX8etHxIaFEv1brRe0aVynpBpb5bAHdmZskFXSr=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3SFUqZZu-vtXi84JaEcPzPfuPZokxVfwlbTAejNzOx04G6nHlJFySF_rSAl2qyPAVyny2s7d89dHK4vwqg9eV1AejNNJLu-kK9hur6zbTCRqc_HSDXhp7tq4ch3p-At3ArNAolvI4-dZ-OaW18xeuZWJHYVHEtQOqeXyBESkoE2ipZsQtlyfGP=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3SFUqZZu-vtXi84JaEcPzPfuPZokxVfwlbTAejNzOx04G6nHlJFySF_rSAl2qyPAVyny2s7d89dHK4vwqg9eV1AejNNJLu-kK9hur6zbTCRqc_HSDXhp7tq4ch3p-At3ArNAolvI4-dZ-OaW18xeuZWJHYVHEtQOqeXyBESkoE2ipZsQtlyfGP=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcRDoajIUem94yV2zq8OeVMDuG__BIuNSUhqEoUrZoss2Atbk7wXmrUWg58dAi9DHuG-_eBdLW0KMDr6DOolbkm7AfoQ9-rGf15ZI46GdIF1r4gryGl4BERvdM4Ej6PkDV-fzHG=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcRDoajIUem94yV2zq8OeVMDuG__BIuNSUhqEoUrZoss2Atbk7wXmrUWg58dAi9DHuG-_eBdLW0KMDr6DOolbkm7AfoQ9-rGf15ZI46GdIF1r4gryGl4BERvdM4Ej6PkDV-fzHG=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcbxAPYfjWAeQk5FjUHUjpQ6mYtqKaOTaFclFsG-2uRG_45Glwd9BVH0x6d0kPg8oTs-MLBvJsWVhpbLU4dWK_EiK2e6mbZFWG1agM2OZOLFcsn35aLmv4D-aDnSDIc-PFljd0Z=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcbxAPYfjWAeQk5FjUHUjpQ6mYtqKaOTaFclFsG-2uRG_45Glwd9BVH0x6d0kPg8oTs-MLBvJsWVhpbLU4dWK_EiK2e6mbZFWG1agM2OZOLFcsn35aLmv4D-aDnSDIc-PFljd0Z=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hrSTY4bVF0S2lvZ3BJX0dnMHZaeTh4TVdOdVlqTjVkSEV3RUFFfDB4ZDE5MzQ3OGY0ZTA2Yjk1OjB4M2YyNDA5NDI4Njg0MjRlYnwzMTMxMDQ",
+   "check_in_time": "4:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€125",
+    "amount": 125.11,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€375",
+    "amount": 375,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Santa Justa Lift",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Rossio",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "3 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "30 min"
+      },
+      {
+       "type": 3,
+       "duration": "35 min"
+      }
+     ]
+    },
+    {
+     "name": "O Cocas II",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Very quiet with stunning views over Alfama roofs and Tagus river - Free Transfer",
+   "gps_coordinates": {
+    "latitude": 38.7125626,
+    "longitude": -9.1287794
+   },
+   "overall_rating": 5,
+   "reviews": 428,
+   "amenities": [],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0afRRdAdHNDyQytqG0hY0ulpeJqTapnhIgCDRGW3-VZcu_XmLAeuD3i7t4TCCrBFeUJHDX47WTbEGowRKEnEJY-Y1SF_p0GHpt68CYmVjVh4jMK27uciuqH-8JV8nPWuQxfp2BTKkqv3b-t5LzjL4Oi1anM16fubKx7nLsZZd1mE9NIGWU8Nnllw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0afRRdAdHNDyQytqG0hY0ulpeJqTapnhIgCDRGW3-VZcu_XmLAeuD3i7t4TCCrBFeUJHDX47WTbEGowRKEnEJY-Y1SF_p0GHpt68CYmVjVh4jMK27uciuqH-8JV8nPWuQxfp2BTKkqv3b-t5LzjL4Oi1anM16fubKx7nLsZZd1mE9NIGWU8Nnllw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3zuc9FL_6jx9Som31LnnLSQThbRmfC6rQ6BIX7w_WJZ_W_oL1JyQ4ikFaHueWA7849_tsE03KVUp6KfEnYuXTE2xaOjco8rWalE9N053Dp2Wx_afxHWZP08v0QqwJdjkFdab6mex1BFMn4mhay0B1MDXV8zqqUfNsW5Bkm4rrBAxcwGdUATCeUlw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3zuc9FL_6jx9Som31LnnLSQThbRmfC6rQ6BIX7w_WJZ_W_oL1JyQ4ikFaHueWA7849_tsE03KVUp6KfEnYuXTE2xaOjco8rWalE9N053Dp2Wx_afxHWZP08v0QqwJdjkFdab6mex1BFMn4mhay0B1MDXV8zqqUfNsW5Bkm4rrBAxcwGdUATCeUlw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0RGpEea3-VLkTYfW8AZUHIi9l0-0LCaVashzjdDQyr5V06ePkrJ4siVFZI1KbD4kDDvhCHrYjmTF_Gc6jdyN9swhe0JI9m8tD7tEes6x28CqpLIZDqug0q6JnttH2nXtrvFQtMVpw_jvfDNem-uQ2akH9GJvUVTEkY-lt5fs7dELkuERSzwW2b=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0RGpEea3-VLkTYfW8AZUHIi9l0-0LCaVashzjdDQyr5V06ePkrJ4siVFZI1KbD4kDDvhCHrYjmTF_Gc6jdyN9swhe0JI9m8tD7tEes6x28CqpLIZDqug0q6JnttH2nXtrvFQtMVpw_jvfDNem-uQ2akH9GJvUVTEkY-lt5fs7dELkuERSzwW2b=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1EIEm6W7EBfmcbBDKUdBWe_e24zPVA4E_kc0fMYxyLDlOKnBgpSydIvEVdtdLQMPBh71-_exDqQChOdl2uzkktXucIGM_6zcZhykjA84bCQNQHFAl8ITySXKRzaN5jMHgBFUK_4_NQ9_uPam1JvR52ip9Q7MFHhajrVtBCb4gp_SRvxbu2u0Ku=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1EIEm6W7EBfmcbBDKUdBWe_e24zPVA4E_kc0fMYxyLDlOKnBgpSydIvEVdtdLQMPBh71-_exDqQChOdl2uzkktXucIGM_6zcZhykjA84bCQNQHFAl8ITySXKRzaN5jMHgBFUK_4_NQ9_uPam1JvR52ip9Q7MFHhajrVtBCb4gp_SRvxbu2u0Ku=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0vrir7wPk97h27HkSO9SNLcVtBEm8x6OxY-NUvzJ5104a_CtyzrFTg7FBf79OeFbZp7QcVuEDf72hiCLPs4SfnEnhGKGnAoauKp3q8h2HvATpKuiZReQPX4_6vSsHLSRwABY2EXZYTwVk4Ytvy4NVD-JP9vVrlvls5UIga9-UkpAr1mk7I2oTq=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0vrir7wPk97h27HkSO9SNLcVtBEm8x6OxY-NUvzJ5104a_CtyzrFTg7FBf79OeFbZp7QcVuEDf72hiCLPs4SfnEnhGKGnAoauKp3q8h2HvATpKuiZReQPX4_6vSsHLSRwABY2EXZYTwVk4Ytvy4NVD-JP9vVrlvls5UIga9-UkpAr1mk7I2oTq=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3NoUO_9LsnOb2TVpK_Cgc-6c5h7MNkdG4OR8ku74eqYA8Ug_prmPVjms5gJkou5IhTbfHZSuAS-a9mAVCiujA0g0Ob9A50phMV6QEAL0KURajNjVMFnaPp_hT1K3Wv2DIUBJaF7GtWR96HL76b_libOKthRnhknCgG506NiFEzXrTUjpl05z5lgA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3NoUO_9LsnOb2TVpK_Cgc-6c5h7MNkdG4OR8ku74eqYA8Ug_prmPVjms5gJkou5IhTbfHZSuAS-a9mAVCiujA0g0Ob9A50phMV6QEAL0KURajNjVMFnaPp_hT1K3Wv2DIUBJaF7GtWR96HL76b_libOKthRnhknCgG506NiFEzXrTUjpl05z5lgA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2dj98GFdRmAbZqq4QwaTjds52Kffx8hkDtFD_1fNNVLcprPcCiY5Z4djcrnxBP2v1jynJmMQE1bzC8vPoA39MWakWkPsuuVWFDjyjD-wTk85uhY7ZuF8xTnPVOHrIlP8E-GQLTgiBC9GuWr8XzlYeCixJq79RcpjoX6NV-BRTlvES7EGIJb9r7ag=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2dj98GFdRmAbZqq4QwaTjds52Kffx8hkDtFD_1fNNVLcprPcCiY5Z4djcrnxBP2v1jynJmMQE1bzC8vPoA39MWakWkPsuuVWFDjyjD-wTk85uhY7ZuF8xTnPVOHrIlP8E-GQLTgiBC9GuWr8XzlYeCixJq79RcpjoX6NV-BRTlvES7EGIJb9r7ag=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0teS1ReMZ4ooahcJEPWJXzT4gUL492b6Amz2Etr65WZvc7PnuV-TyqoRZUghQU-fg8c4TDkB6Uy1eHCuwN_aJHdzbGW-DnSAGKv3SaZelDPpuFf9-XHCmchEkpO7oWgzGwOcs32N8bBse1M1K5efO_iPDrLXFP_reI8qF-ogSLJBDJqxFFqs1R=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0teS1ReMZ4ooahcJEPWJXzT4gUL492b6Amz2Etr65WZvc7PnuV-TyqoRZUghQU-fg8c4TDkB6Uy1eHCuwN_aJHdzbGW-DnSAGKv3SaZelDPpuFf9-XHCmchEkpO7oWgzGwOcs32N8bBse1M1K5efO_iPDrLXFP_reI8qF-ogSLJBDJqxFFqs1R=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2glkEy5o72xAmgNmYBj1vys6WVGzXjTIjOZhkNaT_3zrCf_LOqLmspvDhGU_KbnaZxj7TrzVKv8LSJVwPWnQw5xh732fYELlogcClJNl9qxkgdsXZVbdl53Nooi-lV6Q91tUpStfqHOpPdPk1FG8iiBeGm_5caRTyQlAh6jKQ8z8wctuhcdYqXdA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2glkEy5o72xAmgNmYBj1vys6WVGzXjTIjOZhkNaT_3zrCf_LOqLmspvDhGU_KbnaZxj7TrzVKv8LSJVwPWnQw5xh732fYELlogcClJNl9qxkgdsXZVbdl53Nooi-lV6Q91tUpStfqHOpPdPk1FG8iiBeGm_5caRTyQlAh6jKQ8z8wctuhcdYqXdA=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "check_in_time": "3:00 PM",
+   "check_out_time": "10:00 AM",
+   "price": {
+    "display": "€175",
+    "amount": 175.06,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€525",
+    "amount": 525,
+    "currency": "EUR"
+   },
+   "rates": [
+    {
+     "source": {
+      "name": "Expedia.com",
+      "id": 1436973456,
+      "icon": "//www.gstatic.com/travel-hotels/branding/384478467102568077.png"
+     },
+     "price": {
+      "display": "€175",
+      "amount": 175,
+      "currency": "EUR"
+     }
+    }
+   ],
+   "nearby_places": [
+    {
+     "name": "R. Escolas Gerais",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "30 min"
+      },
+      {
+       "type": 3,
+       "duration": "32 min"
+      }
+     ]
+    },
+    {
+     "name": "Salsa",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "1 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "H10 Duque de Loulé",
+   "description": "Refined quarters in a hip hotel with a sleek restaurant, a polished bar & a stylish rooftop lounge.",
+   "gps_coordinates": {
+    "latitude": 38.726463,
+    "longitude": -9.147064
+   },
+   "hotel_class": "4-star hotel",
+   "extracted_hotel_class": 4,
+   "overall_rating": 4.7,
+   "reviews": 2354,
+   "ratings": [
+    {
+     "stars": 5,
+     "percent": 81,
+     "count": 1871
+    },
+    {
+     "stars": 4,
+     "percent": 14,
+     "count": 340
+    },
+    {
+     "stars": 3,
+     "percent": 3,
+     "count": 71
+    },
+    {
+     "stars": 2,
+     "percent": 1,
+     "count": 28
+    },
+    {
+     "stars": 1,
+     "percent": 1,
+     "count": 44
+    }
+   ],
+   "reviews_breakdown": [
+    {
+     "name": "Bar or lounge",
+     "sentiment": 0.6260599,
+     "total_mentioned": 158,
+     "positive": 1,
+     "negative": 132,
+     "neutral": 18
+    },
+    {
+     "name": "Service",
+     "sentiment": 0.6527519,
+     "total_mentioned": 356,
+     "positive": 1,
+     "negative": 311,
+     "neutral": 34
+    },
+    {
+     "name": "Property",
+     "sentiment": 0.75996757,
+     "total_mentioned": 324,
+     "positive": 1,
+     "negative": 295,
+     "neutral": 18
+    },
+    {
+     "name": "Food and Beverage",
+     "sentiment": 0.6806321,
+     "total_mentioned": 126,
+     "positive": 1,
+     "negative": 112,
+     "neutral": 11
+    },
+    {
+     "name": "Breakfast",
+     "sentiment": 0.7083145,
+     "total_mentioned": 138,
+     "positive": 1,
+     "negative": 122,
+     "neutral": 13
+    },
+    {
+     "name": "Location",
+     "sentiment": 0.6672177,
+     "total_mentioned": 157,
+     "positive": 1,
+     "negative": 140,
+     "neutral": 10
+    }
+   ],
+   "amenities": [
+    165,
+    29,
+    17,
+    2,
+    4,
+    23,
+    24,
+    31,
+    27,
+    7,
+    11,
+    25
+   ],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfbhzqAhiuxly7dU8XNcd04S8UI31Xeap_7GJ0In8Z4IdrrncGg0NQ8QhkPtFYyrNUt2D0UXg1bpEQ7_EQKfjhd6k-X1OYJyUGsf6nb2GFhCDKHdIY9BdwZL7tHPQ1RlLn0KvmBkQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfbhzqAhiuxly7dU8XNcd04S8UI31Xeap_7GJ0In8Z4IdrrncGg0NQ8QhkPtFYyrNUt2D0UXg1bpEQ7_EQKfjhd6k-X1OYJyUGsf6nb2GFhCDKHdIY9BdwZL7tHPQ1RlLn0KvmBkQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcDzQWmkJqxV3CDbxasBy3agvj-i6L2QnWWCWJNP-1O4DwgcuPwQ4joWosYE2JKmX4gJ8Lq3Mpfh3Vnn8Z3eMYAFlD8mTb7Wl8B1NAiOtcOR-mvPRw5ycIxJODTItCgX4eY550p=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcDzQWmkJqxV3CDbxasBy3agvj-i6L2QnWWCWJNP-1O4DwgcuPwQ4joWosYE2JKmX4gJ8Lq3Mpfh3Vnn8Z3eMYAFlD8mTb7Wl8B1NAiOtcOR-mvPRw5ycIxJODTItCgX4eY550p=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLf13s8Wr_TcQHh41_PMAKcg7e_gC7p_bGx5Js---RpyDMJZ-ceOIladRigMso2AL75HyVvDR4RVugouYEqQ0aPgbwOXLI9N1bb9-zbZ5MZ2P34Kwylaj7uxIvA7EV8e0oI7GMgJSQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLf13s8Wr_TcQHh41_PMAKcg7e_gC7p_bGx5Js---RpyDMJZ-ceOIladRigMso2AL75HyVvDR4RVugouYEqQ0aPgbwOXLI9N1bb9-zbZ5MZ2P34Kwylaj7uxIvA7EV8e0oI7GMgJSQ=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLcLZl6PWaFy9K1wyEzAZe5o4W4mqmJnV-z3HBGxw-4JsLMDKIrXFX5XrIDRAPMz5_3YoixyM4ZjU6a5jQIniG-YQrTGhSggjH4Mf0KY5M5MnwO74PZ1YfsdfNcw9dgYdDt1dJWXNA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLcLZl6PWaFy9K1wyEzAZe5o4W4mqmJnV-z3HBGxw-4JsLMDKIrXFX5XrIDRAPMz5_3YoixyM4ZjU6a5jQIniG-YQrTGhSggjH4Mf0KY5M5MnwO74PZ1YfsdfNcw9dgYdDt1dJWXNA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2j_abp_-ZnMO1J99Gyto8mX6CUyhPT1mZz4-wbCCinjrQUKXIWAW3lfeMNT8_LE24XuQuYWZbQ7mmk5j305CyfjqnHvlxG_jYbON38NbYkFLFeL9PciHEyByT3iRmwTAWQAD6Za2Gg-V2gM5PRdJclrYlOeCVsAa_d3-gSxZRV3fTHyLIhg99w=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2j_abp_-ZnMO1J99Gyto8mX6CUyhPT1mZz4-wbCCinjrQUKXIWAW3lfeMNT8_LE24XuQuYWZbQ7mmk5j305CyfjqnHvlxG_jYbON38NbYkFLFeL9PciHEyByT3iRmwTAWQAD6Za2Gg-V2gM5PRdJclrYlOeCVsAa_d3-gSxZRV3fTHyLIhg99w=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLc7TjSFixe-YV9deOhJA3hNgAwbC4z2opQNKNgOrEfPrTNBjK9-zVOFMxwZWr578a9gfNtMsOIuO3uM-uIPS2X2m6hVu77CAuAe2KQf1ZqqogmKjOkJwXwrM4voCsGaaYFDAxPz=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLc7TjSFixe-YV9deOhJA3hNgAwbC4z2opQNKNgOrEfPrTNBjK9-zVOFMxwZWr578a9gfNtMsOIuO3uM-uIPS2X2m6hVu77CAuAe2KQf1ZqqogmKjOkJwXwrM4voCsGaaYFDAxPz=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLfYZjiAmWaK3OjeVgITiIB3C1pRzr-YvXq7vTc0RBj2LSzh35CJ3SasEECCB_0ZIvEZ7IjUSqlttHvQ0kyolhWdyUnazx_Ms53swUCvNF3W_W8C2rlpUt8BCCBNrqwZUzpZIH-Xjw=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLfYZjiAmWaK3OjeVgITiIB3C1pRzr-YvXq7vTc0RBj2LSzh35CJ3SasEECCB_0ZIvEZ7IjUSqlttHvQ0kyolhWdyUnazx_Ms53swUCvNF3W_W8C2rlpUt8BCCBNrqwZUzpZIH-Xjw=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0-w6yhDRzxeIU5k6YDbXDFTFo-0c_EjeQxuR97Mkoi_UP7hhv1eNoFBFxxEAdktsEzby8NIh0Lk3ie16cGliYqG-8hKiiEHQI7lH_H-Df_EgCjsnAjpYRn9DvmfAItBNqDo2KcMHjty_Odk3w-gze2L4v02_MdaV_ktk8MStxeo2X_G47uJPdU=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0-w6yhDRzxeIU5k6YDbXDFTFo-0c_EjeQxuR97Mkoi_UP7hhv1eNoFBFxxEAdktsEzby8NIh0Lk3ie16cGliYqG-8hKiiEHQI7lH_H-Df_EgCjsnAjpYRn9DvmfAItBNqDo2KcMHjty_Odk3w-gze2L4v02_MdaV_ktk8MStxeo2X_G47uJPdU=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-cs/AABkmLd0C7qfOlbJcJD6XTKOJrKS3nEZyBVC7u3wAz7oeXrEfNNbyhvIQ22RonUjo8ku9szH_xij5lyp1lr2NQCDSWyCgv415tszFtytSDcvbq4gqGUXYgSQlsVKYpgQ9rEaZlyYTkqKVQ=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-cs/AABkmLd0C7qfOlbJcJD6XTKOJrKS3nEZyBVC7u3wAz7oeXrEfNNbyhvIQ22RonUjo8ku9szH_xij5lyp1lr2NQCDSWyCgv415tszFtytSDcvbq4gqGUXYgSQlsVKYpgQ9rEaZlyYTkqKVQ=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "detail_token": "Q2hvSThzbnMzTXpTMXFHU0FSb05MMmN2TVRGaWVXMTBNR2h3YlJBQnwweGQxOTMzNzY0NzkzNTYzZDoweDkyNDM1YTk0Y2I5YjI0ZjJ8MzEzMTA0",
+   "check_in_time": "2:00 PM",
+   "check_out_time": "12:00 PM",
+   "price": {
+    "display": "€105",
+    "amount": 104.5,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€314",
+    "amount": 314,
+    "currency": "EUR"
+   },
+   "nearby_places": [
+    {
+     "name": "Santa Justa Lift",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "10 min"
+      }
+     ]
+    },
+    {
+     "name": "Mq. Pombal - Av. Duque Loulé",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "1 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "22 min"
+      },
+      {
+       "type": 3,
+       "duration": "31 min"
+      }
+     ]
+    },
+    {
+     "name": "Manifest Lisbon - Brunch & Specialty Coffee",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "2 min"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "type": "hotel",
+   "name": "Alfama Verde Alfama Tailor Made Green House With a View 2",
+   "gps_coordinates": {
+    "latitude": 38.7131004,
+    "longitude": -9.1297998
+   },
+   "overall_rating": 4.55,
+   "reviews": 355,
+   "amenities": [],
+   "images": [
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0n-0-WIc5Bsk27eK0zYTWI8LF85HEOS7xdixmg4wy7aBrPmZ20i94JO6d9wmkIte1P9bAdFMuEjutV8fTOG6PBQL9bz0wgThDosJGu5vl0NeQiiormVx089Bo4s9SyPMFXvB1nFysrYB4iszw6IUkx2gLu1WefcwTMlLnriR2h_HBot4AzWDu98w=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0n-0-WIc5Bsk27eK0zYTWI8LF85HEOS7xdixmg4wy7aBrPmZ20i94JO6d9wmkIte1P9bAdFMuEjutV8fTOG6PBQL9bz0wgThDosJGu5vl0NeQiiormVx089Bo4s9SyPMFXvB1nFysrYB4iszw6IUkx2gLu1WefcwTMlLnriR2h_HBot4AzWDu98w=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0TQ8eC0LhS9NwXlnYsJC8jM7pDQYDW-oqbSi_v7xSFsubHPPqSbizfPZqdxkhFUHWUZWjS1pgBIE43Ai8b-ayCP4l3GQy9ezf0sk7zWSj3K-c4J6F3Y7rwDZMzytUcXZeUOnVmFqNx_fIGi-8IvdK9yGTM6n6B2npJeRbrUCHg2TDZaZxlTuHscg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0TQ8eC0LhS9NwXlnYsJC8jM7pDQYDW-oqbSi_v7xSFsubHPPqSbizfPZqdxkhFUHWUZWjS1pgBIE43Ai8b-ayCP4l3GQy9ezf0sk7zWSj3K-c4J6F3Y7rwDZMzytUcXZeUOnVmFqNx_fIGi-8IvdK9yGTM6n6B2npJeRbrUCHg2TDZaZxlTuHscg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2gfJCCFkaM3KhD_t0_qQ0uJzNmAoR8MjHP0Bu3s2-BENiQtBdbxQi0-aD96C9F0lwmyTpGHc2yqLe-C588RaKhF1KBeg2cwn_-RV8MTSmWNGHu1JQ4gbOF6Av2ujY9weFVERk5gUvN_2wT1xveGACVjUrdvZby6o_l8uqF0ghFcST-2VxvqA3CRA=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW2gfJCCFkaM3KhD_t0_qQ0uJzNmAoR8MjHP0Bu3s2-BENiQtBdbxQi0-aD96C9F0lwmyTpGHc2yqLe-C588RaKhF1KBeg2cwn_-RV8MTSmWNGHu1JQ4gbOF6Av2ujY9weFVERk5gUvN_2wT1xveGACVjUrdvZby6o_l8uqF0ghFcST-2VxvqA3CRA=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW34Np8TbwQakefR6LC7I20r9KXuADsi8rV93a-Ry3IrOmW2SNFigoWR8S50aMUYCkU6g9XZgdyQvoYP9zszSZ5Bl-A8zzWLyi7hGVOArDfnlfm79N3nHXuCnYLnC36psg-K-5ODJx7IBqynoT6xSPNJarSkd0lRDLW77i0bGuTpkMA188vQVD5E=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW34Np8TbwQakefR6LC7I20r9KXuADsi8rV93a-Ry3IrOmW2SNFigoWR8S50aMUYCkU6g9XZgdyQvoYP9zszSZ5Bl-A8zzWLyi7hGVOArDfnlfm79N3nHXuCnYLnC36psg-K-5ODJx7IBqynoT6xSPNJarSkd0lRDLW77i0bGuTpkMA188vQVD5E=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW28OtFcpMj4Lgh-qO0IBxUfaaKOq5u7lJ2U8pUmALrBHiWs20XLqRYSqbBZntKJYRzD8e5HyjCFN5ZHZz2q-YAHl_B3EsOK_HuHfrnyWMUS9wK2HANJikLEypb_jICf9m4MbIuH2lP1yPtWHL3WXp5LlVCYcqSbMJgzl3Zk2RqxoUHaV3nTeB0I=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW28OtFcpMj4Lgh-qO0IBxUfaaKOq5u7lJ2U8pUmALrBHiWs20XLqRYSqbBZntKJYRzD8e5HyjCFN5ZHZz2q-YAHl_B3EsOK_HuHfrnyWMUS9wK2HANJikLEypb_jICf9m4MbIuH2lP1yPtWHL3WXp5LlVCYcqSbMJgzl3Zk2RqxoUHaV3nTeB0I=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3fCc1Y_ROQfO3TUdEgI8O342P-TjTr79rYgu8rukyCZed8sasM4rvXiUh8-xPEvp-QxNVYheU-aa9jAQoUWcnTLfNmyVmCUBEZQot0k-hz_5vBjXr8oTBg9HC-HeTgvFYb5eYEAqE15TRHdh8Gr4gcQhcpBY3L7VwzVyCrqo1x9_YHgUjRnWrGfg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW3fCc1Y_ROQfO3TUdEgI8O342P-TjTr79rYgu8rukyCZed8sasM4rvXiUh8-xPEvp-QxNVYheU-aa9jAQoUWcnTLfNmyVmCUBEZQot0k-hz_5vBjXr8oTBg9HC-HeTgvFYb5eYEAqE15TRHdh8Gr4gcQhcpBY3L7VwzVyCrqo1x9_YHgUjRnWrGfg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0NRKz4VbrFzo91ErfHCcxSCgSDu1cQ78d7bd3xhBtKWxQleVTgoIeVr1NENtWon_iCYYQDKcougxsN4YQjhUd-i5nB3u74LZho10GRvZCuJ9uvABfwdEo9Has6EpptbUQFpfruXozIcEXVN4KuQxAC4Gcn9ZG3vlj8GKkqnJc3rksffHYIutE=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0NRKz4VbrFzo91ErfHCcxSCgSDu1cQ78d7bd3xhBtKWxQleVTgoIeVr1NENtWon_iCYYQDKcougxsN4YQjhUd-i5nB3u74LZho10GRvZCuJ9uvABfwdEo9Has6EpptbUQFpfruXozIcEXVN4KuQxAC4Gcn9ZG3vlj8GKkqnJc3rksffHYIutE=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0QTSL2UjCYZYWqahU95Twgvgg4hozHgWLUU_fonpViyF_I7Xmx9kK9OcN0Jgqgjq9Z7o0h46UInNqqzNr2fg9CCHeq3l8HoRPeigeOJ8vWwidjVqS3cbn8zr-0bm4PDHg0t-wnO_pUeRhTqcwNflWFycWjWKASJ2c_BkABYBjO-ToWRbjeaicBFg=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW0QTSL2UjCYZYWqahU95Twgvgg4hozHgWLUU_fonpViyF_I7Xmx9kK9OcN0Jgqgjq9Z7o0h46UInNqqzNr2fg9CCHeq3l8HoRPeigeOJ8vWwidjVqS3cbn8zr-0bm4PDHg0t-wnO_pUeRhTqcwNflWFycWjWKASJ2c_BkABYBjO-ToWRbjeaicBFg=s287-w287-h192-n-k-no-v1"
+    },
+    {
+     "thumbnail": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1RLOcP6uPzBPqRRFNlR05N_qfas5kJ9TsQ_baw16azb8Q-PXNtaoy9q10xDB0f8WN3FlJNWHJn_6VMw-UMFbqSMes7HICc18NihUM7MMAylUX0TL-Tm0N2ohbOWW9UfXlaKhg6ZxKAGtXSI2RZA9vmHso50eItNxBJmRGlslTyoNs9xRC_df3D=s287-w287-h192-n-k-no-v1",
+     "original_image": "https://lh3.googleusercontent.com/grass-proxy/AIM7gW1RLOcP6uPzBPqRRFNlR05N_qfas5kJ9TsQ_baw16azb8Q-PXNtaoy9q10xDB0f8WN3FlJNWHJn_6VMw-UMFbqSMes7HICc18NihUM7MMAylUX0TL-Tm0N2ohbOWW9UfXlaKhg6ZxKAGtXSI2RZA9vmHso50eItNxBJmRGlslTyoNs9xRC_df3D=s287-w287-h192-n-k-no-v1"
+    }
+   ],
+   "check_in_time": "3:00 PM",
+   "check_out_time": "11:00 AM",
+   "price": {
+    "display": "€93",
+    "amount": 93.04,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€279",
+    "amount": 279,
+    "currency": "EUR"
+   },
+   "rates": [
+    {
+     "source": {
+      "name": "Tailor Made Living",
+      "id": 2084533977,
+      "icon": "//www.gstatic.com/travel-hotels/branding/7674861562470902288.png"
+     },
+     "price": {
+      "display": "€93",
+      "amount": 93,
+      "currency": "EUR"
+     }
+    }
+   ],
+   "nearby_places": [
+    {
+     "name": "S. Tomé",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "5 min"
+      }
+     ]
+    },
+    {
+     "name": "Humberto Delgado Airport",
+     "transportations": [
+      {
+       "type": 0,
+       "duration": "35 min"
+      },
+      {
+       "type": 3,
+       "duration": "40 min"
+      }
+     ]
+    },
+    {
+     "name": "Seher Palace",
+     "transportations": [
+      {
+       "type": 2,
+       "duration": "5 min"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ads": [
+  {
+   "sponsored": true,
+   "name": "Hotel da Baixa",
+   "source": "Expedia.com",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/ac238c97-1652-4830-8da8-bb8d8883af88.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQBxoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YASABEgK1LPD_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_2Rmm5di3sn7uwaNzgGg7qw6ttpaA&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.712152,
+    "longitude": -9.13752
+   },
+   "hotel_class": 4,
+   "reviews": 1296,
+   "amenities": [
+    15,
+    29
+   ],
+   "price": {
+    "display": "€138",
+    "amount": 137.73,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€462",
+    "amount": 462,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "Lisbon Marriott Hotel",
+   "source": "Lisbon Marriott Hotel",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/df3424c9-7799-4d27-aeb5-cdcabf8bf950.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQCRoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YAiABEgIry_D_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_02tlFNeCLqbC0aBhhn8xkCglGADg&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.747256,
+    "longitude": -9.164349
+   },
+   "hotel_class": 4,
+   "reviews": 6445,
+   "amenities": [
+    19,
+    18,
+    15,
+    8,
+    28,
+    22
+   ],
+   "price": {
+    "display": "€167",
+    "amount": 167.2,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€526",
+    "amount": 526,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "Sheraton Lisboa Hotel & Spa",
+   "source": "Sheraton Lisboa Hotel & Spa",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/df3424c9-7799-4d27-aeb5-cdcabf8bf950.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQARoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YAyABEgJD7PD_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_0QcgcyNAqm7vKfn3mRq-TcIfjxYQ&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.731753,
+    "longitude": -9.146995
+   },
+   "hotel_class": 4,
+   "reviews": 3966,
+   "amenities": [
+    10,
+    26,
+    19,
+    18,
+    15,
+    8,
+    29,
+    28,
+    22
+   ],
+   "price": {
+    "display": "€192",
+    "amount": 192.38,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€601",
+    "amount": 601,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "InterContinental Lisbon",
+   "source": "InterContinental Lisbon",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/8621728485584542106.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQDxoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YBCABEgKcg_D_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_3bICKjMTc0VIPt4pv4CtA2YP9lRA&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.726817,
+    "longitude": -9.155224
+   },
+   "hotel_class": 4,
+   "reviews": 3008,
+   "amenities": [
+    18,
+    15,
+    8,
+    29,
+    28
+   ],
+   "price": {
+    "display": "€174",
+    "amount": 174.21,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€578",
+    "amount": 578,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "Sofitel Lisbon Liberdade",
+   "source": "Expedia.com",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/ac238c97-1652-4830-8da8-bb8d8883af88.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQBRoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YBSABEgISQ_D_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_1Tt23CLVwDosUpg6P4FVvKba6l7Q&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.718693,
+    "longitude": -9.144876
+   },
+   "hotel_class": 4,
+   "reviews": 2300,
+   "amenities": [
+    18,
+    15,
+    8,
+    29
+   ],
+   "price": {
+    "display": "€142",
+    "amount": 142.38,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€477",
+    "amount": 477,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "Dom Pedro Lisboa Hotel, a member of Radisson Individuals",
+   "source": "Radissonhotels.com",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/45790f43-7c31-4a7a-bf91-69eced17d165.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQDRoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YBiABEgLM4PD_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_3kcMxd21UjY9RcdHsHs0qDWaZPCw&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.724834,
+    "longitude": -9.160352
+   },
+   "hotel_class": 4,
+   "reviews": 2924,
+   "amenities": [
+    10,
+    26,
+    19,
+    18,
+    15,
+    8,
+    29,
+    28
+   ],
+   "price": {
+    "display": "€137",
+    "amount": 137.26,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€461",
+    "amount": 461,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "Holiday Inn Express Lisbon - Ave. Liberdade by IHG",
+   "source": "Holiday Inn Express Lisbon - Ave. Liberdade by IHG",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/2905805132092915444.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQERoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YByABEgJgifD_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_1tuuFszunurs3LvR5bfMAajLo0iw&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.722488,
+    "longitude": -9.15053
+   },
+   "hotel_class": 4,
+   "reviews": 1453,
+   "amenities": [
+    29,
+    28,
+    6
+   ],
+   "price": {
+    "display": "€81",
+    "amount": 80.59,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€255",
+    "amount": 255,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "Hotel Tivoli Avenida Liberdade Lisboa",
+   "source": "Tivoli Avenida Liberdade Lisboa",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/16586944615227140392.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQCxoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YCCABEgL9cvD_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_3gFRj3gmzmbX9DSNoM-awZC3DcvQ&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.720978,
+    "longitude": -9.147179
+   },
+   "hotel_class": 4,
+   "reviews": 4477,
+   "amenities": [
+    26,
+    19,
+    18,
+    16,
+    15,
+    9,
+    8,
+    29,
+    28,
+    22,
+    47,
+    44
+   ],
+   "price": {
+    "display": "€240",
+    "amount": 240.19,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€788",
+    "amount": 788,
+    "currency": "EUR"
+   }
+  },
+  {
+   "sponsored": true,
+   "name": "ibis Styles Lisboa Centro Liberdade NE",
+   "source": "Booking.com",
+   "source_icon": "//www.gstatic.com/travel-hotels/branding/icon_184.png",
+   "click": "/aclk?sa=l&ai=DChsSEwj-mpyW8v2XAxXPIUQIHbBiFScYACICCAEQAxoCZHo&co=1&ase=2&gclid=EAIaIQobChMI_pqclvL9lwMVzyFECB2wYhUnEA0YCSABEgIRMPD_BwE&cid=CAASuwHkaFtubtaJ2KBDevsR2Gw-moFo15KDS09ceyEdOqRLPA3qnY5uSkaq81U7ItBLMPDPd-ND7LZtzYNMlpURd_6E4nD69DTZXYjZiDgwAKvLrTEEBK5iyTIwb4yRz867YyYUappa7cryW9DBhLzfO3toDXII5KtI9mM5KERg0qKnb4wTjCz_p1mHvZn7TS3MxCef35NpqFSdlOjIpoHca29mzms1nQCcZfPfYlryJBICm-901aJUdqj3ZRos&category=acrcp_v1_48&sig=AOD64_3SOjFj3W1PdMWwVl8uyh2GVnR-IA&adurl=",
+   "gps_coordinates": {
+    "latitude": 38.727069,
+    "longitude": -9.146237
+   },
+   "hotel_class": 4,
+   "reviews": 2095,
+   "amenities": [
+    18,
+    15,
+    29
+   ],
+   "price": {
+    "display": "€71",
+    "amount": 70.52,
+    "currency": "EUR"
+   },
+   "total_rate": {
+    "display": "€248",
+    "amount": 248,
+    "currency": "EUR"
+   }
+  }
+ ],
+ "brands": [
+  {
+   "id": 91,
+   "name": "Mercure"
+  },
+  {
+   "id": 2,
+   "name": "InterContinental Hotels & Resorts"
+  },
+  {
+   "id": 53,
+   "name": "Wyndham Hotels & Resorts"
+  },
+  {
+   "id": 170,
+   "name": "NH Hotels"
+  },
+  {
+   "id": 336,
+   "name": "H10 Hotels"
+  },
+  {
+   "id": 80,
+   "name": "Radisson Hotel Group"
+  },
+  {
+   "id": 46,
+   "name": "Marriott Bonvoy"
+  },
+  {
+   "id": 94,
+   "name": "Mama Shelter"
+  },
+  {
+   "id": 61,
+   "name": "Marriott Hotels & Resorts"
+  },
+  {
+   "id": 37,
+   "name": "Hyatt"
+  },
+  {
+   "id": 17,
+   "name": "IHG Hotels & Resorts"
+  },
+  {
+   "id": 12,
+   "name": "Sheraton Hotels and Resorts"
+  },
+  {
+   "id": 103,
+   "name": "Ibis Styles"
+  },
+  {
+   "id": 178,
+   "name": "Melia Hotels & Resorts"
+  },
+  {
+   "id": 81,
+   "name": "DoubleTree by Hilton"
+  },
+  {
+   "id": 56,
+   "name": "Holiday Inn Express"
+  },
+  {
+   "id": 289,
+   "name": "Four Seasons"
+  },
+  {
+   "id": 33,
+   "name": "Accor Live Limitless"
+  },
+  {
+   "id": 337,
+   "name": "Tivoli Hotels"
+  },
+  {
+   "id": 75,
+   "name": "Residence Inn by Marriott"
+  },
+  {
+   "id": 84,
+   "name": "Sofitel"
+  },
+  {
+   "id": 47,
+   "name": "Novotel"
+  },
+  {
+   "id": 447,
+   "name": "Vignette Collection"
+  },
+  {
+   "id": 176,
+   "name": "ME by Melia"
+  },
+  {
+   "id": 100,
+   "name": "Iberostar Hotels and Resorts"
+  },
+  {
+   "id": 122,
+   "name": "Hyatt Regency"
+  },
+  {
+   "id": 64,
+   "name": "Holiday Inn"
+  },
+  {
+   "id": 315,
+   "name": "Shangri-La Hotels and Resorts Group"
+  },
+  {
+   "id": 59,
+   "name": "Autograph Collection"
+  },
+  {
+   "id": 116,
+   "name": "Andaz"
+  },
+  {
+   "id": 21,
+   "name": "Ibis"
+  },
+  {
+   "id": 129,
+   "name": "Moxy"
+  },
+  {
+   "id": 50,
+   "name": "Ramada"
+  },
+  {
+   "id": 316,
+   "name": "Shangri-La Hotels and Resorts"
+  },
+  {
+   "id": 391,
+   "name": "Radisson Individuals"
+  },
+  {
+   "id": 115,
+   "name": "Hampton by Hilton"
+  },
+  {
+   "id": 169,
+   "name": "NH Hotel Group"
+  },
+  {
+   "id": 287,
+   "name": "Design Hotels"
+  },
+  {
+   "id": 171,
+   "name": "NH Collection Hotels"
+  },
+  {
+   "id": 151,
+   "name": "Curio Collection"
+  },
+  {
+   "id": 28,
+   "name": "Hilton Honors"
+  },
+  {
+   "id": 174,
+   "name": "Melia Hotels International"
+  },
+  {
+   "id": 79,
+   "name": "Radisson Blu"
+  },
+  {
+   "id": 313,
+   "name": "H10 Hotels Group"
+  },
+  {
+   "id": 98,
+   "name": "B&B Hotels"
+  }
+ ],
+ "pagination": {
+  "current_from": 1,
+  "current_to": 20,
+  "next_page_token": "eyJvZmZzZXQiOjE4fQ=="
+ }
+}

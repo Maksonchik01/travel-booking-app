@@ -8,7 +8,7 @@ from httpx import AsyncClient
 from pydantic import ValidationError
 from tickets_api.domain.flights import BagAllowance, Baggage, Leg, Offer
 from tickets_api.domain.saved_trips import TripRefreshRequest
-from tickets_api.domain.stays import StayFilters
+from tickets_api.domain.stays import Stay, StayFilters, StayQuery
 from tickets_api.domain.trips import TripExtra, TripQuery
 from tickets_api.providers.mock import MockFlightProvider
 from tickets_api.providers.mock_stays import MockStayProvider
@@ -23,6 +23,7 @@ from tickets_api.services.trip_planner import (
     TripSearchResult,
     flight_query_for,
     stay_window,
+    trip_costs,
 )
 
 NOW = datetime(2026, 11, 6, 12, tzinfo=UTC)
@@ -270,6 +271,21 @@ async def test_overnight_flight_books_stay_from_arrival_date_with_warning() -> N
     assert [(q.check_in, q.check_out) for q in result.stay_queries] == [
         (date(2026, 12, 5), date(2026, 12, 8))
     ]
+
+
+async def test_stay_with_unknown_taxes_is_approximate() -> None:
+    """Google Hotels не каже, чи податки в ціні (ADR 0044): житло в сумі — орієнтовне."""
+    stays = await MockStayProvider(default_airport_directory(), clock=lambda: NOW).search(
+        StayQuery(city="LIS", check_in=date(2026, 12, 5), check_out=date(2026, 12, 8))
+    )
+    known, unknown = stays[0], stays[0].model_copy(update={"taxes_included": None})
+
+    def stay_status(stay: Stay) -> str:
+        costs = trip_costs(STUB_QUERY, DAY, None, stay)
+        return next(i.status for i in costs.items if i.kind == "stay")
+
+    assert stay_status(known) == "confirmed"
+    assert stay_status(unknown) == "approximate"
 
 
 async def test_costs_split_confirmed_approximate_unknown() -> None:

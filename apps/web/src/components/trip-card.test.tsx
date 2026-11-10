@@ -74,6 +74,7 @@ const STAY: Stay = {
   seller: null,
   collected_at: "2026-11-06T10:00:00Z",
   found_at: null,
+  taxes_included: true,
 };
 
 const COMBO: TripCombo = {

@@ -10,6 +10,7 @@ const PAGES = [
   ["flights", "/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-12&adults=2"],
   ["stays", "/stays?city=LIS&in=2026-12-05&out=2026-12-08"],
   ["stays-map", "/stays?city=LIS&in=2026-12-05&out=2026-12-08&view=map"],
+  ["stay-hotel", "/stays/hotel?city=LIS&in=2026-12-05&out=2026-12-08&src=mock&id=mock-lis-1"],
   ["trip", "/trip?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08"],
   ["login", "/login"],
   ["privacy", "/privacy"],

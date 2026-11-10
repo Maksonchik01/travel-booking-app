@@ -224,3 +224,22 @@ export function nightsBetween(checkIn: string, checkOut: string): number {
     (Date.parse(`${checkOut}T00:00:00Z`) - Date.parse(`${checkIn}T00:00:00Z`)) / 86_400_000,
   );
 }
+
+const STAY_SOURCE = /^[a-z]{1,20}$/;
+const STAY_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+/** Сторінка об'єкта (ADR 0044): параметри того самого пошуку + джерело й ідентифікатор об'єкта. */
+export function stayHotelHref(searchParams: string, stay: { source: string; id: string }): string {
+  const params = new URLSearchParams(searchParams);
+  params.delete("view");
+  params.set("src", stay.source);
+  params.set("id", stay.id);
+  return `/stays/hotel?${params}`;
+}
+
+export function parseStayRef(params: RawSearchParams): { source: string; id: string } | null {
+  const source = first(params.src);
+  const id = first(params.id);
+  if (!source || !id || !STAY_SOURCE.test(source) || !STAY_ID.test(id)) return null;
+  return { source, id };
+}

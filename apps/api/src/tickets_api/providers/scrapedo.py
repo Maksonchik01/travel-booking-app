@@ -131,34 +131,52 @@ class ScrapeDoFlightProvider(SerpApiFlightProvider):
         )
 
     async def _get(self, params: dict[str, str]) -> tuple[dict[str, Any], str | None]:
-        try:
-            response = await self._gate.send(
-                lambda: self._client.get(
-                    f"{self._base_url}{FLIGHTS_PATH}",
-                    params={**params, "token": self._api_key},
-                    timeout=self._request_timeout_s,
-                )
-            )
-        except httpx.TimeoutException as exc:
-            raise ProviderError(self.name, "timeout") from exc
-        except httpx.HTTPError as exc:
-            # str(exc) може містити URL з токеном — лише тип помилки.
-            raise ProviderError(self.name, f"network error: {type(exc).__name__}") from exc
-
-        if response.status_code in (402, 429):
-            raise ProviderRateLimitedError(self.name, "credits exhausted or rate limited")
-        if response.status_code in (401, 403):
-            raise ProviderError(self.name, f"auth failed (HTTP {response.status_code})")
-        try:
-            body = response.json()
-        except ValueError as exc:
-            raise ProviderError(self.name, f"invalid JSON (HTTP {response.status_code})") from exc
-        if not isinstance(body, dict):
-            raise ProviderError(self.name, "unexpected response")
-        # Текст помилки джерела в повідомлення не беремо — лише статус.
-        if response.status_code != 200 or body.get("error"):
-            raise ProviderError(self.name, f"HTTP {response.status_code}")
+        body = await scrapedo_get(
+            self._client,
+            self._gate,
+            name=self.name,
+            url=f"{self._base_url}{FLIGHTS_PATH}",
+            params=params,
+            token=self._api_key,
+            timeout_s=self._request_timeout_s,
+        )
         return body, None
+
+
+async def scrapedo_get(
+    client: httpx.AsyncClient,
+    gate: ProviderGate,
+    *,
+    name: str,
+    url: str,
+    params: dict[str, str],
+    token: str,
+    timeout_s: float,
+) -> dict[str, Any]:
+    """Запит до плагіна scrape.do (перельоти, готелі): токен — лише в query string, у помилках —
+    лише статус і тип помилки (URL з токеном і текст джерела туди не потрапляють)."""
+    try:
+        response = await gate.send(
+            lambda: client.get(url, params={**params, "token": token}, timeout=timeout_s)
+        )
+    except httpx.TimeoutException as exc:
+        raise ProviderError(name, "timeout") from exc
+    except httpx.HTTPError as exc:
+        raise ProviderError(name, f"network error: {type(exc).__name__}") from exc
+
+    if response.status_code in (402, 429):
+        raise ProviderRateLimitedError(name, "credits exhausted or rate limited")
+    if response.status_code in (401, 403):
+        raise ProviderError(name, f"auth failed (HTTP {response.status_code})")
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise ProviderError(name, f"invalid JSON (HTTP {response.status_code})") from exc
+    if not isinstance(body, dict):
+        raise ProviderError(name, "unexpected response")
+    if response.status_code != 200 or body.get("error"):
+        raise ProviderError(name, f"HTTP {response.status_code}")
+    return body
 
 
 def _combine(source: str, out: Offer, home: Offer) -> Offer:

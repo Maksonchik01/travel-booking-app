@@ -20,6 +20,8 @@ import type {
   ReadinessResponse,
   StayAnalysisResult,
   StayQuery,
+  StayDetailRequest,
+  StayDetailResult,
   StayRatesRequest,
   StayRatesResult,
   StaySearchResult,
@@ -142,6 +144,15 @@ export function fetchTripRefresh(body: TripRefreshRequest): Promise<ApiResult<Tr
 export function fetchStayRates(body: StayRatesRequest): Promise<ApiResult<StayRatesResult>> {
   return request(
     "/stays/rates",
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
+    SEARCH_TIMEOUT_MS,
+  );
+}
+
+/** Сторінка об'єкта (ADR 0044): об'єкт з тієї самої видачі — платне джерело відповідає з кешу. */
+export function fetchStayDetail(body: StayDetailRequest): Promise<ApiResult<StayDetailResult>> {
+  return request(
+    "/stays/detail",
     { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) },
     SEARCH_TIMEOUT_MS,
   );

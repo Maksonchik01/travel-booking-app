@@ -98,7 +98,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             record_coverage=SearchCoverageRecorder(app.state.redis).record,
         )
         app.state.stay_search = StaySearchService(
-            build_stay_providers(settings.stay_providers),
+            build_stay_providers(
+                settings.stay_providers, settings, app.state.http, app.state.redis
+            ),
             airports=default_airport_directory(),
             timeout_s=settings.provider_timeout_s,
             scoring_config=stay_scoring_config,

@@ -157,3 +157,22 @@ async def test_stay_rates_api(client: AsyncClient) -> None:
     assert data["rooms"][0]["offers"][0]["rate"]["seller"]
     search = await client.post("/stays/search", json=body["query"])
     assert all("sellers" in s for s in search.json()["stays"])
+
+
+async def test_stay_detail_api(client: AsyncClient) -> None:
+    """Сторінка об'єкта (ADR 0044): об'єкт з тієї самої видачі; зниклий — not_found."""
+    query = {"city": "LIS", "check_in": "2026-12-05", "check_out": "2026-12-08"}
+
+    found = await client.post(
+        "/stays/detail", json={"query": query, "source": "mock", "stay_id": "mock-lis-1"}
+    )
+    gone = await client.post(
+        "/stays/detail", json={"query": query, "source": "mock", "stay_id": "mock-lis-99"}
+    )
+
+    assert found.status_code == 200
+    data = found.json()
+    assert data["status"] == "ok"
+    assert data["stay"]["id"] == "mock-lis-1"
+    assert data["place"]["code"] == "LIS"
+    assert gone.json()["status"] == "not_found"

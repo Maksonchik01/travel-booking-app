@@ -36,8 +36,8 @@ services:
         value: serpapi,scrapedo,travelpayouts
       - key: CALENDAR_PROVIDERS
         value: travelpayouts
-      - key: STAY_PROVIDERS
-        value: mock
+      - key: STAY_PROVIDERS # Google Hotels через scrape.do (ADR 0044)
+        value: scrapedo
       - key: ALERT_PROVIDERS
         value: travelpayouts
       - key: LLM_PROVIDER

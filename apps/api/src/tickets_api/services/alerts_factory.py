@@ -82,8 +82,9 @@ def build_alert_service(
         price_stats=price_stats,
         redis=redis,
     )
-    # Житло й поїздка — лише з реальним джерелом житла (ТЗ 11.4: не вмикати ненадійне).
-    real_stays = [name for name in settings.stay_providers if name != "mock"]
+    # Житло й поїздка — лише з реальним джерелом житла (ТЗ 11.4: не вмикати ненадійне) і не з
+    # платним: scrape.do — кредити на кожен запит, регулярні перевірки їх вичерпали б (ADR 0044).
+    real_stays = [name for name in settings.stay_providers if name not in ("mock", "scrapedo")]
     if real_stays:
         stays = StaySearchService(
             build_stay_providers(real_stays),

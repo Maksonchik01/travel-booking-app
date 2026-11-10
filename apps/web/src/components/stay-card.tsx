@@ -21,6 +21,7 @@ import {
   Fence,
   Hotel,
   House,
+  Images,
   MapPin,
   Plane,
   ShieldCheck,
@@ -35,6 +36,7 @@ import {
   Waves,
   Wifi,
 } from "lucide-react";
+import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
@@ -88,6 +90,7 @@ export function StayCard({
   searchParams,
   freshness,
   converted,
+  detailHref,
 }: {
   stay: Stay;
   now: Date;
@@ -103,6 +106,8 @@ export function StayCard({
   query?: StayQuery;
   /** Рядок URL пошуку — «Відкрити пошук» з обраного. */
   searchParams?: string;
+  /** Сторінка об'єкта з фото, описом і цінами продавців (ADR 0044). */
+  detailHref?: string;
 }) {
   const t = useTranslations("stayCard");
   const tPicks = useTranslations("stayPicks");
@@ -116,9 +121,12 @@ export function StayCard({
       ...fractionDigits(value),
     });
   const KindIcon = KIND_ICON[stay.kind];
-  const service = KNOWN_SOURCES.has(stay.source)
-    ? tResults(`provider.${stay.source as "mock"}`)
-    : stay.source;
+  const service =
+    stay.source === "scrapedo"
+      ? t("source.scrapedo")
+      : KNOWN_SOURCES.has(stay.source)
+        ? tResults(`provider.${stay.source as "mock"}`)
+        : stay.source;
   const photo = photoUrl(stay);
 
   return (
@@ -131,17 +139,25 @@ export function StayCard({
       data-testid="stay-card"
     >
       {photo ? (
-        // Адреси фото — від джерела, хостів наперед не знаємо (next/image їх не пропустить).
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={photo}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          className="hidden h-full min-h-32 w-full object-cover sm:block"
-          data-testid="stay-photo"
-        />
+        <PhotoLink href={detailHref} label={t("openHotel", { name: stay.name })}>
+          {/* Адреси фото — від джерела, хостів наперед не знаємо (next/image їх не пропустить). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={photo}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            className="h-full w-full object-cover"
+            data-testid="stay-photo"
+          />
+          {(stay.images?.length ?? 0) > 1 && (
+            <span className="absolute right-2 bottom-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-white">
+              <Images className="size-3" aria-hidden />
+              {stay.images?.length}
+            </span>
+          )}
+        </PhotoLink>
       ) : (
         // Фото немає (mock його не дає) — тип житла на градієнті.
         <div
@@ -173,7 +189,17 @@ export function StayCard({
             {(stay.address ?? stay.district) && <span>· {stay.address ?? stay.district}</span>}
           </div>
           <h3 className="text-lg leading-tight font-semibold" data-testid="stay-name">
-            {stay.name}
+            {detailHref ? (
+              <Link
+                href={detailHref}
+                className="hover:text-primary underline-offset-4 transition-colors hover:underline"
+                data-testid="stay-open"
+              >
+                {stay.name}
+              </Link>
+            ) : (
+              stay.name
+            )}
           </h3>
         </div>
 
@@ -248,7 +274,11 @@ export function StayCard({
           <p className="mt-1 text-sm font-medium tabular-nums" data-testid="stay-total">
             {t("total", { nights: stay.nights, total: money(stay.total_price) })}
           </p>
-          <p className="text-muted-foreground text-[11px]">{t("withTaxes")}</p>
+          <p className="text-muted-foreground text-[11px]">
+            {stay.taxes_included === false || stay.taxes_included == null
+              ? t("taxesUnknown")
+              : t("withTaxes")}
+          </p>
           <ConvertedNote converted={converted} />
         </div>
         <div className="grid w-full gap-2 text-xs sm:w-auto">
@@ -270,14 +300,23 @@ export function StayCard({
             </span>
           </p>
           {actions}
+          {detailHref && (
+            <Button asChild variant="outline" className="w-full">
+              <Link href={detailHref} data-testid="stay-open-details">
+                <Images className="size-4" aria-hidden />
+                {t("photosAndDetails")}
+              </Link>
+            </Button>
+          )}
           {stay.deep_link && (
             <Button asChild className="w-full transition-transform active:scale-[0.98]">
               <a
                 href={outboundHref(stay.deep_link, "stay", stay.source)}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
+                data-testid="stay-site"
               >
-                {t("book")}
+                {isGoogleHotels(stay.deep_link) ? t("openGoogleHotels") : t("book")}
                 <ArrowUpRight className="size-4" aria-hidden />
               </a>
             </Button>
@@ -303,11 +342,33 @@ export function StayCard({
   );
 }
 
+export const isGoogleHotels = (url: string) => url.startsWith("https://www.google.com/travel/");
+
+/** Фото картки: на телефоні — смуга зверху, ширше — колонка зліва; з посиланням на об'єкт. */
+function PhotoLink({
+  href,
+  label,
+  children,
+}: {
+  href?: string;
+  label: string;
+  children: React.ReactNode;
+}) {
+  const className =
+    "relative order-first block h-44 overflow-hidden sm:order-none sm:h-auto sm:min-h-32";
+  if (!href) return <div className={className}>{children}</div>;
+  return (
+    <Link href={href} aria-label={label} className={className} tabIndex={-1}>
+      {children}
+    </Link>
+  );
+}
+
 /**
  * «Детальніше»: усе, що джерело повідомило про об'єкт; невідоме так і називаємо.
  * Нічого не домальовуємо (адреси, фото, умов, яких немає в даних).
  */
-function StayDetails({ stay, now }: { stay: Stay; now: Date }) {
+export function StayDetails({ stay, now }: { stay: Stay; now: Date }) {
   const t = useTranslations("stayCard");
   const format = useFormatter();
   const unknown = t("unknown");
@@ -352,6 +413,8 @@ function StayDetails({ stay, now }: { stay: Stay; now: Date }) {
           : t("detail.prepaymentRequired"),
     ],
     [t("detail.payAtProperty"), yesNo(stay.pay_at_property)],
+    [t("detail.checkIn"), stay.check_in_time ?? unknown],
+    [t("detail.checkOut"), stay.check_out_time ?? unknown],
     [t("detail.breakfast"), yesNo(stay.breakfast_included)],
     [t("detail.beds"), stay.beds != null ? String(stay.beds) : unknown],
     [

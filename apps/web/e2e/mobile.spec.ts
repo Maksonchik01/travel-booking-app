@@ -59,6 +59,10 @@ test("телефон: головна, результати, фільтри у в
   await page.getByTestId("stay-card").first().waitFor();
   await noHorizontalOverflow(page, "stays");
 
+  await page.goto("/stays/hotel?city=LIS&in=2026-12-05&out=2026-12-08&src=mock&id=mock-lis-1");
+  await page.getByTestId("stay-rates").waitFor();
+  await noHorizontalOverflow(page, "stay-hotel");
+
   await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08&view=map");
   await page.getByTestId("stay-map").waitFor();
   await noHorizontalOverflow(page, "stays-map");

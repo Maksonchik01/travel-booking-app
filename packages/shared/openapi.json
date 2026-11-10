@@ -540,6 +540,48 @@
         }
       }
     },
+    "/stays/detail": {
+      "post": {
+        "tags": [
+          "stays"
+        ],
+        "summary": "Stay Detail",
+        "description": "Сторінка об'єкта: фото, опис, деталі — з видачі тих самих дат і гостей (з кешу пошуку).",
+        "operationId": "stay_detail_stays_detail_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StayDetailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StayDetailResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/trips/search": {
       "post": {
         "tags": [
@@ -11565,6 +11607,18 @@
             "type": "number",
             "title": "Total Price"
           },
+          "taxes_included": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taxes Included",
+            "default": true
+          },
           "currency": {
             "type": "string",
             "pattern": "^[A-Za-z]{3}$",
@@ -11775,6 +11829,62 @@
               }
             ],
             "title": "Image Url"
+          },
+          "images": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Images"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "check_in_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check In Time"
+          },
+          "check_out_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check Out Time"
+          },
+          "booking_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Booking Ref"
           },
           "deep_link": {
             "anyOf": [
@@ -12075,6 +12185,87 @@
           "found_at"
         ],
         "title": "StayCard"
+      },
+      "StayDetailRequest": {
+        "properties": {
+          "query": {
+            "$ref": "#/components/schemas/StayQuery"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "stay_id": {
+            "type": "string",
+            "title": "Stay Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "source",
+          "stay_id"
+        ],
+        "title": "StayDetailRequest",
+        "description": "Сторінка об'єкта (ADR 0044): той самий запит, що дав об'єкт (знайдемо в кеші пошуку)."
+      },
+      "StayDetailResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "not_found",
+              "unsupported",
+              "rate_limited",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "stay": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Stay"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "place": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StayPlace"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "freshness": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "live",
+                  "cached",
+                  "approximate",
+                  "needs_recheck"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Freshness"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "StayDetailResult"
       },
       "StayFacets": {
         "properties": {
@@ -12868,6 +13059,11 @@
               }
             ],
             "title": "Deep Link"
+          },
+          "sponsored": {
+            "type": "boolean",
+            "title": "Sponsored",
+            "default": false
           },
           "checked_at": {
             "type": "string",

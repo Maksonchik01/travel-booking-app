@@ -237,6 +237,8 @@ class Stay(_Frozen):
     """Середня ціна за ніч з податками й зборами, за весь номер (усіх гостей)."""
     total_price: Money = Field(gt=0)
     """За всі ночі з податками й зборами."""
+    taxes_included: bool | None = True
+    """None — джерело не каже, чи податки в ціні (Google Hotels): суму підтверджує продавець."""
     currency: Currency
     nights: int = Field(ge=1, le=MAX_NIGHTS)
     rating: Number | None = Field(default=None, ge=0, le=10)
@@ -265,6 +267,15 @@ class Stay(_Frozen):
     """Адреса від джерела; None — лише район (вигаданої адреси не підставляємо)."""
     image_url: str | None = None
     """Фото від джерела (https); None — UI фото не показує."""
+    images: list[str] = Field(default_factory=list, max_length=20)
+    """Усі фото об'єкта від джерела (https, великі) — для сторінки об'єкта; [] — немає."""
+    description: str | None = Field(default=None, max_length=2000)
+    """Опис від джерела — НЕДОВІРЕНИЙ текст, лише показуємо."""
+    check_in_time: str | None = Field(default=None, max_length=20)
+    check_out_time: str | None = Field(default=None, max_length=20)
+    """Час заселення й виїзду, як його пише джерело ("3:00 PM"); None — невідомо."""
+    booking_ref: str | None = Field(default=None, max_length=4096)
+    """Непрозорий токен джерела для тарифів продавців (scrape.do — `detail_token`). Лише бекенд."""
     deep_link: str | None = None
     seller: str | None = None
     sellers: int | None = Field(default=None, ge=1)

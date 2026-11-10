@@ -3,10 +3,20 @@ import { AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 /** Graceful degradation: показуємо, які джерела не відповіли, але не ховаємо результати. */
-export function ProviderAlerts({ providers }: { providers: ProviderStatus[] }) {
+export function ProviderAlerts({
+  providers,
+  kind = "flights",
+}: {
+  providers: ProviderStatus[];
+  /** Житло: свої назви джерел (scrape.do — Google Hotels) і причина «лише двоє гостей». */
+  kind?: "flights" | "stays";
+}) {
   const t = useTranslations("results");
   const failed = providers.filter((p) => p.status !== "ok");
-  const providerName = (id: string) => (t.has(`provider.${id}`) ? t(`provider.${id}`) : id);
+  const providerName = (id: string) => {
+    if (kind === "stays" && t.has(`stayProvider.${id}`)) return t(`stayProvider.${id}`);
+    return t.has(`provider.${id}`) ? t(`provider.${id}`) : id;
+  };
   if (failed.length === 0) return null;
   return (
     <ul className="grid gap-2">
@@ -20,9 +30,16 @@ export function ProviderAlerts({ providers }: { providers: ProviderStatus[] }) {
           {p.status === "rate_limited"
             ? t("providerQuota", { provider: providerName(p.provider) })
             : p.status === "unsupported"
-              ? t(p.error === "cabin" ? "providerNoCabin" : "providerNoParty", {
-                  provider: providerName(p.provider),
-                })
+              ? t(
+                  p.error === "cabin"
+                    ? "providerNoCabin"
+                    : p.error === "guests"
+                      ? "providerNoGuests"
+                      : "providerNoParty",
+                  {
+                    provider: providerName(p.provider),
+                  },
+                )
               : t("providerFailed", {
                   provider: providerName(p.provider),
                   reason: p.status === "timeout" ? t("reasonTimeout") : (p.error ?? p.status),

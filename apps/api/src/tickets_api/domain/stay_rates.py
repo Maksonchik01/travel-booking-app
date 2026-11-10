@@ -44,6 +44,8 @@ class StayRate(_Frozen):
     """Обов'язкові збори на місці (туристичний податок тощо): 0 — немає, None — невідомо."""
     currency: Currency
     deep_link: str | None = None
+    sponsored: bool = False
+    """Рекламне розміщення в джерелі (Google Hotels позначає його так само)."""
     checked_at: AwareDatetime
 
     @property

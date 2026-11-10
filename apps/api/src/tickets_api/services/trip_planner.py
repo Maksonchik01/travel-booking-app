@@ -700,7 +700,10 @@ def trip_costs(
         CostItem(
             kind="stay",
             amount=stay.total_price,
-            status="approximate" if stay_converted else "confirmed",
+            # Податки невідомі (Google Hotels, ADR 0044) — сума джерела ще не кінцева.
+            status="approximate"
+            if stay_converted or stay.taxes_included is not True
+            else "confirmed",
         )
     )
     items.extend(

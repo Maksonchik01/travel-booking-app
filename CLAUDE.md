@@ -87,9 +87,14 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `origin_airport` — фактичний аеропорт (WAW-запит → і WMI, тому фільтруємо за довідником); `gate` — продавець;
   день знаходження ціни — з недокументованого `search_date` у `link`.
 - **Історія цін** пише маршрут за кодами із ЗАПИТУ (місто), а не фактичний аеропорт.
-- **Житло** ([ADR 0008](docs/adr/0008-stays-value-score.md)): поки лише mock
-  (`STAY_PROVIDERS=mock`; Hotellook закрито, інші API — після заявки). `StayProvider` —
-  `search` і `reviews`; ціни з податками за весь номер, рейтинг 0–10, невідоме — `None`.
+- **Житло** ([ADR 0008](docs/adr/0008-stays-value-score.md), [ADR 0044](docs/adr/0044-stay-page-google-hotels.md)):
+  `STAY_PROVIDERS=scrapedo` (Google Hotels через scrape.do, лише бекенд; за `CachedStayProvider`) або mock
+  (розробка, e2e). `StayProvider` — `search` і `reviews`; ціна за весь номер, рейтинг 0–10, невідоме — `None`;
+  `taxes_included=None` — податки невідомі (Google Hotels): «уточнює продавець», у поїздці — орієнтовне.
+  Google Hotels — лише 1–2 дорослих в одному номері (інакше `unsupported: guests`), без номерів/харчування/
+  скасування; фото — `images` (лише `lh3.googleusercontent.com`, браузер вантажить без Referer).
+  Сторінка об'єкта — `/stays/hotel?<пошук>&src=&id=` (`stayHotelHref`), дані — `POST /stays/detail` з кешу
+  пошуку, тарифи продавців підвантажуються самі (`StayHotelRates`); алерти платне джерело не використовують.
   Value-score — `scoring/stays.py` + `stays.toml` (скоригований рейтинг — байєсівський),
   історія — `stay_price_history`. Резюме відгуків — лише на вимогу, для «Нашого вибору».
 - **Тарифи продавців житла й обране** ([ADR 0020](docs/adr/0020-stay-rates-and-favorites.md)):

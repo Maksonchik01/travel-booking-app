@@ -190,7 +190,11 @@
     "mixedNote": "Some prices were just checked live, others come from the search cache (marked on each card). The seller confirms the final price at checkout.",
     "checkedSources": "Lowest price among the sources checked in this search: {sources}. Other sellers may price it differently.",
     "otherDates": "Prices on other dates",
-    "otherDatesFrom": "from {price}"
+    "otherDatesFrom": "from {price}",
+    "stayProvider": {
+      "scrapedo": "Google Hotels"
+    },
+    "providerNoGuests": "{provider} shows prices only for 1–2 adults in one room — there are no options from it for this group of guests."
   },
   "offer": {
     "perAdult": "per adult",
@@ -616,8 +620,17 @@
       "breakfast": "Breakfast included",
       "beds": "Beds",
       "amenities": "Amenities",
-      "updated": "Offer"
-    }
+      "updated": "Offer",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out"
+    },
+    "source": {
+      "scrapedo": "Google Hotels"
+    },
+    "taxesUnknown": "for the whole room; whether taxes are included — check with the seller",
+    "openHotel": "Open {name}",
+    "photosAndDetails": "Photos and details",
+    "openGoogleHotels": "Open in Google Hotels"
   },
   "stayPicks": {
     "title": "Our pick",
@@ -1370,10 +1383,11 @@
         {
           "h": "Who receives data",
           "p": [
-            "Search parameters (cities, dates, number of people) — price providers: SerpApi and scrape.do (Google Flights) and Travelpayouts.",
+            "Search parameters (cities, dates, number of people) — price providers: SerpApi and scrape.do (Google Flights) and Travelpayouts; for stays — scrape.do (Google Hotels).",
             "The text of your requests to the AI assistant and the search results — DeepSeek, for parsing and explanation. We don't log this text; chats are stored in your account only if you turned on chat sync. Don't put personal data in the chat. If you're signed in, the assistant searches with your profile settings: your home airport and currency are part of the conversation context, while preferred airlines and amenities are applied only by our scoring code and are not sent to the model.",
             "Infrastructure: Vercel (site), Render (server), Supabase (database, EU — Frankfurt), Sentry (error reports without personal data). Notifications — via Telegram or email.",
-            "Stays map: your browser loads map tiles directly from OpenFreeMap (tiles.openfreemap.org, OpenStreetMap data) — that service sees your IP address and the part of the map you're viewing. The map loads only in “Map” mode."
+            "Stays map: your browser loads map tiles directly from OpenFreeMap (tiles.openfreemap.org, OpenStreetMap data) — that service sees your IP address and the part of the map you're viewing. The map loads only in “Map” mode.",
+            "Stay photos: your browser loads them directly from Google servers (lh3.googleusercontent.com), without our page address — Google sees your IP address and which photo was loaded."
           ]
         },
         {
@@ -1398,7 +1412,7 @@
           "h": "Where prices come from",
           "p": [
             "Flight search asks several sources at once: live Google Flights prices via SerpApi and scrape.do (there a round trip is two separate one-way tickets, and it is labelled so) and seller prices from the Aviasales search cache (Travelpayouts), marked with when the price was found. Flexible dates start from free cached prices, and the live source checks only the cheapest dates. The same flight from several sellers is one card showing the cheapest seller; the rest are under “Seller offers” with each one's terms (baggage, price freshness), and for the first flight in the list we check sellers right away, for the others “Compare sellers and check the price” checks live which airlines and agencies sell the flight on Google Flights. The list is ordered by the lowest cost for all passengers and the whole trip in your currency, including the baggage you need when its price is known. This is the lowest price among the sources checked in this search, not a guaranteed lowest price on the whole market: we don't query Skyscanner, Kiwi.com, Trip.com, Expedia or airline websites directly — there is no open access to their prices, and their offers reach us only through these sources.",
-            "The flight price is shown for the whole party of the search (for one adult — for that adult): children and infants are at their own fare, we don't guess it. The stay price is for the whole room with taxes.",
+            "The flight price is shown for the whole party of the search (for one adult — for that adult): children and infants are at their own fare, we don't guess it. The stay price is for the whole room. If the source doesn't say whether taxes are included (Google Hotels), we say so and the seller confirms the final amount; in the trip total such a stay is approximate. Google Hotels prices only 1–2 adults in one room — for other groups of guests we don't show its options.",
             "Every price shows how fresh it is: “just checked” (live source, up to 30 min), “cached” (found earlier, up to 3 days), “approximate” (unknown when found) or “worth re-checking” (older). Identical searches made at the same time go to the source only once.",
             "You choose the currency (EUR, USD, GBP, PLN) for flights, stays and trips. Prices are shown as the source gives them; if it gave another currency, we convert it for comparison at the ECB reference rate and mark it “≈ … approximate”. The seller may charge in its own currency at your bank's rate — this is not a guaranteed charge. We don't hide cents: a fractional price is shown with cents."
           ]
@@ -1559,7 +1573,9 @@
     "view": "Go",
     "unsupported": "This source doesn't provide other sellers' rates — the seller confirms the price and terms.",
     "failed": "Couldn't fetch rates. Please try later.",
-    "rateLimited": "Too many requests. Try again in a few minutes."
+    "rateLimited": "Too many requests. Try again in a few minutes.",
+    "roomAny": "Room for two — choose the room type with the seller",
+    "sponsored": "Ad"
   },
   "favorites": {
     "title": "Favorites",
@@ -1825,5 +1841,32 @@
       "fewerFilters": "Reset filters",
       "widerArea": "Search the whole city"
     }
+  },
+  "stayHotel": {
+    "title": "Stay",
+    "invalid": "Couldn't open this property: the link is incomplete. Go back to the stay search.",
+    "back": "Back to search results",
+    "unreachable": "The search service is unavailable right now. Please try again a bit later.",
+    "error": "Couldn't load this property. Please try again.",
+    "rateLimited": "Too many requests this hour. Please try again a bit later.",
+    "notFound": "This option is no longer in the results for these dates — the price changed or it's sold out. Go back to the results to see current ones.",
+    "unsupported": "The source doesn't show this property for this group of guests.",
+    "failed": "Couldn't load this property. Please try again.",
+    "about": "About this property",
+    "noDescription": "The source gives no description.",
+    "rooms": "Rooms and prices",
+    "roomsHint": "Seller prices for {nights, plural, one {# night} other {# nights}} for {guests, plural, one {# guest} other {# guests}}. Go to the seller to choose a room.",
+    "noRates": "No seller comparison for this property — the seller confirms the price and room.",
+    "details": "Details and conditions",
+    "checkTimes": "Check-in {in} · check-out {out}",
+    "seeRooms": "Rooms and prices",
+    "noPhotos": "The source gives no photos",
+    "photoOf": "Photo {index} of {total}",
+    "morePhotos": "{count} more",
+    "galleryTitle": "Photos: {name}",
+    "counter": "{index} / {total}",
+    "close": "Close",
+    "previous": "Previous photo",
+    "next": "Next photo"
   }
 }

@@ -8,6 +8,9 @@ import type { ClickIn } from "@tickets/shared";
 export const ALLOWED_PREFIXES = [
   "https://www.aviasales.com/", // Travelpayouts (з партнерським marker)
   "https://www.google.com/travel/flights", // SerpApi: та сама видача в Google Flights
+  "https://www.google.com/travel/search?", // scrape.do: готель у Google Hotels (ADR 0044)
+  "https://www.google.com/travel/lodging/clk?", // scrape.do: продавець готелю з Google Hotels
+  "https://www.google.com/aclk?", // scrape.do: рекламне розміщення продавця (позначене)
 ] as const;
 
 export type ClickKind = ClickIn["kind"];

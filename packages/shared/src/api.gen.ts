@@ -214,6 +214,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/stays/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stay Detail
+         * @description Сторінка об'єкта: фото, опис, деталі — з видачі тих самих дат і гостей (з кешу пошуку).
+         */
+        post: operations["stay_detail_stays_detail_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/trips/search": {
         parameters: {
             query?: never;
@@ -3969,6 +3989,11 @@ export interface components {
             price_per_night: number;
             /** Total Price */
             total_price: number;
+            /**
+             * Taxes Included
+             * @default true
+             */
+            taxes_included: boolean | null;
             /** Currency */
             currency: string;
             /** Nights */
@@ -4013,6 +4038,16 @@ export interface components {
             address?: string | null;
             /** Image Url */
             image_url?: string | null;
+            /** Images */
+            images?: string[];
+            /** Description */
+            description?: string | null;
+            /** Check In Time */
+            check_in_time?: string | null;
+            /** Check Out Time */
+            check_out_time?: string | null;
+            /** Booking Ref */
+            booking_ref?: string | null;
             /** Deep Link */
             deep_link?: string | null;
             /** Seller */
@@ -4111,6 +4146,29 @@ export interface components {
             currency: string;
             /** Found At */
             found_at: string | null;
+        };
+        /**
+         * StayDetailRequest
+         * @description Сторінка об'єкта (ADR 0044): той самий запит, що дав об'єкт (знайдемо в кеші пошуку).
+         */
+        StayDetailRequest: {
+            query: components["schemas"]["StayQuery"];
+            /** Source */
+            source: string;
+            /** Stay Id */
+            stay_id: string;
+        };
+        /** StayDetailResult */
+        StayDetailResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "not_found" | "unsupported" | "rate_limited" | "error";
+            stay?: components["schemas"]["Stay"] | null;
+            place?: components["schemas"]["StayPlace"] | null;
+            /** Freshness */
+            freshness?: ("live" | "cached" | "approximate" | "needs_recheck") | null;
         };
         /**
          * StayFacets
@@ -4378,6 +4436,11 @@ export interface components {
             currency: string;
             /** Deep Link */
             deep_link?: string | null;
+            /**
+             * Sponsored
+             * @default false
+             */
+            sponsored: boolean;
             /**
              * Checked At
              * Format: date-time
@@ -5551,6 +5614,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayRatesResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stay_detail_stays_detail_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StayDetailRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayDetailResult"];
                 };
             };
             /** @description Validation Error */

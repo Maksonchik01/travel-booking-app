@@ -17,7 +17,7 @@ import hashlib
 import secrets
 from collections.abc import Awaitable, Callable
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from pydantic import TypeAdapter
@@ -26,10 +26,14 @@ from redis.exceptions import RedisError
 
 from tickets_api.domain.flights import CalendarDay, FlightQuery, Offer
 from tickets_api.domain.sellers import SellerOffer
+from tickets_api.domain.stay_rates import StayRate
+from tickets_api.domain.stays import Stay, StayQuery, StayReview
 from tickets_api.providers.base import (
     FlightProvider,
     ProviderUnsupportedError,
     SellerSource,
+    StayProvider,
+    StayRateSource,
     is_live,
 )
 
@@ -38,12 +42,16 @@ log = structlog.get_logger(__name__)
 _OFFERS = TypeAdapter(list[Offer])
 _DAYS = TypeAdapter(list[CalendarDay])
 _SELLERS = TypeAdapter(list[SellerOffer])
+_STAYS = TypeAdapter(list[Stay])
+_RATES = TypeAdapter(list[StayRate])
 KEY_PREFIX = "fp:v1"
 LOCK_TTL_S = 60
 """Замок живе не довше за найдовший пошук: впав процес — замок звільниться сам."""
 LOCK_WAIT_S = 25.0
 LOCK_POLL_S = 0.25
 CACHE_EXCLUDED = {"profile", "filters", "baggage", "preferences"}
+STAY_CACHE_EXCLUDED = {"profile", "filters", "preferences"}
+"""Житло: фільтри й уподобання застосовує сервіс після джерела — у ключ не входять."""
 
 
 def search_cache_payload(query: FlightQuery) -> str:
@@ -51,50 +59,24 @@ def search_cache_payload(query: FlightQuery) -> str:
     return query.model_dump_json(exclude=CACHE_EXCLUDED)
 
 
-class CachedFlightProvider:
+class RedisCache:
+    """Спільна механіка кешу джерела: TTL, один виклик на однакові запити, замок між процесами."""
+
     def __init__(
         self,
-        inner: FlightProvider,
+        name: str,
         redis: Redis,
         ttl_s: int,
         *,
         lock_wait_s: float = LOCK_WAIT_S,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
     ) -> None:
-        self._inner = inner
         self._redis = redis
         self._ttl_s = ttl_s
         self._lock_wait_s = lock_wait_s
         self._sleep = sleep
         self._inflight: dict[str, asyncio.Future[Any]] = {}
-        self.name = inner.name
-        self.timeout_s: float | None = getattr(inner, "timeout_s", None)
-        self.live: bool = is_live(inner)
-
-    async def search(self, query: FlightQuery) -> list[Offer]:
-        key = self._key("search", search_cache_payload(query))
-        return await self._cached(key, _OFFERS, lambda: self._inner.search(query))
-
-    async def calendar(
-        self, origin: str, destination: str, month: date, currency: str
-    ) -> list[CalendarDay]:
-        raw_key = f"{origin}|{destination}|{month:%Y-%m}|{currency}".upper()
-        return await self._cached(
-            self._key("calendar", raw_key),
-            _DAYS,
-            lambda: self._inner.calendar(origin, destination, month, currency),
-        )
-
-    async def sellers(self, query: FlightQuery, booking_ref: str) -> list[SellerOffer]:
-        """Продавці теж кешуються (той самий TTL): повторне відкриття картки не витрачає квоту.
-        Ціна продавця — за склад і клас запиту, тож вони теж у ключі."""
-        inner = self._inner
-        if not isinstance(inner, SellerSource):
-            raise ProviderUnsupportedError(self.name, "sellers")
-        raw_key = f"{booking_ref}|{query.currency}|{query.passengers.code}|{query.cabin}"
-        return await self._cached(
-            self._key("sellers", raw_key), _SELLERS, lambda: inner.sellers(query, booking_ref)
-        )
+        self.name = name
 
     async def _cached[T](
         self, key: str, adapter: TypeAdapter[T], load: Callable[[], Awaitable[T]]
@@ -190,3 +172,73 @@ class CachedFlightProvider:
             await self._redis.set(key, value, ex=self._ttl_s)
         except RedisError as exc:
             log.warning("provider_cache.write_failed", provider=self.name, error=type(exc).__name__)
+
+
+class CachedFlightProvider(RedisCache):
+    def __init__(
+        self,
+        inner: FlightProvider,
+        redis: Redis,
+        ttl_s: int,
+        *,
+        lock_wait_s: float = LOCK_WAIT_S,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None:
+        super().__init__(inner.name, redis, ttl_s, lock_wait_s=lock_wait_s, sleep=sleep)
+        self._inner = inner
+        self.timeout_s: float | None = getattr(inner, "timeout_s", None)
+        self.live: bool = is_live(inner)
+
+    async def search(self, query: FlightQuery) -> list[Offer]:
+        key = self._key("search", search_cache_payload(query))
+        return await self._cached(key, _OFFERS, lambda: self._inner.search(query))
+
+    async def calendar(
+        self, origin: str, destination: str, month: date, currency: str
+    ) -> list[CalendarDay]:
+        raw_key = f"{origin}|{destination}|{month:%Y-%m}|{currency}".upper()
+        return await self._cached(
+            self._key("calendar", raw_key),
+            _DAYS,
+            lambda: self._inner.calendar(origin, destination, month, currency),
+        )
+
+    async def sellers(self, query: FlightQuery, booking_ref: str) -> list[SellerOffer]:
+        """Продавці теж кешуються (той самий TTL): повторне відкриття картки не витрачає квоту.
+        Ціна продавця — за склад і клас запиту, тож вони теж у ключі."""
+        inner = self._inner
+        if not isinstance(inner, SellerSource):
+            raise ProviderUnsupportedError(self.name, "sellers")
+        raw_key = f"{booking_ref}|{query.currency}|{query.passengers.code}|{query.cabin}"
+        return await self._cached(
+            self._key("sellers", raw_key), _SELLERS, lambda: inner.sellers(query, booking_ref)
+        )
+
+
+class CachedStayProvider(RedisCache):
+    """Житло за тим самим кешем (ADR 0044): платне джерело не питаємо вдруге про той самий пошук,
+    а сторінка об'єкта й тарифи беруть його з кешу пошуку. Відгуки — без кешу (їх дає лише mock)."""
+
+    def __init__(self, inner: StayProvider, redis: Redis, ttl_s: int) -> None:
+        super().__init__(inner.name, redis, ttl_s)
+        self._inner = inner
+        self.timeout_s: float | None = getattr(inner, "timeout_s", None)
+
+    async def search(self, query: StayQuery) -> list[Stay]:
+        payload = query.model_dump_json(exclude=STAY_CACHE_EXCLUDED)
+        return await self._cached(
+            self._key("stay-search", payload), _STAYS, lambda: self._inner.search(query)
+        )
+
+    async def reviews(self, stay_id: str, *, limit: int = 30) -> list[StayReview]:
+        return await self._inner.reviews(stay_id, limit=limit)
+
+    async def rates(self, query: StayQuery, stay_id: str) -> list[StayRate]:
+        inner = self._inner
+        if not hasattr(inner, "rates"):
+            raise ProviderUnsupportedError(self.name, "rates")
+        source = cast(StayRateSource, inner)
+        payload = f"{stay_id}|{query.model_dump_json(exclude=STAY_CACHE_EXCLUDED)}"
+        return await self._cached(
+            self._key("stay-rates", payload), _RATES, lambda: source.rates(query, stay_id)
+        )

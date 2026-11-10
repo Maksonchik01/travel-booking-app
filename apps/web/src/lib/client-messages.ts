@@ -31,6 +31,7 @@ export const CLIENT_NAMESPACES = [
   "stayAnalysis",
   "stayCard",
   "stayFilters",
+  "stayHotel",
   "stayMap",
   "stayPicks",
   "stayRates",

@@ -14,7 +14,7 @@ from typing import Any, Literal, cast
 import structlog
 from pydantic import BaseModel
 
-from tickets_api.domain.flights import Money
+from tickets_api.domain.flights import Money, _StrictInput
 from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
 from tickets_api.domain.money import ConvertedPrice, convert, converted
 from tickets_api.domain.stay_rates import (
@@ -104,6 +104,22 @@ class StaySearchResult(BaseModel):
     """stay_key → свіжість ціни (модуль 17.3). Джерела житла дають ціну на зараз (живі)."""
     converted: dict[str, ConvertedPrice] = {}
     """stay_key → сума за все проживання у валюті пошуку, якщо джерело дало іншу (18.2)."""
+
+
+class StayDetailRequest(_StrictInput):
+    """Сторінка об'єкта (ADR 0044): той самий запит, що дав об'єкт (знайдемо в кеші пошуку)."""
+
+    query: StayQuery
+    source: str
+    stay_id: str
+
+
+class StayDetailResult(BaseModel):
+    status: Literal["ok", "not_found", "unsupported", "rate_limited", "error"]
+    """not_found — об'єкта вже немає у видачі на ці дати (інша ціна, немає місць)."""
+    stay: Stay | None = None
+    place: StayPlace | None = None
+    freshness: PriceFreshness | None = None
 
 
 class StaySearchService:
@@ -226,6 +242,36 @@ class StaySearchService:
             )
         return result, conversions
 
+    async def detail(self, request: StayDetailRequest) -> StayDetailResult:
+        """Один об'єкт з видачі тих самих дат і гостей. Платне джерело відповідає з кешу пошуку,
+        тож відкриття сторінки об'єкта нового запиту не робить (поки кеш живий)."""
+        provider = next((p for p in self._providers if p.name == request.source), None)
+        if provider is None:
+            return StayDetailResult(status="unsupported")
+        status, stays = await self._call(provider, request.query)
+        if status.status == "unsupported":
+            return StayDetailResult(status="unsupported")
+        if status.status == "rate_limited":
+            return StayDetailResult(status="rate_limited")
+        if status.status != "ok":
+            return StayDetailResult(status="error")
+        stay = next((s for s in stays if s.id == request.stay_id), None)
+        if stay is None:
+            return StayDetailResult(status="not_found", place=self.place(request.query.city))
+        return StayDetailResult(
+            status="ok",
+            stay=stay,
+            place=self.place(request.query.city),
+            freshness=price_freshness(
+                live=True,
+                collected_at=stay.collected_at,
+                found_at=stay.found_at,
+                found_on=None,
+                now=self._clock(),
+                rules=self._freshness,
+            ),
+        )
+
     async def reviews(self, source: str, stay_id: str) -> list[StayReview]:
         """Відгуки з того джерела, що дало об'єкт. Збій — порожньо (резюме просто не буде)."""
         provider = next((p for p in self._providers if p.name == source), None)
@@ -286,6 +332,9 @@ class StaySearchService:
         except ProviderRateLimitedError as exc:
             log.warning("stay_provider.rate_limited", provider=name, error=exc.message)
             return ProviderStatus(provider=name, status="rate_limited", error=exc.message), []
+        except ProviderUnsupportedError as exc:
+            # Не збій: джерело не рахує такий склад гостей (Google Hotels — лише на двох).
+            return ProviderStatus(provider=name, status="unsupported", error=exc.message), []
         except ProviderError as exc:
             log.warning("stay_provider.error", provider=name, error=exc.message)
             return ProviderStatus(provider=name, status="error", error=exc.message), []

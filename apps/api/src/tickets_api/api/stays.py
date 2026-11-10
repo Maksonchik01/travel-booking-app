@@ -3,7 +3,12 @@ from fastapi import APIRouter, Depends, Request
 from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.stay_rates import StayRatesRequest, StayRatesResult
 from tickets_api.domain.stays import StayQuery
-from tickets_api.services.stay_search import StaySearchResult, StaySearchService
+from tickets_api.services.stay_search import (
+    StayDetailRequest,
+    StayDetailResult,
+    StaySearchResult,
+    StaySearchService,
+)
 
 router = APIRouter(prefix="/stays", tags=["stays"])
 
@@ -29,3 +34,11 @@ async def stay_rates(body: StayRatesRequest, request: Request) -> StayRatesResul
     """«Порівняти ціни»: тарифи продавців на ті самі дати й гостей, згруповані за однаковими
     умовами (номер, ліжко, харчування, скасування). Джерело не вміє — `unsupported`."""
     return await _service(request).rates(body)
+
+
+@router.post(
+    "/detail", response_model=StayDetailResult, dependencies=[Depends(rate_limit("search"))]
+)
+async def stay_detail(body: StayDetailRequest, request: Request) -> StayDetailResult:
+    """Сторінка об'єкта: фото, опис, деталі — з видачі тих самих дат і гостей (з кешу пошуку)."""
+    return await _service(request).detail(body)

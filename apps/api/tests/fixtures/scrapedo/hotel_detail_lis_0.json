@@ -1,0 +1,310 @@
+{
+ "search_parameters": {
+  "engine": "google_hotels_detail",
+  "detail_token": "Q2hvSXliLWI2Zl9MaDVEakFSb05MMmN2TVRGbmFGODJhM0JyYUJBQnwweGQxOTMzNmU0ZDMxZjYyNToweGUzMjAxZTVmZmQyNmRmYzl8MzEzMTA0",
+  "check_in_date": "2026-12-13",
+  "check_out_date": "2026-12-16",
+  "currency": "EUR",
+  "gl": "us",
+  "hl": "en"
+ },
+ "property": {
+  "detail_token": "Q2hvSXliLWI2Zl9MaDVEakFSb05MMmN2TVRGbmFGODJhM0JyYUJBQnwweGQxOTMzNmU0ZDMxZjYyNToweGUzMjAxZTVmZmQyNmRmYzl8MzEzMTA0",
+  "booking_sources": [
+   {
+    "sponsored": true,
+    "name": "Hotels.com",
+    "id": 1162912808,
+    "click": "/aclk?sa=l&ai=DChsSEwjptsKX8v2XAxULN0QIHb3RASEYACICCAEQARoCZHo&co=1&ase=2&gclid=EAIaIQobChMI6bbCl_L9lwMVCzdECB290QEhEAoYASABEgKr6PD_BwE&cid=CAASuwHkaPYFeOWJ6Jg8Dbxt3nKw-TaJ53k4vqo0kIWgx588ZeVImOGeQ8T82VxXpb9CBzt55a_1p6osVsj_B1B0hxne1yjzk-Uvjh5zSvstbgYcAcNxO_nmOj8wxYgafxVNGjlsrZsFrfWJJ0AVLNULp0Jr8p-pPDsueaSeKoZs6rqBVVoSz9aBozpWVXUWS4tUDNgXYBQZoyis96NUiAxzZB1DWBS7wEFHzpmpdjJbwUrBi9R3edEF9UN1tET5&category=acrcp_v1_48&sig=AOD64_0gMy4raCeM3d-0L3OGD-wHxtphTg&adurl",
+    "icon": "//www.gstatic.com/travel-hotels/branding/306127930749010778.png",
+    "rate_per_night": {
+     "display": "€248",
+     "amount": 247.6,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€743",
+     "amount": 742.8,
+     "currency": "EUR"
+    }
+   },
+   {
+    "sponsored": true,
+    "name": "The One Palácio da Anunciada",
+    "id": 101190818,
+    "click": "/aclk?sa=l&ai=DChsSEwjptsKX8v2XAxULN0QIHb3RASEYACICCAEQOhoCZHo&co=1&ase=2&gclid=EAIaIQobChMI6bbCl_L9lwMVCzdECB290QEhEAoYAiABEgK-D_D_BwE&cid=CAASuwHkaPYFeOWJ6Jg8Dbxt3nKw-TaJ53k4vqo0kIWgx588ZeVImOGeQ8T82VxXpb9CBzt55a_1p6osVsj_B1B0hxne1yjzk-Uvjh5zSvstbgYcAcNxO_nmOj8wxYgafxVNGjlsrZsFrfWJJ0AVLNULp0Jr8p-pPDsueaSeKoZs6rqBVVoSz9aBozpWVXUWS4tUDNgXYBQZoyis96NUiAxzZB1DWBS7wEFHzpmpdjJbwUrBi9R3edEF9UN1tET5&category=acrcp_v1_49&sig=AOD64_3s0DiJYYDHyejydyNneRwgJV8EJA&adurl",
+    "icon": "//www.gstatic.com/travel-hotels/branding/5177830922184916588.png",
+    "rate_per_night": {
+     "display": "€200",
+     "amount": 199.74,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€599",
+     "amount": 599.22,
+     "currency": "EUR"
+    }
+   },
+   {
+    "sponsored": true,
+    "name": "Priceline",
+    "id": 220,
+    "click": "/aclk?sa=l&ai=DChsSEwjptsKX8v2XAxULN0QIHb3RASEYACICCAEQ5wEaAmR6&co=1&ase=2&gclid=EAIaIQobChMI6bbCl_L9lwMVCzdECB290QEhEAoYAyABEgLqYvD_BwE&cid=CAASuwHkaPYFeOWJ6Jg8Dbxt3nKw-TaJ53k4vqo0kIWgx588ZeVImOGeQ8T82VxXpb9CBzt55a_1p6osVsj_B1B0hxne1yjzk-Uvjh5zSvstbgYcAcNxO_nmOj8wxYgafxVNGjlsrZsFrfWJJ0AVLNULp0Jr8p-pPDsueaSeKoZs6rqBVVoSz9aBozpWVXUWS4tUDNgXYBQZoyis96NUiAxzZB1DWBS7wEFHzpmpdjJbwUrBi9R3edEF9UN1tET5&category=acrcp_v1_48&sig=AOD64_0fwUEHbih1UmSAtCtYasK718DEfQ&adurl",
+    "icon": "//www.gstatic.com/travel-hotels/branding/icon_220.png",
+    "rate_per_night": {
+     "display": "€249",
+     "amount": 248.81,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€746",
+     "amount": 746.44,
+     "currency": "EUR"
+    }
+   },
+   {
+    "sponsored": true,
+    "name": "Expedia.com",
+    "id": 89,
+    "click": "/aclk?sa=l&ai=DChsSEwjptsKX8v2XAxULN0QIHb3RASEYACICCAEQsQEaAmR6&co=1&ase=2&gclid=EAIaIQobChMI6bbCl_L9lwMVCzdECB290QEhEAoYBCABEgL48fD_BwE&cid=CAASuwHkaPYFeOWJ6Jg8Dbxt3nKw-TaJ53k4vqo0kIWgx588ZeVImOGeQ8T82VxXpb9CBzt55a_1p6osVsj_B1B0hxne1yjzk-Uvjh5zSvstbgYcAcNxO_nmOj8wxYgafxVNGjlsrZsFrfWJJ0AVLNULp0Jr8p-pPDsueaSeKoZs6rqBVVoSz9aBozpWVXUWS4tUDNgXYBQZoyis96NUiAxzZB1DWBS7wEFHzpmpdjJbwUrBi9R3edEF9UN1tET5&category=acrcp_v1_48&sig=AOD64_2wCBVYuwX1xBzNwqqstNyqW4sr3g&adurl",
+    "icon": "//www.gstatic.com/travel-hotels/branding/ac238c97-1652-4830-8da8-bb8d8883af88.png",
+    "rate_per_night": {
+     "display": "€250",
+     "amount": 250.33,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€751",
+     "amount": 750.98,
+     "currency": "EUR"
+    }
+   },
+   {
+    "sponsored": true,
+    "name": "Travelocity.com",
+    "id": 185,
+    "click": "/aclk?sa=l&ai=DChsSEwjptsKX8v2XAxULN0QIHb3RASEYACICCAEQeRoCZHo&co=1&ase=2&gclid=EAIaIQobChMI6bbCl_L9lwMVCzdECB290QEhEAoYBSABEgI4IPD_BwE&cid=CAASuwHkaPYFeOWJ6Jg8Dbxt3nKw-TaJ53k4vqo0kIWgx588ZeVImOGeQ8T82VxXpb9CBzt55a_1p6osVsj_B1B0hxne1yjzk-Uvjh5zSvstbgYcAcNxO_nmOj8wxYgafxVNGjlsrZsFrfWJJ0AVLNULp0Jr8p-pPDsueaSeKoZs6rqBVVoSz9aBozpWVXUWS4tUDNgXYBQZoyis96NUiAxzZB1DWBS7wEFHzpmpdjJbwUrBi9R3edEF9UN1tET5&category=acrcp_v1_48&sig=AOD64_39VrwIkmFgvOjROAjyWOdJN2M8cQ&adurl",
+    "icon": "//www.gstatic.com/travel-hotels/branding/icon_185.png",
+    "rate_per_night": {
+     "display": "€250",
+     "amount": 250.33,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€751",
+     "amount": 750.98,
+     "currency": "EUR"
+    }
+   },
+   {
+    "sponsored": true,
+    "name": "Tripadvisor.com",
+    "id": 100532569,
+    "click": "/aclk?sa=l&ai=DChsSEwjptsKX8v2XAxULN0QIHb3RASEYACICCAEQrwEaAmR6&co=1&ase=2&gclid=EAIaIQobChMI6bbCl_L9lwMVCzdECB290QEhEAoYBiABEgLIuPD_BwE&cid=CAASuwHkaPYFeOWJ6Jg8Dbxt3nKw-TaJ53k4vqo0kIWgx588ZeVImOGeQ8T82VxXpb9CBzt55a_1p6osVsj_B1B0hxne1yjzk-Uvjh5zSvstbgYcAcNxO_nmOj8wxYgafxVNGjlsrZsFrfWJJ0AVLNULp0Jr8p-pPDsueaSeKoZs6rqBVVoSz9aBozpWVXUWS4tUDNgXYBQZoyis96NUiAxzZB1DWBS7wEFHzpmpdjJbwUrBi9R3edEF9UN1tET5&category=acrcp_v1_48&sig=AOD64_00cBBcYivu2k0L_uHLEk-OUu_U3A&adurl",
+    "icon": "//www.gstatic.com/travel-hotels/branding/7993073966338005995.png",
+    "rate_per_night": {
+     "display": "€200",
+     "amount": 200.35,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€601",
+     "amount": 601.06,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Vio.com",
+    "id": 1587851245,
+    "click": "/travel/lodging/clk?pc=AJ0xEyiOBanWLCGM3KYqJW42LdVeWK10S00eyP6HiNaQlAkKsSUfeoLD-n-1lS3ArfWrHUP_dy_tJTwfjvUaLh92V1HE7CgmNv5CHExw-AUJrbt3N2CYzw4465-WpXuaIMnnXuAHmbllpOr70rC0tDFPrQkGmfOJUwZC6xK6GiWL9LUNQKERLb2CfldQ&pcurl=https://deals.vio.com/?sig%3D73aca13c7f952d2641c156f3e69125e1eb497c325f122828ee5aa8797168b9a12d32303331333438363233%26turl%3Dhttps%253A%252F%252Fwww.vio.com%252FHotel%252FSearch%253FcheckIn%253D2026-12-13%2526checkOut%253D2026-12-16%2526currency%253DEUR%2526forceCurrencyChange%253D1%2526lang%253Den%2526forceLanguageChange%253D1%2526rooms%253D2%253A%2526utm_source%253Dgha%2526utm_medium%253Dcpc%2526hotelId%253D4677960%2526userCountry%253DUS%2526profile%253Dr2d2m73kn8%2526preferredRate%253D668.33%2526deviceType%253Ddesktop%2526label%253Dsrc%25253Dgha%252526cltype%25253Dhotel%252526datype%25253Dselected%252526gsite%25253Dlocaluniversal%252526vf%25253D0%252526ucountry%25253DUS%252526udevice%25253Ddesktop%252526hotel%25253D4677960%252526day%25253D13%252526month%25253D12%252526year%25253D2026%252526los%25253D3%252526price%25253D668.33%252526currency%25253DEUR%252526cid%25253D%252526listid%25253D%252526rateid%25253DUS_D%252526closerateid%25253D%252526promo%25253D0%252526isPrivateRate%25253D0%252526isAudienceUser%25253D0%252526isPaidClick%25253D0%252526%2526cp%253DXtnZ4YsQzc_EKFaYChsI4pIEGNAzIgNVU0Q6AgECQgbEwQHuhANSATISGhWkqIBEGgswbWdaY0xBTWNWaygCMODszNcG&s=ALZo0YKax-IOAHIePndog8QYCzsS&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/297592521974050080.png",
+    "rate_per_night": {
+     "display": "€203",
+     "amount": 203.03,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€609",
+     "amount": 609.1,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Super.com",
+    "id": 311056061,
+    "click": "/travel/lodging/clk?pc=AJ0xEyj01lOkaTTzMzlF6Vh2bMYszptaad8N8YfawqsXqpFqwzJq6ADJN2IiOUplM8TEUZMN458HNAjFJSIoP2uchVU8_pAeRVmPDNhWFdp-mZUEUCecnFc2kscmCVkTK1eKZ1xB0SDe22ByPGVT97XFd95IlpNAxqmjXZFIYW9tEKs6EpvmDZWZu1bGUw&pcurl=https://www.super.com/travel/transition/?data%3Dprice%3D660.9%2526total_price%3D687.26%2526retail_price%3D898.2%2526retail_total_price%3D934.02%2526surcharge%3D24.17%2526request_id%3D10357969397889357824%2526ps%3D125358856027%2526pb%3D0-slAkZlDjP06IhVxwa_7N43Ajf6Jf95Fju6AKLvwR9V5XKHUwyFraeemS2GZQ9HHBgHBGRTeyTqmw7OR2iYy-UTYXVPmF9eSYRJwRW6vHMJlWSGp3u1cyBiQZIBan8rH_17GEs5Ryubl3NrQclQXg%25253D%25253D%2526gha_pull_request%3DTrue%2526alwd_rand%3Dfalse%2526gt%3D1794291005%2526sg%3DMf_jI%2526sid%3DGHA_MD4%2526cmab_id%3D33%2526ib%3Dfalse%2526all_inclusive%3Dfalse%26utm_source%3Dgha%26utm_content%3Dlocaluniversal%26currency%3DEUR%26user_country%3DUS%26verification%3Dfalse%26rate_rule_ids%3D%26date_type%3Dselected%26rate_rule_id%3Dsignedout_desktop%26display_currency%3DEUR%26display_all_inclusive_price%3D711.41%26checkin_at%3D2026-12-13%26checkout_at%3D2026-12-16%26provider_hotel_id%3D10010999423%26provider%3Dhtl%26num_adults%3D2%26children%3D%5B%5D%26hotel_campaign%3D%26utm_campaign%3D%26user_locale%3Den-US%26user_list_id%3D%26utm_medium%3Dorganic%26utm_id%3Dgha_organic&s=ALZo0YKUJ71kLxQwP891VpH7no8n&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/cfa60c4a-13cd-46d3-9354-ec90c89ec855.png",
+    "rate_per_night": {
+     "display": "€228",
+     "amount": 228.35,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€685",
+     "amount": 685.06,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "trivago DEALS",
+    "id": 1601159475,
+    "click": "/travel/lodging/clk?pc=AJ0xEyjUS9uogH3qQ0IsrKAGMGE6Z3fC6BculbWSEmTasonHX4TIzMA_-94Umil2dvIHOSoHd6f7I3TIHaPipU4jNhoq6x9-Wadx5zSwdOm2Wc08sWWf95lvPQzOpOPrBbgwxHjT84vdzPXAraLaBnOBmiJgTZyA0PB_hyTm9ZIiu201Jsx-ZZynvdbHycIA-YbnRMrjgUuQtV-f&pcurl=https://www.trivago.deals/hotels/portugal_pt_lisbon/4102101_the-one-palcio-da-anunciada?checkIn%3D2026-12-13%26checkOut%3D2026-12-16%26placeId%3DH4102101%26campaignName%3DTrivagoDeals_Google_US%26currencyCode%3DEUR%26dealKey%3DCAIQjQYiDAiXk83XBhDkhICKAypJDQAArEMVAABeRCXXo2lCMAE4BEWu_4BESgwIj5PN1wYQ1Kb4twJiCkNvc3kgU2VjcmVoAXCRAX17FNZBggEAjQEAAJlDqAHIBjCNBjjVr_oBQN34D0gDUgjDmHI4PteD7VjIBmIDCgEg%26countryCode%3DUS%26languageCode%3Den%26rule%3DGoogle_US%26site%3Dlocaluniversal%26ads%3D%26origin%3D31%26priceDisplayedTotal%3D949.23%26priceDisplayedTax%3D76.38%26device%3Ddesktop%26adults%3D2%26children%3D0&s=ALZo0YLQMQjdecAG4lAuFsgULXz3&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/8670591202796644526.png",
+    "rate_per_night": {
+     "display": "€299",
+     "amount": 298.95,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€897",
+     "amount": 896.84,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Evendo",
+    "id": 365615871,
+    "click": "/travel/lodging/clk?pc=AJ0xEyhGmx53-u4XxHjws53Et9sL6HK69fmB-500cpsoZO96NpUIq-0c5Jp1GX33u1UDcTvwRZiZWS2i7WMqQw7DgKFIw6U2DV1S6vvRTcdMiMEsaR2jDVoYhwuKThnEhutP4gfEms_xifHM6XvegbBxQrZsjeRlDPDfDNL5iXVPEMANy4lqexYYz1jEfwQn-nfgbw&pcurl=https://evendo.com/stays/the-one-palacio-da-anunciada/00137940?check_in%3D2026-12-13%26check_out%3D2026-12-16%26who%3D%255B%257B%2522adults%2522:2,%2522children%2522:%255B%255D%257D%255D%26currency%3DEUR%26language%3Den%26country%3DUS%26utm_source%3Dgoogle%26utm_medium%3Dgooglehotels%26utm_campaign%3Dlocaluniversal%26pdtax%3D62.29%26pdtotal%3D700.40%26prid%3D&s=ALZo0YJyXvzrgSRUs0Vk95SaUUpg&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/17146812660057606236.png",
+    "rate_per_night": {
+     "display": "€213",
+     "amount": 212.7,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€638",
+     "amount": 638.11,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Traveluro",
+    "id": 1073209370,
+    "click": "/travel/lodging/clk?pc=AJ0xEyhg50ySMk--rGqq_T6h-PXsv72-cEiLyhEEO4QWhffH_gKX6UX7juf7jAfwixCVb_HzpqF2zOPo-NSsRMcHipSoYs08BG2SEA07eJ9YTGWhtcPbCXCUH_w-jWRTidTQVbM3JPTqxw1ecOK32lWggsy21xevEZew258mKelXMEZghq5M2TvjzLVb&pcurl=https://www.traveluro.com/hotels/portugal_pt_lisbon/4102101_the-one-palcio-da-anunciada?checkIn%3D2026-12-13%26checkOut%3D2026-12-16%26placeId%3DH4102101%26campaignName%3DGoogle_US%26currencyCode%3DEUR%26dealKey%3DCAIQqwEiDAiq48zXBhDMrYiMAypHDQCAhEMVAEBCRCUAADRCMAE4hQJFAMBGREoMCObYzNcGEITZtKUCYgpTdGFuZGFyZCBSaAJ9XI_WQYIBAI0B9oiEQ6gByAYwjQY41a_6AUDd-A9IA1IInrS1zeYnzPRYyAZiAwoBIA%26countryCode%3DUS%26languageCode%3Den%26rule%3DGoogle_US%26site%3Dlocaluniversal%26origin%3D31%26ads%3D%26priceDisplayedTotal%3D736.80%26priceDisplayedTax%3D64.38%26device%3Ddesktop%26adults%3D2%26children%3D0&s=ALZo0YJn-8vz-F3QzY3027u4uLLj&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/aa5293d0-1acc-4289-ab28-fe6381cfbe5a.png",
+    "rate_per_night": {
+     "display": "€232",
+     "amount": 232.15,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€696",
+     "amount": 696.46,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Trip.com",
+    "id": 84,
+    "click": "/travel/lodging/clk?pc=AJ0xEyi2-xjevTPBOw_SvN43v3bY9hhKw-F678nxuAsCwrEtmWMMgy8zfdETwd1XOV61FJlxewfWV7RW3vtX_19aqWt7YSZodSsoY_8hxfa0gZtUWo3jYa5MkHuEc4MZdzhVMqTu43jMQF66k2SCVzveyKLbmrwas5cfqZwmJ1JOSNmy4pX8Hpk&pcurl=https://us.trip.com/hotels/redirect?hotelid%3D25271607%26city%3D1231%26shoppingid%3DMVNedvqV2eBE%26adult%3D2%26children%3D0%26ages%3D%26checkin%3D2026-12-13%26checkout%3D2026-12-16%26curr%3DEUR%26Allianceid%3D15214%26Sid%3D1209572%26prid%3DLANG_US%26trip_sub1%3D13_12_2026_3_localuniversal_25271607_US_desktop_selected___0_0-LANG_US-landing%26hpaopts%3Dstand%5BH4sIAAAAAAAA_-Ny42KSYBJi4mCUsuFofn_jLpvFb8EAjhmM23e18exgZLrIaMt1fXFBaqHDQ0aPh1Ui6-p7HF4wbj225DZjJ8usmUBw08phAQujFI9vmF9qSllhmFGqk6sCo8bhx2eus3kwB7E5OpsZuDlHyXAxu4YGCU58W2Nvek_WQYo5NNhF8VDb8vBTm6QcklhT83RDgzOui3UxMnkwrmJk52I2MDIUYPrEyI9sbryROQDNT7PmsQAAAA%5Dfgt%5B1%5D%26br%3D817.61%26tf%3D68.98%26display%3Dexavg%26locale%3Den_us%26crn%3D1%26roomid%3D1807103875%26allianceid%3D15214%26sid%3D1209572&s=ALZo0YI3DJjU5ujflTqvGWutgx39&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/b8089cb0-34b4-458c-8749-9bc4614baba4.png",
+    "rate_per_night": {
+     "display": "€250",
+     "amount": 249.54,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€749",
+     "amount": 748.63,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Orbitz.com",
+    "id": 100640403,
+    "click": "/travel/lodging/clk?pc=AJ0xEyhGZzY1_KJrahZskzonSSy72d9_1ME0NUmE0NSIDomEl3ag6izHZ_G7NoLhKmPIWsFMmSKg3OUCZ14Hjoj1Ml3LEfWP_58DA0UrkTey7j1IVCcvsZExjgORgESbyrDSaHqCuWNVuVoi4HgJHC7ErsIW0nF39j7yZB86jH3gXh8tcAWecPfv7EjUC0dpJOA&pcurl=https://www.orbitz.com/Hotel-Search?selected%3D30373958%26startDate%3D2026-12-13%26endDate%3D2026-12-16%26adults%3D2%26children%3D%26MDPCID%3DORBITZ-US.META.HPA.ORGANIC-desktop.HOTEL%26MDPDTL%3Dhtl.30373958.20261213.20261216.DDF.33.CID..AUDID..localuniversal%26mpg%3DEUR%26mpf%3D820.18%26mpj%3D69.20%26mpr%3D0.00%26mctc%3D10%26rateplanid%3D392083022%26mpm%3D24%26mpn%3D322405262%26mpo%3DEC%26mpe%3D1794329047%26mpp%3D1&s=ALZo0YK2DaDifRkIIdMgIKNQl44Z&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/icon_100640403.png",
+    "rate_per_night": {
+     "display": "€250",
+     "amount": 250.33,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€751",
+     "amount": 750.98,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Clicktrip.com",
+    "id": 1004804788,
+    "click": "/travel/lodging/clk?pc=AJ0xEygdCoIvYszwdng9GCkpVvTl8KPNP86kdKWSyAneDFTRd71XR1e0Kmx3QBmooqMIuWRhrd9Q_BGGvoMsWahb5ovX1rZzjFGTA53_Z2dBAWgE96cRvaJhgJ8YZiSFMNsr1WRojMTG77Y7E7k_AbbR_p5yLmON3xsMGmqqMp0g9Ne8T3BFF0b_9xWyeMNUfarBJecrOWXVjhk&pcurl=https://clicktrip.com/hotels/details/vxgaol8WIwSP3KaYALlqXfnQogmFaazVNzAu3L60NTLuyAg32fvwklOpECEtnFbiReIpvDfUNr9HkkqApcSk7Mc0KCZH-m9bIq7ns-8x4uEkpj3cH9nx-ZO-JYvHqQnw0?locale%3Den%26currency%3DEUR%26pos%3DUS%26date_type%3Dselected%26taf%3DmyCdvWRpJZSxjsSwOWtK9AyFP-bWZ0KQpmdXqHG3SLTxgmOHoO4DTVXLjly6a0ac0%26verification%3Dfalse%26clk_src%3D%26utm_source%3Dgha%26rate_rule_id%3D&s=ALZo0YIiDU0A6Vuy-0lo8OJw57Rm&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/3461ae67-c427-4ecf-a48f-524b530be084.png",
+    "rate_per_night": {
+     "display": "€234",
+     "amount": 234.44,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€703",
+     "amount": 703.31,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Best Hotel Deals",
+    "id": 1354967836,
+    "click": "/travel/lodging/clk?pc=AJ0xEyjAPobfEAYCIn1hu-DyHQxRCVIr1_N4V6VI3pkX8mVDHXkBSEPFDX6PCol3iqXmCMIt69jn7Winr9oUAXk95JnX4uIM6gKbdcVFmvuEEG3WSnSNjOVHMs8TQEaeNoNZzyjiDAvxBD23HEUacWlW2iS0PJwS43r5w97XaMkTFy15Vqn4Xb-qTmvDKY-9wIS2gA&pcurl=https://besthoteldealsglobal.com/property/1988778?rooms%3D1%26currency%3DEUR%26startDate%3D13-12-2026%26endDate%3D16-12-2026%26occupancies%3D%255B%257B%2522Adults%2522%253A2%252C%2522Children%2522%253A0%257D%255D%26utm_source%3Dgoogle%26utm_medium%3DHAC%26utm_content%3D13_12_2026_3_localuniversal_1988778_US_desktop_selected___2%26tp%3D952.20%26tt%3D76.74%26sup%3D34%26flow%3DF3ujifNTzFXHZIuQrYfbjrjgY2HEDn5nOzLv5WSKdbcGw5LmiA%26room%3Ddouble-or-twin%26user_device%3Ddesktop%26google_click_type%3Dhotel%26google_ad_click%3Dfalse%26google_campaign_id%3D%26google_default_date%3Dfalse%26google_click_source%3D&s=ALZo0YLn6cCTx2fPG0psbE6qDTey&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/49083cad-a022-48f3-965c-36ee20bf8352.png",
+    "rate_per_night": {
+     "display": "€300",
+     "amount": 299.89,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€900",
+     "amount": 899.67,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "CheapTickets.com",
+    "id": 100645711,
+    "click": "/travel/lodging/clk?pc=AJ0xEyjEzFTJcKA33gPk5w4NxuTtmJs0Ib_Gco5SdvSyAGRgQRXXmcW17v-Ikns7Nf0hhAPOecPpp43zgia7VUePdqUm8drAaxHb8qFSzBNQpfhJe84zZG7WpQ_G2hLrdh0WQ8WX48zZMjFZO6DJNZrZuyi9lIVPrYNWlYWymJfwHzvMeXEEhemjQsVXkrxxRbMe5hQpff0&pcurl=https://www.cheaptickets.com/Hotel-Search?selected%3D30373958%26startDate%3D2026-12-13%26endDate%3D2026-12-16%26MDPCID%3DCHEAPTICKETS-US.META.HPA.ORGANIC-desktop.HOTEL%26langid%3D1033%26adults%3D2%26children%3D%26MDPDTL%3Dhtl.30373958.20261213.20261216.DDF.33.CID..AUDID..localuniversal%26mpg%3DEUR%26mpf%3D820.18%26mpj%3D69.20%26mpr%3D0.00%26mctc%3D10%26rateplanid%3D392083022%26rateplanid%3D392083022%26mpm%3D24%26mpn%3D322405262%26mpo%3DEC%26mpe%3D1794329047%26mpp%3D1&s=ALZo0YKJzHsgnbJIOJONL4KPA38W&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/736aa480-c3ae-4b4d-ac2a-1c658f70d17a_%5BUngrouped%5D.png",
+    "rate_per_night": {
+     "display": "€250",
+     "amount": 250.33,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€751",
+     "amount": 750.98,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "Kiwi.com",
+    "id": 1624122721,
+    "click": "/travel/lodging/clk?pc=AJ0xEyhsalbrD2FBO5x1Z7E16fe6aAqB7htieDSyQwVqv6Wv31v1JNRf2Y47xpHC83Fw-z2O-3QNdlnk8y-N6edPrfsLlW2Bsm8GEl3z5AmZhXAWSU9JVkpLdXaezVjfpzscuW829-X8NryT7nrra__7B4cQFw-jiOJPpY2t5brCEhDXzMXiFb0azELUhoqTHBs93YNwymjgAKYeKg&pcurl=https://hotels-tracker.kiwi.com/?sig%3D863672d43279b952b5170ed2c3497011c1cf2b4bb2c02e0599107fa8b3d0ad44333737%26turl%3Dhttps%253A%252F%252Fhotels.kiwi.com%252FHotel%252FSearch%253FcheckIn%253D2026-12-13%2526checkOut%253D2026-12-16%2526currency%253DEUR%2526forceCurrencyChange%253D1%2526lang%253Den%2526forceLanguageChange%253D1%2526rooms%253D2%253A%2526utm_source%253Dkiwi%2526utm_medium%253Dcpc%2526utm_referrer%253Dgha%2526hotelId%253D4677960%2526userCountry%253DUS%2526profile%253DH9wkf23b1j%2526preferredRate%253D945.48%2526deviceType%253Ddesktop%2526label%253Dsrc%25253Dgha%252526cltype%25253Dhotel%252526datype%25253Dselected%252526gsite%25253Dlocaluniversal%252526vf%25253D0%252526ucountry%25253DUS%252526udevice%25253Ddesktop%252526hotel%25253D4677960%252526day%25253D13%252526month%25253D12%252526year%25253D2026%252526los%25253D3%252526price%25253D945.48%252526currency%25253DEUR%252526cid%25253D%252526listid%25253D%252526rateid%25253DUS_D%252526closerateid%25253D%252526promo%25253D0%252526isPrivateRate%25253D0%252526isAudienceUser%25253D0%252526isPaidClick%25253D0%252526%2526cp%253DfaDK8ryx9pzEKFaYChUImvwFGNw7IgNVU0QowO702AZSATISGhVM-qUlGgtoUkF5UmhNbXFlcygCMNabzdcG&s=ALZo0YJm9NIJV_6VDeSG8U0VeV1I&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/12114498107159931177.png",
+    "rate_per_night": {
+     "display": "€292",
+     "amount": 292.33,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€877",
+     "amount": 876.98,
+     "currency": "EUR"
+    }
+   },
+   {
+    "name": "momondo.com",
+    "id": 970163321,
+    "click": "/travel/lodging/clk?pc=AJ0xEygIgvfrPoVM2dG0L2ODNEU0IEQlLTB3tV7hq8I6-6K5FLekkWIYnJcmIDKWqB4Z-Vqdz3bAKxgc1yFOl0m_A_G07Mxixt31-34mtXlzIT7oS43oCaToKQZlf6hU3gaqgVH5icxvQhE-Zsb0yV8fbJmoVWUOY2P36LEHkRqUDyI4N4EYqdjp8A&pcurl=https://www.momondo.com/semi/ha/hotel_ads/4257405/en.html?utm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_term%3D4257405%26adType%3D0%26utm_content%3Dlocaluniversal%26utm_campaign%3DHotelAds%26ci%3D2026-12-13%26co%3D2026-12-16%26gs%3Dlocaluniversal%26l%3D3%26pc%3DUSD%26rid%3D%26pdtax%3D69.06%26pdtotal%3D818.25%26rpid%3D%26uc%3DUS%26ucuc%3DEUR%26d%3Ddesktop%26lc%3Den%26v%3Dfalse%26rrid%3DUFJJQ0VMSU5FQ09SRQ%26k_pc%3D~UFJJQ0VMSU5FQ09SRQ%26k_rt%3D%26k_sid%3D2RAkQWFC0J%26k_kct%3D1794317417%26k_gct%3D1794317510%26g%3D2%26r%3D1%26ac%3D2%26k_cc%3Dus%26dt%3Dselected%26cmpid%3D%26cmptrack%3D&s=ALZo0YJ7TZDz4zq4J31mZLvVI3Hg&ap=1",
+    "icon": "//www.gstatic.com/travel-hotels/branding/icon_970163321.png",
+    "rate_per_night": {
+     "display": "€253",
+     "amount": 252.65,
+     "currency": "EUR"
+    },
+    "total_rate": {
+     "display": "€758",
+     "amount": 757.96,
+     "currency": "EUR"
+    }
+   }
+  ]
+ }
+}

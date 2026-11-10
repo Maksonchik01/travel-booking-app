@@ -49,6 +49,7 @@ import {
   hasStayFilters,
   parseStayParams,
   STAY_SORT_KEYS,
+  stayHotelHref,
   type StaySortKey,
   type StayState,
   toStayParams,
@@ -306,6 +307,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
                   converted={result.data.converted?.[key]}
                   query={query}
                   searchParams={historyParams}
+                  detailHref={stayHotelHref(historyParams, stay)}
                 />
               ),
             };
@@ -361,7 +363,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
         </p>
       )}
 
-      <ProviderAlerts providers={result.data.providers} />
+      <ProviderAlerts providers={result.data.providers} kind="stays" />
 
       <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
         {facets.total_stays > 0 && (
