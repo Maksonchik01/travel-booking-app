@@ -71,6 +71,7 @@ describe("parseSearchParams", () => {
         cabin: "economy",
         baggage: "none",
         direct_only: false,
+        weekends: false,
         currency: "EUR",
         profile: "balanced",
         origin_radius_km: 0,

@@ -7,34 +7,25 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { DatePresets } from "@/components/date-presets";
 import { PlaceInput, type PlaceValue, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   CATEGORIES,
-  type DatePreset,
   DEFAULT_NIGHTS,
-  datePreset,
   EXPLORE_PATH,
   MAX_EXPLORE_NIGHTS,
   MAX_ORIGINS,
   MAX_SPAN_DAYS,
   NIGHT_PRESETS,
   REGIONS,
-  shiftDay,
 } from "@/lib/explore-params";
+import { type DatePreset, datePreset, shiftDay } from "@/lib/date-presets";
 import { CURRENCIES } from "@/lib/search-params";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import { cn } from "@/lib/utils";
-
-const PRESETS: readonly DatePreset[] = [
-  "thisWeekend",
-  "nextWeekend",
-  "monthWeekends",
-  "short",
-  "week",
-];
 
 /**
  * Explore (ADR 0045): звідки (до трьох аеропортів), куди (будь-куди / регіон / країна), коли
@@ -184,19 +175,7 @@ export function ExploreForm({
               </button>
             ))}
           </div>
-          <div className="flex flex-wrap gap-1.5" aria-label={t("quickDates")} role="group">
-            {PRESETS.map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => applyPreset(preset)}
-                className="hover:border-primary hover:text-primary rounded-full border px-3 py-1 text-xs font-medium transition-colors"
-                data-testid={`explore-preset-${preset}`}
-              >
-                {t(`preset.${preset}`)}
-              </button>
-            ))}
-          </div>
+          <DatePresets onPick={applyPreset} testId="explore-presets" />
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

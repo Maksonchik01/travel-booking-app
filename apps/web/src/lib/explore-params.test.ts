@@ -2,7 +2,6 @@ import type { ExploreDestination } from "@tickets/shared";
 import { describe, expect, it } from "vitest";
 
 import {
-  datePreset,
   exploreFromFlights,
   exploreHref,
   exploreRelaxations,
@@ -122,26 +121,6 @@ describe("explore params (ADR 0045)", () => {
     // В один бік — гнучкий місяць від дати вильоту.
     form.set("trip", "ow");
     expect(exploreFromFlights(form)).toContain("depart=2026-12-05&until=2027-01-04");
-  });
-
-  it("швидкі дати від середи 11.11.2026", () => {
-    expect(datePreset("thisWeekend", "2026-11-11")).toEqual({
-      depart: "2026-11-13",
-      back: "2026-11-15",
-    });
-    expect(datePreset("nextWeekend", "2026-11-11")).toEqual({
-      depart: "2026-11-20",
-      back: "2026-11-22",
-    });
-    expect(datePreset("monthWeekends", "2026-11-11")).toMatchObject({
-      depart: "2026-12-01",
-      until: "2026-12-31",
-      weekends: true,
-    });
-    expect(datePreset("short", "2026-11-11").nights).toEqual([2, 3]);
-    expect(datePreset("week", "2026-11-11").nights).toEqual([4, 6]);
-    // Субота — «найближчі» вихідні вже наступні.
-    expect(datePreset("thisWeekend", "2026-11-14").depart).toBe("2026-11-20");
   });
 
   it("послаблення — по одній зміні; категорія вмикається й вимикається", () => {

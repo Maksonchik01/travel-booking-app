@@ -82,6 +82,8 @@ class TripQuery(_StrictInput):
     children: int = Field(default=0, ge=0, le=8)
     """І для житла, і для перельоту: ціну дітей рахує джерело (ADR 0013)."""
     direct_only: bool = False
+    weekends: bool = False
+    """Лише вихідні (модуль 3): з періодом вильоту — чт–сб → сб–пн."""
     nearby: bool = False
     """Ще й сусідні аеропорти (до TRIP_NEARBY_KM) з обох боків."""
     cabin: Cabin = "economy"

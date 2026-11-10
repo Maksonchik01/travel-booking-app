@@ -119,6 +119,8 @@ export function parseTripParams(params: RawSearchParams): TripQuery | null {
     adults: intInRange(first(params.adults), 1, 9, 2),
     children: intInRange(first(params.children), 0, 8, 0),
     direct_only: first(params.direct) === "1",
+    // «Лише вихідні» (модуль 3) — з періодом вильоту й ночами.
+    weekends: Boolean(duration && until) && first(params.wk) === "1",
     nearby: first(params.near) === "1",
     cabin: CABINS.find((c) => c === first(params.cabin)) ?? "economy",
     baggage: BAGGAGE_NEEDS.find((b) => b === first(params.bag)) ?? "none",
@@ -175,6 +177,7 @@ export function toTripParams(query: TripQuery): URLSearchParams {
     params.set("return", query.return_date);
   }
   if (query.departure_until) params.set("until", query.departure_until);
+  if (query.weekends) params.set("wk", "1");
   if ((query.adults ?? 2) !== 2) params.set("adults", String(query.adults));
   if (query.children) params.set("children", String(query.children));
   if (query.flex_days) params.set("flex", String(query.flex_days));

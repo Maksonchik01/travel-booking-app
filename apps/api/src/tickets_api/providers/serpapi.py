@@ -73,6 +73,11 @@ class _Budget:
         return True
 
 
+WEEKEND_STARTS = (4, 5)
+"""П'ятниця й субота: найчастіший виліт на вихідні."""
+WEEKEND_NIGHTS = 2
+
+
 class SerpApiFlightProvider:
     name = "serpapi"
 
@@ -227,11 +232,17 @@ class SerpApiFlightProvider:
             return [(p.departure, p.return_date) for p in query.check_dates if p.departure >= today]
         if query.departure_until is not None:
             start, end = query.departure_window
+            days = [start + timedelta(days=i) for i in range((end - start).days + 1)]
+            if query.weekends:
+                # Вихідні без кешованих кандидатів: пт → нд, потім сб → пн (квота — не на будні).
+                weekend = sorted(
+                    (d for d in days if d.weekday() in WEEKEND_STARTS and d >= today),
+                    key=lambda d: (d.weekday(), d),
+                )
+                return [(d, d + timedelta(days=WEEKEND_NIGHTS)) for d in weekend]
             length = timedelta(days=query.trip_days or 0)
             return [
-                (day, day + length if query.return_date else None)
-                for day in (start + timedelta(days=i) for i in range((end - start).days + 1))
-                if day >= today
+                (day, day + length if query.return_date else None) for day in days if day >= today
             ]
         shifts = sorted(range(-query.flex_days, query.flex_days + 1), key=lambda s: (abs(s), s))
         pairs = []

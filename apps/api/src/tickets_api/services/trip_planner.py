@@ -650,6 +650,7 @@ def flight_query_for(query: TripQuery) -> FlightQuery:
         cabin=query.cabin,
         baggage=query.baggage,
         direct_only=query.direct_only,
+        weekends=query.weekends and until is not None and query.flight_return_date is not None,
         currency=query.currency,
         profile=FLIGHT_PROFILE[query.profile],
         origin_radius_km=radius,

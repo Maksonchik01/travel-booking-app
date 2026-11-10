@@ -8801,6 +8801,11 @@
             ],
             "title": "Max Nights"
           },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
+            "default": false
+          },
           "check_dates": {
             "anyOf": [
               {
@@ -14896,6 +14901,11 @@
             "title": "Direct Only",
             "default": false
           },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
+            "default": false
+          },
           "nearby": {
             "type": "boolean",
             "title": "Nearby",
@@ -15126,6 +15136,11 @@
           "direct_only": {
             "type": "boolean",
             "title": "Direct Only",
+            "default": false
+          },
+          "weekends": {
+            "type": "boolean",
+            "title": "Weekends",
             "default": false
           },
           "nearby": {

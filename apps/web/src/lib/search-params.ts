@@ -235,6 +235,8 @@ export function parseSearchParams(params: RawSearchParams): SearchState | null {
       cabin: CABINS.find((c) => c === first(params.cabin)) ?? "economy",
       baggage: BAGGAGE_NEEDS.find((b) => b === first(params.bag)) ?? "none",
       direct_only: first(params.direct) === "1",
+      // «Лише вихідні» (модуль 3) — лише з ночами, тобто з періодом туди й назад.
+      weekends: Boolean(nights) && first(params.wk) === "1",
       currency: parseCurrency(params),
       profile: parseProfile(first(params.profile)),
       origin_radius_km: first(params.fromNear) === "1" ? NEARBY_RADIUS_KM : 0,
@@ -275,6 +277,7 @@ export function toSearchParams(state: SearchState): URLSearchParams {
     params.set("nmin", String(query.min_nights));
     params.set("nmax", String(query.max_nights));
   }
+  if (query.weekends) params.set("wk", "1");
   const p = query.passengers;
   if ((p?.adults ?? 1) > 1) params.set("adults", String(p?.adults));
   if (p?.children) params.set("children", String(p.children));

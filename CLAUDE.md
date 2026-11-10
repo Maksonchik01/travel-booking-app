@@ -40,6 +40,9 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `FlightSearchResult.date_options` з `verified`. URL: `flex=1|3|7|month|range&until=`;
   ночі (2b) `nmin=&nmax=` — від дати прильоту (`stay_nights`), фільтр і для живих пропозицій.
   Календар `cal=YYYY-MM`; матриця `GET /flights/matrix` — лише кешовані джерела, без живих запитів.
+  Швидкі дати ([ADR 0047](docs/adr/0047-quick-dates.md)): `lib/date-presets.ts` + `DatePresets` (рейси, поїздка,
+  Explore) лише заповнюють поля; «лише вихідні» — `weekends` / `wk=1` з періодом, правило — `is_weekend_trip`
+  (чт–сб → сб–пн, ≤ 4 ночей; спільне з алертами).
 - **Продавці** ([ADR 0017](docs/adr/0017-sellers-and-price-check.md)): `Offer.price_status`/`cabin`/
   `booking_ref`; однаковий рейс — `groups` (одна картка); `POST /flights/sellers` — на вимогу
   (1 запит SerpApi, кеш 30 хв), це й перевірка ціни перед переходом; без неї — «підтверджує продавець».

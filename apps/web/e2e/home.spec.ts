@@ -199,6 +199,26 @@ test("модуль 2: кілька аеропортів вильоту — ре�
   await expect(page.getByTestId("trip-card").first()).toBeVisible();
 });
 
+test("модуль 3: швидкі дати — вихідні місяця в рейсах, 5–7 днів у поїздці", async ({ page }) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2027-02-14&draft=1");
+  await page.locator('input[type="hidden"][name="from"]').waitFor({ state: "attached" });
+  await page.getByTestId("preset-monthWeekends").click();
+  await page.getByRole("button", { name: "Шукати", exact: true }).click();
+
+  await expect(page).toHaveURL(/flex=month/);
+  await expect(page).toHaveURL(/nmin=1&nmax=3/);
+  await expect(page).toHaveURL(/wk=1/);
+  await expect(page.getByTestId("offer-card").first()).toBeVisible();
+
+  await page.goto("/trip?from=WAW&to=LIS&depart=2027-03-01&draft=1");
+  await page.locator('input[type="hidden"][name="from"]').waitFor({ state: "attached" });
+  await page.getByTestId("preset-week").click();
+  await page.getByRole("button", { name: "Скласти поїздку" }).click();
+  await expect(page).toHaveURL(/until=2027-03-31/);
+  await expect(page).toHaveURL(/nmin=4&nmax=6/);
+  await expect(page.getByTestId("trip-card").first()).toBeVisible();
+});
+
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
   // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).
@@ -328,9 +348,9 @@ test("сповіщення 11a: гнучкі дати, лише вихідні, 
   await expect(
     page.getByText(/Гнучкі дати: виліт 2026-12-01 – 2026-12-31, 2–3 ноч\./),
   ).toBeVisible();
-  await page.getByLabel(/Лише вихідні/).check();
-  // У формі пошуку теж є радіо «Ціна» (пріоритет) — лише в панелі підписки: третя умова.
+  // У формі пошуку теж є «Лише вихідні» й радіо «Ціна» (пріоритет) — беремо в панелі підписки.
   const alert = page.getByRole("region", { name: /Стежити за ціною/ });
+  await alert.getByLabel(/Лише вихідні/).check();
   await alert.getByRole("radio", { name: /Ціна/ }).nth(2).check();
   await page.locator("label", { hasText: "Email" }).click();
   await page.getByPlaceholder("you@example.com").fill("e2e-flex@example.com");

@@ -151,7 +151,8 @@
     "extraPlaceholder": "Місто, аеропорт або код",
     "addAirport": "Ще аеропорт",
     "addAirportConfirm": "Додати",
-    "cancelAddAirport": "Скасувати"
+    "cancelAddAirport": "Скасувати",
+    "weekendsOnly": "Лише вихідні (чт–сб → сб–пн)"
   },
   "results": {
     "title": "{from} → {to}",
@@ -1935,14 +1936,6 @@
       "countries": "Країни",
       "exact": "Точні дати",
       "flexible": "Гнучко",
-      "quickDates": "Швидкий вибір дат",
-      "preset": {
-        "thisWeekend": "Найближчі вихідні",
-        "nextWeekend": "Наступні вихідні",
-        "monthWeekends": "Вихідні наступного місяця",
-        "short": "3–4 дні",
-        "week": "5–7 днів"
-      },
       "departFrom": "Виліт від",
       "departUntil": "Виліт до",
       "nights": "Тривалість",
@@ -2046,5 +2039,13 @@
       "south_america": "Південна Америка",
       "oceania": "Океанія"
     }
+  },
+  "datePresets": {
+    "label": "Швидкий вибір дат",
+    "thisWeekend": "Найближчі вихідні",
+    "nextWeekend": "Наступні вихідні",
+    "monthWeekends": "Вихідні місяця",
+    "short": "3–4 дні",
+    "week": "5–7 днів"
   }
 }

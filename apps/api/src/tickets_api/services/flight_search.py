@@ -24,6 +24,7 @@ from tickets_api.domain.flights import (
     FlightQuery,
     Money,
     Offer,
+    is_weekend_trip,
     stay_nights,
 )
 from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
@@ -630,6 +631,9 @@ def _fits_trip(offer: Offer, query: FlightQuery) -> bool:
     тривалість поїздки (±1 день)."""
     if offer.inbound is None:
         return True
+    back = offer.inbound.departure_at.date()
+    if query.weekends and not is_weekend_trip(offer.outbound.departure_at.date(), back):
+        return False
     if query.nights_range is not None:
         low, high = query.nights_range
         nights, approximate = stay_nights(offer.outbound, offer.inbound)

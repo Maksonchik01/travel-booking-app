@@ -12,11 +12,13 @@ from pydantic import BaseModel, Field, StringConstraints, model_validator
 
 from tickets_api.domain.flights import (
     DEFAULT_CURRENCY,
+    WEEKEND_MAX_NIGHTS,
     Currency,
     Iata,
     Money,
     Offer,
     _StrictInput,
+    is_weekend_trip,
     stay_nights,
 )
 from tickets_api.domain.freshness import PriceFreshness
@@ -34,11 +36,6 @@ MAX_EXPLORE_SPAN_DAYS = 92
 """Період вильоту — до трьох місяців: запит на кожен місяць, тож більше — зайві виклики."""
 MAX_EXPLORE_NIGHTS = 30
 MAX_EXPLORE_RESULTS = 60
-WEEKEND_DEPARTURES = (3, 4, 5)
-"""Чт, пт, сб — виліт на вихідні."""
-WEEKEND_RETURNS = (6, 0)
-"""Нд, пн — повернення з вихідних."""
-WEEKEND_MAX_NIGHTS = 4
 
 
 class ExploreQuery(_StrictInput):
@@ -56,7 +53,7 @@ class ExploreQuery(_StrictInput):
     min_nights: int | None = Field(default=None, ge=1, le=MAX_EXPLORE_NIGHTS)
     max_nights: int | None = Field(default=None, ge=1, le=MAX_EXPLORE_NIGHTS)
     weekends: bool = False
-    """Лише вихідні: виліт чт–сб, повернення нд–пн, до 4 ночей."""
+    """Лише вихідні: виліт чт–сб, повернення сб–пн, до 4 ночей."""
     adults: int = Field(default=1, ge=1, le=9)
     """Кешовані ціни — за дорослого; дітей джерело не рахує (ADR 0013), тож лише дорослі."""
     budget: int | None = Field(default=None, ge=1, le=1_000_000)
@@ -135,9 +132,7 @@ class ExploreQuery(_StrictInput):
             return False
         if self.direct_only and offer.stops > 0:
             return False
-        if self.weekends:
-            return depart.weekday() in WEEKEND_DEPARTURES and back.weekday() in WEEKEND_RETURNS
-        return True
+        return not self.weekends or is_weekend_trip(depart, back)
 
 
 class DestinationPhoto(BaseModel):

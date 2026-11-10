@@ -7,12 +7,14 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { DatePresets } from "@/components/date-presets";
 import { ExtraPlaces } from "@/components/extra-places";
 import { PlaceInput, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addDays, BAGGAGE_NEEDS, CABINS, CURRENCIES, MAX_PERIOD_DAYS } from "@/lib/search-params";
+import { type DatePreset, datePreset, localToday } from "@/lib/date-presets";
 import { MAX_NIGHTS, nightsBetween } from "@/lib/stay-params";
 import { FIELD_CLASS, SELECT_CLASS } from "@/lib/styles";
 import {
@@ -44,6 +46,10 @@ export function TripSearchForm({
   const codes = (values: { code: string }[]) => values.map((v) => v.code).filter(Boolean);
   const [depart, setDepart] = useState(initial?.departure_date ?? "");
   const [back, setBack] = useState(initial?.return_date ?? "");
+  const [until, setUntil] = useState(initial?.departure_until ?? "");
+  const [nmin, setNmin] = useState(initial?.min_nights ? String(initial.min_nights) : "");
+  const [nmax, setNmax] = useState(initial?.max_nights ? String(initial.max_nights) : "");
+  const [weekends, setWeekends] = useState(initial?.weekends ?? false);
   const nights = depart && back ? nightsBetween(depart, back) : 0;
   const [currency, setCurrency] = useState<string>(initial?.currency ?? "EUR");
   const stayFilters = initial?.stay_filters;
@@ -53,6 +59,7 @@ export function TripSearchForm({
   }
   // Розкрито, якщо щось із прихованого вже задано — інакше людина не побачить своїх умов.
   const advanced = Boolean(
+    initial?.weekends ||
     initial?.departure_until ||
     initial?.min_nights ||
     (initial?.baggage && initial.baggage !== "none") ||
@@ -63,6 +70,28 @@ export function TripSearchForm({
     stayFilters?.max_distance_center_km ||
     initial?.extras?.length,
   );
+
+  const [moreOpen, setMoreOpen] = useState(advanced);
+
+  /** Швидкі дати (модуль 3): вихідні — точні дати, решта — період з ночами («Більше умов»). */
+  function applyPreset(preset: DatePreset) {
+    const next = datePreset(preset, localToday(), depart || undefined);
+    setDepart(next.depart);
+    if (next.back) {
+      setBack(next.back);
+      setUntil("");
+      setNmin("");
+      setNmax("");
+      setWeekends(false);
+      return;
+    }
+    setBack("");
+    setUntil(next.until ?? "");
+    setNmin(String(next.nights?.[0] ?? ""));
+    setNmax(String(next.nights?.[1] ?? ""));
+    setWeekends(Boolean(next.weekends));
+    setMoreOpen(true);
+  }
 
   return (
     <Form action="/trip" className="grid gap-4" data-search-form>
@@ -103,6 +132,8 @@ export function TripSearchForm({
           />
         </Field>
       </div>
+
+      <DatePresets onPick={applyPreset} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Field label={tSearch("depart")} htmlFor="trip-depart">
@@ -195,7 +226,11 @@ export function TripSearchForm({
         </Field>
       </div>
 
-      <details className="group grid gap-3 rounded-lg border px-3 py-2" open={advanced}>
+      <details
+        className="group grid gap-3 rounded-lg border px-3 py-2"
+        open={moreOpen}
+        onToggle={(e) => setMoreOpen(e.currentTarget.open)}
+      >
         <summary className="text-muted-foreground hover:text-primary cursor-pointer text-sm font-medium select-none">
           {t("more")}
         </summary>
@@ -209,18 +244,42 @@ export function TripSearchForm({
                 className={FIELD_CLASS}
                 min={depart || undefined}
                 max={depart ? addDays(depart, MAX_PERIOD_DAYS) : undefined}
-                defaultValue={initial?.departure_until ?? ""}
+                value={until}
+                onChange={(e) => setUntil(e.target.value)}
               />
             </Field>
             <Field label={t("nightsFrom")} htmlFor="trip-nmin">
-              <NightsSelect id="trip-nmin" name="nmin" value={initial?.min_nights} any={t("any")} />
+              <NightsSelect
+                id="trip-nmin"
+                name="nmin"
+                value={nmin}
+                onChange={setNmin}
+                any={t("any")}
+              />
             </Field>
             <Field label={t("nightsTo")} htmlFor="trip-nmax">
-              <NightsSelect id="trip-nmax" name="nmax" value={initial?.max_nights} any={t("any")} />
+              <NightsSelect
+                id="trip-nmax"
+                name="nmax"
+                value={nmax}
+                onChange={setNmax}
+                any={t("any")}
+              />
             </Field>
-            <p className="text-muted-foreground col-span-2 self-end text-xs sm:col-span-1">
-              {t("nightsHint")}
-            </p>
+            <div className="col-span-2 grid gap-1 self-end sm:col-span-1">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="wk"
+                  value="1"
+                  checked={weekends}
+                  onChange={(e) => setWeekends(e.target.checked)}
+                  className="size-4"
+                />
+                {tSearch("weekendsOnly")}
+              </label>
+              <p className="text-muted-foreground text-xs">{t("nightsHint")}</p>
+            </div>
           </div>
 
           <fieldset className="grid gap-2">
@@ -432,15 +491,23 @@ function NightsSelect({
   id,
   name,
   value,
+  onChange,
   any,
 }: {
   id: string;
   name: string;
-  value: number | null | undefined;
+  value: string;
+  onChange: (value: string) => void;
   any: string;
 }) {
   return (
-    <select id={id} name={name} defaultValue={value ?? ""} className={SELECT_CLASS}>
+    <select
+      id={id}
+      name={name}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={SELECT_CLASS}
+    >
       <option value="">{any}</option>
       {Array.from({ length: MAX_NIGHTS }, (_, i) => i + 1).map((n) => (
         <option key={n} value={n}>

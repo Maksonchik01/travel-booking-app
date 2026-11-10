@@ -31,6 +31,7 @@ const SEARCH: FlightQuery = {
   cabin: "economy",
   baggage: "none",
   direct_only: true,
+  weekends: false,
   currency: "EUR",
   profile: "balanced",
   origin_radius_km: 0,

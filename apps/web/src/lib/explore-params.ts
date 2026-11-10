@@ -6,6 +6,7 @@ import type {
   ExploreRegion,
 } from "@tickets/shared";
 
+import { daysBetween, shiftDay } from "@/lib/date-presets";
 import { CURRENCIES, type RawSearchParams } from "@/lib/search-params";
 
 /**
@@ -68,16 +69,6 @@ function day(value: string | undefined): string | undefined {
 function int(value: string | undefined, min: number, max: number): number | undefined {
   const n = Number.parseInt(value ?? "", 10);
   return Number.isInteger(n) && n >= min && n <= max ? n : undefined;
-}
-
-export function daysBetween(from: string, to: string): number {
-  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
-}
-
-export function shiftDay(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
 }
 
 export function origins(raw: RawSearchParams): string[] {
@@ -290,49 +281,6 @@ export function exploreFromFlights(source: URLSearchParams | FormData): string {
   }
   const query = params.toString();
   return query ? `${EXPLORE_PATH}?${query}` : EXPLORE_PATH;
-}
-
-export type DatePreset = "thisWeekend" | "nextWeekend" | "monthWeekends" | "short" | "week";
-
-/**
- * Швидкі дати від `today` (YYYY-MM-DD, місцевий день): вихідні — виліт пт, повернення нд;
- * «вихідні місяця» — увесь наступний місяць лише з вихідними; короткі — наступні 30 днів.
- */
-export function datePreset(
-  preset: DatePreset,
-  today: string,
-): {
-  depart: string;
-  until?: string;
-  back?: string;
-  nights?: readonly [number, number];
-  weekends?: boolean;
-} {
-  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay(); // 0 — нд, 5 — пт
-  const toFriday = (5 - weekday + 7) % 7;
-  // Сьогодні вже сб/нд — «найближчі» вихідні наступні.
-  const friday = shiftDay(today, weekday === 6 ? 6 : weekday === 0 ? 5 : toFriday);
-  switch (preset) {
-    case "thisWeekend":
-      return { depart: friday, back: shiftDay(friday, 2) };
-    case "nextWeekend":
-      return { depart: shiftDay(friday, 7), back: shiftDay(friday, 9) };
-    case "monthWeekends": {
-      const start = new Date(`${today}T00:00:00Z`);
-      const firstDay = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1));
-      const lastDay = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 2, 0));
-      return {
-        depart: firstDay.toISOString().slice(0, 10),
-        until: lastDay.toISOString().slice(0, 10),
-        nights: [1, 3],
-        weekends: true,
-      };
-    }
-    case "short":
-      return { depart: shiftDay(today, 1), until: shiftDay(today, 31), nights: [2, 3] };
-    case "week":
-      return { depart: shiftDay(today, 1), until: shiftDay(today, 31), nights: [4, 6] };
-  }
 }
 
 export type Relaxation =

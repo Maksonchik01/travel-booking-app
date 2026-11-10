@@ -2993,6 +2993,11 @@ export interface components {
             min_nights?: number | null;
             /** Max Nights */
             max_nights?: number | null;
+            /**
+             * Weekends
+             * @default false
+             */
+            weekends: boolean;
             /** Check Dates */
             check_dates?: components["schemas"]["DatePair"][] | null;
             /**
@@ -5084,6 +5089,11 @@ export interface components {
              */
             direct_only: boolean;
             /**
+             * Weekends
+             * @default false
+             */
+            weekends: boolean;
+            /**
              * Nearby
              * @default false
              */
@@ -5176,6 +5186,11 @@ export interface components {
              * @default false
              */
             direct_only: boolean;
+            /**
+             * Weekends
+             * @default false
+             */
+            weekends: boolean;
             /**
              * Nearby
              * @default false

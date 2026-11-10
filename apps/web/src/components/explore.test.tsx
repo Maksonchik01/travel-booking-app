@@ -184,11 +184,11 @@ describe("Explore (ADR 0045)", () => {
       />,
     );
 
-    fireEvent.click(screen.getByTestId("explore-preset-thisWeekend"));
+    fireEvent.click(screen.getByTestId("preset-thisWeekend"));
     expect(container.querySelector<HTMLInputElement>('[name="depart"]')!.value).toBe("2026-11-13");
     expect(container.querySelector<HTMLInputElement>('[name="return"]')!.value).toBe("2026-11-15");
 
-    fireEvent.click(screen.getByTestId("explore-preset-week"));
+    fireEvent.click(screen.getByTestId("preset-week"));
     expect(container.querySelector('[name="return"]')).toBeNull();
     expect(container.querySelector<HTMLInputElement>('[name="nmin"]')!.value).toBe("4");
     expect(container.querySelector<HTMLInputElement>('[name="nmax"]')!.value).toBe("6");

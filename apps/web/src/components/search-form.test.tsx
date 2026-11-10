@@ -66,3 +66,45 @@ describe("SearchForm: «Будь-куди» (ADR 0045)", () => {
     expect(push).toHaveBeenCalledWith("/explore?from=WAW&depart=2026-12-05&return=2026-12-08");
   });
 });
+
+describe("SearchForm: швидкі дати (модуль 3)", () => {
+  function form() {
+    return render(
+      <NextIntlClientProvider locale="uk" messages={messages} timeZone="UTC">
+        <SearchForm initial={null} />
+      </NextIntlClientProvider>,
+    );
+  }
+  const value = (container: HTMLElement, name: string) =>
+    container.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${name}"]`)?.value;
+
+  it("вихідні місяця — увесь місяць, 1–3 ночі, «лише вихідні»; від обраної дати", () => {
+    const { container } = form();
+    fireEvent.change(container.querySelector("#depart")!, { target: { value: "2027-02-14" } });
+
+    fireEvent.click(screen.getByTestId("preset-monthWeekends"));
+
+    expect(value(container, "depart")).toBe("2027-02-01");
+    expect(value(container, "flex")).toBe("month");
+    expect([value(container, "nmin"), value(container, "nmax")]).toEqual(["1", "3"]);
+    expect(container.querySelector<HTMLInputElement>('[name="wk"]')!.checked).toBe(true);
+  });
+
+  it("5–7 днів — свій період і 4–6 ночей; вихідні — точні дати", () => {
+    const { container } = form();
+    fireEvent.change(container.querySelector("#depart")!, { target: { value: "2027-03-01" } });
+
+    fireEvent.click(screen.getByTestId("preset-week"));
+    expect(value(container, "flex")).toBe("range");
+    expect(value(container, "until")).toBe("2027-03-31");
+    expect([value(container, "nmin"), value(container, "nmax")]).toEqual(["4", "6"]);
+    expect(container.querySelector<HTMLInputElement>('[name="wk"]')!.checked).toBe(false);
+
+    fireEvent.click(screen.getByTestId("preset-nextWeekend"));
+    expect(value(container, "flex")).toBe("0");
+    expect(container.querySelector('[name="nmin"]')).toBeNull();
+    const depart = new Date(`${value(container, "depart")}T00:00:00Z`);
+    const back = new Date(`${value(container, "return")}T00:00:00Z`);
+    expect([depart.getUTCDay(), back.getUTCDay()]).toEqual([5, 0]);
+  });
+});

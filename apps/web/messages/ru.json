@@ -151,7 +151,8 @@
     "extraPlaceholder": "Город, аэропорт или код",
     "addAirport": "Ещё аэропорт",
     "addAirportConfirm": "Добавить",
-    "cancelAddAirport": "Отмена"
+    "cancelAddAirport": "Отмена",
+    "weekendsOnly": "Только выходные (чт–сб → сб–пн)"
   },
   "results": {
     "title": "{from} → {to}",
@@ -1935,14 +1936,6 @@
       "countries": "Страны",
       "exact": "Точные даты",
       "flexible": "Гибко",
-      "quickDates": "Быстрый выбор дат",
-      "preset": {
-        "thisWeekend": "Ближайшие выходные",
-        "nextWeekend": "Следующие выходные",
-        "monthWeekends": "Выходные следующего месяца",
-        "short": "3–4 дня",
-        "week": "5–7 дней"
-      },
       "departFrom": "Вылет от",
       "departUntil": "Вылет до",
       "nights": "Длительность",
@@ -2046,5 +2039,13 @@
       "south_america": "Южная Америка",
       "oceania": "Океания"
     }
+  },
+  "datePresets": {
+    "label": "Быстрый выбор дат",
+    "thisWeekend": "Ближайшие выходные",
+    "nextWeekend": "Следующие выходные",
+    "monthWeekends": "Выходные месяца",
+    "short": "3–4 дня",
+    "week": "5–7 дней"
   }
 }

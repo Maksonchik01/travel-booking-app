@@ -45,6 +45,18 @@
 
 Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 
+## Швидкі дати (ADR 0047)
+
+| Сценарій | Тест |
+|---|---|
+| Правило вихідних (чт–сб → сб–пн, ≤ 4 ночей) | API `test_weekend_dates::test_weekend_trip_rule` |
+| Пошук лишає лише пари вихідних | API `test_weekend_dates::test_search_keeps_only_weekend_pairs` |
+| SerpApi без кандидатів — запити лише на пт/сб | API `test_weekend_dates::test_serpapi_without_candidates_spends_quota_on_weekends_only` |
+| Валідація, поїздка передає «вихідні» лише з періодом | API `test_weekend_dates::test_weekends_need_a_round_trip_period` |
+| Пресети від «сьогодні» й обраної дати | WEB `date-presets.test` |
+| Пресети у формі рейсів (місяць, період, ночі, `wk`) | WEB `search-form.test` |
+| Вихідні місяця в рейсах, 5–7 днів у поїздці | E2E «модуль 3: швидкі дати…» |
+
 ## Кілька аеропортів (ADR 0046)
 
 | Сценарій | Тест |

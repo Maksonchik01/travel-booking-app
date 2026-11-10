@@ -151,7 +151,8 @@
     "extraPlaceholder": "City, airport or code",
     "addAirport": "Another airport",
     "addAirportConfirm": "Add",
-    "cancelAddAirport": "Cancel"
+    "cancelAddAirport": "Cancel",
+    "weekendsOnly": "Weekends only (Thu–Sat → Sat–Mon)"
   },
   "results": {
     "title": "{from} → {to}",
@@ -1935,14 +1936,6 @@
       "countries": "Countries",
       "exact": "Exact dates",
       "flexible": "Flexible",
-      "quickDates": "Quick dates",
-      "preset": {
-        "thisWeekend": "This weekend",
-        "nextWeekend": "Next weekend",
-        "monthWeekends": "Weekends next month",
-        "short": "3–4 days",
-        "week": "5–7 days"
-      },
       "departFrom": "Depart from",
       "departUntil": "Depart by",
       "nights": "Length",
@@ -2046,5 +2039,13 @@
       "south_america": "South America",
       "oceania": "Oceania"
     }
+  },
+  "datePresets": {
+    "label": "Quick dates",
+    "thisWeekend": "This weekend",
+    "nextWeekend": "Next weekend",
+    "monthWeekends": "Weekends in the month",
+    "short": "3–4 days",
+    "week": "5–7 days"
   }
 }

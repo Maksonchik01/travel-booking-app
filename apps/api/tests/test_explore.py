@@ -210,7 +210,7 @@ async def test_weekends_and_exact_dates(http: httpx.AsyncClient) -> None:
     for d in weekends.destinations:
         assert d.offer.outbound.departure_at.weekday() in (3, 4, 5)
         assert d.offer.inbound is not None
-        assert d.offer.inbound.departure_at.weekday() in (6, 0)
+        assert d.offer.inbound.departure_at.weekday() in (5, 6, 0)
     assert route.calls[-1].request.url.params["departure_at"] == "2026-12-14"
     assert route.calls[-1].request.url.params["return_at"] == "2026-12-16"
     for d in exact.destinations:

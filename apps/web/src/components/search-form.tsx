@@ -8,9 +8,11 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { DatePresets } from "@/components/date-presets";
 import { ExtraPlaces } from "@/components/extra-places";
 import { ParamsToggle } from "@/components/params-toggle";
 import { PassengerPicker } from "@/components/passenger-picker";
+import { type DatePreset, datePreset, localToday } from "@/lib/date-presets";
 import { exploreFromFlights } from "@/lib/explore-params";
 import { readLocalFilters } from "@/lib/saved-filters";
 import type { FlightDefaults } from "@/lib/search-prefs";
@@ -61,8 +63,29 @@ export function SearchForm({
     q ? !!q.return_date : d?.departure ? !!d.returnDate : true,
   );
   const [flex, setFlex] = useState(initialFlex(q));
+  const [back, setBack] = useState(q?.return_date ?? d?.returnDate ?? "");
+  const [until, setUntil] = useState(q?.departure_until ?? "");
+  const [nights, setNights] = useState<[number, number]>([q?.min_nights ?? 3, q?.max_nights ?? 5]);
+  const [weekends, setWeekends] = useState(q?.weekends ?? false);
   // Пошук за кількістю ночей (2b): місяць чи період туди й назад — без дати повернення.
   const nightsMode = roundTrip && (flex === "month" || flex === "range");
+
+  /** Швидкі дати (модуль 3): лише заповнюють поля. */
+  function applyPreset(preset: DatePreset) {
+    const next = datePreset(preset, localToday(), depart || undefined);
+    setRoundTrip(true);
+    setDepart(next.depart);
+    if (next.back) {
+      setFlex("0");
+      setBack(next.back);
+      setWeekends(false);
+      return;
+    }
+    setFlex(preset === "monthWeekends" ? "month" : "range");
+    if (next.until) setUntil(next.until);
+    if (next.nights) setNights([next.nights[0], next.nights[1]]);
+    setWeekends(Boolean(next.weekends));
+  }
 
   function swap() {
     setFrom(to);
@@ -150,6 +173,8 @@ export function SearchForm({
         </Field>
       </div>
 
+      <DatePresets onPick={applyPreset} />
+
       <div className="grid gap-3 sm:grid-cols-4">
         <Field label={t("depart")} htmlFor="depart">
           <Input
@@ -171,7 +196,8 @@ export function SearchForm({
             required={roundTrip && !nightsMode}
             disabled={!roundTrip || nightsMode}
             className={cn(FIELD_CLASS, (!roundTrip || nightsMode) && "opacity-50")}
-            defaultValue={q?.return_date ?? d?.returnDate ?? ""}
+            value={back}
+            onChange={(e) => setBack(e.target.value)}
           />
         </Field>
         <Field label={t("flex")} htmlFor="flex">
@@ -202,7 +228,8 @@ export function SearchForm({
               min={depart || undefined}
               required
               className={cn(FIELD_CLASS, "mt-1.5")}
-              defaultValue={q?.departure_until ?? ""}
+              value={until}
+              onChange={(e) => setUntil(e.target.value)}
             />
           )}
         </Field>
@@ -222,7 +249,15 @@ export function SearchForm({
         </div>
       </div>
 
-      {nightsMode && <NightsFields q={q} />}
+      {nightsMode && (
+        <NightsFields
+          q={q}
+          nights={nights}
+          onNights={setNights}
+          weekends={weekends}
+          onWeekends={setWeekends}
+        />
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -380,15 +415,35 @@ function initialFlex(q: SearchState["query"] | undefined): string {
     : String(q.flex_days ?? 0);
 }
 
-/** Скільки ночей на місці й бюджет — для «3–5 ночей у грудні» (модуль 2b). */
-function NightsFields({ q }: { q: SearchState["query"] | undefined }) {
+/** Скільки ночей на місці, «лише вихідні» й бюджет — для «3–5 ночей у грудні» (модулі 2b, 3). */
+function NightsFields({
+  q,
+  nights,
+  onNights,
+  weekends,
+  onWeekends,
+}: {
+  q: SearchState["query"] | undefined;
+  nights: [number, number];
+  onNights: (nights: [number, number]) => void;
+  weekends: boolean;
+  onWeekends: (weekends: boolean) => void;
+}) {
   const t = useTranslations("search");
   const options = Array.from({ length: MAX_NIGHTS }, (_, i) => i + 1);
   return (
-    <fieldset className="grid gap-3 sm:grid-cols-3" data-testid="nights-fields">
+    <fieldset className="grid gap-3 sm:grid-cols-4" data-testid="nights-fields">
       <legend className="sr-only">{t("nights")}</legend>
       <Field label={t("nightsFrom")} htmlFor="nmin">
-        <select id="nmin" name="nmin" defaultValue={q?.min_nights ?? 3} className={SELECT_CLASS}>
+        <select
+          id="nmin"
+          name="nmin"
+          value={nights[0]}
+          onChange={(e) =>
+            onNights([Number(e.target.value), Math.max(nights[1], Number(e.target.value))])
+          }
+          className={SELECT_CLASS}
+        >
           {options.map((n) => (
             <option key={n} value={n}>
               {t("nightsCount", { count: n })}
@@ -397,7 +452,15 @@ function NightsFields({ q }: { q: SearchState["query"] | undefined }) {
         </select>
       </Field>
       <Field label={t("nightsTo")} htmlFor="nmax">
-        <select id="nmax" name="nmax" defaultValue={q?.max_nights ?? 5} className={SELECT_CLASS}>
+        <select
+          id="nmax"
+          name="nmax"
+          value={nights[1]}
+          onChange={(e) =>
+            onNights([Math.min(nights[0], Number(e.target.value)), Number(e.target.value)])
+          }
+          className={SELECT_CLASS}
+        >
           {options.map((n) => (
             <option key={n} value={n}>
               {t("nightsCount", { count: n })}
@@ -405,6 +468,17 @@ function NightsFields({ q }: { q: SearchState["query"] | undefined }) {
           ))}
         </select>
       </Field>
+      <label className="flex items-center gap-2 self-end pb-2.5 text-sm">
+        <input
+          type="checkbox"
+          name="wk"
+          value="1"
+          checked={weekends}
+          onChange={(e) => onWeekends(e.target.checked)}
+          className="accent-primary size-4"
+        />
+        {t("weekendsOnly")}
+      </label>
       <Field label={t("tripBudget", { currency: q?.currency ?? "EUR" })} htmlFor="maxt">
         <Input
           id="maxt"

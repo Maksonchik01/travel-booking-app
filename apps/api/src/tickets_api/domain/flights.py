@@ -247,6 +247,22 @@ class FlightPreferences(_StrictInput):
     """Бажана частина доби вильоту ТУДИ."""
 
 
+WEEKEND_DEPARTURES = (3, 4, 5)
+"""Чт, пт, сб — виліт на вихідні."""
+WEEKEND_RETURNS = (5, 6, 0)
+"""Сб, нд, пн — повернення з вихідних (те саме правило, що й у сповіщеннях, ADR 0026)."""
+WEEKEND_MAX_NIGHTS = 4
+
+
+def is_weekend_trip(departure: date, return_date: date) -> bool:
+    """Поїздка на вихідні: виліт чт–сб, повернення сб–пн, не довше за 4 ночі."""
+    return (
+        departure.weekday() in WEEKEND_DEPARTURES
+        and return_date.weekday() in WEEKEND_RETURNS
+        and 0 < (return_date - departure).days <= WEEKEND_MAX_NIGHTS
+    )
+
+
 MAX_EXTRA_AIRPORTS = 3
 """Додаткові аеропорти з кожного боку (модуль 2 розширення): разом з основним — до 4."""
 
@@ -268,6 +284,8 @@ class FlightQuery(_StrictInput):
     max_nights: int | None = Field(default=None, ge=1, le=MAX_NIGHTS)
     """Пошук за тривалістю (модуль 2b): ночей на місці — від дати ПРИЛЬОТУ туди до дати вильоту
     назад. Лише для гнучкого пошуку туди-назад; `return_date` тоді — виліт + min_nights."""
+    weekends: bool = False
+    """Лише вихідні (модуль 3): з періодом вильоту туди-назад — пари дат чт–сб → сб–пн."""
     check_dates: list[DatePair] | None = Field(default=None, max_length=MAX_CHECK_DATES)
     """Конкретні пари дат для живої перевірки замість перебору вікна. Заповнює сервіс гнучкого
     пошуку з кешованих кандидатів (ADR 0016); бюджет запитів джерело ділить між ними."""
@@ -311,6 +329,8 @@ class FlightQuery(_StrictInput):
                 raise ValueError("мінімум ночей більший за максимум")
             if self.return_date is None or not self.is_flexible:
                 raise ValueError("ночі задаються для гнучкого пошуку туди й назад")
+        if self.weekends and (self.return_date is None or self.departure_until is None):
+            raise ValueError("«лише вихідні» — для періоду вильоту туди й назад")
         return self
 
     @property

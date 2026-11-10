@@ -15,6 +15,7 @@ export const CLIENT_NAMESPACES = [
   "common",
   "compare",
   "currency",
+  "datePresets",
   "favorites",
   "filters",
   "freshness",

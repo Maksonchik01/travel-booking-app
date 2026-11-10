@@ -43,7 +43,7 @@ from tickets_api.domain.alerts import (
     AlertView,
     triggered,
 )
-from tickets_api.domain.flights import FlightQuery, Offer
+from tickets_api.domain.flights import FlightQuery, Offer, is_weekend_trip
 from tickets_api.domain.notify import hold_reason, notify_prefs
 from tickets_api.i18n import as_locale, t, use_locale
 from tickets_api.notifications.mail import Mailer, MailError
@@ -60,10 +60,6 @@ SNOOZE_DAYS = 7
 
 PriceStatsLookup = Callable[[FlightQuery, Decimal], Awaitable[PriceStats | None]]
 Clock = Callable[[], datetime]
-WEEKEND_DEPARTURE = frozenset({3, 4, 5})
-"""Вихідні (flex, `weekends`): виліт чт–сб…"""
-WEEKEND_RETURN = frozenset({5, 6, 0})
-"""…і повернення сб–пн."""
 
 
 @dataclass(frozen=True)
@@ -872,12 +868,10 @@ def flight_query(alert: Alert) -> FlightQuery:
 
 
 def _weekend(offer: Offer) -> bool:
+    """Вихідні (flex, `weekends`) — спільне правило пошуку: чт–сб → сб–пн, до 4 ночей."""
     if offer.inbound is None:
         return False
-    return (
-        offer.outbound.departure_at.weekday() in WEEKEND_DEPARTURE
-        and offer.inbound.departure_at.weekday() in WEEKEND_RETURN
-    )
+    return is_weekend_trip(offer.outbound.departure_at.date(), offer.inbound.departure_at.date())
 
 
 def _stop(session: AsyncSession, alert: Alert) -> None:
