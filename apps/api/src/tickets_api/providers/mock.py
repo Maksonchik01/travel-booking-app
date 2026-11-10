@@ -83,8 +83,23 @@ class MockFlightProvider:
         self._clock = clock or (lambda: datetime.now(UTC))
 
     async def search(self, query: FlightQuery) -> list[Offer]:
+        if query.origin_also or query.destination_also:
+            # Кілька аеропортів (модуль 2) — пропозиції з кожної пари, як у справжніх джерел.
+            offers: list[Offer] = []
+            for origin in query.origins:
+                for destination in query.destinations:
+                    single = query.model_copy(
+                        update={
+                            "origin": origin,
+                            "destination": destination,
+                            "origin_also": [],
+                            "destination_also": [],
+                        }
+                    )
+                    offers.extend(await self.search(single))
+            return sorted(offers, key=lambda o: (o.price, o.id))
         collected_at = self._clock().replace(microsecond=0)
-        offers: list[Offer] = []
+        found: list[Offer] = []
         # Усі дні вікна (±дні чи період); повернення — на ту саму тривалість поїздки, а для
         # пошуку за ночами — кілька тривалостей (до двох тижнів, щоб mock лишався швидким).
         start, end = query.departure_window
@@ -96,8 +111,8 @@ class MockFlightProvider:
             dep = start + timedelta(days=i)
             for days in lengths if query.return_date else [0]:
                 ret = dep + timedelta(days=days) if query.return_date else None
-                offers.extend(self._offers_for_dates(query, dep, ret, collected_at))
-        return sorted(offers, key=lambda o: (o.price, o.id))
+                found.extend(self._offers_for_dates(query, dep, ret, collected_at))
+        return sorted(found, key=lambda o: (o.price, o.id))
 
     async def calendar(
         self, origin: str, destination: str, month: date, currency: str

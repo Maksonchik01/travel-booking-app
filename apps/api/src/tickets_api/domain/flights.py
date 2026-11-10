@@ -247,9 +247,17 @@ class FlightPreferences(_StrictInput):
     """Бажана частина доби вильоту ТУДИ."""
 
 
+MAX_EXTRA_AIRPORTS = 3
+"""Додаткові аеропорти з кожного боку (модуль 2 розширення): разом з основним — до 4."""
+
+
 class FlightQuery(_StrictInput):
     origin: Iata
     destination: Iata
+    origin_also: list[Iata] = Field(default_factory=list, max_length=MAX_EXTRA_AIRPORTS)
+    destination_also: list[Iata] = Field(default_factory=list, max_length=MAX_EXTRA_AIRPORTS)
+    """Ще аеропорти (чи міста) вильоту й прибуття: «Амстердам, Роттердам, Ейндговен». Основний —
+    `origin`/`destination` (історія цін, підписи), джерела шукають з усіх разом."""
     departure_date: date
     return_date: date | None = None
     flex_days: int = Field(default=0, ge=0, le=MAX_FLEX_DAYS)
@@ -282,8 +290,12 @@ class FlightQuery(_StrictInput):
 
     @model_validator(mode="after")
     def _check_route_and_dates(self) -> Self:
-        if self.origin == self.destination:
+        if set(self.origins) & set(self.destinations):
             raise ValueError("пункти вильоту й прибуття збігаються")
+        if len(set(self.origins)) != len(self.origins) or len(set(self.destinations)) != len(
+            self.destinations
+        ):
+            raise ValueError("аеропорти повторюються")
         if self.return_date is not None and self.return_date < self.departure_date:
             raise ValueError("дата повернення раніша за дату вильоту")
         if self.departure_until is not None:
@@ -306,6 +318,14 @@ class FlightQuery(_StrictInput):
         if self.min_nights is None or self.max_nights is None:
             return None
         return self.min_nights, self.max_nights
+
+    @property
+    def origins(self) -> list[str]:
+        return [self.origin, *self.origin_also]
+
+    @property
+    def destinations(self) -> list[str]:
+        return [self.destination, *self.destination_also]
 
     @property
     def is_flexible(self) -> bool:

@@ -8721,6 +8721,24 @@
             "pattern": "^[A-Za-z]{3}$",
             "title": "Destination"
           },
+          "origin_also": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Origin Also"
+          },
+          "destination_also": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Destination Also"
+          },
           "departure_date": {
             "type": "string",
             "format": "date",
@@ -14779,6 +14797,24 @@
             "pattern": "^[A-Za-z]{3}$",
             "title": "Destination"
           },
+          "origin_also": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Origin Also"
+          },
+          "destination_also": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Destination Also"
+          },
           "departure_date": {
             "type": "string",
             "format": "date",
@@ -14992,6 +15028,24 @@
             "type": "string",
             "pattern": "^[A-Za-z]{3}$",
             "title": "Destination"
+          },
+          "origin_also": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Origin Also"
+          },
+          "destination_also": {
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Destination Also"
           },
           "departure_date": {
             "type": "string",

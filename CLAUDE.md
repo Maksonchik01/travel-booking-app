@@ -85,6 +85,9 @@ SkyPack — веб-застосунок для пошуку подорожей �
 - **Аеропорти в пошуку:** код аеропорту — лише він (WAW без Модліна), код міста без власного
   аеропорту — усі аеропорти міста (LON). `origin_radius_km`/`destination_radius_km` додають
   сусідні (UI — 150 км). Пропозиції з інших аеропортів відсікає `AirportDirectory.route_filter`.
+  Кілька місць ([ADR 0046](docs/adr/0046-multiple-airports.md)): `origin_also`/`destination_also` (≤ 3, у
+  FlightQuery й TripQuery), `airports_for_all` (SerpApi/scrape.do — один запит, Travelpayouts — кожна пара); URL —
+  повторювані `from`/`to` (`placeCodes`), форма — `extra-places.tsx`, підпис — `routeTitle`.
 - **Фільтри видачі** (`FlightQuery.filters`, як і `profile`) застосовуються ПІСЛЯ провайдерів:
   не входять у ключ кешу, нових запитів не роблять; історія цін пише все отримане, скоринг —
   по відфільтрованому. `facets` у відповіді — що було до фільтрів.

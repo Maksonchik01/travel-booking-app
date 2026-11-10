@@ -145,7 +145,13 @@
     "anyBudget": "Any",
     "placesEmpty": "Nothing found. Check the name or enter an airport code (3 letters, e.g. WAW).",
     "placesError": "Suggestions are unavailable right now — enter an airport code (3 letters, e.g. WAW).",
-    "anywhere": "Anywhere"
+    "anywhere": "Anywhere",
+    "extraAirports": "More airports",
+    "removeAirport": "Remove {name}",
+    "extraPlaceholder": "City, airport or code",
+    "addAirport": "Another airport",
+    "addAirportConfirm": "Add",
+    "cancelAddAirport": "Cancel"
   },
   "results": {
     "title": "{from} → {to}",

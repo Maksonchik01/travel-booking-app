@@ -67,6 +67,7 @@ import {
   SORT_KEYS,
   type SortKey,
   passengerTotal,
+  routeTitle,
   toSearchParams,
 } from "@/lib/search-params";
 import { dateRange, peopleCount } from "@/lib/summary";
@@ -188,7 +189,7 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
   // На мобільному на сторінці результатів форма згортається в рядок «що шукаємо».
   const searchForm = state ? (
     <CollapsibleSearch
-      title={`${state.query.origin} → ${state.query.destination}`}
+      title={routeTitle(state.query)}
       details={`${await dateRange(state.query.departure_date, state.query.return_date)} · ${await peopleCount(state.query.passengers?.adults ?? 1, passengerTotal(state.query.passengers) - (state.query.passengers?.adults ?? 1))}`}
     >
       {form}
@@ -328,7 +329,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
 
   // Історія кабінету (лише для тих, хто увійшов) — після відповіді, без затримки сторінки.
   const historyParams = toSearchParams(state).toString();
-  const historyTitle = `${query.origin} → ${query.destination} · ${await dateRange(query.departure_date, query.return_date)}`;
+  const historyTitle = `${routeTitle(query)} · ${await dateRange(query.departure_date, query.return_date)}`;
   after(
     recordHistory(await sessionToken(), {
       kind: "flights",

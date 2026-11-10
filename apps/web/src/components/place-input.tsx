@@ -49,6 +49,8 @@ type Props = {
   kind?: PlaceKind;
   /** Підміна мережі в тестах. */
   loadPlaces?: (q: string, signal: AbortSignal) => Promise<Place[]>;
+  /** false — поле необов'язкове (додатковий аеропорт, модуль 2). */
+  required?: boolean;
 };
 
 export type PlaceKind = "any" | "city";
@@ -60,7 +62,7 @@ async function fetchPlaces(q: string, signal: AbortSignal, kind: PlaceKind): Pro
 }
 
 // Сталі функції: від них залежать ефекти підказок.
-const FETCHERS: Record<PlaceKind, (q: string, signal: AbortSignal) => Promise<Place[]>> = {
+export const FETCHERS: Record<PlaceKind, (q: string, signal: AbortSignal) => Promise<Place[]>> = {
   any: (q, signal) => fetchPlaces(q, signal, "any"),
   city: (q, signal) => fetchPlaces(q, signal, "city"),
 };
@@ -78,6 +80,7 @@ export function PlaceInput({
   icon,
   kind = "any",
   loadPlaces = FETCHERS[kind],
+  required = true,
 }: Props) {
   const t = useTranslations("search");
   const listId = useId();
@@ -172,13 +175,13 @@ export function PlaceInput({
         ref={inputRef}
         id={id}
         // До гідратації поле саме несе код (форма працює без JS).
-        name={hydrated ? undefined : name}
+        name={hydrated || !name ? undefined : name}
         role="combobox"
         aria-autocomplete="list"
         aria-expanded={expanded}
         aria-controls={listId}
         aria-activedescendant={expanded && active >= 0 ? `${listId}-${active}` : undefined}
-        required
+        required={required}
         placeholder={placeholder}
         title={t("iataHint")}
         autoComplete="off"
@@ -204,7 +207,7 @@ export function PlaceInput({
           {value.code}
         </span>
       )}
-      {hydrated && <input type="hidden" name={name} value={value.code} />}
+      {hydrated && name && <input type="hidden" name={name} value={value.code} />}
       <ul
         id={listId}
         role="listbox"

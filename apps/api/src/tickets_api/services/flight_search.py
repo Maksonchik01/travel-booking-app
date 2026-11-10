@@ -259,13 +259,17 @@ class FlightSearchService:
         if self._record_history:
             # В історію — усе отримане, фільтри видачі її не стосуються.
             await self._record_history(
-                offer_rows(
-                    query.origin,
-                    query.destination,
-                    offers,
-                    party=query.passengers.code,
-                    cabin=query.cabin,
-                )
+                [
+                    row
+                    for (origin, destination), group in _by_route(offers, query).items()
+                    for row in offer_rows(
+                        origin,
+                        destination,
+                        group,
+                        party=query.passengers.code,
+                        cabin=query.cabin,
+                    )
+                ]
             )
         # Спершу обов'язкові вимоги (відсікаємо), потім ранжування решти (модуль 14.1).
         violations = {offer_key(o): requirement_violations(o, query) for o in offers}
@@ -574,6 +578,18 @@ class FlightSearchService:
             log.exception("provider.unexpected_error", provider=name)
             return ProviderStatus(provider=name, status="error", error="internal error"), []
         return ProviderStatus(provider=name, status="ok", results=len(items)), items
+
+
+def _by_route(offers: Sequence[Offer], query: FlightQuery) -> dict[tuple[str, str], list[Offer]]:
+    """Маршрут історії — коди із ЗАПИТУ: обраний аеропорт, з якого рейс фактично летить, а
+    інакше (місто, сусідній аеропорт) — основний код запиту."""
+    routes: dict[tuple[str, str], list[Offer]] = {}
+    for o in offers:
+        origin = o.outbound.origin if o.outbound.origin in query.origins else query.origin
+        arrival = o.outbound.destination
+        destination = arrival if arrival in query.destinations else query.destination
+        routes.setdefault((origin, destination), []).append(o)
+    return routes
 
 
 def offer_in_currency(offer: Offer, currency: str, rate: Decimal) -> Offer:

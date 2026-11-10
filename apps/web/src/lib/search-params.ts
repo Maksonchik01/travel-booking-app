@@ -84,6 +84,17 @@ function list(value: string | string[] | undefined): string[] {
   return parts.flatMap((v) => v.split(",")).filter(Boolean);
 }
 
+/** До скількох місць з кожного боку (основне + додаткові, модуль 2). */
+export const MAX_PLACES = 4;
+
+/** `from=AMS&from=RTM` (форма з кількома полями) чи `from=AMS,RTM` → коди без повторів. */
+export function placeCodes(value: string | string[] | undefined): string[] {
+  const codes = list(value)
+    .map((code) => code.trim().toUpperCase())
+    .filter((code) => IATA.test(code));
+  return [...new Set(codes)].slice(0, MAX_PLACES);
+}
+
 function airlineList(value: string | string[] | undefined): string[] {
   return [
     ...new Set(
@@ -183,13 +194,16 @@ export function hasFilters(filters: OfferFilters | undefined): boolean {
 
 /** URL → валідний запит пошуку, або null, якщо пошук ще не задано чи параметри биті. */
 export function parseSearchParams(params: RawSearchParams): SearchState | null {
-  const origin = first(params.from)?.toUpperCase();
-  const destination = first(params.to)?.toUpperCase();
+  const [origin, ...originAlso] = placeCodes(params.from);
+  const [destination, ...destinationAlso] = placeCodes(params.to);
   const departure = first(params.depart);
   const returnDate = first(params.return);
 
-  if (!origin || !destination || !IATA.test(origin) || !IATA.test(destination)) return null;
-  if (origin === destination || !isValidDate(departure)) return null;
+  if (!origin || !destination) return null;
+  const overlap = [origin, ...originAlso].some((c) =>
+    [destination, ...destinationAlso].includes(c),
+  );
+  if (overlap || !isValidDate(departure)) return null;
   // trip=ow — «в один бік» з форми без JS: повернення, навіть якщо заповнене, ігноруємо.
   const oneWay = first(params.trip) === "ow";
   const validReturn =
@@ -209,6 +223,8 @@ export function parseSearchParams(params: RawSearchParams): SearchState | null {
     query: {
       origin,
       destination,
+      origin_also: originAlso,
+      destination_also: destinationAlso,
       departure_date: start,
       return_date: tripReturn,
       flex_days: flex.flex_days,
@@ -229,14 +245,26 @@ export function parseSearchParams(params: RawSearchParams): SearchState | null {
   };
 }
 
+/** «AMS, RTM → BCN»: маршрут з усіма обраними аеропортами (модуль 2). */
+export function routeTitle(query: {
+  origin: string;
+  destination: string;
+  origin_also?: string[] | null;
+  destination_also?: string[] | null;
+}): string {
+  const side = (main: string, also?: string[] | null) => [main, ...(also ?? [])].join(", ");
+  return `${side(query.origin, query.origin_also)} → ${side(query.destination, query.destination_also)}`;
+}
+
 /** Запит → рядок URL (зворотна операція до parseSearchParams). */
 export function toSearchParams(state: SearchState): URLSearchParams {
   const { query } = state;
-  const params = new URLSearchParams({
-    from: query.origin,
-    to: query.destination,
-    depart: query.departure_date,
-  });
+  const params = new URLSearchParams();
+  for (const code of [query.origin, ...(query.origin_also ?? [])]) params.append("from", code);
+  for (const code of [query.destination, ...(query.destination_also ?? [])]) {
+    params.append("to", code);
+  }
+  params.set("depart", query.departure_date);
   if (query.return_date) params.set("return", query.return_date);
   if (query.departure_until) {
     const month = isWholeMonth(query.departure_date, query.departure_until);

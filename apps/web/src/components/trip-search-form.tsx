@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { ExtraPlaces } from "@/components/extra-places";
 import { PlaceInput, placeValue } from "@/components/place-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,9 @@ export function TripSearchForm({
   const tSearch = useTranslations("search");
   const [from, setFrom] = useState(() => placeValue(initial?.origin));
   const [to, setTo] = useState(() => placeValue(initial?.destination));
+  const [fromAlso, setFromAlso] = useState(() => (initial?.origin_also ?? []).map(placeValue));
+  const [toAlso, setToAlso] = useState(() => (initial?.destination_also ?? []).map(placeValue));
+  const codes = (values: { code: string }[]) => values.map((v) => v.code).filter(Boolean);
   const [depart, setDepart] = useState(initial?.departure_date ?? "");
   const [back, setBack] = useState(initial?.return_date ?? "");
   const nights = depart && back ? nightsBetween(depart, back) : 0;
@@ -73,6 +77,13 @@ export function TripSearchForm({
             placeholder={tSearch("fromPlaceholder")}
             icon={<PlaneTakeoff />}
           />
+          <ExtraPlaces
+            id="trip-from"
+            name="from"
+            values={fromAlso}
+            onChange={setFromAlso}
+            exclude={codes([from, to, ...toAlso])}
+          />
         </Field>
         <Field label={tSearch("to")} htmlFor="trip-to">
           <PlaceInput
@@ -82,6 +93,13 @@ export function TripSearchForm({
             onChange={setTo}
             placeholder={tSearch("toPlaceholder")}
             icon={<PlaneLanding />}
+          />
+          <ExtraPlaces
+            id="trip-to"
+            name="to"
+            values={toAlso}
+            onChange={setToAlso}
+            exclude={codes([to, from, ...fromAlso])}
           />
         </Field>
       </div>

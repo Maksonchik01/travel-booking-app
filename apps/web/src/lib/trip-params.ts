@@ -5,6 +5,7 @@ import {
   BAGGAGE_NEEDS,
   CABINS,
   MAX_PERIOD_DAYS,
+  placeCodes,
   type RawSearchParams,
   parseCurrency,
 } from "@/lib/search-params";
@@ -13,7 +14,6 @@ import { MAX_NIGHTS } from "@/lib/stay-params";
 export const TRIP_PROFILES: readonly TripProfile[] = ["budget", "balanced", "comfort"];
 export const MAX_TRIP_FLEX_DAYS = 3;
 
-const IATA = /^[A-Za-z]{3}$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** Ключ житла `source:id` («Додати до поїздки», модуль 7) — як TripQuery.stay в API. */
 const STAY_KEY = /^[a-z0-9_]{1,32}:[\w.-]{1,128}$/;
@@ -77,11 +77,14 @@ function parseExtras(params: RawSearchParams): TripExtra[] {
  * вильоту; `flight`/`stay` — вибір людини («Ваша поїздка», модуль 8b).
  */
 export function parseTripParams(params: RawSearchParams): TripQuery | null {
-  const origin = first(params.from)?.toUpperCase();
-  const destination = first(params.to)?.toUpperCase();
+  const [origin, ...originAlso] = placeCodes(params.from);
+  const [destination, ...destinationAlso] = placeCodes(params.to);
   const departure = first(params.depart);
-  if (!origin || !destination || !IATA.test(origin) || !IATA.test(destination)) return null;
-  if (origin === destination || !isValidDate(departure)) return null;
+  if (!origin || !destination) return null;
+  const overlap = [origin, ...originAlso].some((c) =>
+    [destination, ...destinationAlso].includes(c),
+  );
+  if (overlap || !isValidDate(departure)) return null;
 
   const nmin = Number.parseInt(first(params.nmin) ?? "", 10);
   const nmax = Number.parseInt(first(params.nmax) ?? "", 10);
@@ -105,6 +108,8 @@ export function parseTripParams(params: RawSearchParams): TripQuery | null {
   return {
     origin,
     destination,
+    origin_also: originAlso,
+    destination_also: destinationAlso,
     departure_date: departure,
     return_date: returnDate,
     departure_until: until,
@@ -138,13 +143,15 @@ export function parseTripParams(params: RawSearchParams): TripQuery | null {
  * відомі, а місто вильоту — ні. Лише перевірені значення.
  */
 export function parseTripDraft(params: RawSearchParams): Partial<TripQuery> | null {
-  const origin = first(params.from)?.toUpperCase();
-  const destination = first(params.to)?.toUpperCase();
+  const [origin, ...originAlso] = placeCodes(params.from);
+  const [destination, ...destinationAlso] = placeCodes(params.to);
   const departure = first(params.depart);
   const returnDate = first(params.return);
   const draft: Partial<TripQuery> = {
-    origin: origin && IATA.test(origin) ? origin : undefined,
-    destination: destination && IATA.test(destination) ? destination : undefined,
+    origin,
+    destination,
+    origin_also: originAlso,
+    destination_also: destinationAlso,
     departure_date: isValidDate(departure) ? departure : undefined,
     return_date: isValidDate(returnDate) ? returnDate : undefined,
     adults: intInRange(first(params.adults), 1, 9, 2),
@@ -155,11 +162,12 @@ export function parseTripDraft(params: RawSearchParams): Partial<TripQuery> | nu
 }
 
 export function toTripParams(query: TripQuery): URLSearchParams {
-  const params = new URLSearchParams({
-    from: query.origin,
-    to: query.destination,
-    depart: query.departure_date,
-  });
+  const params = new URLSearchParams();
+  for (const code of [query.origin, ...(query.origin_also ?? [])]) params.append("from", code);
+  for (const code of [query.destination, ...(query.destination_also ?? [])]) {
+    params.append("to", code);
+  }
+  params.set("depart", query.departure_date);
   if (query.min_nights != null && query.max_nights != null) {
     params.set("nmin", String(query.min_nights));
     params.set("nmax", String(query.max_nights));

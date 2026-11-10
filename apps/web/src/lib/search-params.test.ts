@@ -35,11 +35,32 @@ describe("parseSearchParams", () => {
     expect(parseSearchParams({})).toBeNull();
   });
 
+  it("кілька аеропортів: повторювані й через кому, без повторів, до 4, туди й назад", () => {
+    const state = parseSearchParams({
+      from: ["ams", "RTM,EIN", "AMS"],
+      to: "BCN",
+      depart: "2026-12-05",
+    });
+    expect(state?.query).toMatchObject({
+      origin: "AMS",
+      origin_also: ["RTM", "EIN"],
+      destination: "BCN",
+      destination_also: [],
+    });
+    expect(toSearchParams(state!).toString()).toBe(
+      "from=AMS&from=RTM&from=EIN&to=BCN&depart=2026-12-05",
+    );
+    // Той самий аеропорт з обох боків — не пошук.
+    expect(parseSearchParams({ from: ["AMS", "BCN"], to: "BCN", depart: "2026-12-05" })).toBeNull();
+  });
+
   it("нормалізує коди та застосовує значення за замовчуванням", () => {
     expect(parseSearchParams(base)).toEqual({
       query: {
         origin: "WAW",
         destination: "LIS",
+        origin_also: [],
+        destination_also: [],
         departure_date: "2026-11-10",
         return_date: null,
         flex_days: 0,

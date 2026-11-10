@@ -189,10 +189,10 @@ class SerpApiFlightProvider:
     def _base_params(self, query: FlightQuery) -> dict[str, str]:
         return {
             "departure_id": ",".join(
-                self._airports.airports_for(query.origin, query.origin_radius_km)
+                self._airports.airports_for_all(query.origins, query.origin_radius_km)
             ),
             "arrival_id": ",".join(
-                self._airports.airports_for(query.destination, query.destination_radius_km)
+                self._airports.airports_for_all(query.destinations, query.destination_radius_km)
             ),
             "currency": query.currency,
             "hl": "en",

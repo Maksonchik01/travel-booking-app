@@ -31,7 +31,7 @@ import { TripUndo } from "@/components/trip-history";
 import { TripSearchForm } from "@/components/trip-search-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { ERROR_KEY, fetchAIStatus, fetchAlertChannels, searchTrip } from "@/lib/api";
-import { type RawSearchParams, toSearchParams } from "@/lib/search-params";
+import { type RawSearchParams, routeTitle, toSearchParams } from "@/lib/search-params";
 import { toStayParams } from "@/lib/stay-params";
 import { pinnedQuery, tripSnapshot } from "@/lib/saved-trips";
 import {
@@ -147,7 +147,7 @@ async function SearchArea({ searchParams }: { searchParams: Params }) {
   );
   const searchForm = query ? (
     <CollapsibleSearch
-      title={`${query.origin} → ${query.destination}`}
+      title={routeTitle(query)}
       details={`${await tripDates(query)} · ${await peopleCount(query.adults ?? 2, query.children ?? 0)}`}
     >
       {form}
@@ -219,7 +219,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
   // Історія й «Зберегти пошук» — сам пошук, без вибору рейсу й житла (інакше кожна заміна
   // компонента давала б новий запис історії).
   const historyParams = toTripParams({ ...query, flight: null, stay: null }).toString();
-  const historyTitle = `${query.origin} → ${query.destination} · ${await tripDates(query)}`;
+  const historyTitle = `${routeTitle(query)} · ${await tripDates(query)}`;
   after(
     recordHistory(await sessionToken(), {
       kind: "trip",

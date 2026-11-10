@@ -152,6 +152,18 @@ class AirportDirectory:
         )
         return own + [c for _, c in nearby[: MAX_NEARBY_AIRPORTS - len(own)]]
 
+    def airports_for_all(self, codes: list[str], radius_km: int = 0) -> list[str]:
+        """Кілька обраних місць разом (модуль 2): спершу їхні власні аеропорти, потім сусідні —
+        без повторів і не більше MAX_NEARBY_AIRPORTS (більше Google Flights в один запит не бере;
+        обрані людиною важливіші за сусідні)."""
+        each = [self.airports_for(code) for code in codes]
+        # Перший аеропорт кожного обраного місця — гарантовано, решта міст — далі.
+        own = list(dict.fromkeys([a[0] for a in each] + [x for a in each for x in a[1:]]))
+        if radius_km <= 0 or len(own) >= MAX_NEARBY_AIRPORTS:
+            return own[:MAX_NEARBY_AIRPORTS]
+        nearby = [a for code in codes for a in self.airports_for(code, radius_km) if a not in own]
+        return own + list(dict.fromkeys(nearby))[: MAX_NEARBY_AIRPORTS - len(own)]
+
     def accepted(self, requested: str, radius_km: int = 0) -> frozenset[str]:
         """Коди, які вважаємо «тим самим місцем», що й `requested`.
 
@@ -165,8 +177,14 @@ class AirportDirectory:
 
         Набори аеропортів рахуємо один раз на пошук: сусідні — це перебір довідника.
         """
-        origin = self.accepted(query.origin, query.origin_radius_km)
-        destination = self.accepted(query.destination, query.destination_radius_km)
+        origin = frozenset(
+            code for c in query.origins for code in self.accepted(c, query.origin_radius_km)
+        )
+        destination = frozenset(
+            code
+            for c in query.destinations
+            for code in self.accepted(c, query.destination_radius_km)
+        )
 
         def matches(offer: Offer) -> bool:
             out, back = offer.outbound, offer.inbound

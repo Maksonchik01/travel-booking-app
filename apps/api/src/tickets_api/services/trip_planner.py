@@ -638,6 +638,8 @@ def flight_query_for(query: TripQuery) -> FlightQuery:
     return FlightQuery(
         origin=query.origin,
         destination=query.destination,
+        origin_also=query.origin_also,
+        destination_also=query.destination_also,
         departure_date=query.departure_date,
         return_date=query.flight_return_date,
         flex_days=query.flex_days,

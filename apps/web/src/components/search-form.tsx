@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
+import { ExtraPlaces } from "@/components/extra-places";
 import { ParamsToggle } from "@/components/params-toggle";
 import { PassengerPicker } from "@/components/passenger-picker";
 import { exploreFromFlights } from "@/lib/explore-params";
@@ -46,6 +47,13 @@ export function SearchForm({
   const [depart, setDepart] = useState(q?.departure_date ?? d?.departure ?? "");
   const [from, setFrom] = useState(() => placeValue(q?.origin ?? d?.origin ?? undefined));
   const [to, setTo] = useState(() => placeValue(q?.destination ?? d?.destination));
+  const [fromAlso, setFromAlso] = useState(() =>
+    (q?.origin_also ?? d?.originAlso ?? []).map(placeValue),
+  );
+  const [toAlso, setToAlso] = useState(() =>
+    (q?.destination_also ?? d?.destinationAlso ?? []).map(placeValue),
+  );
+  const codes = (values: { code: string }[]) => values.map((v) => v.code).filter(Boolean);
   const [fromNear, setFromNear] = useState(!!q?.origin_radius_km);
   const [toNear, setToNear] = useState(!!q?.destination_radius_km);
   // Новий пошук — туди й назад (найчастіше); відкритий з URL — як у ньому.
@@ -59,6 +67,8 @@ export function SearchForm({
   function swap() {
     setFrom(to);
     setTo(from);
+    setFromAlso(toAlso);
+    setToAlso(fromAlso);
     setFromNear(toNear);
     setToNear(fromNear);
   }
@@ -98,6 +108,13 @@ export function SearchForm({
             placeholder={t("fromPlaceholder")}
             icon={<PlaneTakeoff />}
           />
+          <ExtraPlaces
+            id="from"
+            name="from"
+            values={fromAlso}
+            onChange={setFromAlso}
+            exclude={codes([from, to, ...toAlso])}
+          />
           <NearbyToggle name="fromNear" checked={fromNear} onChange={setFromNear} />
         </Field>
         <Button
@@ -118,6 +135,13 @@ export function SearchForm({
             onChange={setTo}
             placeholder={t("toPlaceholder")}
             icon={<PlaneLanding />}
+          />
+          <ExtraPlaces
+            id="to"
+            name="to"
+            values={toAlso}
+            onChange={setToAlso}
+            exclude={codes([to, from, ...fromAlso])}
           />
           <div className="flex flex-wrap items-center justify-between gap-x-3">
             <NearbyToggle name="toNear" checked={toNear} onChange={setToNear} />

@@ -2971,6 +2971,10 @@ export interface components {
             origin: string;
             /** Destination */
             destination: string;
+            /** Origin Also */
+            origin_also?: string[];
+            /** Destination Also */
+            destination_also?: string[];
             /**
              * Departure Date
              * Format: date
@@ -5042,6 +5046,10 @@ export interface components {
             origin: string;
             /** Destination */
             destination: string;
+            /** Origin Also */
+            origin_also?: string[];
+            /** Destination Also */
+            destination_also?: string[];
             /**
              * Departure Date
              * Format: date
@@ -5131,6 +5139,10 @@ export interface components {
             origin: string;
             /** Destination */
             destination: string;
+            /** Origin Also */
+            origin_also?: string[];
+            /** Destination Also */
+            destination_also?: string[];
             /**
              * Departure Date
              * Format: date

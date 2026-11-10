@@ -13,6 +13,7 @@ from pydantic import Field, StringConstraints, model_validator
 
 from tickets_api.domain.flights import (
     DEFAULT_CURRENCY,
+    MAX_EXTRA_AIRPORTS,
     MAX_PERIOD_DAYS,
     BaggageNeed,
     Cabin,
@@ -65,6 +66,9 @@ class TripPreferences(_StrictInput):
 class TripQuery(_StrictInput):
     origin: Iata
     destination: Iata
+    origin_also: list[Iata] = Field(default_factory=list, max_length=MAX_EXTRA_AIRPORTS)
+    destination_also: list[Iata] = Field(default_factory=list, max_length=MAX_EXTRA_AIRPORTS)
+    """Ще аеропорти вильоту й прибуття (модуль 2); житло — у місті `destination`."""
     departure_date: date
     return_date: date | None = None
     """Точна дата повернення. Без неї — потрібна тривалість (`min_nights`/`max_nights`)."""
@@ -101,7 +105,7 @@ class TripQuery(_StrictInput):
 
     @model_validator(mode="after")
     def _route_and_dates(self) -> Self:
-        if self.origin == self.destination:
+        if {self.origin, *self.origin_also} & {self.destination, *self.destination_also}:
             raise ValueError("місто вильоту й призначення мають відрізнятися")
         if self.departure_until is not None:
             if self.flex_days:

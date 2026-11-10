@@ -174,6 +174,31 @@ test("житло: картка → сторінка об'єкта з цінам�
   await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
 });
 
+test("модуль 2: кілька аеропортів вильоту — рейси з кожного, «чипи» у формі й поїздці", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&from=KRK&to=LIS&depart=2026-12-05&return=2026-12-12");
+  const summary = page.getByTestId("search-summary");
+  await expect(summary).toContainText("WAW, KRK → LIS");
+  // Фактичний аеропорт кожного рейсу — у картці.
+  const cards = page.getByTestId("offer-card");
+  await expect(cards.filter({ hasText: "KRK" }).first()).toBeVisible();
+  await expect(cards.filter({ hasText: "WAW" }).first()).toBeVisible();
+
+  await summary.getByRole("button").click();
+  const chip = page.getByTestId("extra-place");
+  await expect(chip).toContainText("KRK");
+  // Прибрати додатковий — новий пошук лише з основного.
+  await chip.getByRole("button").click();
+  await page.getByRole("button", { name: "Шукати", exact: true }).click();
+  await expect(page).toHaveURL(/[?&]from=WAW&to=LIS&depart=2026-12-05/);
+  expect(page.url()).not.toContain("KRK");
+
+  await page.goto("/trip?from=WAW&from=KRK&to=LIS&depart=2026-12-05&return=2026-12-08");
+  await expect(page.getByTestId("search-summary")).toContainText("WAW, KRK → LIS");
+  await expect(page.getByTestId("trip-card").first()).toBeVisible();
+});
+
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
   // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).

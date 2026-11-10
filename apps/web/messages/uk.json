@@ -145,7 +145,13 @@
     "anyBudget": "Будь-який",
     "placesEmpty": "Нічого не знайдено. Перевірте назву або введіть код аеропорту (3 літери, напр. WAW).",
     "placesError": "Підказки зараз недоступні — введіть код аеропорту (3 літери, напр. WAW).",
-    "anywhere": "Будь-куди"
+    "anywhere": "Будь-куди",
+    "extraAirports": "Додаткові аеропорти",
+    "removeAirport": "Прибрати {name}",
+    "extraPlaceholder": "Місто, аеропорт або код",
+    "addAirport": "Ще аеропорт",
+    "addAirportConfirm": "Додати",
+    "cancelAddAirport": "Скасувати"
   },
   "results": {
     "title": "{from} → {to}",

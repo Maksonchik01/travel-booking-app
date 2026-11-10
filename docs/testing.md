@@ -45,6 +45,18 @@
 
 Контрольні живі пошуки (листопад 2026, 10 запитів SerpApi): AMS→WAW в один бік і туди-назад, WAW→BCN, WAW→LIS для сім'ї з багажем, WAW→BCN ±3 дні; продавці KL1319 і W6 1475 — див. ADR 0041.
 
+## Кілька аеропортів (ADR 0046)
+
+| Сценарій | Тест |
+|---|---|
+| Усі обрані аеропорти — в одному запиті SerpApi; Travelpayouts — кожна пара | API `test_multi_airport::test_serpapi_one_request_for_all_airports`, `test_travelpayouts_asks_each_pair` |
+| Перший аеропорт кожного міста гарантовано, сусідні — після обраних | API `test_multi_airport::test_directory_keeps_every_picked_place_first` |
+| Фільтр маршруту й історія цін за фактичним обраним аеропортом | API `test_multi_airport::test_route_filter_accepts_any_picked_airport`, `test_history_route_is_the_picked_airport_the_flight_uses` |
+| Валідація, ключ кешу, поїздка передає аеропорти перельоту | API `test_multi_airport::test_validation_and_trip_pass_through`, `test_extra_airports_are_part_of_the_cache_key` |
+| URL: повторювані й через кому, без повторів, туди й назад | WEB `search-params.test` |
+| «Чипи»: назви з кодів, додати за кодом, заборона повторів, до 4, прибрати | WEB `extra-places.test` |
+| Рейси з кожного аеропорту, «чип» у формі, поїздка | E2E «модуль 2: кілька аеропортів вильоту…» |
+
 ## Explore (ADR 0045)
 
 | Сценарій | Тест |

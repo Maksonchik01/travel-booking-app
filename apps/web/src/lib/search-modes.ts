@@ -15,6 +15,9 @@ export const MODE_PATH: Record<SearchMode, string> = {
 export type CommonSearch = {
   from?: string;
   to?: string;
+  /** Додаткові аеропорти (модуль 2) — лише між перельотами й поїздкою. */
+  fromAlso?: string[];
+  toAlso?: string[];
   depart?: string;
   return?: string;
   adults?: number;
@@ -34,6 +37,26 @@ function read(source: Source, key: string): string | undefined {
   const value = source[key];
   const first = Array.isArray(value) ? value[0] : value;
   return first || undefined;
+}
+
+/** Усі значення ключа (повторювані поля форми, `from=AMS&from=RTM`). */
+function readAll(source: Source, key: string): string[] {
+  if (source instanceof URLSearchParams || source instanceof FormData) {
+    return source.getAll(key).filter((v): v is string => typeof v === "string" && v !== "");
+  }
+  const value = source[key];
+  return (Array.isArray(value) ? value : value ? [value] : []).filter(Boolean);
+}
+
+function extraCodes(source: Source, key: string): string[] | undefined {
+  const codes = [
+    ...new Set(
+      readAll(source, key)
+        .map(code)
+        .filter((c): c is string => !!c),
+    ),
+  ];
+  return codes.length > 1 ? codes.slice(1, 4) : undefined;
 }
 
 function code(value: string | undefined): string | undefined {
@@ -57,6 +80,8 @@ export function commonFrom(mode: SearchMode, source: Source): CommonSearch {
   const common: CommonSearch = {
     from: stays ? undefined : code(read(source, "from")),
     to: code(read(source, stays ? "city" : "to")),
+    fromAlso: stays ? undefined : extraCodes(source, "from"),
+    toAlso: stays ? undefined : extraCodes(source, "to"),
     depart: day(read(source, stays ? "in" : "depart")),
     return: oneWay ? undefined : day(read(source, stays ? "out" : "return")),
     adults: count(read(source, "adults"), 1, 9),
@@ -79,7 +104,9 @@ export function modeHref(target: SearchMode, common: CommonSearch): string {
     set("out", common.return);
   } else {
     set("from", common.from);
+    for (const extra of common.fromAlso ?? []) params.append("from", extra);
     set("to", common.to);
+    for (const extra of common.toAlso ?? []) params.append("to", extra);
     set("depart", common.depart);
     set("return", common.return);
   }

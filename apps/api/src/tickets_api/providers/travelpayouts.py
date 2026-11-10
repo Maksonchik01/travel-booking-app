@@ -102,10 +102,14 @@ class TravelpayoutsFlightProvider:
         matches = self._airports.route_filter(query) if self._airports else None
         # Без гнучкості — точна дата; з гнучкістю — запит на місяць(і) і фільтр по вікну.
         # Так замість 2N+1 запитів робимо 1–2.
-        for departure_at, return_at in self._date_params(query):
+        # Кілька аеропортів (модуль 2): API бере одну пару — питаємо кожну (без квоти).
+        routes = [(o, d) for o in query.origins for d in query.destinations]
+        for (origin, destination), (departure_at, return_at) in (
+            (route, dates) for route in routes for dates in self._date_params(query)
+        ):
             params: dict[str, str | int] = {
-                "origin": query.origin,
-                "destination": query.destination,
+                "origin": origin,
+                "destination": destination,
                 "departure_at": departure_at,
                 "currency": query.currency.lower(),
                 "sorting": "price",

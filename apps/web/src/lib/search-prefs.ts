@@ -138,6 +138,8 @@ export type FlightDefaults = {
   origin?: string | null;
   /** Перенесене з іншого режиму (модуль 12.2): куди, дати, люди. */
   destination?: string;
+  originAlso?: string[];
+  destinationAlso?: string[];
   departure?: string;
   returnDate?: string;
   adults?: number;
@@ -170,6 +172,8 @@ export function withCarried(
     ...defaults,
     origin: carried.from ?? defaults?.origin,
     destination: carried.to,
+    originAlso: carried.fromAlso,
+    destinationAlso: carried.toAlso,
     departure: carried.depart,
     returnDate: carried.return,
     adults: carried.adults,

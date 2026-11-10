@@ -145,7 +145,13 @@
     "anyBudget": "Любой",
     "placesEmpty": "Ничего не найдено. Проверьте название или введите код аэропорта (3 буквы, напр. WAW).",
     "placesError": "Подсказки сейчас недоступны — введите код аэропорта (3 буквы, напр. WAW).",
-    "anywhere": "Куда угодно"
+    "anywhere": "Куда угодно",
+    "extraAirports": "Дополнительные аэропорты",
+    "removeAirport": "Убрать {name}",
+    "extraPlaceholder": "Город, аэропорт или код",
+    "addAirport": "Ещё аэропорт",
+    "addAirportConfirm": "Добавить",
+    "cancelAddAirport": "Отмена"
   },
   "results": {
     "title": "{from} → {to}",

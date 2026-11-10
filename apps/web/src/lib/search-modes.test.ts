@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { commonFrom, modeHref, rememberSearch, returnHref } from "@/lib/search-modes";
+import { commonFrom, draftHref, modeHref, rememberSearch, returnHref } from "@/lib/search-modes";
 
 describe("search modes", () => {
   it("переносить місто, дати й людей між режимами", () => {
@@ -33,6 +33,17 @@ describe("search modes", () => {
     expect(modeHref("flights", stays)).toBe(
       "/?to=LIS&depart=2026-12-05&return=2026-12-08&children=1",
     );
+  });
+
+  it("додаткові аеропорти — між перельотами й поїздкою (чернетка теж), у житло — ні", () => {
+    const form = new URLSearchParams("from=AMS&from=RTM&from=EIN&to=BCN&to=GRO&depart=2026-12-05");
+    const common = commonFrom("flights", form);
+    expect(common).toMatchObject({ from: "AMS", fromAlso: ["RTM", "EIN"], toAlso: ["GRO"] });
+    expect(modeHref("trip", common)).toBe(
+      "/trip?from=AMS&from=RTM&from=EIN&to=BCN&to=GRO&depart=2026-12-05",
+    );
+    expect(modeHref("stays", common)).toBe("/stays?city=BCN&in=2026-12-05");
+    expect(draftHref("flights", common)).toContain("from=RTM&from=EIN");
   });
 
   it("в один бік — без повернення; биті значення й порожнє — просто сторінка режиму", () => {
