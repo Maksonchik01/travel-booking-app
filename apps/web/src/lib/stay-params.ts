@@ -9,8 +9,10 @@ import type {
 
 import { addDays, type RawSearchParams, parseCurrency } from "@/lib/search-params";
 
-export type StaySortKey = "price" | "rating" | "score";
-export const STAY_SORT_KEYS: readonly StaySortKey[] = ["price", "rating", "score"];
+export type StaySortKey = "price" | "rating" | "score" | "near";
+/** «near» — ближче до обраного місця (етап 5); без місця — як за ціною. */
+export const STAY_SORT_KEYS: readonly StaySortKey[] = ["price", "rating", "score", "near"];
+export const MAX_NEAR_NAME = 80;
 export const STAY_PROFILES: readonly StayProfile[] = ["budget", "balanced", "center"];
 export const STAY_KINDS: readonly StayKind[] = [
   "hotel",
@@ -46,6 +48,8 @@ export type StayState = {
   sort: StaySortKey;
   /** Список чи карта (модуль 6); на широкому екрані «карта» — список і карта поруч. */
   view?: StayView;
+  /** Назва обраного місця (`nearname`, етап 5) — лише для підписів; до API не йде. */
+  nearName?: string;
 };
 
 const IATA = /^[A-Za-z]{3}$/;
@@ -195,7 +199,13 @@ export function parseStayParams(params: RawSearchParams): StayState | null {
     },
     sort: STAY_SORT_KEYS.find((k) => k === first(params.sort)) ?? "price",
     view: first(params.view) === "map" ? "map" : "list",
+    ...nearName(params),
   };
+}
+
+function nearName(params: RawSearchParams): { nearName?: string } {
+  const name = first(params.nearname)?.trim().slice(0, MAX_NEAR_NAME);
+  return name && first(params.near) ? { nearName: name } : {};
 }
 
 export function toStayParams(state: StayState): URLSearchParams {
@@ -215,6 +225,7 @@ export function toStayParams(state: StayState): URLSearchParams {
   if (query.profile && query.profile !== "balanced") params.set("prio", query.profile);
   if (state.sort !== "price") params.set("sort", state.sort);
   for (const [key, value] of stayFilterParams(query.filters)) params.set(key, value);
+  if (state.nearName && query.filters?.near) params.set("nearname", state.nearName);
   if (state.view === "map") params.set("view", "map");
   return params;
 }

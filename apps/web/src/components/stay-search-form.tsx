@@ -15,9 +15,13 @@ import { Label } from "@/components/ui/label";
 import type { CommonSearch } from "@/lib/search-modes";
 import { addDays, CURRENCIES } from "@/lib/search-params";
 import {
+  AMENITIES,
+  MAX_DISTANCE_OPTIONS,
   MAX_NIGHTS,
   MAX_ROOMS,
+  MIN_RATING_OPTIONS,
   nightsBetween,
+  STAY_KINDS,
   STAY_PROFILES,
   type StayState,
 } from "@/lib/stay-params";
@@ -192,6 +196,8 @@ export function StaySearchForm({
         </fieldset>
       )}
 
+      <StayMoreOptions filters={q?.filters} />
+
       <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
         <fieldset className="flex items-center gap-2 text-sm">
           <legend className="text-muted-foreground float-left mr-2 text-xs font-medium">
@@ -268,5 +274,110 @@ function Field({
       </Label>
       {children}
     </div>
+  );
+}
+
+/**
+ * «Більше налаштувань» (етап 5): рейтинг, тип, розташування, зручності, скасування — ті самі
+ * параметри URL, що й фільтри видачі (`rating`, `kind`, `dist`, `am`, `cancel`). Застосовуються
+ * після джерела: окремих запитів не роблять. Розкрито, якщо щось уже задано.
+ */
+function StayMoreOptions({ filters }: { filters: StayState["query"]["filters"] | undefined }) {
+  const t = useTranslations("stayFilters");
+  const tForm = useTranslations("stays");
+  const tKind = useTranslations("stayCard.kind");
+  const tAmenity = useTranslations("stayCard.amenity");
+  const open = Boolean(
+    filters?.min_rating ||
+    filters?.kinds?.length ||
+    filters?.max_distance_center_km ||
+    filters?.amenities?.length ||
+    filters?.free_cancellation,
+  );
+  const chip =
+    "has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary has-[:focus-visible]:ring-ring/40 cursor-pointer rounded-full border px-3 py-1 text-xs font-medium has-[:focus-visible]:ring-3";
+  return (
+    <details className="grid gap-3 rounded-lg border px-3 py-2" open={open} data-testid="stay-more">
+      <summary className="text-muted-foreground hover:text-primary cursor-pointer text-sm font-medium select-none">
+        {tForm("more")}
+      </summary>
+      <div className="grid gap-4 pt-3 pb-1">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <label className="grid gap-1.5">
+            <span className="text-muted-foreground text-xs font-medium">{t("rating")}</span>
+            <select name="rating" defaultValue={filters?.min_rating ?? ""} className={SELECT_CLASS}>
+              <option value="">{t("any")}</option>
+              {MIN_RATING_OPTIONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}+
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-1.5">
+            <span className="text-muted-foreground text-xs font-medium">{t("distance")}</span>
+            <select
+              name="dist"
+              defaultValue={filters?.max_distance_center_km ?? ""}
+              className={SELECT_CLASS}
+            >
+              <option value="">{t("any")}</option>
+              {MAX_DISTANCE_OPTIONS.map((km) => (
+                <option key={km} value={km}>
+                  {t("upToKm", { km })}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2 self-end pb-2.5 text-sm">
+            <input
+              type="checkbox"
+              name="cancel"
+              value="1"
+              defaultChecked={filters?.free_cancellation ?? false}
+              className="size-4"
+            />
+            {t("freeCancellation")}
+          </label>
+        </div>
+        <fieldset className="grid gap-2">
+          <legend className="text-muted-foreground mb-1 text-xs font-medium">{t("kind")}</legend>
+          <div className="flex flex-wrap gap-2">
+            {STAY_KINDS.map((kind) => (
+              <label key={kind} className={chip}>
+                <input
+                  type="checkbox"
+                  name="kind"
+                  value={kind}
+                  defaultChecked={filters?.kinds?.includes(kind) ?? false}
+                  className="sr-only"
+                />
+                {tKind(kind)}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset className="grid gap-2">
+          <legend className="text-muted-foreground mb-1 text-xs font-medium">
+            {t("amenities")}
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {AMENITIES.map((amenity) => (
+              <label key={amenity} className={chip}>
+                <input
+                  type="checkbox"
+                  name="am"
+                  value={amenity}
+                  defaultChecked={filters?.amenities?.includes(amenity) ?? false}
+                  className="sr-only"
+                />
+                {tAmenity(amenity)}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <p className="text-muted-foreground text-[11px]">{tForm("moreHint")}</p>
+      </div>
+    </details>
   );
 }

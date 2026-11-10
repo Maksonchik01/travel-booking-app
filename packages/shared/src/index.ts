@@ -167,3 +167,7 @@ export type ExploreMode = NonNullable<ExploreQuery["mode"]>;
 // Порівняння варіантів поїздки (етап 4, ADR 0048).
 export type TripAlternative = Schemas["TripAlternative"];
 export type TripDifference = Schemas["TripDifference"];
+
+// Місце біля житла (етап 5, ADR 0049).
+export type GeoPlace = Schemas["GeoPlace"];
+export type GeocodeResult = Schemas["GeocodeResult"];

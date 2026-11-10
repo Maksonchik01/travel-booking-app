@@ -21,6 +21,7 @@ export const CLIENT_NAMESPACES = [
   "freshness",
   "modes",
   "nav",
+  "nearPlace",
   "offer",
   "picks",
   "recent",

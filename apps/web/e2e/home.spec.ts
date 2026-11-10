@@ -34,7 +34,7 @@ test("пошук: підказки міст → результати → філ�
   await page.getByLabel("Куди").press("Enter");
   // Новий пошук — «туди й назад» за замовчуванням; тут — в один бік.
   await expect(page.getByLabel("Повернення")).toBeEnabled();
-  await page.getByText("В один бік").click();
+  await page.getByText("В один бік", { exact: true }).click();
   await expect(page.getByLabel("Повернення")).toBeDisabled();
   await page.getByLabel("Виліт").fill("2026-12-05");
   await page.getByRole("button", { name: "Шукати" }).click();
@@ -243,6 +243,35 @@ test("етап 4: «Ваша поїздка» — час у місті, стор
   await expect(page).toHaveURL(/road=30/);
   await expect(builder.getByTestId("trip-breakdown")).toContainText("Дорога до аеропорту");
   await expect(page.getByTestId("trip-summary")).not.toHaveText(total);
+});
+
+test("етап 5: «Більше налаштувань» — рейси (пересадки, виліт) і житло (рейтинг, тип)", async ({
+  page,
+}) => {
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&draft=1");
+  await page.locator('input[type="hidden"][name="from"]').waitFor({ state: "attached" });
+  const more = page.getByTestId("flight-more");
+  await more.locator("summary").click();
+  await more.getByLabel("Пересадки (в один бік)").selectOption("0");
+  await more.getByText("Ранок · 05–12").click();
+  await page.getByRole("button", { name: "Шукати", exact: true }).click();
+  await expect(page).toHaveURL(/stops=0/);
+  await expect(page).toHaveURL(/dep=morning/);
+  // Умови — фільтри видачі: або рейси, що їм відповідають, або підказки «що послабити».
+  await expect(
+    page.getByTestId("offer-card").first().or(page.getByTestId("empty-suggestions")),
+  ).toBeVisible();
+
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08&draft=1");
+  await page.locator('input[type="hidden"][name="city"]').waitFor({ state: "attached" });
+  const stayMore = page.getByTestId("stay-more");
+  await stayMore.locator("summary").click();
+  await stayMore.locator('select[name="rating"]').selectOption("8");
+  await stayMore.getByText("Готель", { exact: true }).click();
+  await page.getByRole("button", { name: "Шукати житло" }).click();
+  await expect(page).toHaveURL(/rating=8/);
+  await expect(page).toHaveURL(/kind=hotel/);
+  await expect(page.locator('[data-testid="stay-card"]:visible').first()).toBeVisible();
 });
 
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {

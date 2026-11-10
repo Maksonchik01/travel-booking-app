@@ -23,6 +23,7 @@ import {
   House,
   Images,
   MapPin,
+  Navigation,
   Plane,
   ShieldCheck,
   ShieldOff,
@@ -48,6 +49,7 @@ import { WhyList } from "@/components/why-list";
 import { StayCardActions } from "@/components/stay-card-actions";
 import { favoriteSnapshot } from "@/lib/favorites";
 import { hoursAgo } from "@/lib/format";
+import { distanceKm } from "@/lib/geo";
 import { outboundHref } from "@/lib/outbound";
 import { tripFromStay } from "@/lib/trip-params";
 import { cn } from "@/lib/utils";
@@ -91,8 +93,11 @@ export function StayCard({
   freshness,
   converted,
   detailHref,
+  nearPlace,
 }: {
   stay: Stay;
+  /** Обране місце (етап 5): відстань по прямій до нього — у рядку розташування. */
+  nearPlace?: { lat: number; lon: number; name: string } | null;
   now: Date;
   /** Сума у валюті пошуку, якщо джерело дало іншу (модуль 18.2). */
   converted?: ConvertedPrice;
@@ -211,6 +216,22 @@ export function StayCard({
               ? t("toCenter", { km: format.number(stay.distance_to_center_km) })
               : t("centerUnknown")}
           </span>
+          {nearPlace && stay.latitude != null && stay.longitude != null && (
+            <span
+              className="text-primary flex items-center gap-1 font-medium"
+              title={t("nearPlaceHint")}
+              data-testid="stay-near-place"
+            >
+              <Navigation className="size-3.5" aria-hidden />
+              {t("toPlace", {
+                km: format.number(
+                  distanceKm(nearPlace, { lat: stay.latitude, lon: stay.longitude }),
+                  { maximumFractionDigits: 1 },
+                ),
+                place: nearPlace.name,
+              })}
+            </span>
+          )}
           <span className="text-muted-foreground flex items-center gap-1">
             <Bus className="size-3.5" aria-hidden />
             {stay.distance_to_transit_m != null

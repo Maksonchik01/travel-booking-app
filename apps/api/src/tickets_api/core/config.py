@@ -155,6 +155,10 @@ class Settings(BaseSettings):
     scrapedo_timeout_s: float = Field(default=30.0, gt=0)
     scrapedo_request_timeout_s: float = Field(default=20.0, gt=0)
     provider_timeout_s: float = 8.0
+    geocoder_base_url: str = "https://nominatim.openstreetmap.org"
+    """Пошук місця біля житла (ADR 0049): OpenStreetMap Nominatim, без ключа."""
+    geocoder_user_agent: str = "SkyPack/1.0 (+https://github.com/Maksonchik01/travel-booking-app)"
+    """Політика Nominatim: User-Agent із контактом застосунку."""
     scoring_config_path: Path | None = None
     """None — вбудований tickets_api/scoring/config.toml."""
     provider_cache_ttl_s: int = 1800

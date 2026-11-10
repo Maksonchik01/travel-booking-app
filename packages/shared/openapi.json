@@ -498,6 +498,75 @@
         }
       }
     },
+    "/places/geocode": {
+      "get": {
+        "tags": [
+          "places"
+        ],
+        "summary": "Geocode",
+        "description": "Адреса чи визначна точка в місті пошуку житла (ADR 0049) — OpenStreetMap Nominatim.\n\nЛише за натисканням «Знайти» (без автодоповнення), кеш 30 днів; текст запиту не логуємо.\nЗбій джерела — `error` і порожній список: пошук житла від цього не ламається.",
+        "operationId": "geocode_places_geocode_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 120,
+              "title": "Q"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "title": "City"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "uk",
+                "en"
+              ],
+              "type": "string",
+              "default": "uk",
+              "title": "Lang"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodeResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/stays/search": {
       "post": {
         "tags": [
@@ -9024,6 +9093,45 @@
         ],
         "title": "FlightSearchResult"
       },
+      "GeoPlace": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "label",
+          "lat",
+          "lon"
+        ],
+        "title": "GeoPlace"
+      },
       "GeoPoint": {
         "properties": {
           "lat": {
@@ -9046,6 +9154,31 @@
           "lon"
         ],
         "title": "GeoPoint"
+      },
+      "GeocodeResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/GeoPlace"
+            },
+            "type": "array",
+            "title": "Places"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "places"
+        ],
+        "title": "GeocodeResult"
       },
       "GoogleCallbackBody": {
         "properties": {

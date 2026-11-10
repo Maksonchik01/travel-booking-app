@@ -14,6 +14,7 @@ import type {
   ExploreQuery,
   ExploreResult,
   FlightQuery,
+  GeocodeResult,
   FlightSearchResult,
   Place,
   PriceMatrix,
@@ -202,6 +203,16 @@ export function fetchPlaces(
 ): Promise<ApiResult<Place[]>> {
   const params = new URLSearchParams({ q, limit: String(limit), lang, kind });
   return request(`/places?${params}`);
+}
+
+/** Місце біля житла (етап 5): адреса чи визначна точка в місті — OpenStreetMap через API. */
+export function fetchGeocode(
+  q: string,
+  city: string,
+  lang: "uk" | "en" = "uk",
+): Promise<ApiResult<GeocodeResult>> {
+  const params = new URLSearchParams({ q, city, lang });
+  return request(`/places/geocode?${params}`);
 }
 
 /** Вимкнений чи недоступний ШІ — просто без ШІ-функцій, пошук формою працює. */

@@ -8,6 +8,7 @@ import Link from "next/link";
 
 import { FormPendingNote } from "@/components/pending";
 import { Choice, Group, NumberField, OptionSelect } from "@/components/result-filters";
+import { NearPlace } from "@/components/near-place";
 import { FilterShell, SheetActions } from "@/components/filter-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,9 @@ type Props = {
   currency?: string;
   /** Решта стану пошуку (місто, дати, сортування) — щоб фільтр його не губив. */
   baseParams: [string, string][];
+  /** Місто пошуку й назва обраного місця (етап 5) — для «Біля місця». */
+  city?: string;
+  nearName?: string;
 };
 
 /**
@@ -43,6 +47,8 @@ export function StayFilters({
   baseParams,
   airports = [],
   currency = "EUR",
+  city,
+  nearName,
 }: Props) {
   const t = useTranslations("stayFilters");
   const tKind = useTranslations("stayCard.kind");
@@ -76,7 +82,7 @@ export function StayFilters({
     has("beds") ||
     has("distance") ||
     has("district") ||
-    (has("coordinates") && airports.length > 0);
+    has("coordinates");
   const advancedActive = Boolean(
     filters.amenities?.length ||
     filters.min_beds ||
@@ -245,25 +251,36 @@ export function StayFilters({
                     ))}
                   </Group>
                 )}
-                {has("coordinates") && airports.length > 0 && (
-                  <div className="grid gap-2">
-                    <label className="grid gap-1.5">
-                      <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                        {t("nearAirport")}
-                      </span>
-                      <select
-                        name="nearap"
-                        defaultValue={filters.near_airport ?? ""}
-                        className={cn(SELECT_CLASS, "h-9")}
-                      >
-                        <option value="">{t("any")}</option>
-                        {airports.map((code) => (
-                          <option key={code} value={code}>
-                            {code}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                {has("coordinates") && (
+                  <div className="grid gap-3">
+                    {city && (
+                      <NearPlace
+                        key={filters.near ? `${filters.near.lat},${filters.near.lon}` : "none"}
+                        city={city}
+                        near={filters.near}
+                        name={nearName}
+                        autoApply={!sheet}
+                      />
+                    )}
+                    {airports.length > 0 && (
+                      <label className="grid gap-1.5">
+                        <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                          {t("nearAirport")}
+                        </span>
+                        <select
+                          name="nearap"
+                          defaultValue={filters.near_airport ?? ""}
+                          className={cn(SELECT_CLASS, "h-9")}
+                        >
+                          <option value="">{t("any")}</option>
+                          {airports.map((code) => (
+                            <option key={code} value={code}>
+                              {code}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                     <OptionSelect
                       label={t("radius")}
                       name="radius"
@@ -273,13 +290,6 @@ export function StayFilters({
                       format={(km) => t("upToKm", { km })}
                     />
                   </div>
-                )}
-                {filters.near && (
-                  <input
-                    type="hidden"
-                    name="near"
-                    value={`${filters.near.lat},${filters.near.lon}`}
-                  />
                 )}
               </div>
             </details>

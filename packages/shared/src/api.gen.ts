@@ -193,6 +193,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/places/geocode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Geocode
+         * @description Адреса чи визначна точка в місті пошуку житла (ADR 0049) — OpenStreetMap Nominatim.
+         *
+         *     Лише за натисканням «Знайти» (без автодоповнення), кеш 30 днів; текст запиту не логуємо.
+         *     Збій джерела — `error` і порожній список: пошук житла від цього не ламається.
+         */
+        get: operations["geocode_places_geocode_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/stays/search": {
         parameters: {
             query?: never;
@@ -3111,12 +3134,35 @@ export interface components {
             };
             coverage?: components["schemas"]["SearchCoverage"] | null;
         };
+        /** GeoPlace */
+        GeoPlace: {
+            /** Name */
+            name: string;
+            /** Label */
+            label: string;
+            /** Lat */
+            lat: number;
+            /** Lon */
+            lon: number;
+            /** Category */
+            category?: string | null;
+        };
         /** GeoPoint */
         GeoPoint: {
             /** Lat */
             lat: number;
             /** Lon */
             lon: number;
+        };
+        /** GeocodeResult */
+        GeocodeResult: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "error";
+            /** Places */
+            places: components["schemas"]["GeoPlace"][];
         };
         /** GoogleCallbackBody */
         GoogleCallbackBody: {
@@ -5834,6 +5880,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": string[];
+                };
+            };
+        };
+    };
+    geocode_places_geocode_get: {
+        parameters: {
+            query: {
+                q: string;
+                city: string;
+                lang?: "uk" | "en";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeocodeResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

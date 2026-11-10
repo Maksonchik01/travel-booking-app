@@ -22,7 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  DEPARTURE_PERIODS,
   FLEX_OPTIONS,
+  MAX_STOPS_OPTIONS,
   MAX_NIGHTS,
   NEARBY_RADIUS_KM,
   PROFILES,
@@ -248,6 +250,8 @@ export function SearchForm({
           />
         </div>
       </div>
+
+      <FlightMoreOptions q={q} />
 
       {nightsMode && (
         <NightsFields
@@ -492,5 +496,78 @@ function NightsFields({
         />
       </Field>
     </fieldset>
+  );
+}
+
+/**
+ * «Більше налаштувань» (етап 5): пересадки, час вильоту, авіакомпанії — ті самі параметри URL,
+ * що й фільтри видачі (`stops`, `dep`, `al`): у запит до джерел не йдуть, нових запитів не роблять.
+ * Багаж і клас — у полі «Пасажири, клас і багаж». Розкрито, якщо щось уже задано.
+ */
+function FlightMoreOptions({ q }: { q: SearchState["query"] | undefined }) {
+  const t = useTranslations("search");
+  const tFilters = useTranslations("filters");
+  const f = q?.filters;
+  const open = Boolean(f?.max_stops != null || f?.departure_periods?.length || f?.airlines?.length);
+  const chip =
+    "has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary has-[:focus-visible]:ring-ring/40 cursor-pointer rounded-full border px-3 py-1 text-xs font-medium has-[:focus-visible]:ring-3";
+  return (
+    <details
+      className="grid gap-3 rounded-lg border px-3 py-2"
+      open={open}
+      data-testid="flight-more"
+    >
+      <summary className="text-muted-foreground hover:text-primary cursor-pointer text-sm font-medium select-none">
+        {t("more")}
+      </summary>
+      <div className="grid gap-4 pt-3 pb-1 sm:grid-cols-[12rem_minmax(0,1fr)_14rem]">
+        <Field label={tFilters("stops")} htmlFor="more-stops">
+          <select
+            id="more-stops"
+            name="stops"
+            defaultValue={f?.max_stops ?? ""}
+            className={SELECT_CLASS}
+          >
+            <option value="">{tFilters("anyStops")}</option>
+            {MAX_STOPS_OPTIONS.map((n) => (
+              <option key={n} value={n}>
+                {tFilters("maxStops", { count: n })}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <fieldset className="grid gap-1.5">
+          <legend className="text-muted-foreground mb-1.5 text-xs font-medium">
+            {tFilters("departure")}
+          </legend>
+          <div className="flex flex-wrap gap-2">
+            {DEPARTURE_PERIODS.map((period) => (
+              <label key={period} className={chip}>
+                <input
+                  type="checkbox"
+                  name="dep"
+                  value={period}
+                  defaultChecked={f?.departure_periods?.includes(period) ?? false}
+                  className="sr-only"
+                />
+                {tFilters(`period.${period}`)}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <Field label={t("airlinesCodes")} htmlFor="more-al">
+          <Input
+            id="more-al"
+            name="al"
+            defaultValue={(f?.airlines ?? []).join(",")}
+            placeholder="LO, LH"
+            pattern="[A-Za-z0-9]{2}(\s*,\s*[A-Za-z0-9]{2})*"
+            title={t("airlinesHint")}
+            className={FIELD_CLASS}
+          />
+        </Field>
+        <p className="text-muted-foreground text-[11px] sm:col-span-3">{t("moreHint")}</p>
+      </div>
+    </details>
   );
 }

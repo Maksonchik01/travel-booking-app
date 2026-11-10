@@ -1,5 +1,6 @@
 import type { Offer, OfferScore, Stay, StayScore } from "@tickets/shared";
 
+import { distanceKm } from "@/lib/geo";
 import type { SortKey } from "@/lib/search-params";
 import type { StaySortKey } from "@/lib/stay-params";
 
@@ -37,7 +38,17 @@ export function sortStays(
   stays: Stay[],
   sort: StaySortKey,
   scores: Map<string, StayScore>,
+  near?: { lat: number; lon: number } | null,
 ): Stay[] {
+  if (sort === "near") {
+    // Ближче до обраного місця (етап 5); без координат — у кінці, без місця — як за ціною.
+    if (!near) return stays;
+    const km = (s: Stay) =>
+      s.latitude != null && s.longitude != null
+        ? distanceKm(near, { lat: s.latitude, lon: s.longitude })
+        : Number.POSITIVE_INFINITY;
+    return [...stays].sort((a, b) => km(a) - km(b) || a.price_per_night - b.price_per_night);
+  }
   if (sort === "price") return stays;
   const score = (s: Stay) => scores.get(`${s.source}:${s.id}`);
   if (sort === "score") {

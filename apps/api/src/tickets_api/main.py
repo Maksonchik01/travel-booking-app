@@ -34,6 +34,7 @@ from tickets_api.llm.pricing import default_pricing, load_pricing
 from tickets_api.notifications.factory import build_mailer
 from tickets_api.providers.base import FlightProvider
 from tickets_api.providers.fx import EcbRates
+from tickets_api.providers.geocoder import NominatimGeocoder
 from tickets_api.providers.registry import build_providers, build_stay_providers
 from tickets_api.reference.airlines import default_airline_names
 from tickets_api.reference.airports import default_airport_directory
@@ -112,6 +113,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             rate=app.state.flight_search.rate,
         )
         app.state.trip_planner = TripPlanner(app.state.flight_search, app.state.stay_search)
+        app.state.geocoder = NominatimGeocoder(
+            app.state.http,
+            app.state.redis,
+            user_agent=settings.geocoder_user_agent,
+            base_url=settings.geocoder_base_url,
+        )
         app.state.explore = ExploreService(
             app.state.flight_search,
             app.state.stay_search,

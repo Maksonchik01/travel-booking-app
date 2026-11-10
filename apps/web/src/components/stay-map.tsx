@@ -40,8 +40,11 @@ export function StayMap({
   withoutCoordinates,
   baseParams,
   listHref,
+  point,
 }: {
   stays: MapStay[];
+  /** Обране місце (етап 5): окремий маркер, у межах карти разом з об'єктами. */
+  point?: { lat: number; lon: number; name: string } | null;
   /** Скільки об'єктів видачі без координат — їх на карті немає. */
   withoutCoordinates: number;
   /** Поточний пошук без `bbox` (рядок URL) — для «Шукати в цій області». */
@@ -83,10 +86,33 @@ export function StayMap({
         });
         instance.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
         map.current = instance;
-        if (stays.length > 1) {
+        if (stays.length > 1 || point) {
           const bounds = new maplibregl.LngLatBounds();
           for (const s of stays) bounds.extend([s.lon, s.lat]);
+          if (point) bounds.extend([point.lon, point.lat]);
           instance.fitBounds(bounds, { padding: 48, maxZoom: 15, duration: 0 });
+        }
+        if (point) {
+          const pin = document.createElement("div");
+          pin.setAttribute("role", "img");
+          pin.setAttribute("aria-label", t("point", { name: point.name }));
+          pin.dataset.testid = "stay-map-point";
+          Object.assign(pin.style, {
+            width: "18px",
+            height: "18px",
+            borderRadius: "9999px",
+            background: "var(--destructive, #dc2626)",
+            border: "3px solid white",
+            boxShadow: "0 1px 4px rgb(0 0 0 / 0.4)",
+            zIndex: "3",
+          });
+          pin.title = point.name;
+          created.set(
+            "__point",
+            new maplibregl.Marker({ element: pin })
+              .setLngLat([point.lon, point.lat])
+              .addTo(instance),
+          );
         }
         for (const s of stays) {
           const el = document.createElement("button");
@@ -130,7 +156,7 @@ export function StayMap({
   // Підсвітка вибраного маркера.
   useEffect(() => {
     for (const [key, marker] of markers.current) {
-      markerStyle(marker.getElement(), key === selected);
+      if (key !== "__point") markerStyle(marker.getElement(), key === selected);
     }
   }, [selected]);
 

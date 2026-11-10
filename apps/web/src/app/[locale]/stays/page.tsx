@@ -226,7 +226,10 @@ async function Results({ searchParams }: { searchParams: Params }) {
   );
   const now = new Date();
   const scores = new Map<string, StayScore>(scoring.scores.map((s) => [s.stay_key, s]));
-  const stays = sortStays(result.data.stays, state.sort, scores);
+  const near = query.filters?.near ?? null;
+  // Обране місце (етап 5): відстань у картках і «Ближче до місця».
+  const nearPlace = near ? { ...near, name: state.nearName ?? t("chosenPoint") } : null;
+  const stays = sortStays(result.data.stays, state.sort, scores, near);
   const pickLabels = new Map<string, StayPickLabel>(
     scoring.picks.map((p) => [p.stay_key, p.label]),
   );
@@ -308,6 +311,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
                   query={query}
                   searchParams={historyParams}
                   detailHref={stayHotelHref(historyParams, stay)}
+                  nearPlace={nearPlace}
                 />
               ),
             };
@@ -374,6 +378,8 @@ async function Results({ searchParams }: { searchParams: Params }) {
             baseParams={[...withoutFilters]}
             airports={result.data.place?.airports ?? []}
             currency={query.currency ?? "EUR"}
+            city={query.city}
+            nearName={state.nearName}
           />
         )}
 
@@ -402,6 +408,7 @@ async function Results({ searchParams }: { searchParams: Params }) {
                   withoutCoordinates={stays.length - mapStays.length}
                   baseParams={mapBase}
                   listHref={listHref}
+                  point={nearPlace}
                 />
               </div>
             </div>
@@ -455,12 +462,15 @@ function SortToggle({ state }: { state: StayState }) {
     price: t("sortPrice"),
     rating: t("sortRating"),
     score: t("sortScore"),
+    near: t("sortNear"),
   };
+  // «Ближче до місця» — лише коли місце обрано (етап 5).
+  const keys = STAY_SORT_KEYS.filter((key) => key !== "near" || state.query.filters?.near);
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className="text-muted-foreground hidden sm:inline">{tShared("sortBy")}</span>
       <div className="bg-muted inline-flex rounded-lg p-1">
-        {STAY_SORT_KEYS.map((key) => (
+        {keys.map((key) => (
           <Link
             key={key}
             href={`/stays?${toStayParams({ ...state, sort: key })}`}
