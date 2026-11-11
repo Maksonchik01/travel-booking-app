@@ -21,6 +21,7 @@ import {
 } from "@/components/trip-card";
 import { TripCompareToggle } from "@/components/trip-compare";
 import { AirportRoad } from "@/components/airport-road";
+import { FeatureHint } from "@/components/feature-hint";
 import { CityTime, TripBetter, TripRecommendations } from "@/components/trip-insights";
 import { TripCheaper } from "@/components/trip-cheaper";
 import { TripUndo } from "@/components/trip-history";
@@ -185,6 +186,7 @@ export function TripBuilder({
         </div>
       </div>
 
+      <FeatureHint id="yourTrip" />
       <TripRecommendations data={data} query={query} saved={saved} />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">

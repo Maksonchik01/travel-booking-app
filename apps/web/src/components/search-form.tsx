@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { DatePresets } from "@/components/date-presets";
+import { FeatureHint } from "@/components/feature-hint";
 import { ExtraPlaces } from "@/components/extra-places";
 import { ParamsToggle } from "@/components/params-toggle";
 import { PassengerPicker } from "@/components/passenger-picker";
@@ -175,6 +176,7 @@ export function SearchForm({
         </Field>
       </div>
 
+      <FeatureHint id="flightForm" />
       <DatePresets onPick={applyPreset} />
 
       <div className="grid gap-3 sm:grid-cols-4">

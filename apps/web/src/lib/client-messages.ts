@@ -21,6 +21,7 @@ export const CLIENT_NAMESPACES = [
   "filters",
   "freshness",
   "guestImport",
+  "hints",
   "modes",
   "nav",
   "nearPlace",

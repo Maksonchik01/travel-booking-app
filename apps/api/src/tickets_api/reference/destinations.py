@@ -59,6 +59,30 @@ class DestinationDirectory:
         return self._regions.get(country.upper())
 
 
+COVER_CITIES: dict[ExploreCategory, tuple[str, ...]] = {
+    "city": ("PRG", "PAR", "LIS"),
+    "sea": ("MLA", "TCI", "NCE"),
+    "mountains": ("INN", "BGO", "LJU"),
+    "romance": ("VCE", "PAR", "SVQ"),
+    "culture": ("ROM", "FLR", "ATH"),
+    "nightlife": ("BER", "BUD", "IBZ"),
+}
+"""Обкладинка категорії на головній: перше місто зі списку, що має фото в довіднику."""
+
+
+def category_covers(
+    directory: DestinationDirectory,
+) -> list[tuple[ExploreCategory, str, DestinationPhoto]]:
+    covers = []
+    for category, cities in COVER_CITIES.items():
+        for code in cities:
+            info = directory.info(code)
+            if info is not None and info.photo is not None and category in info.categories:
+                covers.append((category, code, info.photo))
+                break
+    return covers
+
+
 @cache
 def default_destination_directory() -> DestinationDirectory:
     return DestinationDirectory.from_file()

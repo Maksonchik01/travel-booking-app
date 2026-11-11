@@ -34,6 +34,7 @@ import { flightFavorite } from "@/lib/favorites";
 import { DateOptions } from "@/components/date-options";
 import { PriceHistoryChart } from "@/components/price-history-chart";
 import { FlightDateHint } from "@/components/flight-hint";
+import { TravelIdeas } from "@/components/travel-ideas";
 import { cheaperDateHint } from "@/lib/flight-hints";
 import { PriceCalendar } from "@/components/price-calendar";
 import { PriceMatrix } from "@/components/price-matrix";
@@ -696,6 +697,10 @@ function EmptyState() {
   return (
     <div className="grid gap-10 py-4">
       <RecentSearches />
+      {/* Ідеї з Explore (етап 9): категорії й добірки з цінами з домашнього аеропорту. */}
+      <Suspense fallback={<div className="shimmer h-56 rounded-xl" aria-hidden />}>
+        <TravelIdeas />
+      </Suspense>
       <div className="grid justify-items-center gap-3 text-center">
         <p className="text-muted-foreground">{t("emptyHint")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2 text-sm">

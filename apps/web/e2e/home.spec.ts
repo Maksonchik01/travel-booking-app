@@ -347,6 +347,37 @@ test("етап 8: помічник шукає напрямки — картки 
   await expect(page.getByTestId("explore-card").first()).toBeVisible();
 });
 
+test("етап 9: головна з ідеями, підказка один раз, повернення до розкритого списку", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const ideas = page.getByTestId("travel-ideas");
+  await expect(ideas.getByTestId("idea-category")).toHaveCount(6);
+  await ideas.getByTestId("idea-category").nth(1).click();
+  await expect(page).toHaveURL(/\/explore\?cat=sea/);
+
+  // Підказка до нового — закрили, і після перезавантаження її немає.
+  await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&draft=1");
+  const hint = page.getByTestId("hint-flightForm");
+  await expect(hint).toBeVisible();
+  await hint.getByRole("button").click();
+  await page.reload();
+  await page.locator('input[type="hidden"][name="from"]').waitFor({ state: "attached" });
+  await expect(page.getByTestId("hint-flightForm")).toHaveCount(0);
+
+  // «Показати ще» → сторінка об'єкта → «Назад»: розкрите лишається.
+  await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  const visible = page.locator('[data-testid="stay-card"]:visible');
+  const before = await visible.count();
+  await page.getByRole("button", { name: /Показати ще/ }).click();
+  await expect(visible).not.toHaveCount(before);
+  const expanded = await visible.count();
+  await visible.last().getByTestId("stay-open").click();
+  await expect(page).toHaveURL(/\/stays\/hotel/);
+  await page.goBack();
+  await expect(visible).toHaveCount(expanded);
+});
+
 test("Explore: «Будь-куди» з рейсів → напрямки, порівняння, житло → поїздка", async ({ page }) => {
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08&adults=2");
   // Над результатами форма згорнута — Explore з перемикача режимів (те саме, що «Будь-куди» у формі).

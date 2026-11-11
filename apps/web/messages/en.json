@@ -2184,5 +2184,23 @@
     "searchesHint": "Saved in this browser without signing in. After you sign in, we'll offer to move them to your account.",
     "removeSearch": "Delete “{title}”",
     "close": "Close"
+  },
+  "ideas": {
+    "title": "Trip ideas",
+    "allExplore": "All destinations",
+    "more": "More",
+    "collection": {
+      "weekends": "Weekends next month from {from}",
+      "cheap": "Under {budget} € round trip from {from}"
+    },
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "from": "from {price}",
+    "homeHint": "Set your home airport in your account — collections with prices from your city will appear here."
+  },
+  "hints": {
+    "flightForm": "New: several airports (“Another airport”), quick dates (weekends, 3–4 or 5–7 days) and “Anywhere” — destinations on your budget.",
+    "yourTrip": "New: “Worth a look” and “Better option within budget” show how other options found are better — with concrete differences.",
+    "explore": "Tip: categories switch on in one click without a new search; “Flights + stay” adds up the total for the three cheapest cities.",
+    "dismiss": "Got it, hide"
   }
 }

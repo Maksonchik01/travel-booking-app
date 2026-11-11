@@ -506,6 +506,32 @@
         }
       }
     },
+    "/explore/categories": {
+      "get": {
+        "tags": [
+          "explore"
+        ],
+        "summary": "Categories",
+        "description": "Категорії подорожей з обкладинками (етап 9) — для головної; з довідника, без запитів.",
+        "operationId": "categories_explore_categories_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryCover"
+                  },
+                  "type": "array",
+                  "title": "Response Categories Explore Categories Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/places": {
       "get": {
         "tags": [
@@ -6537,6 +6563,36 @@
           "providers"
         ],
         "title": "CalendarResult"
+      },
+      "CategoryCover": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "city",
+              "sea",
+              "mountains",
+              "romance",
+              "culture",
+              "nightlife"
+            ],
+            "title": "Category"
+          },
+          "city": {
+            "type": "string",
+            "title": "City"
+          },
+          "photo": {
+            "$ref": "#/components/schemas/DestinationPhoto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category",
+          "city",
+          "photo"
+        ],
+        "title": "CategoryCover"
       },
       "ChannelStatus": {
         "properties": {

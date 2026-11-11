@@ -7,6 +7,7 @@ import type {
   AlertView,
   ChannelStatus,
   CalendarResult,
+  CategoryCover,
   ClickIn,
   ChatBody,
   ChatReply,
@@ -114,6 +115,12 @@ export function searchExplore(query: ExploreQuery): Promise<ApiResult<ExploreRes
     },
     SEARCH_TIMEOUT_MS,
   );
+}
+
+/** Обкладинки категорій для головної (етап 9) — з довідника, без звернень до джерел. */
+export async function fetchCategoryCovers(): Promise<CategoryCover[]> {
+  const result = await request<CategoryCover[]>("/explore/categories");
+  return result.ok ? result.data : [];
 }
 
 export function fetchCalendar(

@@ -13,6 +13,7 @@ import { ExploreCard } from "@/components/explore-card";
 import { ExploreCompareBar, ExploreCompareProvider } from "@/components/explore-compare";
 import { ExploreForm } from "@/components/explore-form";
 import { FavoritesProvider } from "@/components/favorites";
+import { FeatureHint } from "@/components/feature-hint";
 import { SaveSearch } from "@/components/save-search";
 import { ExploreMapLazy } from "@/components/explore-map-lazy";
 import type { MapDestination } from "@/components/explore-map";
@@ -336,6 +337,7 @@ function ResultsView({
         </div>
       </div>
 
+      <FeatureHint id="explore" />
       <CategoryChips query={query} view={view} />
       <ProviderAlerts providers={data.providers} />
       {query.mode === "trip" && data.stays_checked > 0 && (

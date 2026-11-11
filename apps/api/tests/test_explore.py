@@ -13,10 +13,12 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from flight_fakes import FakeRedis
 from httpx import AsyncClient
 from pydantic import ValidationError
 from tickets_api.domain.explore import ExploreQuery
 from tickets_api.domain.flights import Passengers
+from tickets_api.providers.cached import CachedFlightProvider
 from tickets_api.providers.mock_stays import MockStayProvider
 from tickets_api.providers.travelpayouts import PRICES_FOR_DATES, TravelpayoutsFlightProvider
 from tickets_api.reference.airports import default_airport_directory
@@ -298,3 +300,37 @@ async def test_explore_api_with_mock_source(client: AsyncClient) -> None:
     assert first["photo"]["url"].startswith("https://upload.wikimedia.org/")
     assert "city" in first["categories"]
     assert first["city_name"].isascii()
+
+
+async def test_category_covers_for_home(client: AsyncClient) -> None:
+    response = await client.get("/explore/categories")
+
+    covers = response.json()
+    assert [c["category"] for c in covers] == [
+        "city",
+        "sea",
+        "mountains",
+        "romance",
+        "culture",
+        "nightlife",
+    ]
+    assert all(c["photo"]["url"].startswith("https://upload.wikimedia.org/") for c in covers)
+
+
+@respx.mock
+async def test_repeated_explore_is_served_from_cache(http: httpx.AsyncClient) -> None:
+    """Продуктивність (етап 9): той самий пошук напрямків удруге — без запитів до джерела."""
+    route = mock_tp()
+    tp = CachedFlightProvider(
+        TravelpayoutsFlightProvider(http, "secret-token", base_url=BASE),
+        FakeRedis(),  # type: ignore[arg-type]
+        1800,
+    )
+
+    first = await tp.explore("AMS", "2026-12", None, "EUR", direct=False)
+    calls = route.call_count
+    second = await tp.explore("AMS", "2026-12", None, "EUR", direct=False)
+
+    assert calls == 2  # unique=true і unique=false
+    assert route.call_count == calls
+    assert first == second

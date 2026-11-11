@@ -182,3 +182,4 @@ export type ChecklistItem = Schemas["ChecklistItem"];
 export type ChecklistKey = NonNullable<ChecklistItem["key"]>;
 export type FavoriteDestination = Schemas["FavoriteDestination-Output"];
 export type FavoriteDestinationInput = Schemas["FavoriteDestination-Input"];
+export type CategoryCover = Schemas["CategoryCover"];

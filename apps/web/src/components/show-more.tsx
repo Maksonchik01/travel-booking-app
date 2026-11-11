@@ -6,6 +6,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 import { Button } from "@/components/ui/button";
+import { cameBack, readListPosition, saveListPosition } from "@/lib/list-position";
 import { useHydrated } from "@/lib/use-hydrated";
 
 const PAGE = 10;
@@ -32,6 +33,41 @@ export function ShowMore({
   // Без JS кнопка не працює — до гідратації показуємо все.
   const limit = hydrated ? pageLimit : Number.POSITIVE_INFINITY;
   const list = useRef<HTMLOListElement>(null);
+  const restored = useRef(false);
+
+  // Повернення «Назад» з деталей (етап 9): та сама кількість розкритих карток і прокрутка.
+  useEffect(() => {
+    const key = `${window.location.pathname}${window.location.search}`;
+    const saved = readListPosition(key);
+    if (saved && saved.limit > page) {
+      // Стан зі сховища вкладки — лише після гідратації (на сервері його немає).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLimit(saved.limit);
+    }
+    if (saved && cameBack()) {
+      requestAnimationFrame(() => window.scrollTo({ top: saved.y }));
+    }
+    restored.current = true;
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const current = readListPosition(key);
+        saveListPosition(key, { limit: current?.limit ?? page, y: window.scrollY });
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [page]);
+
+  useEffect(() => {
+    if (!restored.current || !Number.isFinite(pageLimit)) return;
+    const key = `${window.location.pathname}${window.location.search}`;
+    saveListPosition(key, { limit: pageLimit, y: window.scrollY });
+  }, [pageLimit]);
 
   useEffect(() => {
     function onClick(event: MouseEvent) {

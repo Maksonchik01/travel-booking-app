@@ -354,6 +354,9 @@ make migrate        alembic upgrade head
   Sentry у браузері — ліниво (`lib/sentry-client.ts`, `reportError`); важке для одного режиму —
   через `next/dynamic` (`stay-map-lazy.tsx`); повторні серверні виклики в одному рендері —
   `cache()` (`fetchAIStatus`, `currentAccount`).
+- **Головна й підказки** ([ADR 0053](docs/adr/0053-home-ideas-hints-list-position.md)): ідеї Explore на головній
+  (`travel-ideas.tsx`, `GET /explore/categories`, добірки — лише з домашнім аеропортом), одноразові підказки до нового
+  (`feature-hint.tsx`), позиція списку після «Назад» (`lib/list-position.ts` у `ShowMore`).
 - **Ієрархія** ([ADR 0042](docs/adr/0042-ux-redesign.md)): головне — маршрут, ціна, головна дія; пояснення — `InfoHint`
   («Як оцінюємо?»), а не абзаци над результатами; другорядні блоки (інші дати, деталі ШІ) — згорнуті.
 - **Дизайн:** синя тема й ефекти — у `globals.css` (`.lift`, `.shimmer`, фокус для всіх
