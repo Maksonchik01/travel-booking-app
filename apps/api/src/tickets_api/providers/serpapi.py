@@ -39,6 +39,7 @@ from tickets_api.domain.flights import (
 )
 from tickets_api.domain.sellers import GOOGLE_BOOKING_URL, BookingLink, SellerOffer
 from tickets_api.providers.base import ProviderError, ProviderRateLimitedError
+from tickets_api.providers.budget import ApiMeter
 from tickets_api.providers.gate import ProviderGate, RetryPolicy
 from tickets_api.reference.airports import AirportDirectory
 
@@ -95,13 +96,14 @@ class SerpApiFlightProvider:
         base_url: str = DEFAULT_BASE_URL,
         clock: Clock | None = None,
         gate: ProviderGate | None = None,
+        meter: ApiMeter | None = None,
     ) -> None:
         self._client = client
         self._api_key = api_key
         # Кожен запит — квота (250/міс): тайм-аут не повторюємо (невідомо, чи його врахували),
         # лише обрив з'єднання й 502–504, один раз.
         self._gate = gate or ProviderGate(
-            self.name, max_concurrency=SERPAPI_MAX_CONCURRENCY, retry=SERPAPI_RETRY
+            self.name, max_concurrency=SERPAPI_MAX_CONCURRENCY, retry=SERPAPI_RETRY, meter=meter
         )
         self._airports = airports
         self._max_requests = max_requests_per_search
@@ -260,7 +262,8 @@ class SerpApiFlightProvider:
                     f"{self._base_url}{SEARCH_PATH}",
                     params={"engine": "google_flights", **params, "api_key": self._api_key},
                     timeout=self._request_timeout_s,
-                )
+                ),
+                operation="sellers" if "booking_token" in params else "flights",
             )
         except httpx.TimeoutException as exc:
             raise ProviderError(self.name, "timeout") from exc

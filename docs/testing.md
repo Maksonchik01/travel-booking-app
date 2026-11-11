@@ -229,3 +229,15 @@
 ## Доступність і мобільна версія
 
 `e2e/a11y.spec.ts` (axe, WCAG 2.1 AA, світла й темна теми, телефон, клавіатура), `e2e/mobile.spec.ts` (немає горизонтального прокручування на 390 px).
+
+## Бюджет платних API (ADR 0055)
+
+| Сценарій | Тест |
+|---|---|
+| Ліміт тримається під одночасними запитами (30 → рівно 10) | API `test_api_budget::test_limits_hold_under_concurrent_requests` (Redis) |
+| Неуспішний запит повертає резерв; 5xx не витрачає квоту | `test_failed_request_returns_the_reservation`, `test_budget_blocks_the_provider_without_an_http_call` |
+| Необов'язкові операції зупиняються раніше за пошук | `test_optional_operations_stop_before_essential` |
+| Вичерпаний бюджет — без HTTP-запиту, джерело `rate_limited`, інші працюють | `test_budget_blocks_the_provider_without_an_http_call`, `test_flight_search_service` (stub `budget`) |
+| Звіт: використання, вартість, собівартість успішного пошуку; попередження один раз | `test_spend_summary_and_cost_per_successful_search`, `test_warning_is_logged_once_per_period` |
+| Redis недоступний — запит пропускаємо; секція звіту падає окремо | `test_redis_down_lets_requests_through`, `test_ops` |
+

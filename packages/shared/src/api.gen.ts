@@ -1584,7 +1584,9 @@ export interface paths {
         };
         /**
          * Ops Summary
-         * @description Зведення для власника. Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.
+         * @description Зведення для власника (з бюджетом і витратами платних API, ADR 0055).
+         *
+         *     Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.
          *
          *     Без INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.
          */
@@ -1772,6 +1774,28 @@ export interface components {
             last_notified_at: string | null;
             /** Manage Token */
             manage_token: string;
+        };
+        /**
+         * AccountSpend
+         * @description Платний рахунок (ADR 0055): використання й ліміти SkyPack у його одиницях.
+         */
+        AccountSpend: {
+            /** Used */
+            used: {
+                [key: string]: number;
+            };
+            /** Limits */
+            limits: {
+                [key: string]: number | null;
+            };
+            /** Units Per Request */
+            units_per_request: number;
+            /** Cost Usd Today */
+            cost_usd_today: string;
+            /** Cost Usd Month */
+            cost_usd_month: string;
+            /** Near Limit */
+            near_limit: boolean;
         };
         /** Activity */
         Activity: {
@@ -2075,6 +2099,27 @@ export interface components {
             last_notified_price: number | null;
             /** Last Notified At */
             last_notified_at: string | null;
+        };
+        /** ApiSpend */
+        ApiSpend: {
+            /** Accounts */
+            accounts: {
+                [key: string]: components["schemas"]["AccountSpend"];
+            };
+            /** Operations 7D */
+            operations_7d: {
+                [key: string]: components["schemas"]["OperationStats"];
+            };
+            /** Searches 7D */
+            searches_7d: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
+            /** Cost Usd 7D */
+            cost_usd_7d: string;
+            /** Cost Per Successful Search Usd 7D */
+            cost_per_successful_search_usd_7d: string | null;
         };
         /** AuthStatus */
         AuthStatus: {
@@ -3838,6 +3883,19 @@ export interface components {
              */
             reasons: components["schemas"]["Reason"][];
         };
+        /** OperationStats */
+        OperationStats: {
+            /** Requests */
+            requests: number;
+            /** Ok */
+            ok: number;
+            /** Errors */
+            errors: number;
+            /** Blocked */
+            blocked: number;
+            /** Avg Ms */
+            avg_ms: number | null;
+        };
         /** OpsSummary */
         OpsSummary: {
             /**
@@ -3851,6 +3909,7 @@ export interface components {
             activity: components["schemas"]["Activity"] | null;
             usage?: components["schemas"]["Usage"] | null;
             coverage?: components["schemas"]["SearchCoverageSummary"] | null;
+            api_spend?: components["schemas"]["ApiSpend"] | null;
             /** Problems */
             problems: string[];
         };
@@ -4434,6 +4493,11 @@ export interface components {
             source: string;
             /** Booking Ref */
             booking_ref: string;
+            /**
+             * Auto
+             * @default false
+             */
+            auto: boolean;
         };
         /** SellersResult */
         SellersResult: {

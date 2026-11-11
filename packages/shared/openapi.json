@@ -4813,7 +4813,7 @@
           "ops"
         ],
         "summary": "Ops Summary",
-        "description": "Зведення для власника. Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.\n\nБез INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.",
+        "description": "Зведення для власника (з бюджетом і витратами платних API, ADR 0055).\n\nДоступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.\n\nБез INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.",
         "operationId": "ops_summary_ops_summary_get",
         "parameters": [
           {
@@ -5363,6 +5363,72 @@
           "manage_token"
         ],
         "title": "AccountAlert"
+      },
+      "AccountSpend": {
+        "properties": {
+          "used": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "hour",
+                "day",
+                "month"
+              ]
+            },
+            "type": "object",
+            "title": "Used"
+          },
+          "limits": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "propertyNames": {
+              "enum": [
+                "hour",
+                "day",
+                "month"
+              ]
+            },
+            "type": "object",
+            "title": "Limits"
+          },
+          "units_per_request": {
+            "type": "integer",
+            "title": "Units Per Request"
+          },
+          "cost_usd_today": {
+            "type": "string",
+            "title": "Cost Usd Today"
+          },
+          "cost_usd_month": {
+            "type": "string",
+            "title": "Cost Usd Month"
+          },
+          "near_limit": {
+            "type": "boolean",
+            "title": "Near Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "used",
+          "limits",
+          "units_per_request",
+          "cost_usd_today",
+          "cost_usd_month",
+          "near_limit"
+        ],
+        "title": "AccountSpend",
+        "description": "Платний рахунок (ADR 0055): використання й ліміти SkyPack у його одиницях."
       },
       "Activity": {
         "properties": {
@@ -6212,6 +6278,58 @@
         ],
         "title": "AlertView",
         "description": "Що бачить власник підписки на сторінці керування (без контактних даних)."
+      },
+      "ApiSpend": {
+        "properties": {
+          "accounts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AccountSpend"
+            },
+            "type": "object",
+            "title": "Accounts"
+          },
+          "operations_7d": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/OperationStats"
+            },
+            "type": "object",
+            "title": "Operations 7D"
+          },
+          "searches_7d": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Searches 7D"
+          },
+          "cost_usd_7d": {
+            "type": "string",
+            "title": "Cost Usd 7D"
+          },
+          "cost_per_successful_search_usd_7d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Per Successful Search Usd 7D"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accounts",
+          "operations_7d",
+          "searches_7d",
+          "cost_usd_7d",
+          "cost_per_successful_search_usd_7d"
+        ],
+        "title": "ApiSpend"
       },
       "AuthStatus": {
         "properties": {
@@ -11271,6 +11389,46 @@
         ],
         "title": "OfferScore"
       },
+      "OperationStats": {
+        "properties": {
+          "requests": {
+            "type": "integer",
+            "title": "Requests"
+          },
+          "ok": {
+            "type": "integer",
+            "title": "Ok"
+          },
+          "errors": {
+            "type": "integer",
+            "title": "Errors"
+          },
+          "blocked": {
+            "type": "integer",
+            "title": "Blocked"
+          },
+          "avg_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "requests",
+          "ok",
+          "errors",
+          "blocked",
+          "avg_ms"
+        ],
+        "title": "OperationStats"
+      },
       "OpsSummary": {
         "properties": {
           "generated_at": {
@@ -11332,6 +11490,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/SearchCoverageSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "api_spend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApiSpend"
               },
               {
                 "type": "null"
@@ -12971,6 +13139,11 @@
             "maxLength": 4096,
             "minLength": 1,
             "title": "Booking Ref"
+          },
+          "auto": {
+            "type": "boolean",
+            "title": "Auto",
+            "default": false
           }
         },
         "additionalProperties": false,

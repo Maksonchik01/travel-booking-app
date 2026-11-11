@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from datetime import UTC, date, datetime
 from typing import Annotated
 
@@ -5,9 +6,11 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.exc import SQLAlchemyError
 
+from tickets_api.api.deps import note_search
 from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.flights import DEFAULT_CURRENCY, Cabin, FlightQuery, Passengers
 from tickets_api.domain.sellers import SellersRequest, SellersResult
+from tickets_api.providers.budget import optional_spend
 from tickets_api.repositories.price_series import PriceSeries, flight_series
 from tickets_api.services.flight_search import (
     CalendarResult,
@@ -36,7 +39,9 @@ async def search_flights(query: FlightQuery, request: Request) -> FlightSearchRe
 
     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
     """
-    return await _service(request).search(query)
+    result = await _service(request).search(query)
+    await note_search(request, "flights", ok=bool(result.offers))
+    return result
 
 
 @router.get("/calendar", response_model=CalendarResult)
@@ -94,7 +99,9 @@ async def flight_sellers(body: SellersRequest, request: Request) -> SellersResul
 
     Це й перевірка перед переходом: якщо ціна змінилась, UI показує нову.
     """
-    return await _service(request).sellers(body)
+    # Автоматична перевірка для першої картки — необов'язкова: зупиняється раніше за пошук.
+    with optional_spend() if body.auto else nullcontext():
+        return await _service(request).sellers(body)
 
 
 log = structlog.get_logger(__name__)

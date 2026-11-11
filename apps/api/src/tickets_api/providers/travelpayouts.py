@@ -44,6 +44,7 @@ from tickets_api.providers.base import (
     ProviderRateLimitedError,
     ProviderUnsupportedError,
 )
+from tickets_api.providers.budget import ApiMeter
 from tickets_api.providers.gate import ProviderGate, RetryPolicy
 from tickets_api.reference.airports import AirportDirectory
 
@@ -75,12 +76,16 @@ class TravelpayoutsFlightProvider:
         base_url: str = DEFAULT_BASE_URL,
         clock: Clock | None = None,
         gate: ProviderGate | None = None,
+        meter: ApiMeter | None = None,
     ) -> None:
         self._client = client
         self._token = token
         # Кешований API без квоти на запит: повторюємо й тайм-аут, до 3 спроб.
         self._gate = gate or ProviderGate(
-            self.name, max_concurrency=TRAVELPAYOUTS_MAX_CONCURRENCY, retry=TRAVELPAYOUTS_RETRY
+            self.name,
+            max_concurrency=TRAVELPAYOUTS_MAX_CONCURRENCY,
+            retry=TRAVELPAYOUTS_RETRY,
+            meter=meter,
         )
         # API шукає по МІСТУ (WAW дає і Модлін); з довідником лишаємо лише обрані аеропорти.
         self._airports = airports
@@ -222,7 +227,8 @@ class TravelpayoutsFlightProvider:
                     f"{self._base_url}{path}",
                     params=params,
                     headers={"X-Access-Token": self._token, "Accept-Encoding": "gzip"},
-                )
+                ),
+                operation=path.rstrip("/").rsplit("/", 1)[-1],
             )
         except httpx.TimeoutException as exc:
             raise ProviderError(self.name, "timeout") from exc

@@ -7,6 +7,9 @@
   повтори різних запитів не били в API одночасно. 429 і 4xx не повторюємо: квота чи помилка
   запиту від повтору не зникнуть.
 
+- **Бюджет і облік** (`ApiMeter`, ADR 0055): резерв одиниць перед запитом, повернення резерву,
+  якщо джерело не відповіло успішно; лічильники запитів, помилок і часу за операцією.
+
 Загальний тайм-аут джерела (`FlightSearchService`, `asyncio.wait_for`) — над шлюзом: повтори
 вкладаються в нього або скасовуються разом із пошуком.
 """
@@ -18,6 +21,8 @@ from dataclasses import dataclass
 
 import httpx
 import structlog
+
+from tickets_api.providers.budget import ApiMeter
 
 log = structlog.get_logger(__name__)
 
@@ -48,16 +53,38 @@ class ProviderGate:
         retry: RetryPolicy | None = None,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
         jitter: Callable[[], float] = random.random,
+        meter: ApiMeter | None = None,
+        account: str | None = None,
     ) -> None:
         self.name = name
+        self.meter = meter
+        """Облік і бюджет; None — без обліку (тести, воркер)."""
+        self.account = account or name
+        """Рахунок бюджету: scrape.do перельоти й готелі ділять одні кредити."""
         self._semaphore = asyncio.Semaphore(max_concurrency)
         self._retry = retry or RetryPolicy()
         self._sleep = sleep
         self._jitter = jitter
 
-    async def send(self, call: Callable[[], Awaitable[httpx.Response]]) -> httpx.Response:
+    async def send(
+        self, call: Callable[[], Awaitable[httpx.Response]], *, operation: str = "request"
+    ) -> httpx.Response:
         """Виконати запит (`call` створює його заново на кожну спробу). Остання невдача —
-        як є: виняток httpx чи відповідь з кодом, які розбирає адаптер джерела."""
+        як є: виняток httpx чи відповідь з кодом, які розбирає адаптер джерела.
+
+        Бюджет вичерпано — `ProviderBudgetError` без запиту до джерела."""
+        if self.meter is None:
+            return await self._send(call)
+        ticket = await self.meter.reserve(self.account, operation)
+        ok = False
+        try:
+            response = await self._send(call)
+            ok = response.status_code == 200
+            return response
+        finally:
+            await self.meter.settle(ticket, ok=ok)
+
+    async def _send(self, call: Callable[[], Awaitable[httpx.Response]]) -> httpx.Response:
         attempts = self._retry.attempts
         for attempt in range(1, attempts + 1):
             async with self._semaphore:

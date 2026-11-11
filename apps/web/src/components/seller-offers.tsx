@@ -70,6 +70,8 @@ export function SellerOffers({
           query,
           source: checkable.source,
           booking_ref: checkable.booking_ref,
+          // Автоперевірка — необов'язкова витрата: бюджет зупиняє її раніше за пошук (ADR 0055).
+          auto,
         }),
       });
       result = (await response.json()) as SellersResult;

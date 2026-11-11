@@ -5,9 +5,11 @@ import structlog
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.exc import SQLAlchemyError
 
+from tickets_api.api.deps import note_search
 from tickets_api.core.rate_limit import rate_limit
 from tickets_api.domain.stay_rates import StayRatesRequest, StayRatesResult
 from tickets_api.domain.stays import StayQuery
+from tickets_api.providers.budget import optional_spend
 from tickets_api.repositories.price_series import PriceSeries, stay_series
 from tickets_api.services.stay_search import (
     StayDetailRequest,
@@ -32,14 +34,18 @@ async def search_stays(query: StayQuery, request: Request) -> StaySearchResult:
 
     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
     """
-    return await _service(request).search(query)
+    result = await _service(request).search(query)
+    await note_search(request, "stays", ok=bool(result.stays))
+    return result
 
 
 @router.post("/rates", response_model=StayRatesResult, dependencies=[Depends(rate_limit("search"))])
 async def stay_rates(body: StayRatesRequest, request: Request) -> StayRatesResult:
     """«Порівняти ціни»: тарифи продавців на ті самі дати й гостей, згруповані за однаковими
     умовами (номер, ліжко, харчування, скасування). Джерело не вміє — `unsupported`."""
-    return await _service(request).rates(body)
+    # Сторінка об'єкта вантажить тарифи сама — необов'язкова витрата (ADR 0055).
+    with optional_spend():
+        return await _service(request).rates(body)
 
 
 @router.post(

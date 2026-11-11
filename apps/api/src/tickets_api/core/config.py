@@ -1,4 +1,5 @@
 import unicodedata
+from decimal import Decimal
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal, Self
@@ -155,6 +156,24 @@ class Settings(BaseSettings):
     scrapedo_timeout_s: float = Field(default=30.0, gt=0)
     scrapedo_request_timeout_s: float = Field(default=20.0, gt=0)
     provider_timeout_s: float = 8.0
+    # Бюджет платних API (ADR 0055): ліміти SkyPack поверх квот джерел — спільні для всіх
+    # процесів (Redis). None — без ліміту. Тарифи (2026-11): SerpApi Free — 250 пошуків/міс,
+    # 50/год; scrape.do Free — 1000 кредитів/міс. Обидва списують лише успішні запити.
+    serpapi_budget_hourly: int | None = Field(default=40, ge=0)
+    serpapi_budget_daily: int | None = Field(default=25, ge=0)
+    serpapi_budget_monthly: int | None = Field(default=240, ge=0)
+    serpapi_cost_per_request_usd: Decimal = Decimal("0.025")
+    """Оцінка: тариф Starter ($25 за 1000 пошуків); на Free фактично $0."""
+    scrapedo_credits_per_request: int = Field(default=10, ge=1)
+    scrapedo_budget_hourly: int | None = Field(default=200, ge=0)
+    scrapedo_budget_daily: int | None = Field(default=150, ge=0)
+    scrapedo_budget_monthly: int | None = Field(default=950, ge=0)
+    """У кредитах scrape.do (запит до Google Flights / Hotels — `scrapedo_credits_per_request`)."""
+    scrapedo_cost_per_credit_usd: Decimal = Decimal("0.000116")
+    """Оцінка: тариф Hobby ($29 за 250 000 кредитів); на Free фактично $0."""
+    api_budget_optional_share: float = Field(default=0.8, gt=0, le=1)
+    """Необов'язкові дорогі операції зупиняються на цій частці ліміту (запас для пошуку)."""
+    api_budget_warn_share: float = Field(default=0.8, gt=0, le=1)
     geocoder_base_url: str = "https://nominatim.openstreetmap.org"
     """Пошук місця біля житла (ADR 0049): OpenStreetMap Nominatim, без ключа."""
     geocoder_user_agent: str = "SkyPack/1.0 (+https://github.com/Maksonchik01/travel-booking-app)"
@@ -217,6 +236,12 @@ class Settings(BaseSettings):
         "serpapi_key",
         "serpapi_market",
         "scrapedo_token",
+        "serpapi_budget_hourly",
+        "serpapi_budget_daily",
+        "serpapi_budget_monthly",
+        "scrapedo_budget_hourly",
+        "scrapedo_budget_daily",
+        "scrapedo_budget_monthly",
         mode="before",
     )
     @classmethod

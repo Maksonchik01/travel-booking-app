@@ -38,6 +38,8 @@ class SellersRequest(_StrictInput):
     """Той самий пошук, з якого пропозиція (джерелу потрібні маршрут і дати)."""
     source: str = Field(pattern=r"^[a-z0-9_]{1,32}$")
     booking_ref: str = Field(min_length=1, max_length=4096)
+    auto: bool = False
+    """Запущено саме (перша картка), а не кнопкою — необов'язкова витрата квоти (ADR 0055)."""
 
 
 class SellersResult(BaseModel):

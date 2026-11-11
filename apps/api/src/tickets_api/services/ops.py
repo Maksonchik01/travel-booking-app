@@ -25,6 +25,7 @@ from tickets_api.db.models import (
     PriceObservation,
     User,
 )
+from tickets_api.providers.budget import PERIODS, ApiMeter, Period
 from tickets_api.repositories.search_coverage import read_coverage
 
 log = structlog.get_logger(__name__)
@@ -92,6 +93,39 @@ class SearchCoverageSummary(BaseModel):
     sources: dict[str, SourceStats]
 
 
+class AccountSpend(BaseModel):
+    """Платний рахунок (ADR 0055): використання й ліміти SkyPack у його одиницях."""
+
+    used: dict[Period, int]
+    limits: dict[Period, int | None]
+    units_per_request: int
+    cost_usd_today: Decimal
+    cost_usd_month: Decimal
+    """Оцінка за ціною одиниці з конфігу (на безкоштовному тарифі фактично $0)."""
+    near_limit: bool
+    """Добове чи місячне використання — не менше за частку попередження."""
+
+
+class OperationStats(BaseModel):
+    requests: int
+    ok: int
+    errors: int
+    blocked: int
+    """Не зроблено: бюджет SkyPack вичерпано."""
+    avg_ms: int | None
+
+
+class ApiSpend(BaseModel):
+    accounts: dict[str, AccountSpend]
+    operations_7d: dict[str, OperationStats]
+    """`рахунок:операція` → запити за 7 днів (Travelpayouts теж — лише облік)."""
+    searches_7d: dict[str, dict[str, int]]
+    """вид пошуку → {ok, empty}."""
+    cost_usd_7d: Decimal
+    cost_per_successful_search_usd_7d: Decimal | None
+    """Оцінка всіх платних запитів за 7 днів / пошуків, що щось знайшли."""
+
+
 class OpsSummary(BaseModel):
     generated_at: datetime
     serpapi: SerpApiQuota | None
@@ -100,6 +134,7 @@ class OpsSummary(BaseModel):
     activity: Activity | None
     usage: Usage | None = None
     coverage: SearchCoverageSummary | None = None
+    api_spend: ApiSpend | None = None
     problems: list[str]
 
 
@@ -220,12 +255,65 @@ async def database_summary(
     )
 
 
+async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
+    totals = await meter.stats(7)
+    accounts: dict[str, AccountSpend] = {}
+    cost_7d = Decimal(0)
+    for name, budget in meter.budgets.items():
+        used = await meter.usage(name)
+        limits = {p: budget.limit(p) for p in PERIODS}
+        units_7d = sum(
+            v for k, v in totals.items() if k.startswith(f"{name}:") and k.endswith(":units")
+        )
+        cost_7d += units_7d * budget.unit_cost_usd
+        accounts[name] = AccountSpend(
+            used=used,
+            limits=limits,
+            units_per_request=budget.units_per_request,
+            cost_usd_today=used["day"] * budget.unit_cost_usd,
+            cost_usd_month=used["month"] * budget.unit_cost_usd,
+            near_limit=any(
+                (limit := limits[p]) is not None and limit > 0 and used[p] >= limit * warn_share
+                for p in ("day", "month")
+            ),
+        )
+    operations: dict[str, OperationStats] = {}
+    searches: dict[str, dict[str, int]] = {}
+    for key in {k.rsplit(":", 1)[0] for k in totals}:
+        account, operation = key.split(":", 1)
+        if account == "search":
+            searches[operation] = {
+                "ok": totals.get(f"{key}:ok", 0),
+                "empty": totals.get(f"{key}:empty", 0),
+            }
+            continue
+        requests = totals.get(f"{key}:req", 0)
+        operations[key] = OperationStats(
+            requests=requests,
+            ok=totals.get(f"{key}:ok", 0),
+            errors=totals.get(f"{key}:err", 0),
+            blocked=totals.get(f"{key}:blocked", 0),
+            avg_ms=totals.get(f"{key}:ms", 0) // requests if requests else None,
+        )
+    successful = sum(s["ok"] for s in searches.values())
+    return ApiSpend(
+        accounts=accounts,
+        operations_7d=dict(sorted(operations.items())),
+        searches_7d=searches,
+        cost_usd_7d=cost_7d,
+        cost_per_successful_search_usd_7d=(
+            (cost_7d / successful).quantize(Decimal("0.0001")) if successful else None
+        ),
+    )
+
+
 async def build_summary(
     settings: Settings,
     http: httpx.AsyncClient,
     sessionmaker: async_sessionmaker[AsyncSession],
     now: datetime | None = None,
     redis: Redis | None = None,
+    meter: ApiMeter | None = None,
 ) -> OpsSummary:
     now = now or datetime.now(UTC)
     problems: list[str] = []
@@ -254,8 +342,16 @@ async def build_summary(
         except Exception as exc:
             log.warning("ops.coverage_failed", error=type(exc).__name__)
             problems.append(f"coverage: {type(exc).__name__}")
+    spend = None
+    if meter is not None:
+        try:
+            spend = await api_spend(meter, settings.api_budget_warn_share)
+        except Exception as exc:
+            log.warning("ops.api_spend_failed", error=type(exc).__name__)
+            problems.append(f"api_spend: {type(exc).__name__}")
     return OpsSummary(
         generated_at=now,
+        api_spend=spend,
         coverage=coverage,
         serpapi=serpapi,
         llm=llm,

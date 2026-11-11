@@ -22,6 +22,7 @@ from tickets_api.domain.explore import (
 from tickets_api.domain.flights import Leg, Offer, stay_nights
 from tickets_api.domain.freshness import PriceFreshness
 from tickets_api.domain.stays import MAX_NIGHTS, Guests, Stay, StayFilters, StayQuery
+from tickets_api.providers.budget import optional_spend
 from tickets_api.reference.airports import AirportDirectory
 from tickets_api.reference.destinations import DestinationDirectory
 from tickets_api.scoring.engine import offer_key
@@ -147,7 +148,9 @@ class ExploreService:
         if stays is None:
             return [d.model_copy(update={"stay_status": "unsupported"}) for d in destinations], 0
         head = destinations[: self._stay_lookups]
-        checked = await asyncio.gather(*(self._stay_for(stays, d, query) for d in head))
+        # Житло в Explore — необов'язкова витрата scrape.do: зупиняється раніше за пошук (ADR 0055).
+        with optional_spend():
+            checked = await asyncio.gather(*(self._stay_for(stays, d, query) for d in head))
         priced = [d for d in checked if d.total is not None]
         others = [d for d in checked if d.total is None] + destinations[len(head) :]
         # Знайдена загальна сума — нагорі (за сумою), далі решта за ціною перельоту.

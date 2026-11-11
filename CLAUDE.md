@@ -152,6 +152,11 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `CACHE_EXCLUDED`). Свіжість ціни — `domain/freshness.py` → `freshness` у відповідях пошуку
   (live / cached / approximate / needs_recheck), UI — `price-freshness.tsx`. Логи маскує
   `redact_secrets`; клієнтський код — без серверних модулів (`server-boundary.test.ts`).
+- **Бюджет платних API** ([ADR 0055](docs/adr/0055-api-budget-and-spend.md)): кожен запит до джерела — через
+  `ProviderGate` → `ApiMeter` (`providers/budget.py`): атомарний резерв у Redis (год/добу/міс, `SERPAPI_BUDGET_*`,
+  `SCRAPEDO_BUDGET_*`), неуспішний запит повертає резерв; вичерпано — `ProviderBudgetError` (статус `rate_limited`).
+  Необов'язкові дорогі операції — у `optional_spend()` (зупиняються на 80 %): нова платна дія «сама» — туди ж.
+  Облік і собівартість успішного пошуку — `api_spend` у `/ops/summary`; пошук рахує `note_search`.
 - **Кожна отримана ціна пишеться в історію цін** (маршрут, дата, ціна, валюта, джерело, час збору).
 - **Алерти** ([ADR 0010](docs/adr/0010-price-alerts.md)): `services/alerts.py` + воркер
   (`check_alerts` раз на `ALERT_CHECK_INTERVAL_HOURS`, `poll_telegram` щохвилини). Ціни для

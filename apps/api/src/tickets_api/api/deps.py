@@ -8,6 +8,7 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException, Request
 
 from tickets_api.db.models import User
+from tickets_api.providers.budget import ApiMeter
 from tickets_api.services.accounts import AccountService
 
 
@@ -52,3 +53,10 @@ CurrentUser = Annotated[User, Depends(current_user)]
 OptionalUser = Annotated[User | None, Depends(optional_user)]
 Token = Annotated[str | None, Depends(session_token)]
 Device = Annotated[str | None, Depends(client_device)]
+
+
+async def note_search(request: Request, kind: str, *, ok: bool) -> None:
+    """Пошук для собівартості успішного пошуку (ADR 0055): лише лічильник, без параметрів."""
+    meter: ApiMeter | None = getattr(request.app.state, "meter", None)
+    if meter is not None:
+        await meter.note_search(kind, ok=ok)

@@ -33,6 +33,7 @@ from tickets_api.domain.money import to_cents
 from tickets_api.domain.stay_rates import StayRate
 from tickets_api.domain.stays import Stay, StayKind, StayQuery, StayReview
 from tickets_api.providers.base import ProviderUnsupportedError
+from tickets_api.providers.budget import ApiMeter
 from tickets_api.providers.gate import ProviderGate
 from tickets_api.providers.scrapedo import (
     DEFAULT_BASE_URL,
@@ -73,6 +74,7 @@ class ScrapeDoStayProvider:
         base_url: str = DEFAULT_BASE_URL,
         clock: Clock | None = None,
         gate: ProviderGate | None = None,
+        meter: ApiMeter | None = None,
     ) -> None:
         self._client = client
         self._token = token
@@ -83,7 +85,7 @@ class ScrapeDoStayProvider:
         self._base_url = base_url.rstrip("/")
         self._clock = clock or (lambda: datetime.now(UTC))
         self._gate = gate or ProviderGate(
-            self.name, max_concurrency=SCRAPEDO_MAX_CONCURRENCY, retry=SCRAPEDO_RETRY
+            self.name, max_concurrency=SCRAPEDO_MAX_CONCURRENCY, retry=SCRAPEDO_RETRY, meter=meter
         )
         self.lookup: Lookup = self.search
         """Звідки тарифи беруть об'єкт: реєстр підставляє кешований пошук (без нового запиту)."""
@@ -147,6 +149,7 @@ class ScrapeDoStayProvider:
             params=params,
             token=self._token,
             timeout_s=self._request_timeout_s,
+            operation="hotels" if path == HOTELS_PATH else "hotel_rates",
         )
 
     def _stay(

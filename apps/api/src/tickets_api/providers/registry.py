@@ -5,6 +5,7 @@ from redis.asyncio import Redis
 
 from tickets_api.core.config import Settings
 from tickets_api.providers.base import FlightProvider, StayProvider
+from tickets_api.providers.budget import AccountBudget, ApiMeter
 from tickets_api.providers.cached import CachedFlightProvider, CachedStayProvider
 from tickets_api.providers.mock import MockFlightProvider
 from tickets_api.providers.mock_stays import MockStayProvider
@@ -15,8 +16,37 @@ from tickets_api.providers.travelpayouts import TravelpayoutsFlightProvider
 from tickets_api.reference.airports import default_airport_directory
 
 
+def build_meter(settings: Settings, redis: Redis) -> ApiMeter:
+    """Бюджет і облік платних API (ADR 0055); Travelpayouts — лише облік (без квоти й ціни)."""
+    return ApiMeter(
+        redis,
+        {
+            "serpapi": AccountBudget(
+                hourly=settings.serpapi_budget_hourly,
+                daily=settings.serpapi_budget_daily,
+                monthly=settings.serpapi_budget_monthly,
+                unit_cost_usd=settings.serpapi_cost_per_request_usd,
+            ),
+            "scrapedo": AccountBudget(
+                hourly=settings.scrapedo_budget_hourly,
+                daily=settings.scrapedo_budget_daily,
+                monthly=settings.scrapedo_budget_monthly,
+                units_per_request=settings.scrapedo_credits_per_request,
+                unit_cost_usd=settings.scrapedo_cost_per_credit_usd,
+            ),
+            "travelpayouts": AccountBudget(),
+        },
+        optional_share=settings.api_budget_optional_share,
+        warn_share=settings.api_budget_warn_share,
+    )
+
+
 def _build(
-    name: str, settings: Settings, http: httpx.AsyncClient, redis: Redis
+    name: str,
+    settings: Settings,
+    http: httpx.AsyncClient,
+    redis: Redis,
+    meter: ApiMeter | None = None,
 ) -> FlightProvider | None:
     """Зовнішні API — за кешем Redis (ліміти й квоти); mock кешувати нема сенсу.
 
@@ -31,6 +61,7 @@ def _build(
             marker=settings.travelpayouts_marker,
             airports=default_airport_directory(),
             base_url=settings.travelpayouts_base_url,
+            meter=meter,
         )
         return CachedFlightProvider(tp, redis, settings.provider_cache_ttl_s)
     if name == "serpapi" and settings.serpapi_key is not None:
@@ -44,6 +75,7 @@ def _build(
             request_timeout_s=settings.serpapi_request_timeout_s,
             market=settings.serpapi_market,
             base_url=settings.serpapi_base_url,
+            meter=meter,
         )
         return CachedFlightProvider(serp, redis, settings.provider_cache_ttl_s)
     if name == "scrapedo" and settings.scrapedo_token is not None:
@@ -56,6 +88,7 @@ def _build(
             request_timeout_s=settings.scrapedo_request_timeout_s,
             market=settings.serpapi_market,
             base_url=settings.scrapedo_base_url,
+            meter=meter,
         )
         return CachedFlightProvider(sdo, redis, settings.provider_cache_ttl_s)
     return None
@@ -68,6 +101,7 @@ def build_providers(
     redis: Redis,
     *,
     pool: dict[str, FlightProvider] | None = None,
+    meter: ApiMeter | None = None,
 ) -> list[FlightProvider]:
     """`pool` — спільні екземпляри: пошук і календар з одного джерела ділять ліміт одночасних
     запитів і об'єднання однакових запитів (модуль 17.2), а не мають кожен свої."""
@@ -75,7 +109,7 @@ def build_providers(
     for name in dict.fromkeys(names):  # без дублів, порядок зберігається
         provider = pool.get(name) if pool is not None else None
         if provider is None:
-            provider = _build(name, settings, http, redis)
+            provider = _build(name, settings, http, redis, meter)
             if provider is not None and pool is not None:
                 pool[name] = provider
         if provider is not None:
@@ -88,6 +122,7 @@ def build_stay_providers(
     settings: Settings | None = None,
     http: httpx.AsyncClient | None = None,
     redis: Redis | None = None,
+    meter: ApiMeter | None = None,
 ) -> list[StayProvider]:
     """mock (ADR 0008) і scrape.do Google Hotels (ADR 0044) — за кешем Redis: пошук платний, а
     сторінка об'єкта й тарифи беруть його з кешу. Без ключа чи клієнтів платне не будуємо."""
@@ -109,6 +144,7 @@ def build_stay_providers(
                 timeout_s=settings.scrapedo_timeout_s,
                 market=settings.serpapi_market,
                 base_url=settings.scrapedo_base_url,
+                meter=meter,
             )
             cached = CachedStayProvider(hotels, redis, settings.provider_cache_ttl_s)
             hotels.lookup = cached.search  # тарифи — з кешу пошуку, без нового запиту

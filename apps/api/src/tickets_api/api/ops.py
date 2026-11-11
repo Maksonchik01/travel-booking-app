@@ -13,7 +13,9 @@ router = APIRouter(prefix="/ops", tags=["ops"])
 async def ops_summary(
     request: Request, x_internal_key: Annotated[str | None, Header()] = None
 ) -> OpsSummary:
-    """Зведення для власника. Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.
+    """Зведення для власника (з бюджетом і витратами платних API, ADR 0055).
+
+    Доступ — заголовок `X-Internal-Key` = INTERNAL_API_KEY.
 
     Без INTERNAL_API_KEY ендпоінт вимкнений (404), з неправильним ключем — 401.
     """
@@ -28,4 +30,5 @@ async def ops_summary(
         request.app.state.http,
         request.app.state.sessionmaker,
         redis=getattr(request.app.state, "redis", None),
+        meter=getattr(request.app.state, "meter", None),
     )

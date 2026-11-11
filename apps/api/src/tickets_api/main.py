@@ -35,7 +35,7 @@ from tickets_api.notifications.factory import build_mailer
 from tickets_api.providers.base import FlightProvider
 from tickets_api.providers.fx import EcbRates
 from tickets_api.providers.geocoder import NominatimGeocoder
-from tickets_api.providers.registry import build_providers, build_stay_providers
+from tickets_api.providers.registry import build_meter, build_providers, build_stay_providers
 from tickets_api.reference.airlines import default_airline_names
 from tickets_api.reference.airports import default_airport_directory
 from tickets_api.reference.destinations import default_destination_directory
@@ -81,16 +81,27 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         app.state.http = httpx.AsyncClient(timeout=settings.provider_timeout_s)
         pool: dict[str, FlightProvider] = {}
+        app.state.meter = meter = build_meter(settings, app.state.redis)
         freshness = FreshnessRules(
             live_fresh_min=settings.price_live_fresh_min,
             cached_stale_days=settings.price_cached_stale_days,
         )
         app.state.flight_search = FlightSearchService(
             build_providers(
-                settings.flight_providers, settings, app.state.http, app.state.redis, pool=pool
+                settings.flight_providers,
+                settings,
+                app.state.http,
+                app.state.redis,
+                pool=pool,
+                meter=meter,
             ),
             calendar_providers=build_providers(
-                settings.calendar_providers, settings, app.state.http, app.state.redis, pool=pool
+                settings.calendar_providers,
+                settings,
+                app.state.http,
+                app.state.redis,
+                pool=pool,
+                meter=meter,
             ),
             timeout_s=settings.provider_timeout_s,
             scoring_config=scoring_config,
@@ -103,7 +114,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         app.state.stay_search = StaySearchService(
             build_stay_providers(
-                settings.stay_providers, settings, app.state.http, app.state.redis
+                settings.stay_providers, settings, app.state.http, app.state.redis, meter=meter
             ),
             airports=default_airport_directory(),
             timeout_s=settings.provider_timeout_s,

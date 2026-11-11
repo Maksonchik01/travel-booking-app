@@ -8,6 +8,7 @@ from tickets_api.providers.base import (
     ProviderRateLimitedError,
     ProviderUnsupportedError,
 )
+from tickets_api.providers.budget import ProviderBudgetError
 from tickets_api.scoring.config import default_scoring_config
 from tickets_api.services.flight_search import FlightSearchService
 
@@ -60,6 +61,8 @@ async def test_failing_or_slow_provider_does_not_break_search() -> None:
         StubProvider("slow", offers=offers_for("slow", [50]), delay_s=1),
         StubProvider("buggy", error=RuntimeError("secret internals")),
         StubProvider("quota", error=ProviderRateLimitedError("quota", "quota exhausted")),
+        # Бюджет SkyPack (ADR 0055): запиту не було, джерело — як вичерпана квота.
+        StubProvider("budget", error=ProviderBudgetError("budget", "SkyPack budget reached")),
     )
 
     result = await svc.search(QUERY)
@@ -72,6 +75,7 @@ async def test_failing_or_slow_provider_does_not_break_search() -> None:
         "slow": ("timeout", "timeout"),
         "buggy": ("error", "internal error"),  # деталі не витікають назовні
         "quota": ("rate_limited", "quota exhausted"),
+        "budget": ("rate_limited", "SkyPack budget reached"),
     }
 
 

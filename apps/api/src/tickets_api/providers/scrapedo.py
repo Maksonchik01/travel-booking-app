@@ -30,6 +30,7 @@ from tickets_api.providers.base import (
     ProviderRateLimitedError,
     ProviderUnsupportedError,
 )
+from tickets_api.providers.budget import ApiMeter
 from tickets_api.providers.gate import ProviderGate, RetryPolicy
 from tickets_api.providers.serpapi import (
     GOOGLE_FLIGHTS_PREFIX,
@@ -64,6 +65,7 @@ class ScrapeDoFlightProvider(SerpApiFlightProvider):
         base_url: str = DEFAULT_BASE_URL,
         clock: Clock | None = None,
         gate: ProviderGate | None = None,
+        meter: ApiMeter | None = None,
     ) -> None:
         super().__init__(
             client,
@@ -77,7 +79,10 @@ class ScrapeDoFlightProvider(SerpApiFlightProvider):
             clock=clock,
             gate=gate
             or ProviderGate(
-                self.name, max_concurrency=SCRAPEDO_MAX_CONCURRENCY, retry=SCRAPEDO_RETRY
+                self.name,
+                max_concurrency=SCRAPEDO_MAX_CONCURRENCY,
+                retry=SCRAPEDO_RETRY,
+                meter=meter,
             ),
         )
 
@@ -139,6 +144,7 @@ class ScrapeDoFlightProvider(SerpApiFlightProvider):
             params=params,
             token=self._api_key,
             timeout_s=self._request_timeout_s,
+            operation="flights",
         )
         return body, None
 
@@ -152,12 +158,14 @@ async def scrapedo_get(
     params: dict[str, str],
     token: str,
     timeout_s: float,
+    operation: str,
 ) -> dict[str, Any]:
     """Запит до плагіна scrape.do (перельоти, готелі): токен — лише в query string, у помилках —
     лише статус і тип помилки (URL з токеном і текст джерела туди не потрапляють)."""
     try:
         response = await gate.send(
-            lambda: client.get(url, params={**params, "token": token}, timeout=timeout_s)
+            lambda: client.get(url, params={**params, "token": token}, timeout=timeout_s),
+            operation=operation,
         )
     except httpx.TimeoutException as exc:
         raise ProviderError(name, "timeout") from exc
