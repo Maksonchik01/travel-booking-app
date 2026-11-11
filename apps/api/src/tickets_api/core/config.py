@@ -193,6 +193,11 @@ class Settings(BaseSettings):
     scoring_config_path: Path | None = None
     """None — вбудований tickets_api/scoring/config.toml."""
     provider_cache_ttl_s: int = 1800
+    """Живі ціни (SerpApi, scrape.do) і тарифи продавців житла (ADR 0058)."""
+    cached_source_ttl_s: int = Field(default=3 * 3600, ge=60)
+    """Кешовані ціни Travelpayouts: вони й так знайдені раніше (вік ціни видно в UI)."""
+    stay_cache_ttl_s: int = Field(default=3600, ge=60)
+    """Видача житла scrape.do — 10 кредитів за пошук; сторінка об'єкта й тарифи беруть її з кешу."""
     price_live_fresh_min: int = Field(default=30, ge=1, le=1440)
     """Жива ціна молодша за це — «щойно перевірена»; старша — «варто перевірити» (17.3)."""
     price_cached_stale_days: int = Field(default=3, ge=1, le=60)

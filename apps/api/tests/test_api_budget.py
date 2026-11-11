@@ -150,6 +150,11 @@ async def test_spend_summary_and_cost_per_successful_search(redis: Redis) -> Non
     await meter.note_search("flights", ok=True)
     await meter.note_search("flights", ok=False)
     await meter.note_search("stays", ok=True)
+    day = f"api:stats:{meter._clock():%Y-%m-%d}"
+    pipe = redis.pipeline()  # так пише RedisCache (ADR 0058)
+    pipe.hincrby(day, "cache:travelpayouts:hit", 3)
+    pipe.hincrby(day, "cache:travelpayouts:miss", 1)
+    await pipe.execute()
 
     spend = await api_spend(meter, warn_share=0.8)
 
@@ -162,6 +167,8 @@ async def test_spend_summary_and_cost_per_successful_search(redis: Redis) -> Non
     assert spend.cost_usd_7d == Decimal("0.1020")
     assert spend.cost_per_successful_search_usd_7d == Decimal("0.0510")
     assert spend.accounts["serpapi"].near_limit is False
+    assert spend.cache_7d["travelpayouts"].hit_rate == 0.75
+    assert "cache:travelpayouts" not in spend.operations_7d
 
 
 async def test_warning_is_logged_once_per_period(redis: Redis) -> None:

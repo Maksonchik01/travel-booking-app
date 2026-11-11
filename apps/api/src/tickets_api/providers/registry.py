@@ -63,7 +63,7 @@ def _build(
             base_url=settings.travelpayouts_base_url,
             meter=meter,
         )
-        return CachedFlightProvider(tp, redis, settings.provider_cache_ttl_s)
+        return CachedFlightProvider(tp, redis, settings.cached_source_ttl_s)
     if name == "serpapi" and settings.serpapi_key is not None:
         serp = SerpApiFlightProvider(
             http,
@@ -146,7 +146,12 @@ def build_stay_providers(
                 base_url=settings.scrapedo_base_url,
                 meter=meter,
             )
-            cached = CachedStayProvider(hotels, redis, settings.provider_cache_ttl_s)
+            cached = CachedStayProvider(
+                hotels,
+                redis,
+                settings.stay_cache_ttl_s,
+                rates_ttl_s=settings.provider_cache_ttl_s,
+            )
             hotels.lookup = cached.search  # тарифи — з кешу пошуку, без нового запиту
             providers.append(cached)
     return providers

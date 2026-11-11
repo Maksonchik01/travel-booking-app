@@ -149,7 +149,8 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `providers/gate.py` `ProviderGate` (ліміт одночасних, повтор 502–504/обриву з паузою; 429/4xx —
   ні; SerpApi тайм-аут не повторює). Однакові запити — один виклик (`CachedFlightProvider`: у процесі
   й замок Redis між процесами); ключ — `search_cache_payload` (поле лише для видачі — у
-  `CACHE_EXCLUDED`). Свіжість ціни — `domain/freshness.py` → `freshness` у відповідях пошуку
+  `CACHE_EXCLUDED`). TTL за типом даних і «зайнято» замість другого платного запиту —
+  [ADR 0058](docs/adr/0058-cache-ttl-and-dedup.md) (`CACHED_SOURCE_TTL_S`, `STAY_CACHE_TTL_S`), влучання кешу — `cache_7d`. Свіжість ціни — `domain/freshness.py` → `freshness` у відповідях пошуку
   (live / cached / approximate / needs_recheck), UI — `price-freshness.tsx`. Логи маскує
   `redact_secrets`; клієнтський код — без серверних модулів (`server-boundary.test.ts`).
 - **Бюджет платних API** ([ADR 0055](docs/adr/0055-api-budget-and-spend.md)): кожен запит до джерела — через

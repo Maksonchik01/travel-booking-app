@@ -16,6 +16,7 @@ from tickets_api.domain.flights import (
     Passengers,
 )
 from tickets_api.domain.freshness import FreshnessRules, price_freshness
+from tickets_api.providers.base import ProviderError
 from tickets_api.providers.cached import CachedFlightProvider, search_cache_payload
 from tickets_api.providers.gate import ProviderGate, RetryPolicy
 
@@ -205,6 +206,27 @@ async def test_failed_lock_holder_lets_waiters_go_to_the_source() -> None:
     offers = await provider.search(QUERY)
     await releaser
     assert len(offers) == 1
+
+
+async def test_paid_source_does_not_pay_twice_while_another_process_holds_the_lock() -> None:
+    """ADR 0058: не дочекались чужої відповіді — «зайнято», а не другий оплачений запит."""
+    redis = FakeRedis()
+    inner = StubProvider("serpapi", offers=offers_for("serpapi", [100]))  # живе = платне
+    provider = cached(inner, redis, lock_wait_s=0.05)
+    payload_key = provider._key("search", search_cache_payload(QUERY))
+    await redis.set(f"{payload_key}:lock", "other", nx=True, ex=60)
+
+    with pytest.raises(ProviderError, match="busy"):
+        await provider.search(QUERY)
+    assert inner.calls == 0
+
+    # Безкоштовне кешоване джерело — йдемо самі.
+    free = StubProvider("tp", offers=offers_for("tp", [100]), live=False)
+    free_provider = cached(free, redis, lock_wait_s=0.05)
+    free_key = free_provider._key("search", search_cache_payload(QUERY))
+    await redis.set(f"{free_key}:lock", "other", nx=True, ex=60)
+    assert len(await free_provider.search(QUERY)) == 1
+    assert free.calls == 1
 
 
 # --- 17.3: свіжість ----------------------------------------------------------------------------

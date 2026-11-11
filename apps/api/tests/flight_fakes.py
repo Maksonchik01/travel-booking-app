@@ -11,6 +11,7 @@ from tickets_api.domain.flights import CalendarDay, FlightQuery, Leg, Offer
 class FakeRedis:
     def __init__(self, *, broken: bool = False) -> None:
         self.store: dict[str, bytes] = {}
+        self.hashes: dict[str, dict[str, int]] = {}
         self.ttl: dict[str, int] = {}
         self.broken = broken
 
@@ -50,6 +51,16 @@ class FakeRedis:
         self.store[key] = str(value).encode()
         return value
 
+    def pipeline(self, transaction: bool = True) -> "FakePipeline":
+        return FakePipeline(self)
+
+    async def hincrby(self, key: str, field: str, amount: int = 1) -> int:
+        if self.broken:
+            raise RedisConnectionError("down")
+        bucket = self.hashes.setdefault(key, {})
+        bucket[field] = bucket.get(field, 0) + amount
+        return bucket[field]
+
     async def decr(self, key: str) -> int:
         value = int(self.store.get(key, b"0")) - 1
         self.store[key] = str(value).encode()
@@ -57,6 +68,26 @@ class FakeRedis:
 
     async def expire(self, key: str, seconds: int) -> None:
         self.ttl[key] = seconds
+
+
+class FakePipeline:
+    """Лише те, що пишуть лічильники: hincrby, expire, execute."""
+
+    def __init__(self, redis: FakeRedis) -> None:
+        self._redis = redis
+        self._ops: list[tuple[str, tuple[object, ...]]] = []
+
+    def hincrby(self, key: str, field: str, amount: int = 1) -> None:
+        self._ops.append(("hincrby", (key, field, amount)))
+
+    def expire(self, key: str, seconds: int) -> None:
+        self._ops.append(("expire", (key, seconds)))
+
+    async def execute(self) -> list[object]:
+        results: list[object] = []
+        for name, args in self._ops:
+            results.append(await getattr(self._redis, name)(*args))
+        return results
 
 
 class StubProvider:

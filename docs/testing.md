@@ -261,3 +261,11 @@
 | `X-Request-ID`: прийнятий чи згенерований, у кожному рядку логу, `nosniff`, `no-store` | API `test_request_context` |
 | Документація API в продакшні вимкнена | `test_request_context::test_docs_are_hidden_in_production` |
 
+## Кеш (ADR 0058)
+
+| Сценарій | Тест |
+|---|---|
+| Платне джерело: чужий замок не звільнився — «зайнято», без другого запиту; безкоштовне — йде саме | API `test_provider_resilience::test_paid_source_does_not_pay_twice_while_another_process_holds_the_lock` |
+| TTL: видача житла 1 год, тарифи продавців 30 хв | `test_scrapedo_stays::test_rates_use_cached_search_and_detail_sellers` |
+| Облік влучань/промахів кешу й частка влучань у звіті | `test_cached_provider::test_second_call_is_served_from_cache_with_original_collected_at`, `test_api_budget::test_spend_summary_and_cost_per_successful_search` |
+

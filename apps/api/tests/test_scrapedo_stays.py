@@ -122,7 +122,9 @@ async def test_other_party_is_unsupported(client: httpx.AsyncClient, guests: Gue
 async def test_rates_use_cached_search_and_detail_sellers(client: httpx.AsyncClient) -> None:
     hotels, detail = mock_api()
     provider = make(client)
-    cached = CachedStayProvider(provider, FakeRedis(), 1800)  # type: ignore[arg-type]
+    redis = FakeRedis()
+    # ADR 0058: видача — довше (1 год), тарифи продавців — як живі ціни (30 хв).
+    cached = CachedStayProvider(provider, redis, 3600, rates_ttl_s=1800)  # type: ignore[arg-type]
     provider.lookup = cached.search
     stays = await cached.search(QUERY)
     stay = next(s for s in stays if s.name == "The One Palácio da Anunciada")
@@ -133,6 +135,8 @@ async def test_rates_use_cached_search_and_detail_sellers(client: httpx.AsyncCli
     assert hotels.call_count == 1  # тарифи взяли detail_token з кешу пошуку
     assert detail.call_count == 1  # повторне відкриття — з кешу
     assert detail.calls[0].request.url.params["detail_token"] == stay.booking_ref
+    ttls = {key.split(":")[3]: ttl for key, ttl in redis.ttl.items() if key.startswith("fp:")}
+    assert ttls == {"stay-search": 3600, "stay-rates": 1800}
     assert rates == again
     sources = DETAIL["property"]["booking_sources"]
     assert len(rates) == len(sources)

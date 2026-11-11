@@ -24,7 +24,10 @@ async def test_second_call_is_served_from_cache_with_original_collected_at() -> 
     assert inner.calls == 1
     assert second == first
     assert second[0].collected_at == datetime(2026, 10, 26, 12, 0, tzinfo=UTC)
-    assert list(redis.ttl.values()) == [600]
+    assert [ttl for key, ttl in redis.ttl.items() if key.startswith("fp:")] == [600]
+    # Облік кешу (ADR 0058): промах, потім влучання.
+    stats = next(v for k, v in redis.hashes.items() if k.startswith("api:stats:"))
+    assert stats == {"cache:tp:miss": 1, "cache:tp:hit": 1}
 
 
 async def test_different_queries_use_different_keys() -> None:

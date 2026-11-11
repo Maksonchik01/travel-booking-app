@@ -115,6 +115,13 @@ class OperationStats(BaseModel):
     avg_ms: int | None
 
 
+class CacheStats(BaseModel):
+    hits: int
+    misses: int
+    hit_rate: float | None
+    """Частка запитів до джерела, відданих з кешу (ADR 0058)."""
+
+
 class ApiSpend(BaseModel):
     accounts: dict[str, AccountSpend]
     operations_7d: dict[str, OperationStats]
@@ -124,6 +131,8 @@ class ApiSpend(BaseModel):
     cost_usd_7d: Decimal
     cost_per_successful_search_usd_7d: Decimal | None
     """Оцінка всіх платних запитів за 7 днів / пошуків, що щось знайшли."""
+    cache_7d: dict[str, CacheStats] = {}
+    """джерело → влучання й промахи кешу за 7 днів."""
 
 
 class OpsSummary(BaseModel):
@@ -279,8 +288,17 @@ async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
         )
     operations: dict[str, OperationStats] = {}
     searches: dict[str, dict[str, int]] = {}
+    cache: dict[str, CacheStats] = {}
     for key in {k.rsplit(":", 1)[0] for k in totals}:
         account, operation = key.split(":", 1)
+        if account == "cache":
+            hits, misses = totals.get(f"{key}:hit", 0), totals.get(f"{key}:miss", 0)
+            cache[operation] = CacheStats(
+                hits=hits,
+                misses=misses,
+                hit_rate=round(hits / (hits + misses), 3) if hits + misses else None,
+            )
+            continue
         if account == "search":
             searches[operation] = {
                 "ok": totals.get(f"{key}:ok", 0),
@@ -300,6 +318,7 @@ async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
         accounts=accounts,
         operations_7d=dict(sorted(operations.items())),
         searches_7d=searches,
+        cache_7d=dict(sorted(cache.items())),
         cost_usd_7d=cost_7d,
         cost_per_successful_search_usd_7d=(
             (cost_7d / successful).quantize(Decimal("0.0001")) if successful else None

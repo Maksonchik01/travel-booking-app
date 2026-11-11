@@ -5,7 +5,14 @@
 
 Однакові запити не дублюються (модуль 17.2, ADR 0034): у межах процесу — один спільний
 виклик (`_shared`), між процесами (кілька воркерів API, воркер сповіщень) — замок у Redis:
-хто взяв, той іде до джерела, інші чекають на його відповідь у кеші.
+хто взяв, той іде до джерела, інші чекають на його відповідь у кеші. Платне джерело (V3,
+ADR 0058): не дочекались, а замок досі тримають — `ProviderError("busy")`, а не другий
+оплачений запит; безкоштовне — ідемо самі.
+
+TTL — за типом даних (ADR 0058): живі ціни — `PROVIDER_CACHE_TTL_S` (30 хв), кешовані ціни
+Travelpayouts — `CACHED_SOURCE_TTL_S` (3 год: дані й так знайдені раніше, вік видно в UI),
+житло — `STAY_CACHE_TTL_S` (1 год), тарифи продавців житла — як живі ціни. Влучання й промахи —
+лічильники `cache:<джерело>:hit|miss` в обліку (`api:stats`, `/ops/summary`).
 
 Ключ (17.1) — усе, що змінює відповідь ДЖЕРЕЛА: маршрут, дати (й гнучкість), пасажири, клас,
 валюта, сусідні аеропорти, «лише прямі». Не входять профіль, фільтри, багаж і уподобання:
@@ -16,7 +23,7 @@ import asyncio
 import hashlib
 import secrets
 from collections.abc import Awaitable, Callable
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import Any, cast
 
 import structlog
@@ -31,12 +38,14 @@ from tickets_api.domain.stays import Stay, StayQuery, StayReview
 from tickets_api.providers.base import (
     ExploreSource,
     FlightProvider,
+    ProviderError,
     ProviderUnsupportedError,
     SellerSource,
     StayProvider,
     StayRateSource,
     is_live,
 )
+from tickets_api.providers.budget import STATS_PREFIX, STATS_TTL_S
 
 log = structlog.get_logger(__name__)
 
@@ -50,6 +59,8 @@ LOCK_TTL_S = 60
 """Замок живе не довше за найдовший пошук: впав процес — замок звільниться сам."""
 LOCK_WAIT_S = 25.0
 LOCK_POLL_S = 0.25
+_STILL_LOCKED = object()
+"""Час очікування вийшов, а інший процес досі тримає замок (його запит ще йде)."""
 CACHE_EXCLUDED = {"profile", "filters", "baggage", "preferences"}
 STAY_CACHE_EXCLUDED = {"profile", "filters", "preferences"}
 """Житло: фільтри й уподобання застосовує сервіс після джерела — у ключ не входять."""
@@ -71,8 +82,11 @@ class RedisCache:
         *,
         lock_wait_s: float = LOCK_WAIT_S,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+        paid: bool = False,
     ) -> None:
         self._redis = redis
+        self._paid = paid
+        """Платне джерело: дубль запиту — витрата квоти, тож краще «зайнято», ніж другий виклик."""
         self._ttl_s = ttl_s
         self._lock_wait_s = lock_wait_s
         self._sleep = sleep
@@ -80,12 +94,27 @@ class RedisCache:
         self.name = name
 
     async def _cached[T](
-        self, key: str, adapter: TypeAdapter[T], load: Callable[[], Awaitable[T]]
+        self,
+        key: str,
+        adapter: TypeAdapter[T],
+        load: Callable[[], Awaitable[T]],
+        ttl_s: int | None = None,
     ) -> T:
         cached = await self._read(key)
+        await self._count("hit" if cached is not None else "miss")
         if cached is not None:
             return adapter.validate_json(cached)
-        return await self._shared(key, lambda: self._fetch(key, adapter, load))
+        return await self._shared(key, lambda: self._fetch(key, adapter, load, ttl_s))
+
+    async def _count(self, outcome: str) -> None:
+        day = f"{STATS_PREFIX}:{datetime.now(UTC):%Y-%m-%d}"
+        try:
+            pipe = self._redis.pipeline(transaction=False)
+            pipe.hincrby(day, f"cache:{self.name}:{outcome}", 1)
+            pipe.expire(day, STATS_TTL_S)
+            await pipe.execute()
+        except (RedisError, OSError):
+            pass  # облік — діагностика, а не умова відповіді
 
     async def _shared[T](self, key: str, produce: Callable[[], Awaitable[T]]) -> T:
         """Однакові одночасні запити в процесі — один виклик. Скасування одного очікувача
@@ -105,17 +134,24 @@ class RedisCache:
             done.exception()  # позначити як отриману — без «exception was never retrieved»
 
     async def _fetch[T](
-        self, key: str, adapter: TypeAdapter[T], load: Callable[[], Awaitable[T]]
+        self,
+        key: str,
+        adapter: TypeAdapter[T],
+        load: Callable[[], Awaitable[T]],
+        ttl_s: int | None = None,
     ) -> T:
         lock = await self._lock(key)
         if lock is None:
             # Цей самий запит уже виконує інший процес — чекаємо на його відповідь у кеші.
             waited = await self._wait_for_cache(key)
-            if waited is not None:
+            if isinstance(waited, bytes):
                 return adapter.validate_json(waited)
+            if waited is _STILL_LOCKED and self._paid:
+                log.info("provider_cache.busy", provider=self.name)
+                raise ProviderError(self.name, "busy")
         try:
             value = await load()
-            await self._write(key, adapter.dump_json(value))
+            await self._write(key, adapter.dump_json(value), ttl_s)
             return value
         finally:
             if lock is not None:
@@ -139,9 +175,10 @@ class RedisCache:
         except RedisError:
             pass  # замок сам зникне через LOCK_TTL_S
 
-    async def _wait_for_cache(self, key: str) -> bytes | None:
+    async def _wait_for_cache(self, key: str) -> bytes | object | None:
         """Чекаємо, поки власник замка покладе відповідь; він упав чи звільнив без відповіді
-        (помилка джерела) — повертаємо None і йдемо самі."""
+        (помилка джерела) — None, ідемо самі. Час вийшов, а замок досі тримають —
+        `_STILL_LOCKED`."""
         waited = 0.0
         while waited < self._lock_wait_s:
             await self._sleep(LOCK_POLL_S)
@@ -154,7 +191,7 @@ class RedisCache:
                     return None
             except RedisError:
                 return None
-        return None
+        return _STILL_LOCKED
 
     def _key(self, kind: str, payload: str) -> str:
         digest = hashlib.sha256(payload.encode()).hexdigest()[:32]
@@ -168,9 +205,9 @@ class RedisCache:
             return None
         return value
 
-    async def _write(self, key: str, value: bytes) -> None:
+    async def _write(self, key: str, value: bytes, ttl_s: int | None = None) -> None:
         try:
-            await self._redis.set(key, value, ex=self._ttl_s)
+            await self._redis.set(key, value, ex=ttl_s or self._ttl_s)
         except RedisError as exc:
             log.warning("provider_cache.write_failed", provider=self.name, error=type(exc).__name__)
 
@@ -185,7 +222,9 @@ class CachedFlightProvider(RedisCache):
         lock_wait_s: float = LOCK_WAIT_S,
         sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
     ) -> None:
-        super().__init__(inner.name, redis, ttl_s, lock_wait_s=lock_wait_s, sleep=sleep)
+        super().__init__(
+            inner.name, redis, ttl_s, lock_wait_s=lock_wait_s, sleep=sleep, paid=is_live(inner)
+        )
         self._inner = inner
         self.timeout_s: float | None = getattr(inner, "timeout_s", None)
         self.live: bool = is_live(inner)
@@ -233,8 +272,12 @@ class CachedStayProvider(RedisCache):
     """Житло за тим самим кешем (ADR 0044): платне джерело не питаємо вдруге про той самий пошук,
     а сторінка об'єкта й тарифи беруть його з кешу пошуку. Відгуки — без кешу (їх дає лише mock)."""
 
-    def __init__(self, inner: StayProvider, redis: Redis, ttl_s: int) -> None:
-        super().__init__(inner.name, redis, ttl_s)
+    def __init__(
+        self, inner: StayProvider, redis: Redis, ttl_s: int, *, rates_ttl_s: int | None = None
+    ) -> None:
+        super().__init__(inner.name, redis, ttl_s, paid=True)
+        self._rates_ttl_s = rates_ttl_s
+        """Тарифи продавців змінюються частіше за видачу — свій TTL (None — як пошук)."""
         self._inner = inner
         self.timeout_s: float | None = getattr(inner, "timeout_s", None)
 
@@ -254,5 +297,8 @@ class CachedStayProvider(RedisCache):
         source = cast(StayRateSource, inner)
         payload = f"{stay_id}|{query.model_dump_json(exclude=STAY_CACHE_EXCLUDED)}"
         return await self._cached(
-            self._key("stay-rates", payload), _RATES, lambda: source.rates(query, stay_id)
+            self._key("stay-rates", payload),
+            _RATES,
+            lambda: source.rates(query, stay_id),
+            self._rates_ttl_s,
         )
