@@ -1,3 +1,4 @@
+import time
 from datetime import UTC, date, datetime
 from typing import Annotated
 
@@ -36,8 +37,9 @@ async def search_stays(query: StayQuery, request: Request) -> StaySearchResult:
 
     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
     """
+    started = time.monotonic()
     result = await _service(request).search(query)
-    await note_search(request, "stays", ok=bool(result.stays))
+    await note_search(request, "stays", ok=bool(result.stays), started=started)
     return result
 
 

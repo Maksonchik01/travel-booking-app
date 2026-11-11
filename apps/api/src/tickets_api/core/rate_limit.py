@@ -17,6 +17,7 @@ import hashlib
 import hmac
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable
+from datetime import UTC, datetime
 from typing import Literal
 
 import structlog
@@ -25,6 +26,7 @@ from redis.asyncio import Redis
 from redis.exceptions import RedisError
 
 from tickets_api.core.config import Settings
+from tickets_api.providers.budget import STATS_PREFIX, STATS_TTL_S
 
 log = structlog.get_logger(__name__)
 
@@ -98,6 +100,16 @@ async def _who(request: Request, bucket: Bucket) -> tuple[str, int]:
     return client_id(request, settings), 1
 
 
+async def _count_blocked(redis: Redis, bucket: str) -> None:
+    """Відмови для моніторингу (`api:stats`, ADR 0062): лише кошик і кількість."""
+    day = f"{STATS_PREFIX}:{datetime.now(UTC):%Y-%m-%d}"
+    with contextlib.suppress(RedisError, OSError):
+        pipe = redis.pipeline(transaction=False)
+        pipe.hincrby(day, f"ratelimit:{bucket}:blocked", 1)
+        pipe.expire(day, STATS_TTL_S)
+        await pipe.execute()
+
+
 def rate_limit(bucket: Bucket) -> Callable[[Request], Awaitable[None]]:
     """Залежність FastAPI: понад ліміт — 429 з Retry-After."""
 
@@ -118,6 +130,7 @@ def rate_limit(bucket: Bucket) -> Callable[[Request], Awaitable[None]]:
         if count > limit_for(bucket, settings) * multiplier:
             retry_after = (window + 1) * WINDOW_S - now
             log.info("rate_limit.exceeded", bucket=bucket, account=who.startswith("u:"))
+            await _count_blocked(redis, bucket)
             raise HTTPException(
                 status_code=429,
                 detail="rate_limited",
@@ -152,6 +165,7 @@ async def concurrent_searches(request: Request) -> AsyncIterator[None]:
     try:
         if running > settings.max_concurrent_searches:
             log.info("rate_limit.concurrent", account=who.startswith("u:"))
+            await _count_blocked(redis, "concurrent")
             raise HTTPException(
                 status_code=429, detail="rate_limited", headers={"Retry-After": "5"}
             )

@@ -2225,5 +2225,60 @@
     "yourTrip": "New: “Worth a look” and “Better option within budget” show how other options found are better — with concrete differences.",
     "explore": "Tip: categories switch on in one click without a new search; “Flights + stay” adds up the total for the three cheapest cities.",
     "dismiss": "Got it, hide"
+  },
+  "ops": {
+    "title": "SkyPack technical status",
+    "generated": "Summary as of {at}",
+    "unavailable": "Summary unavailable: the API does not respond or INTERNAL_API_KEY does not match.",
+    "saved": "Limit saved — applies in all API processes within 30 seconds.",
+    "failed": "Could not save the limit.",
+    "problems": "Summary problems",
+    "period": {
+      "hour": "Hour",
+      "day": "Day",
+      "month": "Month"
+    },
+    "budgets": {
+      "title": "Paid API budgets",
+      "note": "Used / SkyPack limit. SerpApi — searches, scrape.do — credits. Cost is estimated at the nearest paid plan price.",
+      "account": "Account",
+      "period": "Period",
+      "limit": "New limit",
+      "unlimited": "no limit",
+      "reset": "restore from .env",
+      "save": "Save",
+      "costToday": "Today",
+      "costMonth": "This month",
+      "near": "near the limit"
+    },
+    "searches": {
+      "title": "Searches, last 7 days",
+      "cost": "Paid requests: {total}; cost per successful search: {perSearch}.",
+      "kind": "Kind",
+      "ok": "Found",
+      "empty": "Empty",
+      "avgMs": "Average time, ms"
+    },
+    "sources": {
+      "title": "Sources and cache, last 7 days",
+      "operation": "Source: operation",
+      "requests": "Requests",
+      "errors": "Errors",
+      "blocked": "Stopped by budget",
+      "avgMs": "Time, ms"
+    },
+    "cache": {
+      "source": "Source cache",
+      "hitRate": "No new request",
+      "hits": "From cache",
+      "shared": "Joined",
+      "misses": "New requests"
+    },
+    "rateLimited": "Rate-limit rejections:",
+    "ai": {
+      "title": "AI and SerpApi quota",
+      "text": "AI in 24 h: {calls} calls, {errors} errors, {day}; in 30 days — {month}."
+    },
+    "serpapiQuota": "SerpApi (account): {used} of {total} used this month, {left} left."
   }
 }

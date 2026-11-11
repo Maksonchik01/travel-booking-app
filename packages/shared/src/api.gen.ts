@@ -1575,6 +1575,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ops/budgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set Budget
+         * @description Власник змінює ліміт платного API без редеплою (ADR 0062); діє за ≤ 30 с.
+         */
+        put: operations["set_budget_ops_budgets_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ops/summary": {
         parameters: {
             query?: never;
@@ -2120,6 +2140,20 @@ export interface components {
             cost_usd_7d: string;
             /** Cost Per Successful Search Usd 7D */
             cost_per_successful_search_usd_7d: string | null;
+            /**
+             * Cache 7D
+             * @default {}
+             */
+            cache_7d: {
+                [key: string]: components["schemas"]["CacheStats"];
+            };
+            /**
+             * Rate Limited 7D
+             * @default {}
+             */
+            rate_limited_7d: {
+                [key: string]: number;
+            };
         };
         /** AuthStatus */
         AuthStatus: {
@@ -2204,6 +2238,34 @@ export interface components {
             north: number;
             /** East */
             east: number;
+        };
+        /** BudgetLimit */
+        BudgetLimit: {
+            /** Account */
+            account: string;
+            /**
+             * Period
+             * @enum {string}
+             */
+            period: "hour" | "day" | "month";
+            /** Limit */
+            limit?: number | null;
+            /**
+             * Reset
+             * @default false
+             */
+            reset: boolean;
+        };
+        /** CacheStats */
+        CacheStats: {
+            /** Hits */
+            hits: number;
+            /** Shared */
+            shared: number;
+            /** Misses */
+            misses: number;
+            /** Hit Rate */
+            hit_rate: number | null;
         };
         /**
          * CalendarDay
@@ -8972,6 +9034,39 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SharedTrip"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_budget_ops_budgets_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-internal-key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetLimit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

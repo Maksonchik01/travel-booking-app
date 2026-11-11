@@ -240,6 +240,9 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `src/lib/sentry-options.ts`, `app/global-error.tsx`) — лише помилки, без PII (cookies, заголовки,
   тіла, query вимкнені). `GET /ops/summary` (`services/ops.py`) — агрегати для власника за
   `X-Internal-Key`; лише лічильники, без email/токенів; кожна секція падає окремо.
+- **Технічні сповіщення й `/ops`** ([ADR 0062](docs/adr/0062-monitoring-and-owner-alerts.md)): воркер `watch_ops`
+  (`services/ops_watch.py`) раз на 15 хв — Telegram/email власнику (`OPS_*`); розділ `/ops` — лише `OPS_ADMINS`, ліміти
+  API змінюються там (`PUT /ops/budgets`, перевизначення в Redis). Нова метрика — лічильник у `api:stats`, без PII.
 - **Аналітика** ([ADR 0038](docs/adr/0038-product-analytics.md)): `analytics_events` — назва (`EventName`)
   і мітки-перелічення, без людини/сесії/IP/cookies, 90 днів. Браузер — `data-track="подія"` (+
   `data-track-mode|kind|source`) або `track()` з `lib/analytics.ts`; сервер — `searchEvents` /

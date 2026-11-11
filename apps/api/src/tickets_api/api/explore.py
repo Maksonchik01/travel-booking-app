@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
@@ -21,8 +23,9 @@ async def explore(query: ExploreQuery, request: Request) -> ExploreResult:
     Живих запитів перельотів немає; житло (режим `trip`) — лише для кількох найдешевших.
     """
     service: ExploreService = request.app.state.explore
+    started = time.monotonic()
     result = await service.explore(query)
-    await note_search(request, "explore", ok=bool(result.destinations))
+    await note_search(request, "explore", ok=bool(result.destinations), started=started)
     return result
 
 

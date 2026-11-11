@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from tickets_api.core.config import Settings
 from tickets_api.domain.flights import FlightQuery
-from tickets_api.notifications.factory import build_mailer
-from tickets_api.notifications.telegram import MockTelegram, TelegramBot, TelegramClient
+from tickets_api.notifications.factory import build_mailer, build_telegram
+from tickets_api.notifications.telegram import TelegramClient
 from tickets_api.providers.registry import build_providers, build_stay_providers
 from tickets_api.reference.airports import default_airport_directory
 from tickets_api.repositories.price_history import (
@@ -41,15 +41,7 @@ def build_alert_service(
         scoring_config=default_scoring_config(),
         record_history=PriceHistoryRecorder(sessionmaker).record,
     )
-    telegram: TelegramClient = (
-        TelegramBot(
-            http,
-            settings.telegram_bot_token.get_secret_value(),
-            base_url=settings.telegram_base_url,
-        )
-        if settings.telegram_bot_token is not None
-        else MockTelegram()
-    )
+    telegram: TelegramClient = build_telegram(settings, http)
     mailer = build_mailer(settings)
 
     async def price_stats(query: FlightQuery, best_price: Decimal) -> PriceStats | None:

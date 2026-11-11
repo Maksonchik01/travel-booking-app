@@ -305,3 +305,14 @@
 | «Ваша поїздка», кабінет, відкриття ШІ-чату | E2E `perf.spec` — інші сценарії |
 | Підказка: закрита не з'являється | WEB `feature-hint.test`; E2E «етап 9: …підказка один раз» |
 
+## Моніторинг і `/ops` (ADR 0062)
+
+| Сценарій | Тест |
+|---|---|
+| Усе гаразд — сповіщень немає; API недоступний — після 2 збоїв, один раз за 6 год | API `test_ops_watch` (Redis) |
+| Бюджет, збої й сповільнення джерела, витрати ШІ, сплеск 429 — сповіщення | `test_ops_watch::test_budget_errors_slowdown_llm_and_rate_limit_spike` |
+| Ліміти змінюються без редеплою, «без ліміту», повернення з .env | `test_ops_watch::test_owner_changes_limits_without_redeploy` |
+| `/ops/budgets` — лише з ключем власника; відмова 429 рахується | `test_rate_limit::test_owner_endpoints_need_the_internal_key`, `test_lookups_are_limited_too` |
+| `/ops`: не адмін — нічого; адмін — зведення, зміна ліміту, доступність, телефон | E2E `a11y.spec` «розділ власника /ops…» |
+| Задача й розклад воркера | `test_tasks::test_tasks_and_schedule_are_registered` |
+

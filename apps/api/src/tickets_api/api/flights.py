@@ -1,3 +1,4 @@
+import time
 from contextlib import nullcontext
 from datetime import UTC, date, datetime
 from typing import Annotated
@@ -41,8 +42,9 @@ async def search_flights(query: FlightQuery, request: Request) -> FlightSearchRe
 
     Збій окремого провайдера не дає помилку — він видно в `providers[].status`.
     """
+    started = time.monotonic()
     result = await _service(request).search(query)
-    await note_search(request, "flights", ok=bool(result.offers))
+    await note_search(request, "flights", ok=bool(result.offers), started=started)
     return result
 
 

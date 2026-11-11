@@ -54,9 +54,17 @@ Next звертається до API лише із сервера (`API_URL`), �
   Персональних даних не шлемо: в API `send_default_pii=False`, у вебі `dataCollection` вимикає
   cookies, заголовки, тіла й query-параметри (`apps/web/src/lib/sentry-options.ts`).
 - **Зведення:** `curl -H "X-Internal-Key: <INTERNAL_API_KEY>" https://<api>/ops/summary` —
-  квота SerpApi (Account API, квоту не витрачає), виклики й вартість LLM, кліки на партнерів,
-  записані ціни за добу, користувачі, активні підписки.
-- **Аптайм:** `GET /health/ready` — для зовнішнього монітора (UptimeRobot, Better Stack тощо).
+  квота SerpApi (Account API, квоту не витрачає), бюджети й витрати API (`api_spend`), виклики й вартість LLM,
+  кліки на партнерів, записані ціни за добу, користувачі, активні підписки.
+- **Розділ власника `/ops`** ([ADR 0062](adr/0062-monitoring-and-owner-alerts.md)): бюджети й витрати платних API,
+  собівартість пошуку, кеш, джерела, ліміти запитів, ШІ — і зміна лімітів без редеплою. У Vercel: `OPS_ADMINS`
+  (ваш логін SkyPack) і той самий `INTERNAL_API_KEY`, що в Render.
+- **Технічні сповіщення** (воркер, раз на 15 хв): у Render для воркера — `OPS_API_URL` (адреса API),
+  `OPS_TELEGRAM_CHAT_ID` (ваш chat id: напишіть боту `/start`, потім
+  `https://api.telegram.org/bot<TOKEN>/getUpdates` → `message.chat.id`) і/або `OPS_ALERT_EMAIL` (потрібен SMTP).
+- **Критичні помилки коду** — правило сповіщень у Sentry (Alerts → «A new issue is created» → email).
+- **Аптайм:** `GET /health/ready` — для зовнішнього монітора (UptimeRobot, Better Stack тощо): він помітить і
+  падіння всього Render, коли воркер сам не зможе сповістити.
 
 ## Обмеження
 

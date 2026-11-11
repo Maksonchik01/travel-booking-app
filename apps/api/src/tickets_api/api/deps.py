@@ -3,6 +3,7 @@
 Токен знає лише веб-сервер (бере з httpOnly-cookie) — браузер напряму в API не ходить.
 """
 
+import time
 from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request
@@ -55,8 +56,8 @@ Token = Annotated[str | None, Depends(session_token)]
 Device = Annotated[str | None, Depends(client_device)]
 
 
-async def note_search(request: Request, kind: str, *, ok: bool) -> None:
-    """Пошук для собівартості успішного пошуку (ADR 0055): лише лічильник, без параметрів."""
+async def note_search(request: Request, kind: str, *, ok: bool, started: float) -> None:
+    """Пошук для собівартості й моніторингу (ADR 0055, 0062): лічильник і час, без параметрів."""
     meter: ApiMeter | None = getattr(request.app.state, "meter", None)
     if meter is not None:
-        await meter.note_search(kind, ok=ok)
+        await meter.note_search(kind, ok=ok, ms=int((time.monotonic() - started) * 1000))

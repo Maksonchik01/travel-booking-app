@@ -1,3 +1,5 @@
+import time
+
 from fastapi import APIRouter, Depends, Request
 
 from tickets_api.api.deps import note_search
@@ -27,8 +29,9 @@ async def search_trips(query: TripQuery, request: Request) -> TripSearchResult:
     рекомендованого рейсу. Збій джерела видно в `providers[].status`.
     """
     planner: TripPlanner = request.app.state.trip_planner
+    started = time.monotonic()
     result = await planner.plan(query)
-    await note_search(request, "trips", ok=bool(result.combos))
+    await note_search(request, "trips", ok=bool(result.combos), started=started)
     return result
 
 

@@ -107,9 +107,26 @@ async def test_expensive_operations_have_their_own_smaller_bucket() -> None:
 
 
 async def test_lookups_are_limited_too() -> None:
-    async for _, client in _app_client(FakeRedis(), rate_limit_lookup_per_hour=2):
+    redis = FakeRedis()
+    async for _, client in _app_client(redis, rate_limit_lookup_per_hour=2):
         codes = [(await client.get("/places/countries")).status_code for _ in range(3)]
         assert codes == [200, 200, 429]
+    # Моніторинг (ADR 0062): відмова порахована за кошиком.
+    stats = next(v for k, v in redis.hashes.items() if k.startswith("api:stats:"))
+    assert stats == {"ratelimit:lookup:blocked": 1}
+
+
+async def test_owner_endpoints_need_the_internal_key() -> None:
+    body = {"account": "serpapi", "period": "day", "limit": 5}
+    async for _, client in _app_client(FakeRedis()):
+        assert (await client.put("/ops/budgets", json=body)).status_code == 404  # ключа немає
+    async for _, client in _app_client(FakeRedis(), internal_api_key=KEY):
+        assert (await client.put("/ops/budgets", json=body)).status_code == 401
+        wrong = {"x-internal-key": "x" * 32}
+        assert (await client.put("/ops/budgets", json=body, headers=wrong)).status_code == 401
+        bad = {**body, "account": "deepseek"}
+        response = await client.put("/ops/budgets", json=bad, headers={"x-internal-key": KEY})
+        assert response.status_code == 422
 
 
 async def test_signed_in_user_gets_own_bucket_and_forged_token_does_not() -> None:

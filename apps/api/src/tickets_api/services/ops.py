@@ -129,12 +129,14 @@ class ApiSpend(BaseModel):
     operations_7d: dict[str, OperationStats]
     """`рахунок:операція` → запити за 7 днів (Travelpayouts теж — лише облік)."""
     searches_7d: dict[str, dict[str, int]]
-    """вид пошуку → {ok, empty}."""
+    """вид пошуку → {ok, empty, avg_ms} (avg_ms — середній час відповіді API)."""
     cost_usd_7d: Decimal
     cost_per_successful_search_usd_7d: Decimal | None
     """Оцінка всіх платних запитів за 7 днів / пошуків, що щось знайшли."""
     cache_7d: dict[str, CacheStats] = {}
     """джерело → влучання й промахи кешу за 7 днів."""
+    rate_limited_7d: dict[str, int] = {}
+    """кошик ліміту → відмов 429 за 7 днів (ADR 0062)."""
 
 
 class OpsSummary(BaseModel):
@@ -270,7 +272,8 @@ async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
     totals = await meter.stats(7)
     accounts: dict[str, AccountSpend] = {}
     cost_7d = Decimal(0)
-    for name, budget in meter.budgets.items():
+    for name in meter.budgets:
+        budget = await meter.effective(name)
         used = await meter.usage(name)
         limits = {p: budget.limit(p) for p in PERIODS}
         units_7d = sum(
@@ -291,6 +294,7 @@ async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
     operations: dict[str, OperationStats] = {}
     searches: dict[str, dict[str, int]] = {}
     cache: dict[str, CacheStats] = {}
+    limited: dict[str, int] = {}
     for key in {k.rsplit(":", 1)[0] for k in totals}:
         account, operation = key.split(":", 1)
         if account == "cache":
@@ -305,10 +309,15 @@ async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
             )
             continue
         if account == "search":
+            ok, empty = totals.get(f"{key}:ok", 0), totals.get(f"{key}:empty", 0)
             searches[operation] = {
-                "ok": totals.get(f"{key}:ok", 0),
-                "empty": totals.get(f"{key}:empty", 0),
+                "ok": ok,
+                "empty": empty,
+                "avg_ms": totals.get(f"{key}:ms", 0) // (ok + empty) if ok + empty else 0,
             }
+            continue
+        if account == "ratelimit":
+            limited[operation] = totals.get(f"{key}:blocked", 0)
             continue
         requests = totals.get(f"{key}:req", 0)
         operations[key] = OperationStats(
@@ -324,6 +333,7 @@ async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
         operations_7d=dict(sorted(operations.items())),
         searches_7d=searches,
         cache_7d=dict(sorted(cache.items())),
+        rate_limited_7d=dict(sorted(limited.items())),
         cost_usd_7d=cost_7d,
         cost_per_successful_search_usd_7d=(
             (cost_7d / successful).quantize(Decimal("0.0001")) if successful else None

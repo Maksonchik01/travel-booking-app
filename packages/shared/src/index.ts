@@ -116,7 +116,8 @@ export type FlightChatCard = Schemas["FlightCard"];
 export type StayChatCard = Schemas["StayCard"];
 export type TripChatCard = Schemas["TripCard"];
 export type DestinationChatCard = Schemas["DestinationCard"];
-export type ChatCard = FlightChatCard | StayChatCard | TripChatCard | DestinationChatCard;
+export type ChatCard =
+  FlightChatCard | StayChatCard | TripChatCard | DestinationChatCard;
 export type ChatConversationBody = Schemas["ChatConversationBody"];
 export type ChatConversationOut = Schemas["ChatConversationOut"];
 export type ChatSyncState = Schemas["ChatSyncState"];
@@ -183,3 +184,5 @@ export type ChecklistKey = NonNullable<ChecklistItem["key"]>;
 export type FavoriteDestination = Schemas["FavoriteDestination-Output"];
 export type FavoriteDestinationInput = Schemas["FavoriteDestination-Input"];
 export type CategoryCover = Schemas["CategoryCover"];
+export type OpsSummary = Schemas["OpsSummary"];
+export type BudgetLimit = Schemas["BudgetLimit"];

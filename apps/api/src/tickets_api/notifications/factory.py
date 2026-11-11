@@ -1,5 +1,8 @@
+import httpx
+
 from tickets_api.core.config import Settings
 from tickets_api.notifications.mail import Mailer, MockMailer, SmtpMailer
+from tickets_api.notifications.telegram import MockTelegram, TelegramBot, TelegramClient
 
 
 def build_mailer(settings: Settings) -> Mailer:
@@ -13,3 +16,12 @@ def build_mailer(settings: Settings) -> Mailer:
             sender=settings.email_from,
         )
     return MockMailer()
+
+
+def build_telegram(settings: Settings, http: httpx.AsyncClient) -> TelegramClient:
+    """Bot API, якщо є TELEGRAM_BOT_TOKEN; інакше — mock (лише в лог)."""
+    if settings.telegram_bot_token is None:
+        return MockTelegram()
+    return TelegramBot(
+        http, settings.telegram_bot_token.get_secret_value(), base_url=settings.telegram_base_url
+    )

@@ -138,3 +138,62 @@ test("безпека: заголовки на сторінках і без пе�
   await page.goto("/login?next=/%5Cevil.example");
   await expect(page.locator('input[name="next"]').first()).toHaveValue("/account");
 });
+
+test("розділ власника /ops: лише адмін, зведення, зміна ліміту, доступність", async ({ page }) => {
+  // Звичайний відвідувач — сторінка «не знайдено», жодних даних зведення (notFound() у стрімінгу
+  // віддає вміст 404 зі статусом 200 — перевіряємо вміст).
+  await page.goto("/ops");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByTestId("ops")).toHaveCount(0);
+  await expect(page.locator("body")).not.toContainText("Бюджети платних API");
+
+  // Адмін (OPS_ADMINS у playwright.config): реєстрація або вхід, якщо вже є з минулого прогону.
+  await page.goto("/login?mode=register");
+  await page.getByLabel("Логін", { exact: true }).fill("e2e_ops_admin");
+  await page.getByLabel("Пароль", { exact: true }).fill("password123");
+  await page.getByLabel("Пароль ще раз").fill("password123");
+  await page.getByRole("button", { name: "Зареєструватися" }).click();
+  if (!/\/account/.test(page.url())) {
+    await page.waitForTimeout(500);
+    if (!/\/account/.test(page.url())) {
+      await page.goto("/login");
+      await page.getByLabel("Логін або email").fill("e2e_ops_admin");
+      await page.getByLabel("Пароль", { exact: true }).fill("password123");
+      await page.getByRole("button", { name: "Увійти", exact: true }).click();
+    }
+  }
+  await expect(page).toHaveURL(/\/account/);
+
+  await page.goto("/ops");
+  const ops = page.getByTestId("ops");
+  await expect(ops).toContainText("Бюджети платних API");
+  await expect(ops).toContainText("serpapi");
+
+  const form = page.getByTestId("ops-budget-form");
+  await form.locator('select[name="period"]').selectOption("month");
+  await form.locator('input[name="limit"]').fill("123");
+  await form.getByRole("button", { name: "Зберегти" }).click();
+  await expect(page.getByRole("status")).toContainText("Ліміт збережено");
+  await expect(ops.locator("tr", { hasText: "serpapi" })).toContainText("/ 123");
+  // Назад до значення з конфігу — інші прогони не зачіпає.
+  await form.locator('select[name="period"]').selectOption("month");
+  await form.locator('input[name="reset"]').check();
+  await form.getByRole("button", { name: "Зберегти" }).click();
+  await expect(page.getByRole("status")).toContainText("Ліміт збережено");
+
+  // Телефон: таблиці прокручуються у своїх контейнерах, сторінка — ні.
+  await page.setViewportSize({ width: 390, height: 844 });
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+  await page.setViewportSize({ width: 1280, height: 720 });
+
+  const results = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  const serious = results.violations.filter((v) =>
+    ["serious", "critical"].includes(v.impact ?? ""),
+  );
+  expect(serious.map((v) => v.id)).toEqual([]);
+});

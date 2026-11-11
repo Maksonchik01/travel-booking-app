@@ -5,6 +5,9 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = Number(process.env.WEB_PORT ?? 3100);
 const API_PORT = Number(process.env.E2E_API_PORT ?? 8100);
 const API_URL = `http://localhost:${API_PORT}`;
+// Спільний ключ веб ↔ API (не секрет: лише тестові сервери) і адмін розділу /ops (ADR 0062).
+const INTERNAL_API_KEY = "e2e-internal-key-not-a-secret-0000";
+const OPS_ADMIN = "e2e_ops_admin";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -57,6 +60,7 @@ export default defineConfig({
         RATE_LIMIT_LOOKUP_PER_HOUR: "100000",
         // Паралельні воркери Playwright ходять з одного IP.
         MAX_CONCURRENT_SEARCHES: "20",
+        INTERNAL_API_KEY,
         RATE_LIMIT_AI_PER_HOUR: "100000",
         RATE_LIMIT_AUTH_PER_HOUR: "100000",
         RATE_LIMIT_CLICKS_PER_HOUR: "100000",
@@ -67,7 +71,7 @@ export default defineConfig({
     {
       command: `npm run start -- --port ${PORT}`,
       url: `http://localhost:${PORT}`,
-      env: { API_URL },
+      env: { API_URL, INTERNAL_API_KEY, OPS_ADMINS: OPS_ADMIN },
       reuseExistingServer: false,
     },
   ],

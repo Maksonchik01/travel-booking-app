@@ -147,6 +147,14 @@ class Settings(BaseSettings):
     smtp_user: str | None = None
     smtp_password: SecretStr | None = None
     email_from: str | None = None
+    # Технічні сповіщення власнику (ADR 0062): воркер раз на 15 хв (services/ops_watch.py).
+    ops_api_url: str | None = None
+    """Публічна адреса API для перевірки доступності (напр. https://<сервіс>.onrender.com)."""
+    ops_telegram_chat_id: int | None = None
+    """Чат власника в Telegram (бот — TELEGRAM_BOT_TOKEN); дізнатись — /start боту й getUpdates."""
+    ops_alert_email: str | None = None
+    ops_rate_limit_spike: int = Field(default=300, ge=1)
+    """Відмов 429 за добу, після яких сповіщаємо (схоже на бота)."""
 
     serpapi_key: SecretStr | None = None
     serpapi_base_url: str = "https://serpapi.com"
@@ -260,6 +268,9 @@ class Settings(BaseSettings):
         "scrapedo_budget_daily",
         "scrapedo_budget_monthly",
         "llm_budget_daily_usd",
+        "ops_api_url",
+        "ops_telegram_chat_id",
+        "ops_alert_email",
         "llm_budget_monthly_usd",
         mode="before",
     )

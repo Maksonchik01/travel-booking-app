@@ -162,7 +162,7 @@ async def test_spend_summary_and_cost_per_successful_search(redis: Redis) -> Non
     assert spend.accounts["serpapi"].cost_usd_today == Decimal("0.100")
     assert spend.accounts["scrapedo"].used["month"] == 20
     assert spend.operations_7d["serpapi:flights"].ok == 4
-    assert spend.searches_7d["flights"] == {"ok": 1, "empty": 1}
+    assert spend.searches_7d["flights"] == {"ok": 1, "empty": 1, "avg_ms": 0}
     # (4 × 0,025 + 20 × 0,0001) / 2 успішних пошуки
     assert spend.cost_usd_7d == Decimal("0.1020")
     assert spend.cost_per_successful_search_usd_7d == Decimal("0.0510")

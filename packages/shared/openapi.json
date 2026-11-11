@@ -4807,6 +4807,59 @@
         }
       }
     },
+    "/ops/budgets": {
+      "put": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Set Budget",
+        "description": "Власник змінює ліміт платного API без редеплою (ADR 0062); діє за ≤ 30 с.",
+        "operationId": "set_budget_ops_budgets_put",
+        "parameters": [
+          {
+            "name": "x-internal-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Internal-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetLimit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ops/summary": {
       "get": {
         "tags": [
@@ -6319,6 +6372,22 @@
               }
             ],
             "title": "Cost Per Successful Search Usd 7D"
+          },
+          "cache_7d": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CacheStats"
+            },
+            "type": "object",
+            "title": "Cache 7D",
+            "default": {}
+          },
+          "rate_limited_7d": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Rate Limited 7D",
+            "default": {}
           }
         },
         "type": "object",
@@ -6573,6 +6642,83 @@
         ],
         "title": "BoundingBox",
         "description": "Видима область карти («Шукати в цій області», модуль 6)."
+      },
+      "BudgetLimit": {
+        "properties": {
+          "account": {
+            "type": "string",
+            "pattern": "^(serpapi|scrapedo)$",
+            "title": "Account"
+          },
+          "period": {
+            "type": "string",
+            "enum": [
+              "hour",
+              "day",
+              "month"
+            ],
+            "title": "Period"
+          },
+          "limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limit"
+          },
+          "reset": {
+            "type": "boolean",
+            "title": "Reset",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "account",
+          "period"
+        ],
+        "title": "BudgetLimit"
+      },
+      "CacheStats": {
+        "properties": {
+          "hits": {
+            "type": "integer",
+            "title": "Hits"
+          },
+          "shared": {
+            "type": "integer",
+            "title": "Shared"
+          },
+          "misses": {
+            "type": "integer",
+            "title": "Misses"
+          },
+          "hit_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hit Rate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hits",
+          "shared",
+          "misses",
+          "hit_rate"
+        ],
+        "title": "CacheStats"
       },
       "CalendarDay": {
         "properties": {

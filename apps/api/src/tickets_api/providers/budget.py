@@ -12,6 +12,9 @@
   `optional_share` ліміту, щоб лишити запас для основного пошуку.
 - **Облік** на добу (`api:stats:YYYY-MM-DD`): запити, успішні, помилки, заблоковані бюджетом,
   сумарний час — за рахунком і операцією. Вартість — одиниці × ціна одиниці з конфігу.
+- **Ліміти змінює власник** без редеплою (`/ops`, ADR 0062): перевизначення в Redis
+  (`api:budget:overrides`, поле `рахунок:період`) мають пріоритет над конфігом; процес
+  перечитує їх раз на `OVERRIDES_TTL_S`.
 - **Redis недоступний** — запит пропускаємо (як і ліміти запитів): бюджет — захисна сітка, а
   без Redis не працює й кеш; подію пишемо в лог.
 
@@ -22,7 +25,7 @@ import time
 from collections.abc import Awaitable, Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Literal, cast
@@ -44,6 +47,8 @@ _priority: ContextVar[Priority] = ContextVar("api_priority", default="essential"
 STATS_PREFIX = "api:stats"
 USAGE_PREFIX = "api:usage"
 STATS_TTL_S = 40 * 24 * 3600
+OVERRIDES_KEY = "api:budget:overrides"
+OVERRIDES_TTL_S = 30.0
 _TTL: dict[Period, int] = {"hour": 2 * 3600, "day": 2 * 86400, "month": 32 * 86400}
 
 # KEYS — ключі годинного, добового й місячного лічильника; ARGV[1] — одиниці,
@@ -129,10 +134,46 @@ class ApiMeter:
         self._clock = clock or (lambda: datetime.now(UTC))
         self._monotonic = monotonic
         self._script = redis.register_script(_RESERVE)
+        self._overrides: dict[str, int | None] = {}
+        self._overrides_at = float("-inf")
 
     @property
     def budgets(self) -> dict[str, AccountBudget]:
         return self._budgets
+
+    async def effective(self, account: str) -> AccountBudget:
+        """Ліміти з урахуванням перевизначень власника (порожнє значення — «без ліміту»)."""
+        budget = self._budgets.get(account, AccountBudget())
+        if self._monotonic() - self._overrides_at > OVERRIDES_TTL_S:
+            try:
+                raw = await cast(Awaitable[dict[bytes, bytes]], self._redis.hgetall(OVERRIDES_KEY))
+                self._overrides = {
+                    k.decode(): (int(v) if v.decode().isdigit() else None) for k, v in raw.items()
+                }
+            except (RedisError, OSError):
+                pass  # лишаємо попередні
+            self._overrides_at = self._monotonic()
+
+        def pick(period: Period) -> int | None:
+            key = f"{account}:{period}"
+            return self._overrides[key] if key in self._overrides else budget.limit(period)
+
+        return replace(budget, hourly=pick("hour"), daily=pick("day"), monthly=pick("month"))
+
+    async def set_limit(self, account: str, period: Period, limit: int | None) -> None:
+        """Власник змінює ліміт (None — без ліміту); діє в усіх процесах за ≤ 30 с."""
+        await cast(
+            Awaitable[int],
+            self._redis.hset(
+                OVERRIDES_KEY, f"{account}:{period}", "" if limit is None else str(limit)
+            ),
+        )
+        self._overrides_at = float("-inf")
+
+    async def reset_limit(self, account: str, period: Period) -> None:
+        """Повернути ліміт з конфігу (.env)."""
+        await cast(Awaitable[int], self._redis.hdel(OVERRIDES_KEY, f"{account}:{period}"))
+        self._overrides_at = float("-inf")
 
     def usage_keys(self, account: str, now: datetime) -> tuple[str, str, str]:
         return (
@@ -143,7 +184,7 @@ class ApiMeter:
 
     async def reserve(self, account: str, operation: str) -> Ticket:
         """Зарезервувати одиниці під запит або кинути `ProviderBudgetError`."""
-        budget = self._budgets.get(account, AccountBudget())
+        budget = await self.effective(account)
         units = budget.units_per_request
         now = self._clock()
         keys = self.usage_keys(account, now)
@@ -193,11 +234,11 @@ class ApiMeter:
         except (RedisError, OSError) as exc:
             log.warning("api_budget.settle_failed", error=type(exc).__name__)
 
-    async def _count(self, account: str, operation: str, what: str) -> None:
+    async def _count(self, account: str, operation: str, what: str, amount: int = 1) -> None:
         day = f"{STATS_PREFIX}:{self._clock():%Y-%m-%d}"
         try:
             pipe = self._redis.pipeline(transaction=False)
-            pipe.hincrby(day, f"{account}:{operation}:{what}", 1)
+            pipe.hincrby(day, f"{account}:{operation}:{what}", amount)
             pipe.expire(day, STATS_TTL_S)
             await pipe.execute()
         except (RedisError, OSError):
@@ -226,9 +267,11 @@ class ApiMeter:
                     "api_budget.warning", account=account, period=period, used=value, limit=limit
                 )
 
-    async def note_search(self, kind: str, *, ok: bool) -> None:
-        """Пошук для собівартості: `ok` — є результат (знайдено хоч щось)."""
+    async def note_search(self, kind: str, *, ok: bool, ms: int | None = None) -> None:
+        """Пошук для собівартості й моніторингу: `ok` — щось знайдено, `ms` — час відповіді."""
         await self._count("search", kind, "ok" if ok else "empty")
+        if ms is not None:
+            await self._count("search", kind, "ms", ms)
 
     async def usage(self, account: str) -> dict[Period, int]:
         keys = self.usage_keys(account, self._clock())
