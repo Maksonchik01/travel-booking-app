@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.exc import SQLAlchemyError
 
 from tickets_api.api.deps import note_search
-from tickets_api.core.rate_limit import rate_limit
+from tickets_api.core.rate_limit import concurrent_searches, rate_limit
 from tickets_api.domain.stay_rates import StayRatesRequest, StayRatesResult
 from tickets_api.domain.stays import StayQuery
 from tickets_api.providers.budget import optional_spend
@@ -27,7 +27,9 @@ def _service(request: Request) -> StaySearchService:
 
 
 @router.post(
-    "/search", response_model=StaySearchResult, dependencies=[Depends(rate_limit("search"))]
+    "/search",
+    response_model=StaySearchResult,
+    dependencies=[Depends(rate_limit("search")), Depends(concurrent_searches)],
 )
 async def search_stays(query: StayQuery, request: Request) -> StaySearchResult:
     """Житло в місті на дати, з value-score і трьома рекомендованими варіантами.
@@ -39,7 +41,7 @@ async def search_stays(query: StayQuery, request: Request) -> StaySearchResult:
     return result
 
 
-@router.post("/rates", response_model=StayRatesResult, dependencies=[Depends(rate_limit("search"))])
+@router.post("/rates", response_model=StayRatesResult, dependencies=[Depends(rate_limit("check"))])
 async def stay_rates(body: StayRatesRequest, request: Request) -> StayRatesResult:
     """«Порівняти ціни»: тарифи продавців на ті самі дати й гостей, згруповані за однаковими
     умовами (номер, ліжко, харчування, скасування). Джерело не вміє — `unsupported`."""
@@ -49,7 +51,7 @@ async def stay_rates(body: StayRatesRequest, request: Request) -> StayRatesResul
 
 
 @router.post(
-    "/detail", response_model=StayDetailResult, dependencies=[Depends(rate_limit("search"))]
+    "/detail", response_model=StayDetailResult, dependencies=[Depends(rate_limit("lookup"))]
 )
 async def stay_detail(body: StayDetailRequest, request: Request) -> StayDetailResult:
     """Сторінка об'єкта: фото, опис, деталі — з видачі тих самих дат і гостей (з кешу пошуку)."""
@@ -59,7 +61,7 @@ async def stay_detail(body: StayDetailRequest, request: Request) -> StayDetailRe
 log = structlog.get_logger(__name__)
 
 
-@router.get("/history", response_model=PriceSeries)
+@router.get("/history", response_model=PriceSeries, dependencies=[Depends(rate_limit("lookup"))])
 async def stay_history(
     request: Request,
     source: Annotated[str, Query(pattern=r"^[a-z0-9_]{1,32}$")],

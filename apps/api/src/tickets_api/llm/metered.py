@@ -1,4 +1,5 @@
-"""Ліміт викликів, облік токенів і вартості для одного запиту користувача."""
+"""Ліміт викликів, облік токенів і вартості для одного запиту користувача; ліміт витрат
+на добу й місяць для всіх (`LLMSpendGuard`, ADR 0056)."""
 
 import time
 import uuid
@@ -8,6 +9,8 @@ from decimal import Decimal
 from typing import Any
 
 import structlog
+from redis.asyncio import Redis
+from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from tickets_api.db.models import LLMUsage
@@ -22,6 +25,64 @@ Clock = Callable[[], datetime]
 
 class LLMBudgetExceededError(LLMError):
     pass
+
+
+MICRO = Decimal(1_000_000)
+
+
+class LLMSpendGuard:
+    """Добовий і місячний ліміт витрат на ШІ (USD) — спільний для всіх процесів (Redis).
+
+    Перед викликом — перевірка, що ліміт ще не досягнуто; після — додаємо фактичну вартість
+    (у мікродоларах, INCRBY). Один виклик може трохи перевищити ліміт, наступний — уже ні.
+    Redis недоступний — пропускаємо (лог): ШІ вже обмежений лімітом запитів і викликів.
+    """
+
+    def __init__(
+        self,
+        redis: Redis,
+        *,
+        daily_usd: Decimal | None,
+        monthly_usd: Decimal | None,
+        clock: Clock | None = None,
+    ) -> None:
+        self._redis = redis
+        self._limits = (daily_usd, monthly_usd)
+        self._clock = clock or (lambda: datetime.now(UTC))
+
+    def _keys(self) -> tuple[str, str]:
+        now = self._clock()
+        return f"llm:spend:d:{now:%Y-%m-%d}", f"llm:spend:m:{now:%Y-%m}"
+
+    async def spent_usd(self) -> tuple[Decimal, Decimal]:
+        day, month = await self._redis.mget(list(self._keys()))
+        return Decimal(int(day or 0)) / MICRO, Decimal(int(month or 0)) / MICRO
+
+    async def check(self) -> None:
+        try:
+            spent = await self.spent_usd()
+        except (RedisError, OSError) as exc:
+            log.warning("llm.spend_guard_failed", error=type(exc).__name__)
+            return
+        for period, used, limit in zip(("day", "month"), spent, self._limits, strict=True):
+            if limit is not None and used >= limit:
+                log.warning("llm.budget_reached", period=period, used=str(used), limit=str(limit))
+                raise LLMBudgetExceededError("budget", f"AI {period} budget reached")
+
+    async def add(self, cost_usd: Decimal) -> None:
+        micro = int((cost_usd * MICRO).to_integral_value())
+        if micro <= 0:
+            return
+        day, month = self._keys()
+        try:
+            pipe = self._redis.pipeline(transaction=False)
+            pipe.incrby(day, micro)
+            pipe.expire(day, 2 * 86400)
+            pipe.incrby(month, micro)
+            pipe.expire(month, 32 * 86400)
+            await pipe.execute()
+        except (RedisError, OSError) as exc:
+            log.warning("llm.spend_guard_failed", error=type(exc).__name__)
 
 
 class MeteredLLM:
@@ -40,8 +101,10 @@ class MeteredLLM:
         max_calls: int,
         record: RecordUsage | None = None,
         clock: Clock | None = None,
+        guard: LLMSpendGuard | None = None,
     ) -> None:
         self._client = client
+        self._guard = guard
         self.name = client.name
         self._purpose = purpose
         self._pricing = pricing
@@ -56,6 +119,8 @@ class MeteredLLM:
     async def chat(self, request: ChatRequest) -> ChatResponse:
         if self.calls >= self._max_calls:
             raise LLMBudgetExceededError(self._client.name, f"limit of {self._max_calls} calls")
+        if self._guard is not None:
+            await self._guard.check()
         self.calls += 1
         started = time.monotonic()
         try:
@@ -71,6 +136,8 @@ class MeteredLLM:
         )
         self.cost_usd = None if cost is None or self.cost_usd is None else self.cost_usd + cost
         await self._log(request.model, "ok", response.usage, cost, started)
+        if self._guard is not None and cost is not None:
+            await self._guard.add(cost)
         return response
 
     async def _log(

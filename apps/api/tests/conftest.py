@@ -55,7 +55,7 @@ async def live_client() -> AsyncIterator[AsyncClient]:
         redis_url=redis_url,
         **{
             f"rate_limit_{bucket}_per_hour": 100_000
-            for bucket in ("search", "ai", "auth", "clicks", "events")
+            for bucket in ("search", "heavy", "check", "lookup", "ai", "auth", "clicks", "events")
         },
     )
     async for c in _client(create_app(settings)):

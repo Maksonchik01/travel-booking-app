@@ -579,7 +579,10 @@ class AlertService:
                             Alert.status == "active",
                             or_(Alert.last_checked_at.is_(None), Alert.last_checked_at < fresh),
                         )
-                        .order_by(Alert.last_checked_at.asc().nulls_first())
+                        # Довше не перевірені — першими; серед нових — старіші підписки.
+                        .order_by(
+                            Alert.last_checked_at.asc().nulls_first(), Alert.created_at, Alert.id
+                        )
                     )
                 ).all()
             run = CheckRun(budget=self._settings.max_searches_per_run)

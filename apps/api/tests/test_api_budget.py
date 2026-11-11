@@ -47,8 +47,11 @@ async def redis() -> AsyncIterator[Redis]:
     await client.aclose()
 
 
-def meter_for(redis: Redis, **budgets: AccountBudget) -> ApiMeter:
-    now = datetime(2100 + uuid.uuid4().int % 6000, 5, 17, 10, 30, tzinfo=UTC)
+async def meter_for(redis: Redis, **budgets: AccountBudget) -> ApiMeter:
+    """Лічильник на «свій» рік; ключі цього року з попередніх прогонів прибираємо."""
+    now = datetime(2100 + uuid.uuid4().int % 7000, 5, 17, 10, 30, tzinfo=UTC)
+    async for key in redis.scan_iter(match=f"api:*:{now:%Y}-*"):
+        await redis.delete(key)
     return ApiMeter(redis, budgets, optional_share=0.5, warn_share=0.8, clock=lambda: now)
 
 
@@ -66,7 +69,7 @@ pytestmark = pytest.mark.integration
 
 
 async def test_limits_hold_under_concurrent_requests(redis: Redis) -> None:
-    meter = meter_for(redis, serpapi=AccountBudget(daily=10, monthly=100))
+    meter = await meter_for(redis, serpapi=AccountBudget(daily=10, monthly=100))
 
     async def one() -> bool:
         try:
@@ -86,7 +89,7 @@ async def test_limits_hold_under_concurrent_requests(redis: Redis) -> None:
 
 
 async def test_failed_request_returns_the_reservation(redis: Redis) -> None:
-    meter = meter_for(redis, scrapedo=AccountBudget(monthly=20, units_per_request=10))
+    meter = await meter_for(redis, scrapedo=AccountBudget(monthly=20, units_per_request=10))
 
     for _ in range(5):
         ticket = await meter.reserve("scrapedo", "hotels")
@@ -99,7 +102,7 @@ async def test_failed_request_returns_the_reservation(redis: Redis) -> None:
 
 
 async def test_optional_operations_stop_before_essential(redis: Redis) -> None:
-    meter = meter_for(redis, serpapi=AccountBudget(daily=4))
+    meter = await meter_for(redis, serpapi=AccountBudget(daily=4))
 
     with optional_spend():
         await meter.reserve("serpapi", "sellers")
@@ -113,7 +116,7 @@ async def test_optional_operations_stop_before_essential(redis: Redis) -> None:
 
 
 async def test_budget_blocks_the_provider_without_an_http_call(redis: Redis) -> None:
-    meter = meter_for(redis, serpapi=AccountBudget(monthly=1))
+    meter = await meter_for(redis, serpapi=AccountBudget(monthly=1))
     async with httpx.AsyncClient() as http:
         provider = SerpApiFlightProvider(
             http, "key", airports=default_airport_directory(), base_url=BASE, meter=meter
@@ -126,7 +129,7 @@ async def test_budget_blocks_the_provider_without_an_http_call(redis: Redis) -> 
             assert route.call_count == 1
 
             # 5xx — повтор шлюзу, але резерв повертається: квоту не витрачено.
-            meter2 = meter_for(redis, serpapi=AccountBudget(monthly=1))
+            meter2 = await meter_for(redis, serpapi=AccountBudget(monthly=1))
             provider2 = SerpApiFlightProvider(
                 http, "key", airports=default_airport_directory(), base_url=BASE, meter=meter2
             )
@@ -137,7 +140,7 @@ async def test_budget_blocks_the_provider_without_an_http_call(redis: Redis) -> 
 
 
 async def test_spend_summary_and_cost_per_successful_search(redis: Redis) -> None:
-    meter = meter_for(
+    meter = await meter_for(
         redis,
         serpapi=AccountBudget(daily=10, unit_cost_usd=Decimal("0.025")),
         scrapedo=AccountBudget(units_per_request=10, unit_cost_usd=Decimal("0.0001")),
@@ -162,7 +165,7 @@ async def test_spend_summary_and_cost_per_successful_search(redis: Redis) -> Non
 
 
 async def test_warning_is_logged_once_per_period(redis: Redis) -> None:
-    meter = meter_for(redis, serpapi=AccountBudget(daily=5))
+    meter = await meter_for(redis, serpapi=AccountBudget(daily=5))
     with capture_logs() as logs:
         for _ in range(5):
             await meter.reserve("serpapi", "flights")

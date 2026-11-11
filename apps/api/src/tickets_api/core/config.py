@@ -62,6 +62,15 @@ class Settings(BaseSettings):
     internal_api_key: SecretStr | None = None
     """Спільний секрет веб ↔ API: лише з ним API вірить X-Client-IP (IP відвідувача)."""
     rate_limit_search_per_hour: int = Field(default=40, ge=1)
+    rate_limit_heavy_per_hour: int = Field(default=15, ge=1)
+    """Поїздка, «знайти дешевше», оновлення цін — кожен по кілька пошуків (ADR 0056)."""
+    rate_limit_check_per_hour: int = Field(default=60, ge=1)
+    """Перевірка продавців і тарифів (автоматична для першої картки)."""
+    rate_limit_lookup_per_hour: int = Field(default=600, ge=1)
+    """Дешеві читання: календар, матриця, історія цін, місця, сторінка об'єкта з кешу."""
+    rate_limit_account_multiplier: int = Field(default=2, ge=1, le=10)
+    """Увійшов — власний кошик акаунта з більшим лімітом (токен перевіряємо)."""
+    max_concurrent_searches: int = Field(default=3, ge=1, le=20)
     rate_limit_ai_per_hour: int = Field(default=90, ge=1)
     rate_limit_auth_per_hour: int = Field(default=20, ge=1)
     rate_limit_clicks_per_hour: int = Field(default=200, ge=1)
@@ -81,6 +90,9 @@ class Settings(BaseSettings):
     llm_max_calls_per_chat_turn: int = Field(default=6, ge=2, le=12)
     """Викликів моделі на одну репліку чату: інструменти + відповідь + одна спроба виправити."""
     llm_timeout_s: float = Field(default=45.0, gt=0)
+    llm_budget_daily_usd: Decimal | None = Field(default=Decimal("2"), ge=0)
+    llm_budget_monthly_usd: Decimal | None = Field(default=Decimal("20"), ge=0)
+    """Ліміт витрат на ШІ для всіх (ADR 0056); досягнуто — ШІ відповідає «недоступний»."""
     llm_cache_ttl_s: int = 86400
     llm_pricing_path: Path | None = None
     """None — вбудований tickets_api/llm/pricing.toml."""
@@ -242,6 +254,8 @@ class Settings(BaseSettings):
         "scrapedo_budget_hourly",
         "scrapedo_budget_daily",
         "scrapedo_budget_monthly",
+        "llm_budget_daily_usd",
+        "llm_budget_monthly_usd",
         mode="before",
     )
     @classmethod

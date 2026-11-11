@@ -39,7 +39,7 @@ import type {
 
 import { cache } from "react";
 
-import { clientIpHeaders } from "@/lib/client-ip";
+import { clientIdentityHeaders, clientIpHeaders } from "@/lib/client-ip";
 
 const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TIMEOUT_MS = 15_000;
@@ -79,7 +79,7 @@ async function request<T>(
   try {
     const response = await fetch(`${API_URL}${path}`, {
       ...init,
-      headers: { ...init?.headers, ...(await clientIpHeaders()) },
+      headers: { ...(await clientIdentityHeaders()), ...init?.headers },
       cache: "no-store",
       signal: AbortSignal.timeout(timeoutMs),
     });

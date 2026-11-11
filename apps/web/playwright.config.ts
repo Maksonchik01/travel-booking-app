@@ -52,6 +52,11 @@ export default defineConfig({
         // Ліміти запитів на відвідувача (core/rate_limit.py) рахуються в спільному Redis:
         // кілька прогонів e2e за годину не повинні в них впиратися.
         RATE_LIMIT_SEARCH_PER_HOUR: "100000",
+        RATE_LIMIT_HEAVY_PER_HOUR: "100000",
+        RATE_LIMIT_CHECK_PER_HOUR: "100000",
+        RATE_LIMIT_LOOKUP_PER_HOUR: "100000",
+        // Паралельні воркери Playwright ходять з одного IP.
+        MAX_CONCURRENT_SEARCHES: "20",
         RATE_LIMIT_AI_PER_HOUR: "100000",
         RATE_LIMIT_AUTH_PER_HOUR: "100000",
         RATE_LIMIT_CLICKS_PER_HOUR: "100000",

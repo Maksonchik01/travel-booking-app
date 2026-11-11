@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 
 from tickets_api.api.deps import note_search
-from tickets_api.core.rate_limit import rate_limit
+from tickets_api.core.rate_limit import concurrent_searches, rate_limit
 from tickets_api.domain.saved_trips import TripRefreshRequest
 from tickets_api.domain.trips import TripQuery
 from tickets_api.providers.budget import optional_spend
@@ -16,7 +16,9 @@ router = APIRouter(prefix="/trips", tags=["trips"])
 
 
 @router.post(
-    "/search", response_model=TripSearchResult, dependencies=[Depends(rate_limit("search"))]
+    "/search",
+    response_model=TripSearchResult,
+    dependencies=[Depends(rate_limit("heavy")), Depends(concurrent_searches)],
 )
 async def search_trips(query: TripQuery, request: Request) -> TripSearchResult:
     """Переліт туди-назад + житло на дати рейсу, з загальною сумою і трьома варіантами.
@@ -30,7 +32,11 @@ async def search_trips(query: TripQuery, request: Request) -> TripSearchResult:
     return result
 
 
-@router.post("/cheaper", response_model=CheaperResult, dependencies=[Depends(rate_limit("search"))])
+@router.post(
+    "/cheaper",
+    response_model=CheaperResult,
+    dependencies=[Depends(rate_limit("heavy")), Depends(concurrent_searches)],
+)
 async def cheaper_trip(query: TripQuery, request: Request) -> CheaperResult:
     """«Знайти дешевший варіант» для «Вашої поїздки» (`flight`/`stay` у запиті): інші дати
     (±3 дні), сусідні аеропорти, інші рейси й житло за тих самих обов'язкових умов.
@@ -42,7 +48,11 @@ async def cheaper_trip(query: TripQuery, request: Request) -> CheaperResult:
         return await planner.cheaper(query)
 
 
-@router.post("/refresh", response_model=TripRefresh, dependencies=[Depends(rate_limit("search"))])
+@router.post(
+    "/refresh",
+    response_model=TripRefresh,
+    dependencies=[Depends(rate_limit("heavy")), Depends(concurrent_searches)],
+)
 async def refresh_trip(body: TripRefreshRequest, request: Request) -> TripRefresh:
     """«Оновити ціни» збереженої поїздки: та сама конфігурація (рейс і житло) заново —
     актуальна сума, різниця зі збереженою і чи є ще обрані рейс та житло."""

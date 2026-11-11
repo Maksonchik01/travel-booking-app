@@ -25,6 +25,7 @@ from tickets_api.api import (
     trips,
 )
 from tickets_api.auth.google import GoogleOAuth
+from tickets_api.core.body_limit import BodyLimitMiddleware
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.sentry import init_sentry
@@ -182,6 +183,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="SkyPack API", version=__version__, lifespan=lifespan)
     app.state.settings = settings
+    app.add_middleware(BodyLimitMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

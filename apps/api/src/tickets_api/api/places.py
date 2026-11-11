@@ -15,7 +15,7 @@ from tickets_api.reference.airports import (
 router = APIRouter(prefix="/places", tags=["places"])
 
 
-@router.get("", response_model=list[Place])
+@router.get("", response_model=list[Place], dependencies=[Depends(rate_limit("lookup"))])
 async def search_places(
     q: Annotated[str, Query(min_length=1, max_length=64, examples=["вар"])],
     limit: Annotated[int, Query(ge=1, le=20)] = 8,
@@ -32,7 +32,7 @@ async def search_places(
     return directory.search(q, limit=limit, lang=lang)
 
 
-@router.get("/countries", response_model=list[str])
+@router.get("/countries", response_model=list[str], dependencies=[Depends(rate_limit("lookup"))])
 async def countries() -> list[str]:
     """Коди країн довідника (ISO 3166-1 alpha-2); назви мовою сторінки підставляє веб."""
     return default_country_codes()

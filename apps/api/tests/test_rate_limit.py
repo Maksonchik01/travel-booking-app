@@ -61,3 +61,105 @@ async def test_client_ip_without_key_is_ignored(client: AsyncClient) -> None:
 async def test_redis_down_lets_requests_through() -> None:
     async for client in _client(DownRedis()):
         assert [await click(client) for _ in range(3)] == [503, 503, 503]
+
+
+# --- Кошики за вартістю, акаунт, одночасні пошуки, розмір тіла (ADR 0056) ---
+
+TRIP = {
+    "origin": "WAW",
+    "destination": "LIS",
+    "departure_date": "2026-12-05",
+    "return_date": "2026-12-08",
+}
+FLIGHT = {"origin": "WAW", "destination": "LIS", "departure_date": "2026-12-05"}
+
+
+class StubAccounts:
+    """Сесія «good» — користувач u1; решта токенів — невідомі."""
+
+    def __init__(self) -> None:
+        self.lookups = 0
+
+    async def user_for_session(self, token: str) -> Any:
+        self.lookups += 1
+        return type("User", (), {"id": "u1"})() if token == "good" else None  # noqa: S105
+
+
+async def _app_client(redis: FakeRedis, **settings: Any) -> AsyncIterator[tuple[Any, AsyncClient]]:
+    app = create_app(make_settings(**settings))
+    async with LifespanManager(app):
+        real, app.state.redis = app.state.redis, redis
+        app.state.accounts = StubAccounts()
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            yield app, client
+        app.state.redis = real
+
+
+async def test_expensive_operations_have_their_own_smaller_bucket() -> None:
+    async for _, client in _app_client(
+        FakeRedis(), rate_limit_heavy_per_hour=1, rate_limit_search_per_hour=10
+    ):
+        assert (await client.post("/trips/search", json=TRIP)).status_code == 200
+        assert (await client.post("/trips/search", json=TRIP)).status_code == 429
+        # Звичайний пошук рейсів — інший кошик: поїздка його не вичерпала.
+        assert (await client.post("/flights/search", json=FLIGHT)).status_code == 200
+
+
+async def test_lookups_are_limited_too() -> None:
+    async for _, client in _app_client(FakeRedis(), rate_limit_lookup_per_hour=2):
+        codes = [(await client.get("/places/countries")).status_code for _ in range(3)]
+        assert codes == [200, 200, 429]
+
+
+async def test_signed_in_user_gets_own_bucket_and_forged_token_does_not() -> None:
+    async for app, client in _app_client(
+        FakeRedis(), rate_limit_lookup_per_hour=1, rate_limit_account_multiplier=2
+    ):
+        good = {"authorization": "Bearer good"}
+        forged = {"authorization": "Bearer forged"}
+        codes = [
+            (await client.get("/places/countries", headers=good)).status_code for _ in range(3)
+        ]
+        assert codes == [200, 200, 429]  # акаунт: ліміт × 2
+        assert app.state.accounts.lookups == 1  # перевірка токена — з кешу Redis
+        # Підроблений токен — кошик IP, а не новий кошик на кожен токен.
+        assert (await client.get("/places/countries", headers=forged)).status_code == 200
+        other = {"authorization": "Bearer forged-2"}
+        assert (await client.get("/places/countries", headers=other)).status_code == 429
+
+
+async def test_concurrent_searches_per_client_are_capped() -> None:
+    redis = FakeRedis()
+    async for _, client in _app_client(redis, max_concurrent_searches=1, internal_api_key=KEY):
+        key = "cc:127.0.0.1"  # IP клієнта ASGITransport
+        redis.store[key] = b"1"  # один пошук цього клієнта ще триває
+        assert (await client.post("/flights/search", json=FLIGHT)).status_code == 429
+        assert redis.store[key] == b"1"  # відмова не лишила лічильник завищеним
+        redis.store[key] = b"0"
+        assert (await client.post("/flights/search", json=FLIGHT)).status_code == 200
+        assert redis.store[key] == b"0"  # після пошуку — назад
+
+
+async def test_oversized_body_is_rejected() -> None:
+    async for _, client in _app_client(FakeRedis()):
+        big = {**FLIGHT, "padding": "x" * (1024 * 1024 + 1)}
+        assert (await client.post("/flights/search", json=big)).status_code == 413
+
+        async def stream() -> AsyncIterator[bytes]:
+            for _ in range(20):
+                yield b"x" * 64 * 1024
+
+        # Без Content-Length (потік) — рахуємо байти.
+        response = await client.post(
+            "/flights/search", content=stream(), headers={"content-type": "application/json"}
+        )
+        assert response.status_code == 413
+
+
+async def test_concurrency_cap_is_skipped_when_visitors_are_indistinguishable() -> None:
+    """Без INTERNAL_API_KEY усі відвідувачі — один IP Vercel: не обмежуємо весь сайт."""
+    redis = FakeRedis()
+    async for _, client in _app_client(redis, max_concurrent_searches=1):
+        redis.store["cc:127.0.0.1"] = b"5"
+        assert (await client.post("/flights/search", json=FLIGHT)).status_code == 200

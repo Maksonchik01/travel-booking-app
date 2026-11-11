@@ -1424,7 +1424,8 @@
         {
           "h": "How long we keep it",
           "p": [
-            "Account data — until you delete the account. A session lasts up to 30 days, email links — from 1 to 24 hours. Search history in the account — up to the last 200 entries."
+            "Account data — until you delete the account. A session lasts up to 30 days, email links — from 1 to 24 hours. Search history in the account — up to the last 200 entries.",
+            "Abuse protection: to limit how often requests can be made, we count them per hour per IP address or, if you are signed in, per account. The counter lives in Redis for up to an hour and holds no request content; concurrent searches are counted only while a search is running."
           ]
         },
         {

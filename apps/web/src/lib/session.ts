@@ -4,14 +4,13 @@ import { cookies, headers } from "next/headers";
 import { cache } from "react";
 
 import { isLocale, LOCALE_COOKIE } from "@/i18n/config";
-import { clientIpHeaders } from "@/lib/client-ip";
+import { clientIpHeaders, SESSION_COOKIE } from "@/lib/client-ip";
 import { deviceLabel } from "@/lib/device";
 
 export const API_URL =
   process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TIMEOUT_MS = 15_000;
-/** Токен сесії — лише в httpOnly-cookie: JavaScript сторінки його не бачить. */
-export const SESSION_COOKIE = "tickets_session";
+export { SESSION_COOKIE } from "@/lib/client-ip";
 export const OAUTH_STATE_COOKIE = "tickets_oauth_state";
 
 export type CallResult<T> = { ok: true; data: T } | { ok: false; status: number; code: string };

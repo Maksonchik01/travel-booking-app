@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.exc import SQLAlchemyError
 
 from tickets_api.api.deps import note_search
-from tickets_api.core.rate_limit import rate_limit
+from tickets_api.core.rate_limit import concurrent_searches, rate_limit
 from tickets_api.domain.flights import DEFAULT_CURRENCY, Cabin, FlightQuery, Passengers
 from tickets_api.domain.sellers import SellersRequest, SellersResult
 from tickets_api.providers.budget import optional_spend
@@ -32,7 +32,9 @@ def _service(request: Request) -> FlightSearchService:
 
 
 @router.post(
-    "/search", response_model=FlightSearchResult, dependencies=[Depends(rate_limit("search"))]
+    "/search",
+    response_model=FlightSearchResult,
+    dependencies=[Depends(rate_limit("search")), Depends(concurrent_searches)],
 )
 async def search_flights(query: FlightQuery, request: Request) -> FlightSearchResult:
     """Пошук у всіх увімкнених провайдерах. Ціни кешовані: дивись collected_at / found_at.
@@ -44,7 +46,9 @@ async def search_flights(query: FlightQuery, request: Request) -> FlightSearchRe
     return result
 
 
-@router.get("/calendar", response_model=CalendarResult)
+@router.get(
+    "/calendar", response_model=CalendarResult, dependencies=[Depends(rate_limit("lookup"))]
+)
 async def price_calendar(
     request: Request,
     origin: IataParam,
@@ -62,7 +66,7 @@ async def price_calendar(
 MATRIX_MAX_DAYS = 14
 
 
-@router.get("/matrix", response_model=PriceMatrix)
+@router.get("/matrix", response_model=PriceMatrix, dependencies=[Depends(rate_limit("lookup"))])
 async def price_matrix(
     request: Request,
     origin: IataParam,
@@ -92,7 +96,7 @@ async def price_matrix(
 @router.post(
     "/sellers",
     response_model=SellersResult,
-    dependencies=[Depends(rate_limit("search"))],
+    dependencies=[Depends(rate_limit("check"))],
 )
 async def flight_sellers(body: SellersRequest, request: Request) -> SellersResult:
     """Продавці рейсу й свіжа ціна в кожного — на вимогу (1 запит квоти SerpApi, кеш 30 хв).
@@ -107,7 +111,7 @@ async def flight_sellers(body: SellersRequest, request: Request) -> SellersResul
 log = structlog.get_logger(__name__)
 
 
-@router.get("/history", response_model=PriceSeries)
+@router.get("/history", response_model=PriceSeries, dependencies=[Depends(rate_limit("lookup"))])
 async def price_history(
     request: Request,
     origin: IataParam,

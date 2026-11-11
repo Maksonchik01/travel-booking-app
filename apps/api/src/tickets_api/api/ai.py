@@ -22,7 +22,7 @@ from tickets_api.ai.parser import (
 )
 from tickets_api.ai.service import AIService
 from tickets_api.ai.stay_analyst import StayAnalysisResult
-from tickets_api.core.rate_limit import rate_limit
+from tickets_api.core.rate_limit import concurrent_searches, rate_limit
 from tickets_api.domain.flights import DEFAULT_CURRENCY, Currency, FlightQuery, Iata
 from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.domain.stays import StayQuery
@@ -103,7 +103,11 @@ class ChatBody(BaseModel):
         return self
 
 
-@router.post("/chat", response_model=ChatReply, dependencies=[Depends(rate_limit("ai"))])
+@router.post(
+    "/chat",
+    response_model=ChatReply,
+    dependencies=[Depends(rate_limit("ai")), Depends(concurrent_searches)],
+)
 async def chat(body: ChatBody, request: Request) -> ChatReply:
     """Репліка розмови з агентом. Сервер розмову не зберігає — її надсилає клієнт."""
     service = _service(request)

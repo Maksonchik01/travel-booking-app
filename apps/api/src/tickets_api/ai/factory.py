@@ -12,7 +12,7 @@ from tickets_api.ai.stay_analyst import StayAnalyst
 from tickets_api.core.config import Settings
 from tickets_api.domain.flights import FlightQuery
 from tickets_api.llm.deepseek import DeepSeekClient
-from tickets_api.llm.metered import LLMUsageRecorder
+from tickets_api.llm.metered import LLMSpendGuard, LLMUsageRecorder
 from tickets_api.llm.mock import MockLLMClient
 from tickets_api.llm.pricing import Pricing
 from tickets_api.llm.types import LLMClient
@@ -103,5 +103,10 @@ def build_ai_service(
         record_usage=LLMUsageRecorder(sessionmaker).record,
         price_stats=price_stats,
         cache_namespace=client.name,
+        spend_guard=LLMSpendGuard(
+            redis,
+            daily_usd=settings.llm_budget_daily_usd,
+            monthly_usd=settings.llm_budget_monthly_usd,
+        ),
     )
     return service

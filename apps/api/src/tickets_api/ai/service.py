@@ -22,7 +22,7 @@ from tickets_api.ai.stay_analyst import StayAnalysisResult, StayAnalyst
 from tickets_api.domain.flights import DEFAULT_CURRENCY, FlightQuery
 from tickets_api.domain.locale import DEFAULT_AI_LOCALE, UiLocale
 from tickets_api.domain.stays import StayQuery
-from tickets_api.llm.metered import MeteredLLM, RecordUsage
+from tickets_api.llm.metered import LLMSpendGuard, MeteredLLM, RecordUsage
 from tickets_api.llm.pricing import Pricing
 from tickets_api.llm.types import LLMClient
 from tickets_api.repositories.price_history import PriceStats
@@ -61,8 +61,10 @@ class AIService:
         price_stats: PriceStatsLookup | None = None,
         cache_namespace: str = "",
         clock: Clock | None = None,
+        spend_guard: LLMSpendGuard | None = None,
     ) -> None:
         self._client = client
+        self._spend_guard = spend_guard
         self._parser = parser
         self._explainer = explainer
         self._assistant = assistant
@@ -206,6 +208,7 @@ class AIService:
             pricing=self._pricing,
             max_calls=max_calls or self._max_calls,
             record=self._record_usage,
+            guard=self._spend_guard,
         )
 
     async def _stats(self, query: FlightQuery, best_price: Decimal) -> PriceStats | None:

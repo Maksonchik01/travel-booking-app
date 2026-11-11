@@ -218,8 +218,12 @@ SkyPack — веб-застосунок для пошуку подорожей �
   тексти — `legal.*` в uk.json, посилання — у футері). Вони описують ФАКТИЧНУ роботу: змінив
   збір даних, cookies, сховище браузера, провайдерів чи формулу скорингу — онови текст і
   `LEGAL_UPDATED`. Контакт — `CONTACT_EMAIL` (env вебу).
-- **Ліміти запитів** (`core/rate_limit.py`, Redis, вікно — година): `search`, `ai`, `auth`, `clicks`
-  через `dependencies=[Depends(rate_limit(...))]`. IP відвідувача веб передає в `X-Client-IP`
+- **Ліміти запитів** (`core/rate_limit.py`, Redis, вікно — година; [ADR 0056](docs/adr/0056-abuse-limits-and-ai-spend.md)):
+  кошики за вартістю — `search`, `heavy` (поїздка, «дешевше», оновлення), `check` (продавці, тарифи), `lookup`
+  (дешеві читання), `ai`, `auth`, `clicks`, `events` через `dependencies=[Depends(rate_limit(...))]`; новий
+  ендпоінт — у відповідний кошик. Живі пошуки — ще й `Depends(concurrent_searches)` (≤ 3 разом). Увійшов —
+  кошик акаунта × 2 (веб передає сесію, `clientIdentityHeaders`). Тіло > 1 МБ — 413. Витрати ШІ — `LLMSpendGuard`
+  (`LLM_BUDGET_DAILY_USD` / `_MONTHLY_USD`). IP відвідувача веб передає в `X-Client-IP`
   (`src/lib/client-ip.ts`), API вірить йому лише з `X-Internal-Key` = `INTERNAL_API_KEY`.
   Redis недоступний — пропускаємо. 429 → `reason: "rate_limited"` / `authErrors.rate_limited`.
 - **Моніторинг:** Sentry в API (`core/sentry.py`) і вебі (`src/instrumentation*.ts`,

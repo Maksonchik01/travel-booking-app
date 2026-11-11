@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from tickets_api.api.deps import note_search
-from tickets_api.core.rate_limit import rate_limit
+from tickets_api.core.rate_limit import concurrent_searches, rate_limit
 from tickets_api.domain.explore import DestinationPhoto, ExploreCategory, ExploreQuery
 from tickets_api.reference.destinations import category_covers, default_destination_directory
 from tickets_api.services.explore import ExploreResult, ExploreService
@@ -10,7 +10,11 @@ from tickets_api.services.explore import ExploreResult, ExploreService
 router = APIRouter(prefix="/explore", tags=["explore"])
 
 
-@router.post("", response_model=ExploreResult, dependencies=[Depends(rate_limit("search"))])
+@router.post(
+    "",
+    response_model=ExploreResult,
+    dependencies=[Depends(rate_limit("search")), Depends(concurrent_searches)],
+)
 async def explore(query: ExploreQuery, request: Request) -> ExploreResult:
     """Напрямки за бюджетом (ADR 0045): кешовані ціни перельотів з міста будь-куди.
 

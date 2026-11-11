@@ -1,9 +1,12 @@
+import os
+import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
 import pytest
-from tickets_api.llm.metered import LLMBudgetExceededError, MeteredLLM
+from redis.asyncio import Redis
+from tickets_api.llm.metered import LLMBudgetExceededError, LLMSpendGuard, MeteredLLM
 from tickets_api.llm.pricing import default_pricing
 from tickets_api.llm.types import ChatRequest, ChatResponse, LLMError, Message, Usage
 
@@ -95,3 +98,41 @@ def test_system_prompt_combines_rules_and_role() -> None:
 
     assert prompt.startswith("# ЗАГАЛЬНІ ПРАВИЛА")
     assert "lookup_airport" in prompt
+
+
+@pytest.mark.integration
+async def test_spend_guard_stops_ai_at_the_daily_budget() -> None:
+    """Ліміт витрат на ШІ для всіх процесів (ADR 0056): Redis, як у продакшні."""
+    url = os.environ.get("TEST_REDIS_URL")
+    if not url:
+        pytest.skip("TEST_REDIS_URL не заданий")
+    redis = Redis.from_url(url)
+    day = datetime(2100 + uuid.uuid4().int % 6000, 1, 1, 12, tzinfo=UTC)  # свій лічильник
+    async for key in redis.scan_iter(match=f"llm:spend:*:{day:%Y}-*"):
+        await redis.delete(key)
+    guard = LLMSpendGuard(
+        redis, daily_usd=Decimal("0.004"), monthly_usd=Decimal("1"), clock=lambda: day
+    )
+    llm = MeteredLLM(
+        FakeClient(),
+        purpose="chat",
+        pricing=default_pricing(),
+        max_calls=10,
+        clock=lambda: PEAK,
+        guard=guard,
+    )
+    await llm.chat(REQUEST)  # ≈ $0.0047 — останній виклик може трохи перевищити ліміт
+    assert (await guard.spent_usd())[0] == llm.cost_usd
+
+    with pytest.raises(LLMBudgetExceededError, match="day budget"):
+        await llm.chat(REQUEST)
+    assert llm.calls == 1  # моделі не викликали
+    await redis.aclose()
+
+
+async def test_spend_guard_lets_ai_work_without_redis() -> None:
+    down = Redis.from_url("redis://127.0.0.1:1/0", socket_connect_timeout=0.2)
+    guard = LLMSpendGuard(down, daily_usd=Decimal("0"), monthly_usd=None)
+    await guard.check()  # захисна сітка: без Redis не блокуємо
+    await guard.add(Decimal("0.01"))
+    await down.aclose()

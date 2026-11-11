@@ -241,3 +241,14 @@
 | Звіт: використання, вартість, собівартість успішного пошуку; попередження один раз | `test_spend_summary_and_cost_per_successful_search`, `test_warning_is_logged_once_per_period` |
 | Redis недоступний — запит пропускаємо; секція звіту падає окремо | `test_redis_down_lets_requests_through`, `test_ops` |
 
+## Ліміти зловживань і витрати ШІ (ADR 0056)
+
+| Сценарій | Тест |
+|---|---|
+| Дорогі операції — свій менший кошик; звичайний пошук не зачіпають | API `test_rate_limit::test_expensive_operations_have_their_own_smaller_bucket` |
+| Дешеві читання теж обмежені | `test_lookups_are_limited_too` |
+| Акаунт — власний кошик × 2, перевірка токена з кешу; підроблений токен — кошик IP | `test_signed_in_user_gets_own_bucket_and_forged_token_does_not` |
+| Одночасні пошуки одного клієнта — до ліміту, лічильник повертається | `test_concurrent_searches_per_client_are_capped` |
+| Тіло > 1 МБ (і потоком без Content-Length) — 413 | `test_oversized_body_is_rejected` |
+| Ліміт витрат ШІ на добу; без Redis ШІ працює | `test_llm_metering::test_spend_guard_stops_ai_at_the_daily_budget` (Redis), `test_spend_guard_lets_ai_work_without_redis` |
+
