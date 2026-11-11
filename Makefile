@@ -1,4 +1,4 @@
-.PHONY: help install up up-full down logs migrate lint format typecheck test test-integration e2e gen-types check
+.PHONY: help install up up-full down logs migrate lint format typecheck test test-integration e2e load-test gen-types check
 
 help:  ## Список команд
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -49,6 +49,9 @@ test-integration:  ## Інтеграційні тести проти Postgres і
 e2e:  ## Playwright smoke-тест (потребує збірки web)
 	npm run build -w @tickets/web
 	npm run test:e2e -w @tickets/web
+
+load-test:  ## Навантажувальний тест на фейкових джерелах (Redis і Postgres з compose; без платних запитів)
+	uv run python scripts/load_test.py
 
 gen-types:  ## Згенерувати TS-типи з OpenAPI в packages/shared
 	npm run gen:types

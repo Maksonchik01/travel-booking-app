@@ -117,9 +117,11 @@ class OperationStats(BaseModel):
 
 class CacheStats(BaseModel):
     hits: int
+    shared: int
+    """Приєднались до однакового запиту, що вже йшов (до джерела не ходили)."""
     misses: int
     hit_rate: float | None
-    """Частка запитів до джерела, відданих з кешу (ADR 0058)."""
+    """Частка звернень, що обійшлися без нового запиту до джерела (ADR 0058)."""
 
 
 class ApiSpend(BaseModel):
@@ -293,10 +295,13 @@ async def api_spend(meter: ApiMeter, warn_share: float) -> ApiSpend:
         account, operation = key.split(":", 1)
         if account == "cache":
             hits, misses = totals.get(f"{key}:hit", 0), totals.get(f"{key}:miss", 0)
+            shared = totals.get(f"{key}:shared", 0)
+            served = hits + shared
             cache[operation] = CacheStats(
                 hits=hits,
+                shared=shared,
                 misses=misses,
-                hit_rate=round(hits / (hits + misses), 3) if hits + misses else None,
+                hit_rate=round(served / (served + misses), 3) if served + misses else None,
             )
             continue
         if account == "search":

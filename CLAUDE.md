@@ -310,6 +310,7 @@ make check          lint + typecheck + test (те саме, що CI)
 make test-integration   pytest -m integration проти Postgres/Redis з compose
 make e2e            Playwright smoke (API з mock-провайдером і mock-LLM на :8100, web на :3100;
                     після нього перезапусти `npm run dev` — збірка ділить .next)
+make load-test      навантаження на фейкових джерелах (записані відповіді, без платних запитів) → docs/load-test.md
 make gen-types      оновити packages/shared після зміни Pydantic-схем API
 make migrate        alembic upgrade head
 ```

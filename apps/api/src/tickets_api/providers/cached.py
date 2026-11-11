@@ -12,7 +12,7 @@ ADR 0058): не дочекались, а замок досі тримають �
 TTL — за типом даних (ADR 0058): живі ціни — `PROVIDER_CACHE_TTL_S` (30 хв), кешовані ціни
 Travelpayouts — `CACHED_SOURCE_TTL_S` (3 год: дані й так знайдені раніше, вік видно в UI),
 житло — `STAY_CACHE_TTL_S` (1 год), тарифи продавців житла — як живі ціни. Влучання й промахи —
-лічильники `cache:<джерело>:hit|miss` в обліку (`api:stats`, `/ops/summary`).
+лічильники `cache:<джерело>:hit|shared|miss` в обліку (`api:stats`, `/ops/summary`).
 
 Ключ (17.1) — усе, що змінює відповідь ДЖЕРЕЛА: маршрут, дати (й гнучкість), пасажири, клас,
 валюта, сусідні аеропорти, «лише прямі». Не входять профіль, фільтри, багаж і уподобання:
@@ -101,8 +101,8 @@ class RedisCache:
         ttl_s: int | None = None,
     ) -> T:
         cached = await self._read(key)
-        await self._count("hit" if cached is not None else "miss")
         if cached is not None:
+            await self._count("hit")
             return adapter.validate_json(cached)
         return await self._shared(key, lambda: self._fetch(key, adapter, load, ttl_s))
 
@@ -120,10 +120,13 @@ class RedisCache:
         """Однакові одночасні запити в процесі — один виклик. Скасування одного очікувача
         (тайм-аут його пошуку) не скасовує виклик для інших."""
         running = self._inflight.get(key)
+        # Перевірка й реєстрація — без await між ними: одночасні запити не «промахуються» разом.
+        outcome = "shared" if running is not None else "miss"
         if running is None:
             running = asyncio.ensure_future(produce())
             self._inflight[key] = running
             running.add_done_callback(lambda done: self._finished(key, done))
+        await self._count(outcome)
         result: T = await asyncio.shield(running)
         return result
 

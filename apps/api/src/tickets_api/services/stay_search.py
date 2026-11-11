@@ -41,6 +41,7 @@ from tickets_api.providers.base import (
     StayProvider,
     StayRateSource,
 )
+from tickets_api.providers.budget import ProviderBudgetError
 from tickets_api.reference.airports import AirportDirectory
 from tickets_api.repositories.stay_price_history import rate_rows, stay_rows
 from tickets_api.scoring.stays import StayScoringConfig, StayScoringResult, score_stays, stay_key
@@ -335,7 +336,10 @@ class StaySearchService:
             log.warning("stay_provider.timeout", provider=name, timeout_s=timeout_s)
             return ProviderStatus(provider=name, status="timeout", error="timeout"), []
         except ProviderRateLimitedError as exc:
-            log.warning("stay_provider.rate_limited", provider=name, error=exc.message)
+            # Власний бюджет — наше рішення, про нього вже є api_budget.*; 429 джерела — тривога.
+            (log.info if isinstance(exc, ProviderBudgetError) else log.warning)(
+                "stay_provider.rate_limited", provider=name, error=exc.message
+            )
             return ProviderStatus(provider=name, status="rate_limited", error=exc.message), []
         except ProviderUnsupportedError as exc:
             # Не збій: джерело не рахує такий склад гостей (Google Hotels — лише на двох).

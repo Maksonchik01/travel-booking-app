@@ -160,7 +160,9 @@ class ApiMeter:
             return Ticket(account, operation, units, None, self._monotonic())
         if not allowed:
             await self._count(account, operation, "blocked")
-            log.warning(
+            # Одне попередження на годину й рахунок, решта — debug: інакше лог засипає.
+            first = await self._first(f"{keys[0]}:blocked:{priority}", _TTL["hour"])
+            (log.warning if first else log.debug)(
                 "api_budget.blocked",
                 account=account,
                 operation=operation,
@@ -200,6 +202,12 @@ class ApiMeter:
             await pipe.execute()
         except (RedisError, OSError):
             pass
+
+    async def _first(self, key: str, ttl_s: int) -> bool:
+        try:
+            return bool(await self._redis.set(key, 1, nx=True, ex=ttl_s))
+        except (RedisError, OSError):
+            return True
 
     async def _warn(
         self, account: str, budget: AccountBudget, keys: tuple[str, str, str], used: list[int]

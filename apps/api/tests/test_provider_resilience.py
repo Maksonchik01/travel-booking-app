@@ -158,12 +158,16 @@ def cached(inner: StubProvider, redis: FakeRedis, **kwargs: Any) -> CachedFlight
 
 async def test_identical_concurrent_searches_share_one_source_call() -> None:
     inner = SlowProvider("tp", offers=offers_for("tp", [100]))
-    provider = cached(inner, FakeRedis())
+    redis = FakeRedis()
+    provider = cached(inner, redis)
 
     results = await asyncio.gather(*(provider.search(QUERY) for _ in range(5)))
 
     assert inner.calls == 1
     assert all(r == results[0] for r in results)
+    # Облік (ADR 0058): приєднання до запиту, що вже йде, — не «промах».
+    stats = next(v for k, v in redis.hashes.items() if k.startswith("api:stats:"))
+    assert stats == {"cache:tp:miss": 1, "cache:tp:shared": 4}
 
 
 async def test_cancelled_waiter_does_not_cancel_the_shared_call() -> None:

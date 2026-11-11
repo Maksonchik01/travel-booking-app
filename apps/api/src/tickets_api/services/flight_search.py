@@ -40,6 +40,7 @@ from tickets_api.providers.base import (
     SellerSource,
     is_live,
 )
+from tickets_api.providers.budget import ProviderBudgetError
 from tickets_api.repositories.price_history import calendar_rows, offer_rows
 from tickets_api.scoring.baggage import BaggageCost, baggage_cost
 from tickets_api.scoring.config import ScoringConfig
@@ -571,7 +572,10 @@ class FlightSearchService:
             log.warning("provider.timeout", provider=name, timeout_s=timeout_s)
             return ProviderStatus(provider=name, status="timeout", error="timeout"), []
         except ProviderRateLimitedError as exc:
-            log.warning("provider.rate_limited", provider=name, error=exc.message)
+            # Власний бюджет — наше рішення, про нього вже є api_budget.*; 429 джерела — тривога.
+            (log.info if isinstance(exc, ProviderBudgetError) else log.warning)(
+                "provider.rate_limited", provider=name, error=exc.message
+            )
             return ProviderStatus(provider=name, status="rate_limited", error=exc.message), []
         except ProviderUnsupportedError as exc:
             log.info("provider.unsupported", provider=name, reason=exc.message)
