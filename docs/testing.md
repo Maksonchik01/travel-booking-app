@@ -269,3 +269,12 @@
 | TTL: видача житла 1 год, тарифи продавців 30 хв | `test_scrapedo_stays::test_rates_use_cached_search_and_detail_sellers` |
 | Облік влучань/промахів кешу й частка влучань у звіті | `test_cached_provider::test_second_call_is_served_from_cache_with_original_collected_at`, `test_api_budget::test_spend_summary_and_cost_per_successful_search` |
 
+## Неправдоподібні пропозиції (ADR 0059)
+
+| Сценарій | Тест |
+|---|---|
+| Кожне правило (приліт до вильоту, сегменти, тривалість, повернення, податки, дата, ночі, сума житла) | API `test_sanity::test_each_rule`, `test_segments_must_follow_each_other`, `test_recorded_google_hotels_stays_are_all_plausible` |
+| Нічні рейси й перетин поясів — не відкидаємо | `test_overnight_and_timezone_crossing_flights_are_fine` |
+| Записані реальні відповіді всіх джерел — жодного відкинутого | `test_recorded_*_are_all_plausible` |
+| Хибна пропозиція не потрапляє ні у видачу, ні в історію цін; у лог — лише коди | `test_search_service_drops_implausible_offers_before_history`, `test_dropped_items_are_logged_by_code_without_details` |
+

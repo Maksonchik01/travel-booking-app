@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from tickets_api.domain.flights import Money, _StrictInput
 from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
 from tickets_api.domain.money import ConvertedPrice, convert, converted
+from tickets_api.domain.sanity import drop_implausible, stay_problems
 from tickets_api.domain.stay_rates import (
     RateOffer,
     RoomOffers,
@@ -171,7 +172,11 @@ class StaySearchService:
     async def search(self, query: StayQuery) -> StaySearchResult:
         results = await asyncio.gather(*(self._call(p, query) for p in self._providers))
         stays = sorted(
-            (stay for _, items in results for stay in items),
+            drop_implausible(
+                (stay for _, items in results for stay in items),
+                lambda s: stay_problems(s, query),
+                "stays",
+            ),
             key=lambda s: (s.price_per_night, s.source, s.id),
         )
         if self._record_history:

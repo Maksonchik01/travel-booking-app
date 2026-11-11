@@ -280,6 +280,8 @@ async def test_search_result_marks_each_offer_freshness() -> None:
         clock=lambda: NOW,
     )
 
-    result = await service.search(QUERY.model_copy(update={"return_date": None}))
+    # Дата запиту — та сама, що в пропозиціях (інші дати відсікає ADR 0059).
+    one_way = QUERY.model_copy(update={"return_date": None, "departure_date": date(2026, 11, 10)})
+    result = await service.search(one_way)
 
     assert result.freshness == {"live:live-0": "needs_recheck", "tp:tp-0": "cached"}

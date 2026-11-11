@@ -29,6 +29,7 @@ from tickets_api.domain.flights import (
 )
 from tickets_api.domain.freshness import FreshnessRules, PriceFreshness, price_freshness
 from tickets_api.domain.money import ConvertedPrice, convert, converted
+from tickets_api.domain.sanity import drop_implausible, offer_problems
 from tickets_api.domain.sellers import SellersRequest, SellersResult
 from tickets_api.providers.base import (
     ExploreSource,
@@ -256,7 +257,11 @@ class FlightSearchService:
         unique = {
             (o.source, o.id): o for _, items in results for o in items if _fits_trip(o, query)
         }
-        offers = sorted(unique.values(), key=lambda o: (o.price, o.source, o.id))
+        # Неправдоподібні дані джерела (ADR 0059) — ні у видачу, ні в історію цін.
+        offers = sorted(
+            drop_implausible(unique.values(), lambda o: offer_problems(o, query), "flights"),
+            key=lambda o: (o.price, o.source, o.id),
+        )
         if self._record_history:
             # В історію — усе отримане, фільтри видачі її не стосуються.
             await self._record_history(

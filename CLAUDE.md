@@ -158,6 +158,9 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `SCRAPEDO_BUDGET_*`), неуспішний запит повертає резерв; вичерпано — `ProviderBudgetError` (статус `rate_limited`).
   Необов'язкові дорогі операції — у `optional_spend()` (зупиняються на 80 %): нова платна дія «сама» — туди ж.
   Облік і собівартість успішного пошуку — `api_spend` у `/ops/summary`; пошук рахує `note_search`.
+- **Неправдоподібні пропозиції** ([ADR 0059](docs/adr/0059-implausible-offers.md)): `domain/sanity.py` —
+  `offer_problems` / `stay_problems`, `drop_implausible` у сервісах пошуку до історії цін і скорингу; нове правило —
+  перевір на записаних відповідях (`test_sanity`), щоб не відкидати реальні дані.
 - **Кожна отримана ціна пишеться в історію цін** (маршрут, дата, ціна, валюта, джерело, час збору).
 - **Алерти** ([ADR 0010](docs/adr/0010-price-alerts.md)): `services/alerts.py` + воркер
   (`check_alerts` раз на `ALERT_CHECK_INTERVAL_HOURS`, `poll_telegram` щохвилини). Ціни для
