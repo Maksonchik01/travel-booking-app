@@ -122,3 +122,19 @@ test("клавіатура: вікно фільтрів на телефоні �
   await expect(sheet).toBeHidden();
   await expect(open).toBeFocused();
 });
+
+test("безпека: заголовки на сторінках і без перенаправлення на чужий сайт після входу", async ({
+  page,
+}) => {
+  const response = await page.goto("/");
+  const headers = response!.headers();
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(headers["x-powered-by"]).toBeUndefined();
+
+  // `/\evil` браузер читає як `//evil` — у формі входу лишається безпечний шлях.
+  await page.goto("/login?next=/%5Cevil.example");
+  await expect(page.locator('input[name="next"]').first()).toHaveValue("/account");
+});

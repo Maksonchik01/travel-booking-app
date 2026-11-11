@@ -10,6 +10,7 @@ import { GoogleButton } from "@/components/google-button";
 import type { RawSearchParams } from "@/lib/search-params";
 import { call } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { safeLocalPath } from "@/lib/safe-path";
 
 export default async function LoginPage({ searchParams }: PageProps<"/[locale]/login">) {
   const t = await getTranslations("auth");
@@ -25,7 +26,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/[locale]/l
 async function LoginContent({ searchParams }: { searchParams: Promise<RawSearchParams> }) {
   const raw = await searchParams;
   const register = raw.mode === "register";
-  const next = typeof raw.next === "string" && raw.next.startsWith("/") ? raw.next : "/account";
+  const next = safeLocalPath(raw.next, "/account");
   const error = typeof raw.error === "string" ? raw.error : null;
   const status = await call<AuthStatus>("GET", "/auth/status", undefined, null);
   const google = status.ok && status.data.google;

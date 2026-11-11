@@ -4,8 +4,33 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+/**
+ * Заголовки безпеки для всіх сторінок (V3, етап 4). CSP — лише директиви, що не ламають
+ * статичний рендер: `script-src` з nonce вимкнув би пререндер (cacheComponents), тож від XSS
+ * захищає React (без `dangerouslySetInnerHTML`) і санітизація даних джерел. `form-action` не
+ * ставимо: форма без JS після server action перенаправляє на t.me (прив'язка Telegram).
+ */
+const SECURITY_HEADERS = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "X-Frame-Options", value: "DENY" },
+  {
+    key: "Content-Security-Policy",
+    value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+];
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+  },
   partialPrefetching: true,
   // Standalone-бандл потрібен лише для Docker-образу; `next start` з ним не працює.
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,

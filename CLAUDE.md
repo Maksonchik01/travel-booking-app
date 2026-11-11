@@ -226,6 +226,10 @@ SkyPack — веб-застосунок для пошуку подорожей �
   (`LLM_BUDGET_DAILY_USD` / `_MONTHLY_USD`). IP відвідувача веб передає в `X-Client-IP`
   (`src/lib/client-ip.ts`), API вірить йому лише з `X-Internal-Key` = `INTERNAL_API_KEY`.
   Redis недоступний — пропускаємо. 429 → `reason: "rate_limited"` / `authErrors.rate_limited`.
+- **Безпека вебу й API** ([ADR 0057](docs/adr/0057-security-hardening.md)): перенаправлення за параметром — лише
+  `safeLocalPath` (`lib/safe-path.ts`); заголовки безпеки — `next.config.ts` (`SECURITY_HEADERS`); `/docs` і
+  `/openapi.json` — лише поза продакшном; `X-Request-ID` у кожному рядку логу (`core/request_context.py`, веб
+  передає `x-vercel-id`).
 - **Моніторинг:** Sentry в API (`core/sentry.py`) і вебі (`src/instrumentation*.ts`,
   `src/lib/sentry-options.ts`, `app/global-error.tsx`) — лише помилки, без PII (cookies, заголовки,
   тіла, query вимкнені). `GET /ops/summary` (`services/ops.py`) — агрегати для власника за

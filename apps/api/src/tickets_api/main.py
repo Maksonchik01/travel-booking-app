@@ -28,6 +28,7 @@ from tickets_api.auth.google import GoogleOAuth
 from tickets_api.core.body_limit import BodyLimitMiddleware
 from tickets_api.core.config import Settings, get_settings
 from tickets_api.core.logging import configure_logging
+from tickets_api.core.request_context import RequestContextMiddleware
 from tickets_api.core.sentry import init_sentry
 from tickets_api.db.session import create_engine, create_sessionmaker
 from tickets_api.domain.freshness import FreshnessRules
@@ -181,9 +182,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await app.state.redis.aclose()
             await app.state.engine.dispose()
 
-    app = FastAPI(title="SkyPack API", version=__version__, lifespan=lifespan)
+    # Документація й схема API — лише поза продакшном (типи для вебу — `make gen-types`).
+    public_docs = settings.app_env != "production"
+    app = FastAPI(
+        title="SkyPack API",
+        version=__version__,
+        lifespan=lifespan,
+        docs_url="/docs" if public_docs else None,
+        redoc_url="/redoc" if public_docs else None,
+        openapi_url="/openapi.json" if public_docs else None,
+    )
     app.state.settings = settings
     app.add_middleware(BodyLimitMiddleware)
+    app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

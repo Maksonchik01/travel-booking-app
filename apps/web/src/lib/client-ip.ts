@@ -26,11 +26,21 @@ export async function clientIpHeaders(): Promise<Record<string, string>> {
  * ліміти дорогих операцій на акаунт, а не на IP (core/rate_limit.py, ADR 0056).
  */
 export async function clientIdentityHeaders(): Promise<Record<string, string>> {
-  const base = await clientIpHeaders();
+  const base = { ...(await clientIpHeaders()), ...(await requestIdHeader()) };
   try {
     const token = (await cookies()).get(SESSION_COOKIE)?.value;
     return token ? { ...base, authorization: `Bearer ${token}` } : base;
   } catch {
     return base;
+  }
+}
+
+/** Ідентифікатор запиту Vercel → `x-request-id` в API: один збій видно в обох журналах. */
+async function requestIdHeader(): Promise<Record<string, string>> {
+  try {
+    const id = (await headers()).get("x-vercel-id");
+    return id && /^[A-Za-z0-9:_-]{8,128}$/.test(id) ? { "x-request-id": id } : {};
+  } catch {
+    return {};
   }
 }

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 
 import { isLocale, type Locale, LOCALE_COOKIE } from "@/i18n/config";
 import { call, clearSession, sessionToken, setSession } from "@/lib/session";
+import { safeLocalPath } from "@/lib/safe-path";
 
 /** Стан форми для useActionState: код помилки з API перекладає UI (messages → authErrors). */
 export type FormState = { status: "idle" | "ok" | "error" | "guest"; code?: string };
@@ -16,8 +17,7 @@ const raw = (form: FormData, key: string) => String(form.get(key) ?? "");
 
 /** Куди повернутися після входу: лише відносний шлях на нашому сайті. */
 function safeNext(form: FormData): string {
-  const next = raw(form, "next");
-  return next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+  return safeLocalPath(raw(form, "next"), "/account");
 }
 
 function fail(code: string): FormState {

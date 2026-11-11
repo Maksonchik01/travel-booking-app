@@ -252,3 +252,12 @@
 | Тіло > 1 МБ (і потоком без Content-Length) — 413 | `test_oversized_body_is_rejected` |
 | Ліміт витрат ШІ на добу; без Redis ШІ працює | `test_llm_metering::test_spend_guard_stops_ai_at_the_daily_budget` (Redis), `test_spend_guard_lets_ai_work_without_redis` |
 
+## Безпека (ADR 0057)
+
+| Сценарій | Тест |
+|---|---|
+| Перенаправлення після входу — лише на цей сайт (`//`, `/\`, схеми, керівні символи) | WEB `safe-path.test`; E2E «безпека: заголовки…» (`a11y.spec`) |
+| Заголовки безпеки на сторінках, без `X-Powered-By` | E2E «безпека: заголовки…» |
+| `X-Request-ID`: прийнятий чи згенерований, у кожному рядку логу, `nosniff`, `no-store` | API `test_request_context` |
+| Документація API в продакшні вимкнена | `test_request_context::test_docs_are_hidden_in_production` |
+
