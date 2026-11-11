@@ -160,7 +160,7 @@ export function SearchTabs({ form, chat }: { form: ReactNode; chat: ReactNode })
               ref={launcher}
               type="button"
               onClick={() => setOpen(true)}
-              className="chat-launcher bg-primary text-primary-foreground shadow-primary/30 hover:bg-primary/90 fixed right-4 z-40 flex h-12 items-center gap-2 rounded-full px-4 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 sm:right-6"
+              className="chat-launcher bg-primary text-primary-foreground shadow-primary/30 hover:bg-(--primary-hover) fixed right-4 z-40 flex h-12 items-center gap-2 rounded-full px-4 text-sm font-semibold shadow-lg transition-transform hover:-translate-y-0.5 active:translate-y-0 sm:right-6"
               data-testid="chat-launcher"
             >
               <Sparkles className="size-4" aria-hidden />

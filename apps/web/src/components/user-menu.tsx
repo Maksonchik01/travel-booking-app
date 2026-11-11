@@ -14,7 +14,7 @@ export async function UserMenu() {
       <Link
         href="/login"
         aria-label={t("signIn")}
-        className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium shadow-sm transition-colors"
+        className="bg-primary text-primary-foreground hover:bg-(--primary-hover) flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm font-medium shadow-sm transition-colors"
       >
         <LogIn className="size-4" aria-hidden />
         <span className="hidden sm:inline">{t("signIn")}</span>

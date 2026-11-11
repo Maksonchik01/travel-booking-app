@@ -31,3 +31,6 @@ next-env.d.ts
 
 # воркер MapLibre — копія з node_modules (apps/web/scripts/copy-maplibre-worker.mjs)
 /apps/web/public/maplibre/
+
+# Резервні копії бази — персональні дані, не комітимо (scripts/backup_db.sh).
+backups/

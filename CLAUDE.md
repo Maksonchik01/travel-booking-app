@@ -313,6 +313,7 @@ make check          lint + typecheck + test (те саме, що CI)
 make test-integration   pytest -m integration проти Postgres/Redis з compose
 make e2e            Playwright smoke (API з mock-провайдером і mock-LLM на :8100, web на :3100;
                     після нього перезапусти `npm run dev` — збірка ділить .next)
+scripts/backup_db.sh  резервна копія продакшн-бази (персональні дані! backups/ — у .gitignore; deploy.md розд. 6)
 make load-test      навантаження на фейкових джерелах (записані відповіді, без платних запитів) → docs/load-test.md
 make gen-types      оновити packages/shared після зміни Pydantic-схем API
 make migrate        alembic upgrade head
@@ -389,6 +390,7 @@ make migrate        alembic upgrade head
   `<head>` (тема, `data-search`, `data-hints`); fallback оболонки сторінки пошуку — `ShellChoice` з обома станами;
   `CollapsibleSearch` — `<details>`; `FilterShell` до гідратації — обидва варіанти через CSS. Новий елемент, що
   з'являється після гідратації, — так само (сервер рендерить, CSS ховає), інакше CLS. Вимір — `PERF=1 npx playwright test perf`.
+- **Кнопки:** наведення — `hover:bg-(--primary-hover)` (темніше, контраст ≥ 6:1), не `bg-primary/80` (WCAG).
 - **Дизайн:** синя тема й ефекти — у `globals.css` (`.lift`, `.shimmer`, фокус для всіх
   інтерактивних елементів, `prefers-reduced-motion`); вигляд полів — `src/lib/styles.ts`.
 - **Картка рейсу** (`offer-card.tsx`): позначки лише з реальних параметрів (вибір скорингу, «Прямий

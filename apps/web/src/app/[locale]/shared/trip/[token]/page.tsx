@@ -138,7 +138,7 @@ function TripView({ trip }: { trip: SharedTrip }) {
         </p>
         <Link
           href={`/trip?${toTripParams(trip.query)}`}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 w-fit rounded-full px-4 py-2 text-sm font-medium"
+          className="bg-primary text-primary-foreground hover:bg-(--primary-hover) w-fit rounded-full px-4 py-2 text-sm font-medium"
           data-testid="shared-trip-open"
         >
           {t("openPlanner")}

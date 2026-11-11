@@ -156,6 +156,8 @@ test("житло: картка → сторінка об'єкта з цінам�
   page,
 }) => {
   await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
+  // Після гідратації список згортається (кнопка «Показати ще») — назву беремо вже тоді.
+  await expect(page.getByRole("button", { name: /Показати ще/ })).toBeVisible();
   const card = page.locator('[data-testid="stay-card"]:visible').first();
   const name = (await card.getByTestId("stay-name").innerText()).trim();
 
@@ -358,7 +360,9 @@ test("етап 9: головна з ідеями, підказка один ра
 
   // Підказка до нового — закрили, і після перезавантаження її немає.
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&draft=1");
-  const hint = page.getByTestId("hint-flightForm");
+  // Підказку рендерить сервер; під час стрімінгу вона на мить є й у заглушці оболонки — беремо
+  // ту, що в справжній формі.
+  const hint = page.getByTestId("search-panel-form").getByTestId("hint-flightForm");
   await expect(hint).toBeVisible();
   await hint.getByRole("button").click();
   await page.reload();
@@ -368,8 +372,11 @@ test("етап 9: головна з ідеями, підказка один ра
   // «Показати ще» → сторінка об'єкта → «Назад»: розкрите лишається.
   await page.goto("/stays?city=LIS&in=2026-12-05&out=2026-12-08");
   const visible = page.locator('[data-testid="stay-card"]:visible');
+  // До гідратації видно весь список (без JS), кнопка з'являється вже після неї — тоді й рахуємо.
+  const more = page.getByRole("button", { name: /Показати ще/ });
+  await expect(more).toBeVisible();
   const before = await visible.count();
-  await page.getByRole("button", { name: /Показати ще/ }).click();
+  await more.click();
   await expect(visible).not.toHaveCount(before);
   const expanded = await visible.count();
   await visible.last().getByTestId("stay-open").click();

@@ -167,7 +167,7 @@ export function AlertManage({
             href={telegramLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex w-fit items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors"
+            className="bg-primary text-primary-foreground hover:bg-(--primary-hover) flex w-fit items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors"
           >
             <Send className="size-4" aria-hidden />
             {t("openTelegram")}

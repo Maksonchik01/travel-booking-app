@@ -195,5 +195,7 @@ test("розділ власника /ops: лише адмін, зведення,
   const serious = results.violations.filter((v) =>
     ["serious", "critical"].includes(v.impact ?? ""),
   );
-  expect(serious.map((v) => v.id)).toEqual([]);
+  expect(
+    serious.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`),
+  ).toEqual([]);
 });

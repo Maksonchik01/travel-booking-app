@@ -395,7 +395,7 @@ function TripCardView({ card, item, now }: { card: TripChatCard; item: StoredCar
           href={item.trip}
           data-track="ai_to_planner"
           data-track-source="chat"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors"
+          className="bg-primary text-primary-foreground hover:bg-(--primary-hover) inline-flex h-9 items-center justify-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors"
         >
           {t("openInPlanner")}
           <ArrowRight className="size-3.5" aria-hidden />
@@ -479,7 +479,7 @@ function DestinationCardView({
               href={item.trip}
               data-track="ai_to_planner"
               data-track-source="chat"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-8 items-center gap-1 rounded-lg px-3 font-medium"
+              className="bg-primary text-primary-foreground hover:bg-(--primary-hover) inline-flex h-8 items-center gap-1 rounded-lg px-3 font-medium"
             >
               <Luggage className="size-3.5" aria-hidden />
               {t("destinationTrip")}
