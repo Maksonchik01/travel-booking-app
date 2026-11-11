@@ -4,14 +4,17 @@ import { Pencil, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { useHydrated } from "@/lib/use-hydrated";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
  * На сторінці результатів форма згорнута в рядок «що шукаємо» (напр. «WAW → LIS · 5–12 груд. ·
- * 1 дорослий») з кнопкою «Змінити» — на всіх екранах (модуль 23c): головне — результати, а не
- * форма на пів екрана. Без JS форма відкрита.
+ * 1 дорослий») з «Змінити» — на всіх екранах (модуль 23c): головне — результати, а не форма на
+ * пів екрана.
+ *
+ * Нативний `<details>` (V3, етап 9): згорнутий уже в HTML сервера — гідратація не змінює
+ * розмітку, тож результати не «підскакують» (раніше форма згорталась лише після JS: CLS до
+ * 0,18). Без JS розгортається так само, кліком на рядок.
  */
 export function CollapsibleSearch({
   title,
@@ -23,36 +26,31 @@ export function CollapsibleSearch({
   children: ReactNode;
 }) {
   const t = useTranslations("search");
-  const hydrated = useHydrated();
   const [open, setOpen] = useState(false);
-  const collapsed = hydrated && !open;
 
   return (
-    <div className="grid gap-4">
-      {hydrated && (
-        <div className="flex items-center justify-between gap-3" data-testid="search-summary">
-          <div className="min-w-0">
-            <p className="truncate font-semibold sm:text-lg">{title}</p>
-            <p className="text-muted-foreground truncate text-xs sm:text-sm">{details}</p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className="hover:border-primary/50 hover:text-primary shrink-0"
-          >
-            {open ? (
-              <X className="size-3.5" aria-hidden />
-            ) : (
-              <Pencil className="size-3.5" aria-hidden />
-            )}
-            {open ? t("collapse") : t("edit")}
-          </Button>
-        </div>
-      )}
-      <div className={cn(collapsed && "hidden")}>{children}</div>
-    </div>
+    <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} className="group">
+      <summary
+        className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden"
+        data-testid="search-summary"
+      >
+        <span className="grid min-w-0">
+          <span className="truncate font-semibold sm:text-lg">{title}</span>
+          <span className="text-muted-foreground truncate text-xs sm:text-sm">{details}</span>
+        </span>
+        <span
+          aria-hidden
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            "group-hover:border-primary/50 group-hover:text-primary shrink-0",
+          )}
+        >
+          {open ? <X className="size-3.5" /> : <Pencil className="size-3.5" />}
+          {open ? t("collapse") : t("edit")}
+        </span>
+        <span className="sr-only">{open ? t("collapse") : t("edit")}</span>
+      </summary>
+      <div className="pt-4">{children}</div>
+    </details>
   );
 }

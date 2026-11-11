@@ -224,3 +224,23 @@ body:has([data-bottom-bar]) .chat-launcher {
     right: 26rem;
   }
 }
+
+/* Оболонка сторінок пошуку (V3, етап 9, lib/search-shell.ts): заглушка потрібного розміру. */
+/* contents: обгортка не стає елементом сітки — порожній варіант не додає відступу (gap). */
+[data-shell] {
+  display: contents;
+}
+[data-shell="results"],
+html[data-search="results"] [data-shell="start"] {
+  display: none;
+}
+html[data-search="results"] [data-shell="results"] {
+  display: contents;
+}
+
+/* Закриті підказки — до першого кадру (lib/hints.ts). */
+html[data-hints~="flightForm"] [data-hint="flightForm"],
+html[data-hints~="yourTrip"] [data-hint="yourTrip"],
+html[data-hints~="explore"] [data-hint="explore"] {
+  display: none;
+}

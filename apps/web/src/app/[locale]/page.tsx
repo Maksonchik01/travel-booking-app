@@ -90,6 +90,8 @@ import { searchEvents } from "@/lib/server-analytics";
 import { fractionDigits } from "@/lib/money";
 import { sortOffers } from "@/lib/sort";
 import { cn } from "@/lib/utils";
+import { CollapsedSearchSkeleton, ShellChoice } from "@/components/search-shell";
+import { HeroTitle } from "@/components/hero-title";
 
 type Params = Promise<RawSearchParams>;
 
@@ -109,13 +111,20 @@ export default function HomePage({ searchParams }: PageProps<"/[locale]">) {
         <section className="relative isolate z-10 overflow-x-clip border-b">
           <HeroBackdrop />
           <div className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-5 sm:py-8">
-            <Suspense fallback={null}>
+            <Suspense fallback={<ShellChoice start={<Hero />} results={null} />}>
               <HeroText searchParams={searchParams} />
             </Suspense>
             {/* overflow-visible: список підказок міст не обрізається краєм картки */}
             <Card className="border-primary/10 shadow-primary/[0.07] overflow-visible py-0 shadow-xl ring-0">
               <CardContent className="px-4 py-4 sm:px-6 sm:py-5">
-                <Suspense fallback={<SearchForm initial={null} />}>
+                <Suspense
+                  fallback={
+                    <ShellChoice
+                      start={<SearchForm initial={null} />}
+                      results={<CollapsedSearchSkeleton />}
+                    />
+                  }
+                >
                   <SearchArea searchParams={searchParams} />
                 </Suspense>
               </CardContent>
@@ -137,34 +146,12 @@ export default function HomePage({ searchParams }: PageProps<"/[locale]">) {
 /** Заголовок — лише на головній: на сторінці результатів місце потрібне видачі. */
 async function HeroText({ searchParams }: { searchParams: Params }) {
   const t = await getTranslations("home");
-  // На сторінці результатів видимого заголовка немає — h1 лише для screen reader і структури.
-  if (Object.keys(await searchParams).length > 0) {
+  const raw = await searchParams;
+  // Над результатами видимого заголовка немає — h1 лише для screen reader і структури.
+  if (!isDraft(raw) && parseSearchParams(raw)) {
     return <h1 className="sr-only">{t("resultsHeading")}</h1>;
   }
-  return (
-    <div className="grid gap-1.5">
-      <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-4xl">
-        {t.rich("title", {
-          accent: (chunks) => (
-            <span className="from-primary bg-gradient-to-r to-sky-500 bg-clip-text text-transparent">
-              {chunks}
-            </span>
-          ),
-        })}
-      </h1>
-      <p className="text-muted-foreground max-w-2xl text-sm text-balance sm:text-base">
-        {t("subtitle")}
-      </p>
-      <ul className="text-muted-foreground mt-1 flex flex-wrap gap-x-4 gap-y-1.5 text-xs sm:text-sm">
-        {POINTS.map(({ key, icon: Icon }) => (
-          <li key={key} className="flex items-center gap-1.5">
-            <Icon className="text-primary size-3.5" aria-hidden />
-            {t(`points.${key}`)}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  return <Hero />;
 }
 
 /** Форма і (коли увімкнено LLM) ШІ-помічник — у вкладках однієї картки. */
@@ -684,6 +671,23 @@ const FEATURES = [
 ] as const;
 
 /** Що вміє SkyPack — коротко під заголовком (модуль 12.1). */
+/** Заголовок старту: синхронний — однаковий в оболонці й після завантаження (етап 9 V3). */
+function Hero() {
+  const t = useTranslations("home");
+  return (
+    <HeroTitle namespace="home">
+      <ul className="text-muted-foreground mt-1 flex flex-wrap gap-x-4 gap-y-1.5 text-xs sm:text-sm">
+        {POINTS.map(({ key, icon: Icon }) => (
+          <li key={key} className="flex items-center gap-1.5">
+            <Icon className="text-primary size-3.5" aria-hidden />
+            {t(`points.${key}`)}
+          </li>
+        ))}
+      </ul>
+    </HeroTitle>
+  );
+}
+
 const POINTS = [
   { key: "flights", icon: Plane },
   { key: "compare", icon: Scale },
@@ -735,8 +739,9 @@ function EmptyState() {
 
 function ResultsSkeleton() {
   const t = useTranslations("results");
+  // Не нижче за екран: футер не видно, доки йдуть результати, — без зсуву (етап 9 V3).
   return (
-    <div className="grid gap-4" aria-busy>
+    <div className="grid min-h-dvh content-start gap-4" aria-busy>
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
         <Plane className="text-primary size-4 animate-pulse" aria-hidden />
         {t("loading")}

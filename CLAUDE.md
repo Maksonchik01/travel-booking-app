@@ -382,6 +382,10 @@ make migrate        alembic upgrade head
   (`feature-hint.tsx`), позиція списку після «Назад» (`lib/list-position.ts` у `ShowMore`).
 - **Ієрархія** ([ADR 0042](docs/adr/0042-ux-redesign.md)): головне — маршрут, ціна, головна дія; пояснення — `InfoHint`
   («Як оцінюємо?»), а не абзаци над результатами; другорядні блоки (інші дати, деталі ШІ) — згорнуті.
+- **Без зсувів макета** ([ADR 0061](docs/adr/0061-web-performance-no-layout-shift.md)): ранній синхронний скрипт у
+  `<head>` (тема, `data-search`, `data-hints`); fallback оболонки сторінки пошуку — `ShellChoice` з обома станами;
+  `CollapsibleSearch` — `<details>`; `FilterShell` до гідратації — обидва варіанти через CSS. Новий елемент, що
+  з'являється після гідратації, — так само (сервер рендерить, CSS ховає), інакше CLS. Вимір — `PERF=1 npx playwright test perf`.
 - **Дизайн:** синя тема й ефекти — у `globals.css` (`.lift`, `.shimmer`, фокус для всіх
   інтерактивних елементів, `prefers-reduced-motion`); вигляд полів — `src/lib/styles.ts`.
 - **Картка рейсу** (`offer-card.tsx`): позначки лише з реальних параметрів (вибір скорингу, «Прямий

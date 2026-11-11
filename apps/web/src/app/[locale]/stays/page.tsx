@@ -61,6 +61,8 @@ import { commonFrom, isDraft } from "@/lib/search-modes";
 import { searchEvents } from "@/lib/server-analytics";
 import { sortStays } from "@/lib/sort";
 import { cn } from "@/lib/utils";
+import { CollapsedSearchSkeleton, ShellChoice } from "@/components/search-shell";
+import { HeroTitle } from "@/components/hero-title";
 
 type Params = Promise<RawSearchParams>;
 
@@ -78,13 +80,20 @@ export default function StaysPage({ searchParams }: PageProps<"/[locale]/stays">
         <section className="relative isolate overflow-hidden border-b">
           <HeroBackdrop />
           <div className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-5 sm:py-8">
-            <Suspense fallback={null}>
+            <Suspense fallback={<ShellChoice start={<Hero />} results={null} />}>
               <HeroText searchParams={searchParams} />
             </Suspense>
             {/* overflow-visible: список підказок міст не обрізається краєм картки */}
             <Card className="border-primary/10 shadow-primary/[0.07] overflow-visible py-0 shadow-xl ring-0">
               <CardContent className="px-4 py-4 sm:px-6 sm:py-5">
-                <Suspense fallback={<StaySearchForm initial={null} />}>
+                <Suspense
+                  fallback={
+                    <ShellChoice
+                      start={<StaySearchForm initial={null} />}
+                      results={<CollapsedSearchSkeleton />}
+                    />
+                  }
+                >
                   <SearchArea searchParams={searchParams} />
                 </Suspense>
               </CardContent>
@@ -106,28 +115,19 @@ export default function StaysPage({ searchParams }: PageProps<"/[locale]/stays">
 }
 
 /** Заголовок — лише без пошуку: на сторінці результатів місце потрібне видачі. */
+/** Заголовок старту: синхронний — однаковий в оболонці й після завантаження (етап 9 V3). */
+function Hero() {
+  return <HeroTitle namespace="staysHome" />;
+}
+
 async function HeroText({ searchParams }: { searchParams: Params }) {
   const t = await getTranslations("staysHome");
-  // На сторінці результатів видимого заголовка немає — h1 лише для screen reader і структури.
-  if (Object.keys(await searchParams).length > 0) {
+  const raw = await searchParams;
+  // Над результатами видимого заголовка немає — h1 лише для screen reader і структури.
+  if (!isDraft(raw) && parseStayParams(raw)) {
     return <h1 className="sr-only">{t("resultsHeading")}</h1>;
   }
-  return (
-    <div className="grid gap-1.5">
-      <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-4xl">
-        {t.rich("title", {
-          accent: (chunks) => (
-            <span className="from-primary bg-gradient-to-r to-sky-500 bg-clip-text text-transparent">
-              {chunks}
-            </span>
-          ),
-        })}
-      </h1>
-      <p className="text-muted-foreground max-w-2xl text-sm text-balance sm:text-base">
-        {t("subtitle")}
-      </p>
-    </div>
-  );
+  return <Hero />;
 }
 
 async function SearchArea({ searchParams }: { searchParams: Params }) {
@@ -536,8 +536,9 @@ function EmptyState() {
 
 function ResultsSkeleton() {
   const t = useTranslations("stayResults");
+  // Не нижче за екран: футер не видно, доки йдуть результати, — без зсуву (етап 9 V3).
   return (
-    <div className="grid gap-4" aria-busy>
+    <div className="grid min-h-dvh content-start gap-4" aria-busy>
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
         <BedDouble className="text-primary size-4 animate-pulse" aria-hidden />
         {t("loading")}

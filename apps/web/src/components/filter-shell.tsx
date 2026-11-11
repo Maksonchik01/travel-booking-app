@@ -96,44 +96,62 @@ export function FilterShell({
     </h2>
   );
 
-  if (!sheetMode) {
-    return (
-      <aside
-        className="bg-card grid content-start gap-4 rounded-xl border p-4 shadow-xs lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto"
-        aria-labelledby={titleId}
-        data-testid={testId}
+  const panel = (testIdValue?: string) => (
+    <aside
+      className="bg-card grid content-start gap-4 rounded-xl border p-4 shadow-xs lg:sticky lg:top-20 lg:max-h-[calc(100dvh-6rem)] lg:overflow-y-auto"
+      aria-labelledby={titleId}
+      data-testid={testIdValue}
+    >
+      {heading}
+      {children({ sheet: false, close })}
+    </aside>
+  );
+  const openButton = (
+    <Button
+      ref={trigger}
+      type="button"
+      variant="outline"
+      className="bg-card w-full justify-between"
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      onClick={() => setOpen(true)}
+      data-testid="filters-open"
+    >
+      <span className="flex items-center gap-2">
+        <SlidersHorizontal className="text-primary size-4" aria-hidden />
+        {t("title")}
+      </span>
+      <span
+        className={cn(
+          "rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
+          count > 0 ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+        )}
       >
-        {heading}
-        {children({ sheet: false, close })}
-      </aside>
+        {count > 0 ? t("activeCount", { count }) : t("none")}
+      </span>
+    </Button>
+  );
+
+  // До гідратації ширина екрана невідома: обидва варіанти, CSS показує потрібний — після
+  // гідратації вигляд той самий, видача не «підскакує» (V3, етап 9: на телефоні CLS 0,15).
+  // Без JS кнопка вікна не відкриє — тоді показуємо панель на сторінці, як і раніше.
+  if (!hydrated) {
+    return (
+      <div data-testid={testId}>
+        <div className="filter-shell-trigger lg:hidden">{openButton}</div>
+        <div className="filter-shell-panel hidden lg:block">{panel()}</div>
+        <noscript>
+          <style>{`.filter-shell-trigger{display:none!important}.filter-shell-panel{display:block!important}`}</style>
+        </noscript>
+      </div>
     );
   }
 
+  if (!sheetMode) return panel(testId);
+
   return (
     <div data-testid={testId}>
-      <Button
-        ref={trigger}
-        type="button"
-        variant="outline"
-        className="bg-card w-full justify-between"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-        data-testid="filters-open"
-      >
-        <span className="flex items-center gap-2">
-          <SlidersHorizontal className="text-primary size-4" aria-hidden />
-          {t("title")}
-        </span>
-        <span
-          className={cn(
-            "rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
-            count > 0 ? "bg-primary text-primary-foreground" : "text-muted-foreground",
-          )}
-        >
-          {count > 0 ? t("activeCount", { count }) : t("none")}
-        </span>
-      </Button>
+      {openButton}
       {open && (
         <div
           role="dialog"

@@ -185,7 +185,7 @@ test("модуль 2: кілька аеропортів вильоту — ре�
   await expect(cards.filter({ hasText: "KRK" }).first()).toBeVisible();
   await expect(cards.filter({ hasText: "WAW" }).first()).toBeVisible();
 
-  await summary.getByRole("button").click();
+  await summary.click();
   const chip = page.getByTestId("extra-place");
   await expect(chip).toContainText("KRK");
   // Прибрати додатковий — новий пошук лише з основного.
@@ -735,7 +735,7 @@ test("3–5 ночей у грудні: форма без дати поверн�
   // Туди й назад (є повернення) — тоді для місяця з'являються поля ночей.
   await page.goto("/?from=WAW&to=LIS&depart=2026-12-05&return=2026-12-08");
   // Над результатами форма згорнута (модуль 23c) — «Змінити» розгортає її.
-  await page.getByRole("button", { name: "Змінити" }).click();
+  await page.getByTestId("search-summary").click();
   // Вибір до гідратації React не обробить (повільний CI) — повторюємо, доки не подіє.
   await expect(async () => {
     await page.getByLabel("Гнучкість дат").selectOption("month");

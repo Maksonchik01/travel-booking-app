@@ -46,8 +46,12 @@ import { recordHistory, sessionToken } from "@/lib/session";
 import { dateRange } from "@/lib/summary";
 import { currentAccount } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { CollapsedSearchSkeleton, ShellChoice } from "@/components/search-shell";
+import { HeroTitle } from "@/components/hero-title";
 
 type Params = Promise<RawSearchParams>;
+/** Дата для невидимої форми в статичній оболонці (лише розмір, значення не видно). */
+const SHELL_DAY = "2026-01-01";
 
 /**
  * Explore (ADR 0045): куди полетіти за бюджетом. Ціни перельотів — кешовані (Travelpayouts,
@@ -62,12 +66,27 @@ export default function ExplorePage({ searchParams }: PageProps<"/[locale]/explo
         <section className="relative isolate overflow-hidden border-b">
           <HeroBackdrop />
           <div className="mx-auto grid w-full max-w-6xl gap-5 px-4 py-5 sm:py-8">
-            <Suspense fallback={null}>
+            <Suspense
+              fallback={<ShellChoice start={<HeroTitle namespace="explore" />} results={null} />}
+            >
               <HeroText searchParams={searchParams} />
             </Suspense>
             <Card className="border-primary/10 shadow-primary/[0.07] overflow-visible py-0 shadow-xl ring-0">
               <CardContent className="px-4 py-4 sm:px-6 sm:py-5">
-                <Suspense fallback={<div className="shimmer h-56 rounded-lg" aria-hidden />}>
+                <Suspense
+                  fallback={
+                    <ShellChoice
+                      start={
+                        // Невидима форма тієї самої висоти (чипи переносяться по-різному на
+                        // різних екранах); дата — заглушка: `new Date()` в оболонці заборонений.
+                        <div className="invisible" aria-hidden inert>
+                          <ExploreForm initial={null} today={SHELL_DAY} />
+                        </div>
+                      }
+                      results={<CollapsedSearchSkeleton />}
+                    />
+                  }
+                >
                   <SearchArea searchParams={searchParams} />
                 </Suspense>
               </CardContent>
@@ -96,22 +115,7 @@ async function HeroText({ searchParams }: { searchParams: Params }) {
   if (parseExploreParams(await searchParams)) {
     return <h1 className="sr-only">{t("resultsHeading")}</h1>;
   }
-  return (
-    <div className="grid gap-1.5">
-      <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-4xl">
-        {t.rich("title", {
-          accent: (chunks) => (
-            <span className="from-primary bg-gradient-to-r to-sky-500 bg-clip-text text-transparent">
-              {chunks}
-            </span>
-          ),
-        })}
-      </h1>
-      <p className="text-muted-foreground max-w-2xl text-sm text-balance sm:text-base">
-        {t("subtitle")}
-      </p>
-    </div>
-  );
+  return <HeroTitle namespace="explore" />;
 }
 
 async function SearchArea({ searchParams }: { searchParams: Params }) {

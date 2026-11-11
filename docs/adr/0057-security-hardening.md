@@ -10,8 +10,8 @@
 - **Заголовки безпеки вебу** (`next.config.ts`): `X-Frame-Options: DENY` і CSP `frame-ancestors 'none'; base-uri
   'self'; object-src 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`,
   `Permissions-Policy` (камера, мікрофон, геолокація, платежі, USB — вимкнено), HSTS, без `X-Powered-By`.
-  `script-src` з nonce не ставимо: він вимикає пререндер (cacheComponents). Від XSS захищає React (жодного
-  `dangerouslySetInnerHTML` у коді) і те, що дані джерел лише показуються як текст. `form-action` не ставимо: без JS
+  `script-src` з nonce не ставимо: він вимикає пререндер (cacheComponents). Від XSS захищає React (`dangerouslySetInnerHTML` —
+  лише сталий скрипт ініціалізації в `<head>` без даних користувача, ADR 0061) і те, що дані джерел лише показуються як текст. `form-action` не ставимо: без JS
   форма прив'язки Telegram після server action перенаправляє на t.me.
 - **Документація API** (`/docs`, `/redoc`, `/openapi.json`) — лише поза продакшном. Типи для вебу —
   `make gen-types` (будує схему напряму, без HTTP).
