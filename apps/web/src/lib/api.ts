@@ -55,7 +55,8 @@ export type ApiStatus =
 
 /** Результат виклику API: або дані, або причина, чому їх немає (без винятків назовні). */
 export type ApiResult<T> =
-  { ok: true; data: T } | { ok: false; reason: "unreachable" | "error" | "rate_limited" };
+  | { ok: true; data: T }
+  | { ok: false; reason: "unreachable" | "error" | "rate_limited" | "not_found" };
 
 export async function fetchReadiness(signal?: AbortSignal): Promise<ApiStatus> {
   try {
@@ -84,6 +85,7 @@ async function request<T>(
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (response.status === 429) return { ok: false, reason: "rate_limited" };
+    if (response.status === 404) return { ok: false, reason: "not_found" };
     if (!response.ok) return { ok: false, reason: "error" };
     if (response.status === 204) return { ok: true, data: null as T };
     return { ok: true, data: (await response.json()) as T };
@@ -397,6 +399,7 @@ export const ERROR_KEY = {
   unreachable: "unreachable",
   error: "error",
   rate_limited: "rateLimited",
+  not_found: "error",
 } as const;
 
 export async function fetchCountryCodes(): Promise<string[]> {

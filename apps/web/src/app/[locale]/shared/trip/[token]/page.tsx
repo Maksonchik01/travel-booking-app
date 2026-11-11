@@ -8,6 +8,7 @@ import { Suspense } from "react";
 import { HeroBackdrop, SiteFooter } from "@/components/page-chrome";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { PageNotice } from "@/components/page-notice";
 import { fetchSharedTrip } from "@/lib/api";
 import { localDate, localTime } from "@/lib/format";
 import { fractionDigits } from "@/lib/money";
@@ -40,8 +41,19 @@ export default function SharedTripPage({ params }: PageProps<"/[locale]/shared/t
 async function Shared({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const result = /^[A-Za-z0-9_-]{16,40}$/.test(token) ? await fetchSharedTrip(token) : null;
-  if (!result?.ok) return <NotFound />;
+  if (!result || (!result.ok && result.reason === "not_found")) return <NotFound />;
+  // Збій сервера — не «посилання вимкнено»: посилання робоче, повторіть пізніше (V3, етап 7).
+  if (!result.ok) return <Unavailable token={token} />;
   return <TripView trip={result.data} />;
+}
+
+function Unavailable({ token }: { token: string }) {
+  const t = useTranslations("sharedTrip");
+  return (
+    <PageNotice tone="error" retryHref={`/shared/trip/${token}`}>
+      {t("unavailable")}
+    </PageNotice>
+  );
 }
 
 function NotFound() {

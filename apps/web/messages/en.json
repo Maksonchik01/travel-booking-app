@@ -1154,7 +1154,8 @@
     "invalid_image": "This doesn't look like a PNG, JPEG or WebP image.",
     "image_too_large": "The photo is too large (300 KB max). Shrink it or enable JavaScript — the site will shrink it for you.",
     "alert_failed": "Couldn't update the subscription. Please try again.",
-    "alert_editFailed": "Couldn't save the subscription changes: check the dates and condition."
+    "alert_editFailed": "Couldn't save the subscription changes: check the dates and condition.",
+    "unavailable": "The service is temporarily unavailable. Please try again in a minute."
   },
   "account": {
     "sections": "Account sections",
@@ -1331,7 +1332,13 @@
       "browserDone": "SkyPack data in this browser cleared.",
       "note": "Browser data — chat history, favorites and trips saved without signing in, the alerts list, comparisons, saved filters (the theme stays). Account favorites and saved trips are managed in their sections."
     },
-    "alertsLimit": "Open subscriptions: {open} of {max} — so tracking doesn't run forever."
+    "alertsLimit": "Open subscriptions: {open} of {max} — so tracking doesn't run forever.",
+    "unavailable": {
+      "title": "Your account is temporarily unavailable",
+      "text": "We couldn't load your data — most likely a brief server outage. You are still signed in; please try again in a minute. Flight and stay search keeps working.",
+      "retry": "Try again",
+      "home": "Home"
+    }
   },
   "saveSearch": {
     "save": "Save search",
@@ -1874,7 +1881,8 @@
     "stay": "Stay",
     "nights": "{count, plural, one {# night} other {# nights}}",
     "stops": "{count, plural, =0 {direct} one {# stop} other {# stops}}",
-    "rating": "rating {rating}"
+    "rating": "rating {rating}",
+    "unavailable": "We couldn't load this trip right now — a temporary server outage. The link still works; please try again in a minute."
   },
   "recent": {
     "title": "Recent searches",

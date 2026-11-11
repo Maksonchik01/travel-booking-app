@@ -27,6 +27,7 @@ from tickets_api.api import (
 from tickets_api.auth.google import GoogleOAuth
 from tickets_api.core.body_limit import BodyLimitMiddleware
 from tickets_api.core.config import Settings, get_settings
+from tickets_api.core.errors import register_dependency_errors
 from tickets_api.core.logging import configure_logging
 from tickets_api.core.request_context import RequestContextMiddleware
 from tickets_api.core.sentry import init_sentry
@@ -193,6 +194,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/openapi.json" if public_docs else None,
     )
     app.state.settings = settings
+    register_dependency_errors(app)
     app.add_middleware(BodyLimitMiddleware)
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(

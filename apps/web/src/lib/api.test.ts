@@ -1,7 +1,7 @@
 import type { FlightQuery } from "@tickets/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { fetchReadiness, searchFlights } from "./api";
+import { fetchReadiness, fetchSharedTrip, searchFlights } from "./api";
 
 const readyBody = {
   status: "ok",
@@ -85,5 +85,23 @@ describe("searchFlights", () => {
       throw new TypeError("fetch failed");
     });
     expect(await searchFlights(query)).toEqual({ ok: false, reason: "unreachable" });
+  });
+});
+
+describe("fetchSharedTrip (V3, етап 7)", () => {
+  it("розрізняє «посилання немає» (404) і збій сервера (503, мережа)", async () => {
+    mockFetch(async () => Response.json({ detail: "not_found" }, { status: 404 }));
+    expect(await fetchSharedTrip("abcdefghijklmnop")).toEqual({ ok: false, reason: "not_found" });
+
+    mockFetch(async () => Response.json({ detail: "unavailable" }, { status: 503 }));
+    expect(await fetchSharedTrip("abcdefghijklmnop")).toEqual({ ok: false, reason: "error" });
+
+    mockFetch(async () => {
+      throw new TypeError("fetch failed");
+    });
+    expect(await fetchSharedTrip("abcdefghijklmnop")).toEqual({
+      ok: false,
+      reason: "unreachable",
+    });
   });
 });

@@ -55,7 +55,11 @@ export const KIND_ICON = {
 } as const;
 export { KIND_PATH };
 
-/** Акаунт для сторінки кабінету; без входу — на вхід з поверненням у цей розділ. */
+/**
+ * Акаунт для сторінки кабінету; без входу — на вхід з поверненням у цей розділ. Сесія є, а
+ * API чи база недоступні (не 401) — помилка для `account/error.tsx` («тимчасово недоступний»),
+ * а не вихід з акаунта: інакше збій виглядав би як «вас не впізнали».
+ */
 export async function requireAccount(section: AccountSection): Promise<{
   account: Account;
   token: string;
@@ -64,7 +68,8 @@ export async function requireAccount(section: AccountSection): Promise<{
   const token = await sessionToken();
   if (!token) redirect(`/login?next=${encodeURIComponent(href)}`);
   const account = await call<Account>("GET", "/account", undefined, token);
-  if (!account.ok) redirect(`/login?next=${encodeURIComponent(href)}`);
+  if (!account.ok && account.status === 401) redirect(`/login?next=${encodeURIComponent(href)}`);
+  if (!account.ok) throw new Error(`account_unavailable:${account.code}`);
   return { account: account.data, token };
 }
 

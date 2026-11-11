@@ -278,3 +278,12 @@
 | Записані реальні відповіді всіх джерел — жодного відкинутого | `test_recorded_*_are_all_plausible` |
 | Хибна пропозиція не потрапляє ні у видачу, ні в історію цін; у лог — лише коди | `test_search_service_drops_implausible_offers_before_history`, `test_dropped_items_are_logged_by_code_without_details` |
 
+## Збої залежностей (ADR 0060)
+
+| Сценарій | Тест |
+|---|---|
+| База недоступна: пошук перельотів, житла, поїздки працює | API `test_dependency_errors::test_search_keeps_working_without_database` |
+| База недоступна: кабінет, вхід, публічна поїздка — 503 `unavailable` з Retry-After | `test_dependency_errors::test_account_login_and_shared_trip_say_unavailable` |
+| Кабінет під час збою — «тимчасово недоступний», не вихід; повтор | WEB `account/error.test` |
+| Публічна поїздка: 404 — «немає», збій — повтор | WEB `api.test` (`fetchSharedTrip`) |
+

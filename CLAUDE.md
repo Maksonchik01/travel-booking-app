@@ -234,6 +234,8 @@ SkyPack — веб-застосунок для пошуку подорожей �
   `safeLocalPath` (`lib/safe-path.ts`); заголовки безпеки — `next.config.ts` (`SECURITY_HEADERS`); `/docs` і
   `/openapi.json` — лише поза продакшном; `X-Request-ID` у кожному рядку логу (`core/request_context.py`, веб
   передає `x-vercel-id`).
+- **Збої залежностей** ([ADR 0060](docs/adr/0060-dependency-outages.md)): недоступна база → 503 `unavailable`
+  (`core/errors.py`); кабінет на вхід — лише при 401, інакше `account/error.tsx`; `ApiResult.reason` має `not_found`.
 - **Моніторинг:** Sentry в API (`core/sentry.py`) і вебі (`src/instrumentation*.ts`,
   `src/lib/sentry-options.ts`, `app/global-error.tsx`) — лише помилки, без PII (cookies, заголовки,
   тіла, query вимкнені). `GET /ops/summary` (`services/ops.py`) — агрегати для власника за
