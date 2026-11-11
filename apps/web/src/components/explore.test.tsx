@@ -180,29 +180,57 @@ describe("Explore (ADR 0045)", () => {
     expect(JSON.parse(sessionStorage.getItem("tickets.exploreCompare.v1") ?? "[]")).toHaveLength(2);
   });
 
-  it("форма: швидкі дати заповнюють поля, ще один аеропорт — до трьох", () => {
+  it("форма: «не знаю» першим, дата ± похибка → період вильоту, службові поля не в URL", () => {
     // Поле місця підтягує назву за кодом — без мережі в тестах.
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("[]"));
     const { container } = wrap(
       <ExploreForm
-        initial={{ origins: ["AMS"] }}
-        countries={[{ code: "ES", name: "Іспанія" }]}
+        initial={{
+          origins: ["AMS"],
+          departure_date: "2026-12-03",
+          departure_until: "2026-12-17",
+          min_nights: 2,
+          max_nights: 4,
+        }}
         today="2026-11-11"
       />,
     );
+    const value = (name: string) =>
+      container.querySelector<HTMLInputElement>(`input[type="hidden"][name="${name}"]`)?.value;
 
-    fireEvent.click(screen.getByTestId("preset-thisWeekend"));
-    expect(container.querySelector<HTMLInputElement>('[name="depart"]')!.value).toBe("2026-11-13");
-    expect(container.querySelector<HTMLInputElement>('[name="return"]')!.value).toBe("2026-11-15");
+    const where = within(screen.getByTestId("explore-where")).getAllByRole("button");
+    expect(where[0]).toHaveAttribute("aria-pressed", "true");
+    expect(where[0]).toHaveTextContent("Не знаю — будь-куди");
+    expect(container.querySelector<HTMLInputElement>("#explore-date")!.value).toBe("2026-12-10");
+    expect([value("depart"), value("until"), value("nmin"), value("nmax")]).toEqual([
+      "2026-12-03",
+      "2026-12-17",
+      "2",
+      "4",
+    ]);
+    expect(value("to")).toBeUndefined();
 
-    fireEvent.click(screen.getByTestId("preset-week"));
-    expect(container.querySelector('[name="return"]')).toBeNull();
-    expect(container.querySelector<HTMLInputElement>('[name="nmin"]')!.value).toBe("4");
-    expect(container.querySelector<HTMLInputElement>('[name="nmax"]')!.value).toBe("6");
+    fireEvent.click(screen.getByText("± 3 дні"));
+    expect([value("depart"), value("until")]).toEqual(["2026-12-07", "2026-12-13"]);
+    fireEvent.click(screen.getByText("7–14 ночей"));
+    expect([value("nmin"), value("nmax")]).toEqual(["7", "14"]);
 
-    fireEvent.click(screen.getByTestId("explore-add-origin"));
-    fireEvent.click(screen.getByTestId("explore-add-origin"));
-    expect(screen.queryByTestId("explore-add-origin")).toBeNull();
-    expect(screen.getByRole("option", { name: "Іспанія" })).toHaveValue("ES");
+    fireEvent.click(screen.getByTestId("explore-where-asia"));
+    expect(value("to")).toBe("asia");
+    fireEvent.click(screen.getByTestId("explore-where-sea"));
+    expect(value("to")).toBeUndefined();
+    expect(value("cat")).toBe("sea");
+
+    // Перемикачі — кнопки, не поля форми: адреса пошуку лише з прихованих полів.
+    const keys = [...new FormData(container.querySelector("form")!).keys()];
+    expect(keys.filter((k) => !["budget", "cur", "adults", "mode"].includes(k))).toEqual([
+      "cat",
+      "from",
+      "depart",
+      "until",
+      "nmin",
+      "nmax",
+    ]);
+    expect(screen.getByTestId("entry-notice")).toHaveTextContent("віза");
   });
 });

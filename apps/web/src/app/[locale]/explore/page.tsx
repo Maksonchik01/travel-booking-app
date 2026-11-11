@@ -3,7 +3,7 @@ import { Compass, List, Map as MapIcon } from "lucide-react";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
-import { after } from "next/server";
+import { after, connection } from "next/server";
 import { Suspense } from "react";
 
 import { AIChat } from "@/components/ai-chat";
@@ -11,6 +11,8 @@ import { CollapsibleSearch } from "@/components/collapsible-search";
 import { SearchTabs } from "@/components/search-tabs";
 import { ExploreCard } from "@/components/explore-card";
 import { ExploreCompareBar, ExploreCompareProvider } from "@/components/explore-compare";
+import { EntryNotice } from "@/components/entry-notice";
+import { ExploreFeatured } from "@/components/explore-featured";
 import { ExploreForm } from "@/components/explore-form";
 import { FavoritesProvider } from "@/components/favorites";
 import { FeatureHint } from "@/components/feature-hint";
@@ -24,7 +26,7 @@ import { ProviderAlerts } from "@/components/provider-alerts";
 import { SearchModes } from "@/components/search-modes";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { ERROR_KEY, fetchAIStatus, fetchCountryCodes, searchExplore } from "@/lib/api";
+import { ERROR_KEY, fetchAIStatus, searchExplore } from "@/lib/api";
 import {
   CATEGORIES,
   EXPLORE_PATH,
@@ -113,26 +115,21 @@ async function HeroText({ searchParams }: { searchParams: Params }) {
 }
 
 async function SearchArea({ searchParams }: { searchParams: Params }) {
-  const [raw, countries, account] = await Promise.all([
-    searchParams,
-    fetchCountryCodes(),
-    currentAccount(),
-  ]);
+  const [raw, account] = await Promise.all([searchParams, currentAccount(), connection()]);
   const query = parseExploreParams(raw);
   const draft = parseExploreDraft(raw);
   // Новий пошук — з домашнього аеропорту кабінету (модуль 15), відкритий з URL — як є.
   if (!draft.origins?.length && account?.home_airport) draft.origins = [account.home_airport];
   const today = new Date().toISOString().slice(0, 10);
   const locale = await getLocale();
-  const names = new Intl.DisplayNames([locale], { type: "region" });
-  const countryNames = countries
-    .map((code) => ({ code, name: names.of(code) ?? code }))
-    .sort((a, b) => a.name.localeCompare(b.name, locale));
+  const country = (query ?? draft).country;
   const form = (
     <ExploreForm
       key={query ? exploreHref(query) : "empty"}
       initial={query ?? draft}
-      countries={countryNames}
+      countryName={
+        country ? new Intl.DisplayNames([locale], { type: "region" }).of(country) : undefined
+      }
       today={today}
     />
   );
@@ -195,8 +192,23 @@ async function Results({ searchParams }: { searchParams: Params }) {
   const query = parseExploreParams(raw);
   const t = await getTranslations("explore");
   if (!query) {
-    const meaningful = Object.keys(raw).some((k) => !["cat", "to", "mode"].includes(k));
-    return meaningful ? <PageNotice>{t("invalid")}</PageNotice> : <Ideas />;
+    const meaningful = Object.keys(raw).some((k) => !["cat", "to", "mode", "from"].includes(k));
+    if (meaningful) return <PageNotice>{t("invalid")}</PageNotice>;
+    const [account] = await Promise.all([currentAccount(), connection()]);
+    const draft = parseExploreDraft(raw);
+    return (
+      <div className="grid gap-10">
+        <Suspense fallback={<FeaturedSkeleton />}>
+          <ExploreFeatured
+            origin={draft.origins?.[0] ?? account?.home_airport ?? null}
+            scope={{ region: draft.region, country: draft.country, categories: draft.categories }}
+            currency={account?.currency ?? "EUR"}
+            today={new Date().toISOString().slice(0, 10)}
+          />
+        </Suspense>
+        <Ideas />
+      </div>
+    );
   }
   const locale = await getLocale();
   const result = await searchExplore({ ...query, lang: locale === "uk" ? "uk" : "en" });
@@ -399,6 +411,7 @@ function ResultsView({
           ))}
         </p>
       )}
+      <EntryNotice />
     </div>
   );
 }
@@ -453,6 +466,19 @@ function Ideas() {
         ))}
       </div>
     </section>
+  );
+}
+
+function FeaturedSkeleton() {
+  return (
+    <div className="grid gap-4" aria-busy>
+      <div className="shimmer aspect-[4/5] rounded-2xl sm:aspect-[21/9]" />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className={cn("shimmer h-56 rounded-xl", i === 4 && "max-lg:hidden")} />
+        ))}
+      </div>
+    </div>
   );
 }
 

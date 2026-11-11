@@ -1921,8 +1921,8 @@
     "next": "Next photo"
   },
   "explore": {
-    "title": "Where to fly <accent>on your budget</accent>",
-    "subtitle": "Pick where you fly from, your dates and budget — we'll show destinations with the lowest prices found, as a list or on a map.",
+    "title": "Where to fly <accent>when you don’t know yet</accent>",
+    "subtitle": "Not sure where to go? Pick a part of the world (or “anywhere”), a rough date and how many nights — we’ll show where it’s cheap to fly right now.",
     "resultsHeading": "Destinations on your budget",
     "summaryTitle": "From {from} — {to}",
     "invalid": "Check the details: departure city and dates (return after departure, up to 30 nights; a period of up to 3 months).",
@@ -1959,19 +1959,10 @@
       "adults": "{count, plural, one {# adult} other {# adults}}"
     },
     "form": {
-      "from": "From (up to 3 airports)",
-      "morePlaceholder": "Another city or airport",
-      "removeOrigin": "Remove {code}",
-      "addOrigin": "Add a departure airport",
+      "from": "Flying from",
       "to": "To",
-      "anywhere": "Anywhere",
-      "regions": "Regions",
-      "countries": "Countries",
-      "exact": "Exact dates",
-      "flexible": "Flexible",
-      "departFrom": "Depart from",
-      "departUntil": "Depart by",
-      "nights": "Length",
+      "anywhere": "Not sure — anywhere",
+      "nights": "How many nights",
       "nightsRange": "{min}–{max} {max, plural, one {night} other {nights}}",
       "weekends": "Weekends only",
       "adults": "Adults",
@@ -1985,9 +1976,19 @@
       },
       "more": "More options",
       "categories": "Categories",
-      "hint": "Prices are cached, so the search is fast and free. Stays are priced for the three cheapest destinations.",
+      "hint": "Prices are cached, so search is fast and free; we'll show the exact price on the next step.",
       "submit": "Find destinations",
-      "searching": "Searching…"
+      "searching": "Searching…",
+      "whereTitle": "Where do you feel like going?",
+      "anywhereHint": "We'll show the best-value destinations worldwide — just browse what's out there.",
+      "whereHint": "We only search this part of the world. Not sure? Pick “Not sure — anywhere”.",
+      "seaIslands": "Sea & islands",
+      "when": "Roughly when",
+      "tolerance": "Date flexibility",
+      "exactDate": "That exact day",
+      "plusMinus": "± {days} {days, plural, one {day} other {days}}",
+      "toleranceHint": "The more flexible, the better the chance of a cheaper day.",
+      "nightsExact": "{count} {count, plural, one {night} other {nights}}"
     },
     "card": {
       "photoAlt": "{city}",
@@ -2071,6 +2072,19 @@
       "north_america": "North America & Caribbean",
       "south_america": "South America",
       "oceania": "Oceania"
+    },
+    "entryNotice": "Before you travel, check the entry rules: whether you need a visa, which documents (passport and its validity) and any restrictions for your citizenship. We don’t check this.",
+    "featured": {
+      "title": "Great value now from {from}",
+      "subtitle": "Lowest round-trip prices found for the next two months.",
+      "fallback": "Prices from {from}. Enter your city in the form above and we’ll pick options from there.",
+      "all": "All destinations",
+      "cheapest": "Lowest price right now",
+      "roundTrip": "round trip",
+      "from": "from {price}",
+      "nights": "{count, plural, one {# night} other {# nights}}",
+      "similar": "More similar destinations",
+      "note": "Prices are cached and per one adult; we’ll check the current price when you open a destination."
     }
   },
   "datePresets": {

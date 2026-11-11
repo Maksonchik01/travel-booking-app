@@ -75,6 +75,10 @@ test("телефон: головна, результати, фільтри у в
   await page.getByTestId("explore-card").first().waitFor();
   await noHorizontalOverflow(page, "explore");
 
+  await page.goto("/explore?from=WAW");
+  await page.getByTestId("explore-featured-hero").waitFor();
+  await noHorizontalOverflow(page, "explore-start");
+
   await page.goto("/login");
   await noHorizontalOverflow(page, "login");
   await page.goto("/privacy");

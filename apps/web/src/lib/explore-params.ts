@@ -45,6 +45,11 @@ export const NIGHT_PRESETS = [
   [7, 14],
 ] as const;
 export const DEFAULT_NIGHTS = NIGHT_PRESETS[1];
+/** Похибка дат у формі (± днів від бажаної дати): ширше — більше шансів на дешевший день. */
+export const DATE_TOLERANCES = [0, 3, 7, 14] as const;
+export const DEFAULT_TOLERANCE = 7;
+/** Нова форма — бажана дата за три тижні. */
+export const DEFAULT_LEAD_DAYS = 21;
 
 const IATA = /^[A-Z]{3}$/;
 const COUNTRY = /^[A-Z]{2}$/;
@@ -155,6 +160,45 @@ export function parseExploreDraft(raw: RawSearchParams): Partial<ExploreQuery> {
   if (budget) draft.budget = budget;
   if (first(raw.mode) === "trip") draft.mode = "trip";
   return draft;
+}
+
+/**
+ * Бажана дата ± похибка → період вильоту запиту (`depart`/`until`); минулі дні відрізаємо.
+ * Пошук завжди гнучкий: тривалість задають ночі.
+ */
+export function dateWindow(
+  center: string,
+  tolerance: number,
+  today: string,
+): { depart: string; until: string } {
+  const later = (day: string) => (day < today ? today : day);
+  return { depart: later(shiftDay(center, -tolerance)), until: later(shiftDay(center, tolerance)) };
+}
+
+/** Зворотно: бажана дата й похибка з уже заданого пошуку (URL, чернетка) — для форми. */
+export function windowOf(
+  query: Partial<ExploreQuery>,
+  today: string,
+): { center: string; tolerance: number; nights: readonly [number, number] } {
+  const depart = query.departure_date;
+  if (!depart) {
+    return {
+      center: shiftDay(today, DEFAULT_LEAD_DAYS),
+      tolerance: DEFAULT_TOLERANCE,
+      nights: [query.min_nights ?? DEFAULT_NIGHTS[0], query.max_nights ?? DEFAULT_NIGHTS[1]],
+    };
+  }
+  if (query.return_date) {
+    const n = daysBetween(depart, query.return_date);
+    return { center: depart, tolerance: 0, nights: [n, n] };
+  }
+  const span = query.departure_until ? Math.max(0, daysBetween(depart, query.departure_until)) : 0;
+  const tolerance = Math.ceil(span / 2);
+  return {
+    center: shiftDay(depart, Math.floor(span / 2)),
+    tolerance,
+    nights: [query.min_nights ?? DEFAULT_NIGHTS[0], query.max_nights ?? DEFAULT_NIGHTS[1]],
+  };
 }
 
 /** Explore зі спільного режимів пошуку (звідки, дати, люди). */
@@ -315,4 +359,21 @@ export function exploreRelaxations(
     out.push({ key: "nights", query: { ...query, min_nights: 1, max_nights: 14 } });
   }
   return out;
+}
+
+/**
+ * Пропозиції на порожньому Explore: головна — найдешевший напрямок із фото, далі — «схожі»
+ * (спільна категорія з головною, у порядку ціни), решту місць добирають інші з фото.
+ */
+export function featuredPicks(
+  destinations: ExploreDestination[],
+  size = 5,
+): { hero: ExploreDestination; similar: ExploreDestination[]; cheapest: boolean } | null {
+  const withPhoto = destinations.filter((d) => d.photo);
+  const hero = withPhoto[0];
+  if (!hero) return null;
+  const rest = withPhoto.slice(1);
+  const shares = (d: ExploreDestination) => d.categories?.some((c) => hero.categories?.includes(c));
+  const similar = [...rest.filter(shares), ...rest.filter((d) => !shares(d))].slice(0, size);
+  return { hero, similar, cheapest: destinations[0] === hero };
 }

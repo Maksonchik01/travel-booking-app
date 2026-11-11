@@ -83,6 +83,9 @@ SkyPack — веб-застосунок для пошуку подорожей �
   true+false; mock), запитів — аеропорти (≤ 3) × місяці; ціна джерела × дорослі (дітей немає). Режим `trip` — житло
   лише для `STAY_LOOKUPS = 3` найдешевших (інші — `not_checked`, суму не вигадуємо). Категорії, сезон моря, регіони,
   фото (upload.wikimedia.org, атрибуція) — `reference/destinations.json` з `scripts/update_destinations.py`.
+  Форма для тих, хто не знає куди ([ADR 0054](docs/adr/0054-explore-for-undecided.md)): «Не знаю — будь-куди» першим,
+  частини світу, «Море й острови»; дата ± похибка → `depart`/`until` (`dateWindow`/`windowOf`); до пошуку —
+  `explore-featured.tsx` (велика картка + 5 схожих, `featuredPicks`); попередження про в'їзд — `entry-notice.tsx`.
   URL і переходи — `lib/explore-params.ts` (`flightsHref`, `tripHref`, `exploreFromFlights` — «Будь-куди» у формі
   рейсів і перемикачі режимів); порівняння до 3 — `explore-compare.tsx`; карта — `explore-map-lazy.tsx`.
 - **Аеропорти в пошуку:** код аеропорту — лише він (WAW без Модліна), код міста без власного

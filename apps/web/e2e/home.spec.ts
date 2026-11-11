@@ -1292,3 +1292,23 @@ test("модуль 23b: обрана поїздка не губиться між
   await sections.getByRole("link", { name: "Поїздка" }).click();
   await expect(page).toHaveURL(new RegExp(`flight=${encodeURIComponent(chosen.get("flight")!)}`));
 });
+
+test("Explore для тих, хто не знає куди: пропозиції з фото, «не знаю» першим, дата ± похибка", async ({
+  page,
+}) => {
+  await page.goto("/explore?from=WAW");
+  // Одразу — велика картка напрямку з фото, ціною й датами та ще схожі варіанти.
+  const featured = page.getByTestId("explore-featured");
+  await expect(featured.getByTestId("explore-featured-hero")).toBeVisible();
+  await expect(featured.getByTestId("explore-featured-hero")).toContainText(/від/);
+  await expect(featured.getByTestId("explore-featured-card").first()).toBeVisible();
+  await expect(page.getByTestId("entry-notice").first()).toContainText("віза");
+
+  const form = page.getByTestId("explore-form");
+  await expect(form.getByTestId("explore-where-anywhere")).toHaveAttribute("aria-pressed", "true");
+  await form.getByTestId("explore-where-europe").click();
+  await form.getByRole("button", { name: "± 3 дні" }).click();
+  await form.getByTestId("explore-submit").click();
+  await expect(page).toHaveURL(/\/explore\?to=europe&from=WAW&depart=\d{4}-\d{2}-\d{2}&until=/);
+  await expect(page.getByTestId("explore-card").first()).toBeVisible();
+});

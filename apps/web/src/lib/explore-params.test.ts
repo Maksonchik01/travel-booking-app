@@ -2,14 +2,17 @@ import type { ExploreDestination } from "@tickets/shared";
 import { describe, expect, it } from "vitest";
 
 import {
+  dateWindow,
   exploreFromFlights,
   exploreHref,
   exploreRelaxations,
+  featuredPicks,
   flightsHref,
   parseExploreDraft,
   parseExploreParams,
   toggleCategory,
   tripHref,
+  windowOf,
 } from "./explore-params";
 
 const DEST = {
@@ -151,5 +154,47 @@ describe("explore params (ADR 0045)", () => {
     });
     expect(toggleCategory(query, "sea").categories).toEqual([]);
     expect(toggleCategory(query, "city").categories).toEqual(["sea", "city"]);
+  });
+
+  it("дата ± похибка ↔ період вильоту; минулі дні відрізаємо", () => {
+    expect(dateWindow("2026-12-10", 7, "2026-11-11")).toEqual({
+      depart: "2026-12-03",
+      until: "2026-12-17",
+    });
+    expect(dateWindow("2026-11-12", 3, "2026-11-11")).toEqual({
+      depart: "2026-11-11",
+      until: "2026-11-15",
+    });
+    expect(dateWindow("2026-12-10", 0, "2026-11-11").until).toBe("2026-12-10");
+    expect(
+      windowOf({ departure_date: "2026-12-03", departure_until: "2026-12-17" }, "2026-11-11"),
+    ).toMatchObject({ center: "2026-12-10", tolerance: 7 });
+    // Точні дати (старі посилання, чат) — похибки немає, ночі — рівно між датами.
+    expect(
+      windowOf({ departure_date: "2026-12-05", return_date: "2026-12-08" }, "2026-11-11"),
+    ).toEqual({ center: "2026-12-05", tolerance: 0, nights: [3, 3] });
+    expect(windowOf({}, "2026-11-11")).toEqual({
+      center: "2026-12-02",
+      tolerance: 7,
+      nights: [2, 4],
+    });
+  });
+
+  it("пропозиції: головна — найдешевша з фото, схожі — спершу зі спільною категорією", () => {
+    const photo = { url: "https://upload.wikimedia.org/x.jpg", page: "https://en.wikipedia.org" };
+    const make = (code: string, categories: string[], withPhoto = true) =>
+      ({ ...DEST, code, categories, photo: withPhoto ? photo : null }) as ExploreDestination;
+    const list = [
+      make("AAA", ["sea"], false),
+      make("BCN", ["city", "sea"]),
+      make("OSL", ["mountains"]),
+      make("LIS", ["sea"]),
+      make("PRG", ["city"]),
+    ];
+    const picks = featuredPicks(list)!;
+    expect(picks.hero.code).toBe("BCN");
+    expect(picks.cheapest).toBe(false);
+    expect(picks.similar.map((d) => d.code)).toEqual(["LIS", "PRG", "OSL"]);
+    expect(featuredPicks([make("X", [], false)])).toBeNull();
   });
 });
